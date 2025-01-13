@@ -1,0 +1,41 @@
+Put these files in a directory structure like:
+
+ipl/
+  ipl.asd
+  src/
+    package.lisp
+    core.lisp
+    memory.lisp
+    ...
+  tests/
+    package.lisp
+    core-tests.lisp
+    ...
+
+
+Link or copy ipl.asd to your ASDF system location
+
+Load the system:
+
+(asdf:load-system :ipl)
+
+Run tests:
+
+(asdf:test-system :ipl)
+
+ipl/
+  ipl.asd
+  src/
+    package.lisp              -> ipl-package
+    emulator.lisp            -> ipl-emulator
+    list-ops.lisp           -> ipl-list-ops
+    desc-lists.lisp         -> ipl-desc-lists
+    arithmetic.lisp         -> ipl-arithmetic
+    generator-ops.lisp      -> ipl-generator-ops
+    print.lisp             -> ipl-print
+    complex-test.lisp      -> ipl-complex-test
+  tests/
+    package.lisp
+    emulator-tests.lisp
+    list-tests.lisp
+    generator-tests.lisp
