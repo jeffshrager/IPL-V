@@ -17,6 +17,7 @@ Link or copy ipl.asd to your ASDF system location
 
 Load the system:
 
+(load "ipl/ipl.asd")
 (asdf:load-system :ipl)
 
 Run tests:

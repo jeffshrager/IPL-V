@@ -1,7 +1,7 @@
 ;; Data Term and Arithmetic Processes (J110-J129)
 
 ;; Data term structure
-(defstruct data-term
+(defstruct (data-term (:predicate data-term?))
   type    ; 0=integer, 1=float, 2=alphanumeric, 3=octal
   value)  ; Actual value
 
@@ -78,7 +78,7 @@
                                   :value (1+ (data-term-value term)))))))
 
 ;; Random number generation
-(defvar *random-state* (make-random-state t))
+(setf *random-state* (make-random-state t))
 
 ;; J129: Random number between 0 and (0)
 (defun j129 ()
