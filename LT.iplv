@@ -2101,7 +2101,7 @@
                                                  00Q6                      A000D050
                                                  00Q7                      A000D060
                                                  00       0                A000D070
-                                                _21A                       A000D080
+                                                +21A                       A000D080
      FREE VARIABLE B                       B     00       0                B000D000
                                                  000                       B000D010
                                                  00Q5                      B000D020
@@ -2110,7 +2110,7 @@
                                                  00Q6                      B000D050
                                                  00Q7                      B000D060
                                                  00       0                B000D070
-                                                _21B                       B000D080
+                                                +21B                       B000D080
      FREE VARIABLE C                       C     00       0                C000D000
                                                  000                       C000D010
                                                  00Q5                      C000D020
@@ -2119,7 +2119,7 @@
                                                  00Q6                      C000D050
                                                  00Q7                      C000D060
                                                  00       0                C000D070
-                                                _21C                       C000D080
+                                                +21C                       C000D080
      FREE VARIABLE D                       D     00       0                D000D000
                                                  000                       D000D010
                                                  00Q5                      D000D020
@@ -2128,7 +2128,7 @@
                                                  00Q6                      D000D050
                                                  00Q7                      D000D060
                                                  00       0                D000D070
-                                                _21D                       D000D080
+                                                +21D                       D000D080
      FREE VARIABLE E                       E     00       0                E000D000
                                                  000                       E000D010
                                                  00Q5                      E000D020
@@ -2137,7 +2137,7 @@
                                                  00Q6                      E000D050
                                                  00Q7                      E000D060
                                                  00       0                E000D070
-                                                _21E                       E000D080
+                                                +21E                       E000D080
      FREE VARIABLE F                       F     00       0                F000D000
                                                  000                       F000D010
                                                  00Q5                      F000D020
@@ -2146,7 +2146,7 @@
                                                  00Q6                      F000D050
                                                  00Q7                      F000D060
                                                  00       0                F000D070
-                                                _21F                       F000D080
+                                                +21F                       F000D080
      FREE VARIABLE G                       G     00       0                G000D000
                                                  000                       G000D010
                                                  00Q5                      G000D020
@@ -2155,7 +2155,7 @@
                                                  00Q6                      G000D050
                                                  00Q7                      G000D060
                                                  00       0                G000D070
-                                                _21G                       G000D080
+                                                +21G                       G000D080
      H0 LUBRICATION.                       H0    00*1                      H000D000
                                                  00*2                      H000D010
                                                  00*3                      H000D020
@@ -2166,12 +2166,12 @@
                                                  00J4                      I000D030
                                                  00Q7                      I000D040
                                                  00       0                I000D050
-                                                _21I                       I000D060
+                                                +21I                       I000D060
      K0 SYMBOL FOR CHARACTER K.            K     00       0                K000D000
                                                  000                       K000D010
                                                  00Q7                      K000D020
                                                  00       0                K000D030
-                                                _21K                       K000D040
+                                                +21K                       K000D040
      HOLDS 'OR'                            K1    00V0     0                K001D000
      HOLDS 'NOT'                           K2    00-0     0                K002D000
      HOLDS 'AND'                           K3    00*0     0                K003D000
@@ -2180,11 +2180,11 @@
      HOLD 'IMPLIES'                        K6    00I0     0                K006D000
      K7 HOLDS CONNECTIVE DELIMETER.        K7    00.      0                K007D000
      K10 PREVIOUS PROBLEM NUMBER.          K10   01       0                K010D000
-     SUBSTITUTION COUNT                    K11  _01       0                K011D000
-     EFFORT BASE AND TOTAL                 K12  _01       0                K012D000
-     LIMIT ON NO. OF  SUBPROBLEMS          K20  _01       100              K020D000
-     LIMIT ON NO. OF  SUBSTITUTIONS        K21  _01       100              K021D000
-     LIMIT ON EFFORT                       K22  _01100    0000             K022D000
+     SUBSTITUTION COUNT                    K11  +01       0                K011D000
+     EFFORT BASE AND TOTAL                 K12  +01       0                K012D000
+     LIMIT ON NO. OF  SUBPROBLEMS          K20  +01       100              K020D000
+     LIMIT ON NO. OF  SUBSTITUTIONS        K21  +01       100              K021D000
+     LIMIT ON EFFORT                       K22  +01100    0000             K022D000
                                            K30   00F                       K030D000
      K31 DON'T PRINT REJECTS IF HOLD NO    K31   00NO                      K031D000
      K41 VALUE = METHOD COLUMN.            K41   01       10               K041D000
@@ -2203,7 +2203,7 @@
                                                  000                       L000D010
                                                  00Q7                      L000D020
                                                  00       0                L000D030
-                                                _21L                       L000D040
+                                                +21L                       L000D040
      L1 TRUE THEOREMS AXIOMS DEFINITIONS   L1    00       0                L001D000
      LIST OF FREE VARIABLES                L2    000                       L002D000
                                                  00A0                      L002D010
@@ -2262,27 +2262,27 @@
                                                  000                       M000D010
                                                  00Q7                      M000D020
                                                  00       0                M000D030
-                                                _21M                       M000D040
+                                                +21M                       M000D040
      N0 SYMBOL FOR CHARACTER N.            N     00       0                N000D000
                                                  000                       N000D010
                                                  00Q7                      N000D020
                                                  00       0                N000D030
-                                                _21N                       N000D040
-     I INTEGER CONSTANTS.                  N1   _01       1                N001D000
-                                           N2   _01       2                N002D000
-                                           N3   _01       3                N003D000
-                                           N4   _01       4                N004D000
-                                           N5   _01       5                N005D000
-                                           N6   _01       6                N006D000
-                                           N7   _01       7                N007D000
-                                           N8   _01       8                N008D000
-                                           N9   _01       9                N009D000
-                                           N10  _01       0                N010D000
+                                                +21N                       N000D040
+     I INTEGER CONSTANTS.                  N1   +01       1                N001D000
+                                           N2   +01       2                N002D000
+                                           N3   +01       3                N003D000
+                                           N4   +01       4                N004D000
+                                           N5   +01       5                N005D000
+                                           N6   +01       6                N006D000
+                                           N7   +01       7                N007D000
+                                           N8   +01       8                N008D000
+                                           N9   +01       9                N009D000
+                                           N10  +01       0                N010D000
      O0 SYMBOL FOR CHARACTER O.            O     00       0                O000D000
                                                  000                       O000D010
                                                  00Q7                      O000D020
                                                  00       0                O000D030
-                                                _21O                       O000D040
+                                                +21O                       O000D040
      VARIABLE P                            P     00       0                P000D000
                                                  000                       P000D010
                                                  00P5                      P000D020
@@ -2291,7 +2291,7 @@
                                                  00P9                      P000D037
                                                  00P7                      P000D040
                                                  00       0                P000D050
-                                                _21P                       P000D060
+                                                +21P                       P000D060
      VARIABLE Q                            Q     00       0                Q000D000
                                                  000                       Q000D010
                                                  00Q5                      Q000D020
@@ -2300,7 +2300,7 @@
                                                  00Q9                      Q000D037
                                                  00Q7                      Q000D040
                                                  00       0                Q000D050
-                                                _21Q                       Q000D060
+                                                +21Q                       Q000D060
      VARIABLE R                            R     00       0                R000D000
                                                  000                       R000D010
                                                  00R5                      R000D020
@@ -2309,7 +2309,7 @@
                                                  00R9                      R000D037
                                                  00R7                      R000D040
                                                  00       0                R000D050
-                                                _21R                       R000D060
+                                                +21R                       R000D060
      VARIABLE S                            S     00       0                S000D000
                                                  000                       S000D010
                                                  00S5                      S000D020
@@ -2318,7 +2318,7 @@
                                                  00S9                      S000D037
                                                  00S7                      S000D040
                                                  00       0                S000D050
-                                                _21S                       S000D060
+                                                +21S                       S000D060
      VARIABLE T                            T     00       0                T000D000
                                                  000                       T000D010
                                                  00T5                      T000D020
@@ -2327,7 +2327,7 @@
                                                  00T9                      T000D037
                                                  00T7                      T000D040
                                                  00       0                T000D050
-                                                _21T                       T000D060
+                                                +21T                       T000D060
      GIVEN'                                T1    000                       T001D000
                                                  00       0                T001D010
                                                  21GIVEN                   T001D020
@@ -2478,137 +2478,137 @@
                                                  000                       U000D010
                                                  00Q7                      U000D020
                                                  00       0                U000D030
-                                                _21U                       U000D040
+                                                +21U                       U000D040
      OR                                    V     00       0                V000D000
                                                  000                       V000D000
                                                  00Q14                     V000D010
                                                  00J4                      V000D020
                                                  00Q7                      V000D030
                                                  00       0                V000D040
-                                                _21V                       V000D050
+                                                +21V                       V000D050
      X0 SYMBOL FOR CHARACTER X.            X     00       0                X000D060
                                                  000                       X000D010
                                                  00Q7                      X000D020
                                                  00       0                X000D030
-                                                _21X                       X000D040
+                                                +21X                       X000D040
      Y0 SYMBOL FOR CHARACTER Y.            Y     00       0                Y000D000
                                                  000                       Y000D010
                                                  00Q7                      Y000D020
                                                  00       0                Y000D030
-                                                _21Y                       Y000D040
+                                                +21Y                       Y000D040
      Z0 SYMBOL FOR CHARACTER Z.            Z     00       0                Z000D000
                                                  000                       Z000D010
                                                  00Q7                      Z000D020
                                                  00       0                Z000D030
-                                                _21Z                       Z000D040
+                                                +21Z                       Z000D040
      NOT                                   -     00       0                -000D000
                                                  000                       -000D000
                                                  00Q14                     -000D010
                                                  00J3                      -000D020
                                                  00Q7                      -000D030
                                                  00       0                -000D040
-                                                _21-                       -000D050
+                                                +21-                       -000D050
      AND                                   *     00       0                *000D000
                                                  000                       *000D000
                                                  00Q14                     *000D010
                                                  00J4                      *000D020
                                                  00Q7                      *000D030
                                                  00       0                *000D040
-                                                _21*                       *000D050
-     PROVEN EQUIVALENCE                    =     00       0                _=000D00
-                                                 000                       _=000D00
-                                                 00Q14                     _=000D01
-                                                 00J4                      _=000D02
-                                                 00Q7                      _=000D03
-                                                 00       0                _=000D04
-                                                _21_=                      _=000D05
-     DEFINITIONAL EQUIVALENCE              =1    00       0                _=001D00
-                                                 000                       _=001D00
-                                                 00Q14                     _=001D01
-                                                 00J4                      _=001D02
-                                                 00Q7                      _=001D03
-                                                 00       0                _=001D04
-                                                _21.=.                     _=001D05
-     +0 SYMBOL FOR PLUS SIGN.              +     00       0                _+000D00
-                                                 000                       _+000D01
-                                                 00Q7                      _+000D02
-                                                 00       0                _+000D03
-                                                _21_+                      _+000D04
+                                                +21*                       *000D050
+     PROVEN EQUIVALENCE                    =     00       0                =000D000
+                                                 000                       =000D000
+                                                 00Q14                     =000D010
+                                                 00J4                      =000D020
+                                                 00Q7                      =000D030
+                                                 00       0                =000D040
+                                                +21=                       =000D050
+     DEFINITIONAL EQUIVALENCE              =1    00       0                =001D000
+                                                 000                       =001D000
+                                                 00Q14                     =001D010
+                                                 00J4                      =001D020
+                                                 00Q7                      =001D030
+                                                 00       0                =001D040
+                                                +21.=.                     =001D050
+     +0 SYMBOL FOR PLUS SIGN.              +     00       0                +000D000
+                                                 000                       +000D010
+                                                 00Q7                      +000D020
+                                                 00       0                +000D030
+                                                +21+                       +000D040
      /0 SYMBOL FOR SLASH.                  /     00       0                /000D000
                                                  000                       /000D010
                                                  00Q7                      /000D020
                                                  00       0                /000D030
-                                                _21/                       /000D040
+                                                +21/                       /000D040
      /1 SYMBOL FOR DIGIT 1.                /1    00       0                /001D000
                                                  000                       /001D010
                                                  00Q7                      /001D020
                                                  00       0                /001D030
-                                                _211                       /001D040
+                                                +211                       /001D040
      /2 SYMBOL FOR DIGIT 2.                /2    00       0                /002D000
                                                  000                       /002D010
                                                  00Q7                      /002D020
                                                  00       0                /002D030
-                                                _212                       /002D040
+                                                +212                       /002D040
      /3 SYMBOL FOR DIGIT 3.                /3    00       0                /003D000
                                                  000                       /003D010
                                                  00Q7                      /003D020
                                                  00       0                /003D030
-                                                _213                       /003D040
+                                                +213                       /003D040
      /4 SYMBOL FOR DIGIT 4.                /4    00       0                /004D000
                                                  000                       /004D010
                                                  00Q7                      /004D020
                                                  00       0                /004D030
-                                                _214                       /004D040
+                                                +214                       /004D040
      /5 SYMBOL FOR DIGIT 5.                /5    00       0                /005D000
                                                  000                       /005D010
                                                  00Q7                      /005D020
                                                  00       0                /005D030
-                                                _215                       /005D040
+                                                +215                       /005D040
      /6 SYMBOL FOR DIGIT 6.                /6    00       0                /006D000
                                                  000                       /006D010
                                                  00Q7                      /006D020
                                                  00       0                /006D030
-                                                _216                       /006D040
+                                                +216                       /006D040
      /7 SYMBOL FOR DIGIT 7.                /7    00       0                /007D000
                                                  000                       /007D010
                                                  00Q7                      /007D020
                                                  00       0                /007D030
-                                                _217                       /007D040
+                                                +217                       /007D040
      /8 SYMBOL FOR DIGIT 8.                /8    00       0                /008D000
                                                  000                       /008D010
                                                  00Q7                      /008D020
                                                  00       0                /008D030
-                                                _218                       /008D040
+                                                +218                       /008D040
      /9 SYMBOL FOR DIGIT 9.                /9    00       0                /009D000
                                                  000                       /009D010
                                                  00Q7                      /009D020
                                                  00       0                /009D030
-                                                _219                       /009D040
+                                                +219                       /009D040
      /10 SYMBOL FOR DIGIT 0.               /10   00       0                /010D000
                                                  000                       /010D010
                                                  00Q7                      /010D020
                                                  00       0                /010D030
-                                                _210                       /010D040
+                                                +210                       /010D040
      /11 SYMBOL FOR CHARACTER J [H?].      /11   00       0                /011D000
                                                  000                       /011D010
                                                  00Q7                      /011D020
                                                  00       0                /011D030
-                                                _21H                       /011D040
+                                                +21H                       /011D040
      /11 SYMBOL FOR CHARACTER W [J?].      /12   00       0                /012D000
                                                  000                       /012D010
                                                  00Q7                      /012D020
                                                  00       0                /012D030
-                                                _21J                       /012D040
+                                                +21J                       /012D040
      /11 SYMBOL FOR CHARACTER H [W?].      /13   00       0                /013D000
                                                  000                       /013D010
                                                  00Q7                      /013D020
                                                  00       0                /013D030
-                                                _21W                       /013D040
+                                                +21W                       /013D040
      /11 DUMMY CHARACTER SYMBOL            /14   00       0                /014D000
                                                  000                       /014D010
                                                  00Q7                      /014D020
                                                  00       0                /014D030
-                                                _21/UGH/                   /014D040
+                                                +21/UGH/                   /014D040
      /16 DUMMY EXPRESSION --               /16   009-1                     /016D000
              'DEFINITIONS'.                      009-2    0                /016D010
                                            9-1   000                       /016D020
@@ -2642,11 +2642,11 @@
                                                  000                       (000D010
                                                  00Q7                      (000D020
                                                  00K51    0                (000D030
-     '0 SYMBOL FOR QUOTE MARK.             '     00       0                _'000D00
-                                                 000                       _'000D01
-                                                 00Q7                      _'000D02
-                                                 00       0                _'000D03
-                                                _21_'                      _'000D04
+     '0 SYMBOL FOR QUOTE MARK.             '     00       0                '000D000
+                                                 000                       '000D010
+                                                 00Q7                      '000D020
+                                                 00       0                '000D030
+                                                +21'                       '000D040
      )0 SYMBOL FOR RIGHT PAREN.            )     00       0                )000D000
                                                  000                       )000D010
                                                  00Q7                      )000D020
@@ -2663,7 +2663,7 @@
                                                  000                       $000D010
                                                  00Q7                      $000D020
                                                  00       0                $000D030
-                                                _21$                       $000D040
+                                                +21$                       $000D040
      EXECUTIVE HEADER                   5        00                        R-      
                                         1        00                        R       
                                            x1    11W26                     X001R000

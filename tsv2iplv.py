@@ -35,7 +35,7 @@ formatted_lines = []
 for file_path in args.input_files:
     print(f"Opening file: {file_path}")
     df = pd.read_csv(file_path, sep="	", dtype=str, keep_default_na=False)
-    df = df.astype(str)  # Ensure all columns are treated as strings
+    df = df.astype(str).applymap(lambda x: x.replace('_', ''))  # Ensure all columns are treated as strings
     for line_num, (_, row) in enumerate(df.iterrows(), start=1):
         if line_num % 100 == 0:
             print(f"Processing line {line_num}...")
