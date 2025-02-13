@@ -24,7 +24,7 @@ def format_iplv_line(row, line_num):
         id_field = row.get("ID", "").strip().replace(" ", "").ljust(8)[:8]  # Preserve leading zeros
         
         # Formatting according to the specified column structure
-        formatted_line = f"{'':5}{comment}{type_field} {'':1}{name}{sign}{pq}{symb} {'':1}{link} {'':1}{comments}{id_field}"
+        formatted_line = f"{'':5}{comment}{type_field}{'':1}{name}{sign}{pq}{symb}{'':1}{link}{'':1}{comments}{id_field}"
         return formatted_line
     except Exception as e:
         print(f"Error processing line {line_num}: {e}")
@@ -35,7 +35,7 @@ formatted_lines = []
 for file_path in args.input_files:
     print(f"Opening file: {file_path}")
     df = pd.read_csv(file_path, sep="	", dtype=str, keep_default_na=False)
-    df = df.astype(str).applymap(lambda x: x.replace('_', ''))  # Ensure all columns are treated as strings
+    df = df.astype(str).map(lambda x: x.replace('_', ''))  # Ensure all columns are treated as strings
     for line_num, (_, row) in enumerate(df.iterrows(), start=1):
         if line_num % 100 == 0:
             print(f"Processing line {line_num}...")
