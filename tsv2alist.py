@@ -11,14 +11,7 @@ parser.add_argument("output_file", help="Output file for the Lisp alist")
 args = parser.parse_args()
 
 # Relevant columns for the output
-relevant_columns = {"Comments", "Type", "Name", "Sign", "PQ", "Symb", "Link", "Comments.1", "ID"}
-
-# Function to convert a row to a Lisp-style alist
-def row_to_lisp_alist(row):
-    if '*' in row.get("Page", ""):  # Suppress rows where Page contains '*'
-        print("Suppressed " + str(row) + "\n")
-        return None
-    return "(" + " ".join(f":{col.lower().replace(' ', '_')} \"{row[col]}\"" for col in row.index if col in relevant_columns) + ")"
+relevant_columns = ["Comments", "Type", "Name", "Sign", "PQ", "Symb", "Link", "Comments.1", "ID"]
 
 # Process each input file
 lisp_data = []
@@ -27,8 +20,14 @@ for file_path in args.input_files:
     df = pd.read_csv(file_path, sep="\t", dtype=str, keep_default_na=False)
     df = df.astype(str).map(lambda x: x.replace('_', ''))  # Ensure strings and remove underbars
     
-    file_lisp_data = [row_to_lisp_alist(row) for _, row in df.iterrows()]
-    file_lisp_data = [entry for entry in file_lisp_data if entry]  # Remove suppressed rows
+    # Create header row with field names
+    header_expr = "(" + " ".join(f":{col.lower().replace(' ', '_')}" for col in relevant_columns) + ")"
+    
+    # Create data rows
+    file_lisp_data = ["(" + " ".join(f'"{row[col]}"' for col in relevant_columns) + ")" 
+                       for _, row in df.iterrows() if '*' not in row.get("Page", "")]
+    
+    lisp_data.append(header_expr)
     lisp_data.extend(file_lisp_data)
 
 # Format as an s-expression with newlines
