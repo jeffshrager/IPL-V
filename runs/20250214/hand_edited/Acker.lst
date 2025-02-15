@@ -1,0 +1,44 @@
+ ENTER TIME = HHMMSS IN KEYS AND START                                  
+ IF   211559 CORRECT,RESTORE KEYS--IF WRONG,PUT ALL KEYS DOWN AND START 
+TURN ON THE CLOCK AND PRESS START                                       
+$LIST                                                                   
+$DATE          021425                                                   
+$UNITS                                                                  
+     FUNCTION      UNIT                                                 
+      SYSLB1        A1        HI DEN                                    
+      SYSLB2        A0        HI DEN                                    
+      SYSLB3       NONE                                                 
+      SYSLB4       NONE                                                 
+      SYSCRD        RDA                                                 
+      SYSPRT        PRA                                                 
+      SYSPCH        PUA                                                 
+      SYSOU1        B1        HI DEN                                    
+      SYSOU2        B1        HI DEN                                    
+      SYSIN1        A2        HI DEN                                    
+      SYSIN2        A2        HI DEN                                    
+      SYSPP1        B2        HI DEN                                    
+      SYSPP2        B4        HI DEN                                    
+      SYSCK1        A5        HI DEN                                    
+      SYSCK2        B5        HI DEN                                    
+      SYSUT1        A3        HI DEN                                    
+      SYSUT2        B3        HI DEN                                    
+      SYSUT3        A4        HI DEN                                    
+      SYSUT4        B4        HI DEN                                    
+      SYSUT5       NONE                                                 
+      SYSUT6       NONE                                                 
+      SYSUT7       NONE                                                 
+      SYSUT8       NONE                                                 
+      SYSUT9       NONE                                                 
+ ATTACHED UNITS NOT ASSIGNED OR RESERVED.                               
+        A6                                                              
+        B6                                                              
+ INTER SYSTEM RESERVE UNITS.                                            
+       NONE                                                             
+                                                                        
+$JOB           ACKER                                                    
+$EXECUTE       IPL-V                                                    
+$ID    OTLEY*001/65/003*5M*500P$                                        
+  02/14/25 ON 21-15-59                                                  
+$IBSYS                                                                  
+$PAUSE                                                                  
+OPER. ACTION PAUSE                                                      
