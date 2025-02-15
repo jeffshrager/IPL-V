@@ -1,5 +1,7 @@
 # conda activate iplv
-# python3 LT_IPL-V_transcription_from_Stefferud_1963-CODE129-170.tsv LT_IPL-V_transcription_from_Stefferud_1963-DATA171-182.tsv LT_IPL-V_transcription_from_Stefferud_1963-CODE183-184.tsv LT.iplv
+# python3 tsv2iplv.py LT_IPL-V-CODE_129-170.tsv LT_IPL-V-DATA_171-182.tsv LT_IPL-V-CODE_183-184.tsv LT_IPL-V-Exec_Code_71-73.tsv LT.iplv
+
+# Line with a * in the "page" col are warned and suppressed -- this lets us surgically remove lines.
 
 import pandas as pd
 import argparse
@@ -13,6 +15,7 @@ args = parser.parse_args()
 # Function to clean and format data
 def format_iplv_line(row, line_num):
     try:
+        page = row.get("Page", "")
         comment = row.get("Comments", "").replace("_", "").ljust(35)[:35]
         type_field = row.get("Type", "").strip().ljust(1)[:1]
         name = row.get("Name", "").replace("_", "").ljust(5)[:5]
@@ -25,9 +28,15 @@ def format_iplv_line(row, line_num):
         
         # Formatting according to the specified column structure
         formatted_line = f"{'':5}{comment}{type_field}{'':1}{name}{sign}{pq}{symb}{'':1}{link}{'':1}{comments}{id_field}"
-        return formatted_line
+        if page.find('*') > 0:
+            print(page)
+            print("Line suppressed:\n"+formatted_line+"\n")
+            return None
+        else:
+            return formatted_line
     except Exception as e:
         print(f"Error processing line {line_num}: {e}")
+        print(formatted_line)
         return None
 
 # Process each input file
