@@ -1,4 +1,3 @@
-(
 (:comments :type :name :sign :pq :symb :link :comments.1 :id)
 ("LOGIC THEORIST (IPL-V)" "9" "" "" "" "" "" "" "-")
 ("" "2" "A" "" "" "" "10" "" "0000 000")
@@ -2843,4 +2842,3 @@
 ("*4.25 (P=(PVP))" "" "" "" "" "" "" "" "")
 ("" "" "" "" "" "" "" "" "")
 ("TRANSCIPTION END" "" "" "" "" "" "" "" "")
-)
