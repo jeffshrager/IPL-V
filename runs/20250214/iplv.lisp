@@ -104,9 +104,10 @@
 (defun sv (symb) (car (gethash symb *vals*)))
 
 (defun run (&key trace-level)
-  (prog (h1 ir pq q p symb link s)
+  (prog (h0 h1 ir pq q p symb link s)
    START
-     (setf h1 (getval :h1))
+     (setf h0 (getval :h0)
+	   h1 (getval :h1))
      ;; H1 contains the name of The cell holding the instruction to be
      ;; interpreted.  (H1 could be a symbol or the head of a list. If it's a
      ;; symbol, that automatically gets de-ref'ed to the list via the symbol
@@ -115,22 +116,35 @@
        (when trace-level (format t "~%In RUN, at START: H1 = ~s, de-referencing!~%" h1))
        (pushval (getf h1 *symtbl*) :h1)
        (go start))
-   DECODE-PQ
+   DECODE-INSTRUCTION
      (setq ir (car h1))
      (setf pq (ir-pq ir)
 	   q (getpq :q pq)
-	   p (getpq :p pq))
-     (when trace-level (format t "~%In RUN, at INTERPRET-Q: IR =~%~s~%" ir))
+	   p (getpq :p pq)
+	   symb (ir-symb ir)
+	   link (ir-link ir)
+	   )
+     (when trace-level (format t "~%In RUN, at DECODE-INSTRUCTION: IR =~%~s~%" ir))
    INTERPRET-Q
      ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
      ;; INTERPRET-P.  - Q = 3, 4: Execute monitor action (see ~ 15.0,
-     ;; MONITORSYSTEM) ; take S = SYMB; go to INTERPRETP.  - Q = 5:
+     ;; MONITORSYSTEM) ; take S = SYMB; go to INTERPRET-P.  - Q = 5:
      ;; Transfer machine control to SYMB (executing primitive); go to
      ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
      ;; storage; put location of routine in block into Hl; go to
      ;; INTERPRET-Q.
-     $$$
+     (case q
+       (0 (setf s symb) (go INTERPRET-P))
+       (1 (setf s (first (gethash symb *stacks*))) (go INTERPRET-P))
+       (2 (setf s (first (gethash (first (gethash symb *stacks*)) *stacks*))) (go INTERPRET-P))
+       (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" ir) (setf s symb) (go INTERPRET-P))
+       (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" ir) (setf s symb) (go INTERPRET-P))
+       (5 (call-ipl-prim symb) (go ascend)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
+       (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!"))
+       (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!"))
+       )
    INTERPRET-P     
+     (break)
      ))
     
 (untrace)
