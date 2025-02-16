@@ -5,7 +5,7 @@
 ;;; Loader simply loads everything created by tsv2alist.py into
 ;;; *symtab*
 
-(defvar *stacks* (make-hash-table :test #'equal))
+(defvar *vals* (make-hash-table :test #'equal))
 (defvar *symtbl* (make-hash-table :test #'equal))
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
@@ -16,7 +16,9 @@
 
 (defun reset! ()
   (clrhash *symtbl*) ;; "ir" == "ipl row"
-  (clrhash *col->vals*))
+  (clrhash *col->vals*)
+  (clrhash *vals*)
+  )
 
 (defun load-ipl (file &key (reset? t))
   (when reset? (reset!))
@@ -81,6 +83,56 @@
     (maphash (lambda (key value) (push (cons key value) result)) *val->counts*)
     result))
 
+;;; This is based on 3.14-15 of Newell's 1963 IPL-V manual.
+
+;;; Getting the P and Q is a little tricky because they can be blank. Blank is
+;;; interpreted as zero, and if they're both blank ("") it's not a problem --
+;;; both zero, but if only one is blank it can be ambiguous because these didn't
+;;; come from cards. This isn't suppose to happen, so if it does, we raise a
+;;; warning, and intepret it as if P is blank (0). So, for example, technically
+;;; they could have entered "9_" instead of "_9", but we can't tell the
+;;; difference. We should always code these as with 90 or 09 to disambiguate.
+
+(defun getpq (pq? val &aux (l (length val)))
+  (if (> l 2)
+      (error "In GETPQ, val = ~s, which shouldn't happen!" val)
+      (if (zerop l) 0
+	  (if (= 1 l)
+	      (case pq? (:p 0) (:q (parse-integer val)))
+	      (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2)))))))
+
+(defun sv (symb) (car (gethash symb *vals*)))
+
+(defun run (&key trace-level)
+  (prog (h1 ir pq q p symb link s)
+   START
+     (setf h1 (getval :h1))
+     ;; H1 contains the name of The cell holding the instruction to be
+     ;; interpreted.  (H1 could be a symbol or the head of a list. If it's a
+     ;; symbol, that automatically gets de-ref'ed to the list via the symbol
+     ;; table.)
+     (when (stringp h1)
+       (when trace-level (format t "~%In RUN, at START: H1 = ~s, de-referencing!~%" h1))
+       (pushval (getf h1 *symtbl*) :h1)
+       (go start))
+   DECODE-PQ
+     (setq ir (car h1))
+     (setf pq (ir-pq ir)
+	   q (getpq :q pq)
+	   p (getpq :p pq))
+     (when trace-level (format t "~%In RUN, at INTERPRET-Q: IR =~%~s~%" ir))
+   INTERPRET-Q
+     ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
+     ;; INTERPRET-P.  - Q = 3, 4: Execute monitor action (see ~ 15.0,
+     ;; MONITORSYSTEM) ; take S = SYMB; go to INTERPRETP.  - Q = 5:
+     ;; Transfer machine control to SYMB (executing primitive); go to
+     ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
+     ;; storage; put location of routine in block into Hl; go to
+     ;; INTERPRET-Q.
+     $$$
+   INTERPRET-P     
+     ))
+    
 (untrace)
 ;(trace global-symb?)
 (load-ipl "LT.lisp")
