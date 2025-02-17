@@ -1,5 +1,7 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+(declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
+
 (defstruct card comments type name sign pq symb link comments.1 id)
 
 ;;; ===================================================================
@@ -7,17 +9,25 @@
 ;;; into *symtab*. Nb. You should end with a type 5 card to execute!
 ;;; ===================================================================
 
+(defvar *ipl-trace-list* nil) ;; t for all, or: :load :run 
+
+(defun ipl-trace (key fmt &rest args)
+  (when (or (equal *ipl-trace-list* t)
+	    (equal key t)
+	    (member key *ipl-trace-list*))
+    (apply #'format t fmt args)))
+
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
 
-(defun load-ipl (file &key (reset? t) trace-level)
+(defun load-ipl (file &key (reset? t))
   (when reset? (reset!))
   (with-open-file
       (i file)
-    (format t "Loading IPL file: ~a~%" file)
+    (ipl-trace :load "Loading IPL file: ~a~%" file)
     ;; First line is assumed to be the header which we just check
     (if (equal *cols* (read i))
-	(format t "Header okay!~%")
+	(ipl-trace :load "Header okay!~%")
 	(error "No valid header on ~a" file)
 	)
     (loop for read-row = (read i nil nil)
@@ -43,7 +53,7 @@
 	       (cond ((string-equal "" (card-type card))
 		      (when (global-symb? name)
 			(progn 
-			  (format t "Loading global name: ~a~%" name)
+			  (ipl-trace :load "Loading global name: ~a~%" name)
 			  (when gather
 			    (setf gather (reverse gather))
 			    (setf (gethash (card-name (car gather)) *symtbl*) gather)
@@ -52,8 +62,8 @@
 		     ((and (string-equal "5" (card-type card))
 			   (global-symb? (card-symb card)))
 		      (format t "*** Execution start at ~a ***~%" (card-symb card))
-		      (run (card-symb card) :trace-level trace-level))
-		     (t (format t "Ignoring: ~s~%" read-row))))
+		      (run (card-symb card)))
+		     (t (ipl-trace :load "Ignoring: ~s~%" read-row))))
 	  finally (progn (setf gather (reverse gather))
 			 (setf (gethash (card-name (car gather)) *symtbl*) gather))
 	  )))
@@ -120,19 +130,19 @@
 ;;; INTERPRETATION CYCLE", pg. 164 of the IPL-V manual.
 ;;; ===================================================================
 
-(defun run (h1 &key trace-level)
+(defun run (h1)
   (prog (card pq q p symb link s)
    START
    INTERPRET-Q
-     (when trace-level (format t "INTERPRET-Q w/H1 = ~s!~%" h1))
+     (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" h1)
      ;; (setf h1 (*val "h1")) ;; Note that this could be a symbol or a whole list. ????
      ;; H1 contains the name of The cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list.
      (when (stringp h1)
-       (when trace-level (format t "~%At START: H1 = ~s, de-referencing!~%" h1))
+       (ipl-trace :run "~%At START: H1 = ~s, de-referencing!~%" h1)
        (setf h1 (symval h1)))
-     (when trace-level (format t "~%H1 = ~s!~%" h1))
+     (ipl-trace :run "~%H1 = ~s!~%" h1)
      (setq card (car h1))
      (setf pq (card-pq card)
 	   q (getpq :q pq)
@@ -140,7 +150,7 @@
 	   symb (card-symb card)
 	   link (card-link card)
 	   )
-     (when trace-level (format t "~%At INTERPRET-Q: CARD =~%~s~%" card))
+     (ipl-trace :run "~%At INTERPRET-Q: CARD =~%~s~%" card)
      ;; NNN Note that all the following are separate code segments -- we jump
      ;; around, never passing through to the next section.
      ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
@@ -150,7 +160,7 @@
      ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
      ;; storage; put location of routine in block into Hl; go to
      ;; INTERPRET-Q.
-     (when trace-level (format t "  w/Q = ~s~%" q))
+     (ipl-trace :run "  w/Q = ~s~%" q)
      (case q
        (0 (setf s symb) (go INTERPRET-P))
        (1 (setf s (*val symb)) (go INTERPRET-P))
@@ -158,12 +168,12 @@
        (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf s symb) (go INTERPRET-P))
        (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf s symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go Ascend)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
-       (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!"))
-       (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!"))
+       (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" card))
+       (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" card))
        )
      (error "Illegal forward pass: INTERPRET-Q to INTERPRET-P!")
    INTERPRET-P     
-     (when trace-level (format t "INTERPRET-P w/P = ~a~%" p))
+     (ipl-trace :run "INTERPRET-P w/P = ~a~%" p)
      ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
      ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
      (case p
@@ -187,7 +197,7 @@
      (go advance)
      (error "Illegal forward pass: INTERPRET-P to TEST-FOR-PRIMITIVE!")
    TEST-FOR-PRIMITIVE
-     (when trace-level (format t "At TEST-FOR-PRIMITIVE w/Q = ~a~%" q))
+     (ipl-trace :run "At TEST-FOR-PRIMITIVE w/Q = ~a~%" q)
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
      (let* ((scard (car (symval s)))
@@ -201,27 +211,27 @@
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
      (setf link (card-link card))
-     (when trace-level (format t "At ADVANCE w/LINK = ~a~%" link))
+     (ipl-trace :run "At ADVANCE w/LINK = ~a~%" link)
      (when (string-equal link "") (go ASCEND))
      (setf h1 link) (go INTERPRET-Q)
      (error "Illegal forward pass: EST-FOR-PRIMITIVE to ADVANCE!")
    ASCEND
-     (setf h1 (pop (*v+ "h1"))) ;; ??? Maybe ???
-     (when trace-level (format t "At ASCEND w/H1 = ~a~%" h1))
+     (setf h1 (pop (*val+ "h1"))) ;; ??? Maybe ???
+     (ipl-trace :run "At ASCEND w/H1 = ~a~%" h1)
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (go ADVANCE)
      (error "Illegal forward pass: ADVANCE to DESCEND!")
    DESCEND
-     (when trace-level (format t "At ASCEND w/S = ~a~%" s))
+     (ipl-trace :run "At ASCEND w/S = ~a~%" s)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (push s (h1+))
      (go INTERPRET-Q)
      (error "Illegal forward pass: DESCEND to BRANCH!")
    BRANCH
-     (when trace-level (format t "At BRANCH w/H5 = ~a, S= ~a~%" (h5) s))
+     (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" h5 s)
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - HS+: Go to ADVANCE
      (when (not (h5)) (setf link s))
@@ -238,6 +248,7 @@
 ;;; difference. We should always code these as with 90 or 09 to disambiguate.
 
 (defun getpq (pq? val &aux (l (length val)))
+  (unless (stringp val) (error "GETPQ was passed VAL = ~s" val))
   (if (> l 2)
       (error "In GETPQ, val = ~s, which shouldn't happen!" val)
       (if (zerop l) 0
@@ -245,7 +256,7 @@
 	      (case pq? (:p 0) (:q (parse-integer val)))
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
-    
 (untrace)
 ;(trace global-symb?)
-(load-ipl "LT.lisp" :trace-level t)
+(setf *ipl-trace-list* '(:run))
+(load-ipl "LT.lisp")
