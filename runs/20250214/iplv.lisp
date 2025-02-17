@@ -2,7 +2,19 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
-(defstruct card comments type name sign pq symb link comments.1 id)
+(defstruct (card (:print-function print-card)) comments type name sign pq symb link comments.1 id)
+
+(defun print-card (card s d)
+  (declare (ignore d))
+  (format s "~a::~a/~a/~a/~a [~a/~a]"
+	  (card-id card)
+	  (card-name card)
+	  (card-pq card)
+	  (card-symb card)
+	  (card-link card)
+	  (card-comments card)
+	  (card-comments.1 card)
+	  ))
 
 ;;; ===================================================================
 ;;; The Loader simply loads everything created by tsv2alist.py
@@ -132,18 +144,19 @@
 ;;; INTERPRETATION CYCLE", pg. 164 of the IPL-V manual.
 ;;; ===================================================================
 
-(defun run (h1)
-  (prog (card pq q p symb link s)
+(defun run (start-symb)
+  (prog (h1 card pq q p symb link s)
    START
+     (push start-symb (h1+))
+     (setf h1 start-symb)
    INTERPRET-Q
      (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" h1)
-     ;; (setf h1 (*val "h1")) ;; Note that this could be a symbol or a whole list. ????
-     ;; H1 contains the name of The cell holding the instruction to be
+     ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list.
      (when (stringp h1)
-       (ipl-trace :run "~%At START: H1 = ~s, de-referencing!~%" h1)
-       (setf h1 (symval h1)))
+       (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" h1)
+       (setf h1 (*val+ h1)))
      (ipl-trace :run "~%H1 = ~s!~%" h1)
      (setq card (car h1))
      (setf pq (card-pq card)
@@ -152,7 +165,7 @@
 	   symb (card-symb card)
 	   link (card-link card)
 	   )
-     (ipl-trace :run "~%At INTERPRET-Q: CARD =~%~s~%" card)
+     (ipl-trace :run "~%At INTERPRET-Q: CARD =~s;" card)
      ;; NNN Note that all the following are separate code segments -- we jump
      ;; around, never passing through to the next section.
      ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
@@ -162,7 +175,7 @@
      ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
      ;; storage; put location of routine in block into Hl; go to
      ;; INTERPRET-Q.
-     (ipl-trace :run "  w/Q = ~s~%" q)
+     (ipl-trace :run " w/Q = ~s~%" q)
      (case q
        (0 (setf s symb) (go INTERPRET-P))
        (1 (setf s (*val symb)) (go INTERPRET-P))
@@ -197,14 +210,12 @@
        )
      (go advance)
    TEST-FOR-PRIMITIVE
-     (ipl-trace :run "At TEST-FOR-PRIMITIVE w/Q = ~a~%" q)
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
-     (let* ((scard (car (symval s)))
-	    (q-of-s (getpq :q (card-pq scard))))
-       (case q-of-s ;; Oh my god, I'm so bored of trying to generalize this!
-	 (5 (setf link (card-symb card)) (go ADVANCE))
-	 (t (go DESCEND))))
+     (ipl-trace :run "At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a~%" s q)
+     (case q 
+       (5 (setf link (card-symb scard)) (go ADVANCE))
+       (t (go DESCEND)))
    ADVANCE
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
@@ -216,7 +227,7 @@
 	 (if (null h1)
 	     (go ASCEND)
 	     (progn (setf h1 (cdr h1))
-		    (go START)))
+		    (go INTERPRET-Q)))
 	 (progn
 	   (setf h1 link)
 	   (go INTERPRET-Q)))
@@ -228,10 +239,11 @@
      ;; go to ADVANCE.
      (go ADVANCE)
    DESCEND
-     (ipl-trace :run "At ASCEND w/S = ~a~%" s)
+     (ipl-trace :run "At DESCEND w/S = ~a~%" s)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (push s (h1+))
+     (setf h1 s)
      (go INTERPRET-Q)
    BRANCH
      (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" h5 s)
