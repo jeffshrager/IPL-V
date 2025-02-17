@@ -1,5 +1,8 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+********* We've got a little problem here. The system symbols have to be in the symbol
+ table too! Fuck!
+
 (defstruct ir comments type name sign pq symb link comments.1 id)
 
 ;;; Loader simply loads everything created by tsv2alist.py into
@@ -99,7 +102,7 @@
       (if (zerop l) 0
 	  (if (= 1 l)
 	      (case pq? (:p 0) (:q (parse-integer val)))
-	      (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2)))))))
+	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 ;;; Symbol is a short hand for getting symbol values from the *symtbl* (FFF
 ;;; Think about using the lisp symbol table instead of *symtbl*. Collisions are
@@ -155,7 +158,7 @@
      ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
      ;; storage; put location of routine in block into Hl; go to
      ;; INTERPRET-Q.
-     (when trace-level (format t "  w/Q = ~a~%" q))
+     (when trace-level (format t "  w/Q = ~s~%" q))
      (case q
        (0 (setf s symb) (go INTERPRET-P))
        (1 (setf s (*val symb)) (go INTERPRET-P))
@@ -192,6 +195,7 @@
      (go advance)
      (error "Illegal forward pass: INTERPRET-P to TEST-FOR-PRIMITIVE!")
    TEST-FOR-PRIMITIVE
+     (when trace-level (format t "At TEST-FOR-PRIMITIVE w/Q = ~a~%" q))
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
      (let* ((sir (car (symval s)))
@@ -205,23 +209,27 @@
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
      (setf link (ir-link ir))
+     (when trace-level (format t "At ADVANCE w/LINK = ~a~%" link))
      (when (string-equal link "") (go ASCEND))
      (setf h1 link) (go INTERPRET-Q)
      (error "Illegal forward pass: EST-FOR-PRIMITIVE to ADVANCE!")
    ASCEND
+     (setf h1 (pop (*v+ "h1"))) ;; ??? Maybe ???
+     (when trace-level (format t "At ASCEND w/H1 = ~a~%" h1))
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
-     (setf h1 (pop (*v+ "h1"))) ;; ??? Maybe ???
      (go ADVANCE)
      (error "Illegal forward pass: ADVANCE to DESCEND!")
    DESCEND
+     (when trace-level (format t "At ASCEND w/S = ~a~%" s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (push s (h1+))
      (go INTERPRET-Q)
      (error "Illegal forward pass: DESCEND to BRANCH!")
    BRANCH
+     (when trace-level (format t "At BRANCH w/H5 = ~a, S= ~a~%" (h5) s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - HS+: Go to ADVANCE
      (when (not (h5)) (setf link s))
