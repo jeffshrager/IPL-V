@@ -101,22 +101,42 @@
 	      (case pq? (:p 0) (:q (parse-integer val)))
 	      (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2)))))))
 
-(defun sv (symb) (car (gethash symb *vals*)))
+;;; Symbol is a short hand for getting symbol values from the *symtbl* (FFF
+;;; Think about using the lisp symbol table instead of *symtbl*. Collisions are
+;;; extremely unlikely with everything called W0, M13, and J123! :-)
+
+(defmacro symval (symb) `(gethash ,symb *symtbl*))
+
+;;; *val is symbol value for stacked symbols, like H0 and W0, used where there
+;;; isn't a special macro for common ones.  WWW Note the convention of adding +
+;;; when the var has the whole stack. System symbols (machine stacks) are
+;;; strings just like user-defined symbols. It's up to the user to ot try to
+;;; push/pop things that aren't stacks!
+
+(defmacro *val+ (symb) `(gethash ,symb *stacks*)) ;; + Version gets the whole stack
+(defmacro *val (symb) `(car (sv+ ,symb)))
+
+;;; Beacuse H0 is so important it has special macros.
+
+(defmacro h0+ () `(*val "h0"))
+(defmacro h0 () `(car (*val "h0")))
+
+(defmacro h5 () `(car (*val "h5")))
+
+;;; FFF Think about macrofying the stack ops for common values.
 
 (defun run (&key trace-level)
-  (prog (h0 h1 ir pq q p symb link s)
+  (prog (h1 ir pq q p symb link s)
    START
-     (setf h0 (getval :h0)
-	   h1 (getval :h1))
+   INTERPRET-Q
+     (setf h1 (*v "h1")) ;; Note that this could be a symbol or a whole list.
      ;; H1 contains the name of The cell holding the instruction to be
-     ;; interpreted.  (H1 could be a symbol or the head of a list. If it's a
-     ;; symbol, that automatically gets de-ref'ed to the list via the symbol
-     ;; table.)
+     ;; interpreted. At this point it could be a symbol or a list. If it's a
+     ;; symbol, we need to de-reference it to the list.
      (when (stringp h1)
-       (when trace-level (format t "~%In RUN, at START: H1 = ~s, de-referencing!~%" h1))
-       (pushval (getf h1 *symtbl*) :h1)
-       (go start))
-   DECODE-INSTRUCTION
+       (when trace-level (format t "~%At START: H1 = ~s, de-referencing!~%" h1))
+       (setf h1 (symval h1)))
+     (when trace-level (format t "~%H1 = ~s!~%" h1))
      (setq ir (car h1))
      (setf pq (ir-pq ir)
 	   q (getpq :q pq)
@@ -124,8 +144,9 @@
 	   symb (ir-symb ir)
 	   link (ir-link ir)
 	   )
-     (when trace-level (format t "~%In RUN, at DECODE-INSTRUCTION: IR =~%~s~%" ir))
-   INTERPRET-Q
+     (when trace-level (format t "~%At INTERPRET-Q: IR =~%~s~%" ir))
+     ;; NNN Note that all the following are separate code segments -- we jump
+     ;; around, never passing through to the next section.
      ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
      ;; INTERPRET-P.  - Q = 3, 4: Execute monitor action (see ~ 15.0,
      ;; MONITORSYSTEM) ; take S = SYMB; go to INTERPRET-P.  - Q = 5:
@@ -135,21 +156,77 @@
      ;; INTERPRET-Q.
      (case q
        (0 (setf s symb) (go INTERPRET-P))
-       (1 (setf s (first (gethash symb *stacks*))) (go INTERPRET-P))
-       (2 (setf s (first (gethash (first (gethash symb *stacks*)) *stacks*))) (go INTERPRET-P))
+       (1 (setf s (*val symb)) (go INTERPRET-P))
+       (2 (setf s (*val (*val symb))) (go INTERPRET-P))
        (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" ir) (setf s symb) (go INTERPRET-P))
        (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" ir) (setf s symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ascend)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!"))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!"))
        )
+     (error "Illegal forward pass: INTERPRET-Q to INTERPRET-P!")
    INTERPRET-P     
-     (break)
+     ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
+     ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
+     (case p
+       (0 (go TEST-FOR-PRIMITIVE))
+       (1 ;; Input S (after preserving HO) ;; ??? Hopefully "input" means to push it on the stack ???
+	(push s (h0+))
+	)
+       (2 ;; Output to S (then restore HO)
+	(setf s (pop (h0+))))
+       (3 ;; Restore (pop up) S
+	(pop (*val+ s)))
+       (4 ;; Preserve (push down) S
+	(push (*val s) (*val s)))
+       (5 ;; Replace (0) by S
+	(setf (h0) s))
+       (6 ;; Copy (0) in S
+	(setf (symval s) (h0)))
+       (7	     ;; Branch to S if H5-
+	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
+       )
+     (go advance)
+     (error "Illegal forward pass: INTERPRET-P to TEST-FOR-PRIMITIVE!")
+   TEST-FOR-PRIMITIVE
+     ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
+     ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
+     (let* ((sir (car (symval s)))
+	    (q-of-s (getpq :q (ir-pq sir))))
+       (case q-of-s ;; Oh my god, I'm so bored of trying to generalize this!
+	 (5 (setf link (ir-symb ir)) (go ADVANCE))
+	 (t (go DESCEND))))
+     (error "Illegal forward pass: TEST-FOR-PRIMITIVE to ADVANCE!")
+   ADVANCE
+     ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
+     ;; the name of the cell containing the next instruction; put LINK in H1; go
+     ;; to INTERPRET-Q.
+     (setf link (ir-link ir))
+     (when (string-equal link "") (go ASCEND))
+     (setf h1 link) (go INTERPRET-Q)
+     (error "Illegal forward pass: EST-FOR-PRIMITIVE to ADVANCE!")
+   ASCEND
+     ;; Restore H1 (returning to H1 the name of the cell holding the current
+     ;; instruction, one level up); restore auxiliary region if required (not!);
+     ;; go to ADVANCE.
+     (setf h1 (pop (*v+ "h1"))) ;; ??? Maybe ???
+     (go ADVANCE)
+     (error "Illegal forward pass: ADVANCE to DESCEND!")
+   DESCEND
+     ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
+     ;; the first instruction of the subprogram list); go to INTERPRET-Q.
+     (push s (h1))
+     (go INTERPRET-Q)
+     (error "Illegal forward pass: DESCEND to BRANCH!")
+   BRANCH
+     ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
+     ;; to ADVANCE. - HS+: Go to ADVANCE
+     (when (not (h5)) (setf link s))
+     (go ADVANCE)
+     (error "Illegal forward pass: BRANCH to exit!")
      ))
     
 (untrace)
 ;(trace global-symb?)
 (load-ipl "LT.lisp")
-(mapcar #'print (cadr (assoc :symb (report-col-vals))))
-
-
+(run :trace-level t)
