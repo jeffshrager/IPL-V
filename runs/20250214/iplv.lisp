@@ -12,6 +12,8 @@
 (defvar *ipl-trace-list* nil) ;; t for all, or: :load :run 
 
 (defun ipl-trace (key fmt &rest args)
+  ;; WWW if the arg is actually nil, apply gets confused so we pre-fix this case.
+  (unless args (setf args '(())))
   (when (or (equal *ipl-trace-list* t)
 	    (equal key t)
 	    (member key *ipl-trace-list*))
@@ -171,7 +173,6 @@
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" card))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" card))
        )
-     (error "Illegal forward pass: INTERPRET-Q to INTERPRET-P!")
    INTERPRET-P     
      (ipl-trace :run "INTERPRET-P w/P = ~a~%" p)
      ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
@@ -195,7 +196,6 @@
 	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
        )
      (go advance)
-     (error "Illegal forward pass: INTERPRET-P to TEST-FOR-PRIMITIVE!")
    TEST-FOR-PRIMITIVE
      (ipl-trace :run "At TEST-FOR-PRIMITIVE w/Q = ~a~%" q)
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
@@ -205,16 +205,21 @@
        (case q-of-s ;; Oh my god, I'm so bored of trying to generalize this!
 	 (5 (setf link (card-symb card)) (go ADVANCE))
 	 (t (go DESCEND))))
-     (error "Illegal forward pass: TEST-FOR-PRIMITIVE to ADVANCE!")
    ADVANCE
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
      (setf link (card-link card))
      (ipl-trace :run "At ADVANCE w/LINK = ~a~%" link)
-     (when (string-equal link "") (go ASCEND))
-     (setf h1 link) (go INTERPRET-Q)
-     (error "Illegal forward pass: EST-FOR-PRIMITIVE to ADVANCE!")
+     ;; If link is nil ("") in the middle of a function, go next card, else ascend.
+     (if (string-equal link "")
+	 (if (null h1)
+	     (go ASCEND)
+	     (progn (setf h1 (cdr h1))
+		    (go START)))
+	 (progn
+	   (setf h1 link)
+	   (go INTERPRET-Q)))
    ASCEND
      (setf h1 (pop (*val+ "h1"))) ;; ??? Maybe ???
      (ipl-trace :run "At ASCEND w/H1 = ~a~%" h1)
@@ -222,22 +227,22 @@
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (go ADVANCE)
-     (error "Illegal forward pass: ADVANCE to DESCEND!")
    DESCEND
      (ipl-trace :run "At ASCEND w/S = ~a~%" s)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (push s (h1+))
      (go INTERPRET-Q)
-     (error "Illegal forward pass: DESCEND to BRANCH!")
    BRANCH
      (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" h5 s)
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - HS+: Go to ADVANCE
      (when (not (h5)) (setf link s))
      (go ADVANCE)
-     (error "Illegal forward pass: BRANCH to exit!")
      ))
+
+(defun call-ipl-prim (symb)
+  (break "****** UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
 
 ;;; Getting the P and Q is a little tricky because they can be blank. Blank is
 ;;; interpreted as zero, and if they're both blank ("") it's not a problem --
