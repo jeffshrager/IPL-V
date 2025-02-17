@@ -5,7 +5,7 @@
 ;;; Loader simply loads everything created by tsv2alist.py into
 ;;; *symtab*
 
-(defvar *vals* (make-hash-table :test #'equal))
+(defvar *stacks* (make-hash-table :test #'equal))
 (defvar *symtbl* (make-hash-table :test #'equal))
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
@@ -17,10 +17,10 @@
 (defun reset! ()
   (clrhash *symtbl*) ;; "ir" == "ipl row"
   (clrhash *col->vals*)
-  (clrhash *vals*)
+  (clrhash *stacks*)
   )
 
-(defun load-ipl (file &key (reset? t))
+(defun load-ipl (file &key (reset? t) trace-level)
   (when reset? (reset!))
   (with-open-file
       (i file)
@@ -62,7 +62,7 @@
 		     ((and (string-equal "5" (ir-type ir))
 			   (global-symb? (ir-symb ir)))
 		      (format t "*** Execution start at ~a ***~%" (ir-symb ir))
-		      (error "Unimplemented: Execution Start!"))
+		      (run (ir-symb ir) :trace-level trace-level))
 		     (t (format t "Ignoring: ~s~%" read-row))))
 	  finally (progn (setf gather (reverse gather))
 			 (setf (gethash (ir-name (car gather)) *symtbl*) gather))
@@ -114,22 +114,23 @@
 ;;; push/pop things that aren't stacks!
 
 (defmacro *val+ (symb) `(gethash ,symb *stacks*)) ;; + Version gets the whole stack
-(defmacro *val (symb) `(car (sv+ ,symb)))
+(defmacro *val (symb) `(car (*val+ ,symb)))
 
 ;;; Beacuse H0 is so important it has special macros.
 
 (defmacro h0+ () `(*val "h0"))
 (defmacro h0 () `(car (*val "h0")))
-
+(defmacro h1+ () `(*val "h1"))
 (defmacro h5 () `(car (*val "h5")))
 
 ;;; FFF Think about macrofying the stack ops for common values.
 
-(defun run (&key trace-level)
-  (prog (h1 ir pq q p symb link s)
+(defun run (h1 &key trace-level)
+  (prog (ir pq q p symb link s)
    START
    INTERPRET-Q
-     (setf h1 (*v "h1")) ;; Note that this could be a symbol or a whole list.
+     (when trace-level (format t "INTERPRET-Q w/H1 = ~s!~%" h1))
+     ;; (setf h1 (*val "h1")) ;; Note that this could be a symbol or a whole list. ????
      ;; H1 contains the name of The cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list.
@@ -154,18 +155,20 @@
      ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
      ;; storage; put location of routine in block into Hl; go to
      ;; INTERPRET-Q.
+     (when trace-level (format t "  w/Q = ~a~%" q))
      (case q
        (0 (setf s symb) (go INTERPRET-P))
        (1 (setf s (*val symb)) (go INTERPRET-P))
        (2 (setf s (*val (*val symb))) (go INTERPRET-P))
        (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" ir) (setf s symb) (go INTERPRET-P))
        (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" ir) (setf s symb) (go INTERPRET-P))
-       (5 (call-ipl-prim symb) (go ascend)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
+       (5 (call-ipl-prim symb) (go Ascend)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!"))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!"))
        )
      (error "Illegal forward pass: INTERPRET-Q to INTERPRET-P!")
    INTERPRET-P     
+     (when trace-level (format t "INTERPRET-P w/P = ~a~%" p))
      ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
      ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
      (case p
@@ -215,7 +218,7 @@
    DESCEND
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
-     (push s (h1))
+     (push s (h1+))
      (go INTERPRET-Q)
      (error "Illegal forward pass: DESCEND to BRANCH!")
    BRANCH
@@ -228,5 +231,4 @@
     
 (untrace)
 ;(trace global-symb?)
-(load-ipl "LT.lisp")
-(run :trace-level t)
+(load-ipl "LT.lisp" :trace-level t)
