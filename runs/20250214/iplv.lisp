@@ -2,21 +2,13 @@
 
 (defstruct card comments type name sign pq symb link comments.1 id)
 
-;;; Loader simply loads everything created by tsv2alist.py into
-;;; *symtab*
+;;; ===================================================================
+;;; The Loader simply loads everything created by tsv2alist.py
+;;; into *symtab*. Nb. You should end with a type 5 card to execute!
+;;; ===================================================================
 
-(defvar *symtbl* (make-hash-table :test #'equal))
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
-
-(defun global-symb? (name)
-  (and (not (zerop (length name)))
-       (not (char-equal #\9 (aref name 0)))))
-
-(defun reset! ()
-  (clrhash *symtbl*) 
-  (clrhash *col->vals*)
-  )
 
 (defun load-ipl (file &key (reset? t) trace-level)
   (when reset? (reset!))
@@ -66,6 +58,20 @@
 			 (setf (gethash (card-name (car gather)) *symtbl*) gather))
 	  )))
 
+
+;;; Things like 9-xxx are local, everything else is global.
+
+(defun global-symb? (name)
+  (and (not (zerop (length name)))
+       (not (char-equal #\9 (aref name 0)))))
+
+(defun reset! ()
+  (clrhash *symtbl*) 
+  (clrhash *col->vals*)
+  )
+
+;;; Loaded code analysis:
+
 (defun report-col-vals ()
   (loop for col being the hash-keys of *col->vals*
 	using (hash-value vals)
@@ -81,23 +87,11 @@
     (maphash (lambda (key value) (push (cons key value) result)) *val->counts*)
     result))
 
-;;; This is based on 3.14-15 of Newell's 1963 IPL-V manual.
+;;; ===================================================================
+;;; Symbol Table (and Stacks)
+;;; ===================================================================
 
-;;; Getting the P and Q is a little tricky because they can be blank. Blank is
-;;; interpreted as zero, and if they're both blank ("") it's not a problem --
-;;; both zero, but if only one is blank it can be ambiguous because these didn't
-;;; come from cards. This isn't suppose to happen, so if it does, we raise a
-;;; warning, and intepret it as if P is blank (0). So, for example, technically
-;;; they could have entered "9_" instead of "_9", but we can't tell the
-;;; difference. We should always code these as with 90 or 09 to disambiguate.
-
-(defun getpq (pq? val &aux (l (length val)))
-  (if (> l 2)
-      (error "In GETPQ, val = ~s, which shouldn't happen!" val)
-      (if (zerop l) 0
-	  (if (= 1 l)
-	      (case pq? (:p 0) (:q (parse-integer val)))
-	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
+(defvar *symtbl* (make-hash-table :test #'equal))
 
 ;;; Symbol is a short hand for getting symbol values from the *symtbl* (FFF
 ;;; Think about using the lisp symbol table instead of *symtbl*. Collisions are
@@ -121,7 +115,10 @@
 (defmacro h1+ () `(*val+ "h1"))
 (defmacro h5 () `(*val "h5"))
 
-;;; FFF Think about macrofying the stack ops for common values.
+;;; ===================================================================
+;;; This is the core of the emulator. It directly implements "3.15 THE
+;;; INTERPRETATION CYCLE", pg. 164 of the IPL-V manual.
+;;; ===================================================================
 
 (defun run (h1 &key trace-level)
   (prog (card pq q p symb link s)
@@ -231,6 +228,23 @@
      (go ADVANCE)
      (error "Illegal forward pass: BRANCH to exit!")
      ))
+
+;;; Getting the P and Q is a little tricky because they can be blank. Blank is
+;;; interpreted as zero, and if they're both blank ("") it's not a problem --
+;;; both zero, but if only one is blank it can be ambiguous because these didn't
+;;; come from cards. This isn't suppose to happen, so if it does, we raise a
+;;; warning, and intepret it as if P is blank (0). So, for example, technically
+;;; they could have entered "9_" instead of "_9", but we can't tell the
+;;; difference. We should always code these as with 90 or 09 to disambiguate.
+
+(defun getpq (pq? val &aux (l (length val)))
+  (if (> l 2)
+      (error "In GETPQ, val = ~s, which shouldn't happen!" val)
+      (if (zerop l) 0
+	  (if (= 1 l)
+	      (case pq? (:p 0) (:q (parse-integer val)))
+	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
+
     
 (untrace)
 ;(trace global-symb?)
