@@ -1,14 +1,10 @@
 ;;; (load (compile-file "iplv.lisp"))
 
-********* We've got a little problem here. The system symbols have to be in the symbol
- table too! Fuck!
-
-(defstruct ir comments type name sign pq symb link comments.1 id)
+(defstruct card comments type name sign pq symb link comments.1 id)
 
 ;;; Loader simply loads everything created by tsv2alist.py into
 ;;; *symtab*
 
-(defvar *stacks* (make-hash-table :test #'equal))
 (defvar *symtbl* (make-hash-table :test #'equal))
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
@@ -18,9 +14,8 @@
        (not (char-equal #\9 (aref name 0)))))
 
 (defun reset! ()
-  (clrhash *symtbl*) ;; "ir" == "ipl row"
+  (clrhash *symtbl*) 
   (clrhash *col->vals*)
-  (clrhash *stacks*)
   )
 
 (defun load-ipl (file &key (reset? t) trace-level)
@@ -37,7 +32,7 @@
 	  with gather = nil
 	  until (null read-row)
 	  do (let* ((p -1)
-		    (ir (make-ir
+		    (card (make-card
 			 :comments (nth (incf p) read-row)
 			 :type (nth (incf p) read-row)
 			 :name (nth (incf p) read-row)
@@ -48,27 +43,27 @@
 			 :comments.1 (nth (incf p) read-row)
 			 :id (nth (incf p) read-row)
 			 ))
-		    (name (ir-name ir))
+		    (name (card-name card))
 	       	    )
 	       (loop for col in *cols* as val in read-row
 		     unless (string-equal "" val)
 		     do (push val (gethash col *col->vals*)))
-	       (cond ((string-equal "" (ir-type ir))
+	       (cond ((string-equal "" (card-type card))
 		      (when (global-symb? name)
 			(progn 
 			  (format t "Loading global name: ~a~%" name)
 			  (when gather
 			    (setf gather (reverse gather))
-			    (setf (gethash (ir-name (car gather)) *symtbl*) gather)
+			    (setf (gethash (card-name (car gather)) *symtbl*) gather)
 			    (setf gather nil))))
-	      	      (push ir gather))
-		     ((and (string-equal "5" (ir-type ir))
-			   (global-symb? (ir-symb ir)))
-		      (format t "*** Execution start at ~a ***~%" (ir-symb ir))
-		      (run (ir-symb ir) :trace-level trace-level))
+	      	      (push card gather))
+		     ((and (string-equal "5" (card-type card))
+			   (global-symb? (card-symb card)))
+		      (format t "*** Execution start at ~a ***~%" (card-symb card))
+		      (run (card-symb card) :trace-level trace-level))
 		     (t (format t "Ignoring: ~s~%" read-row))))
 	  finally (progn (setf gather (reverse gather))
-			 (setf (gethash (ir-name (car gather)) *symtbl*) gather))
+			 (setf (gethash (card-name (car gather)) *symtbl*) gather))
 	  )))
 
 (defun report-col-vals ()
@@ -116,20 +111,20 @@
 ;;; strings just like user-defined symbols. It's up to the user to ot try to
 ;;; push/pop things that aren't stacks!
 
-(defmacro *val+ (symb) `(gethash ,symb *stacks*)) ;; + Version gets the whole stack
+(defmacro *val+ (symb) `(gethash ,symb *symtbl*)) ;; + Version gets the whole stack
 (defmacro *val (symb) `(car (*val+ ,symb)))
 
 ;;; Beacuse H0 is so important it has special macros.
 
-(defmacro h0+ () `(*val "h0"))
-(defmacro h0 () `(car (*val "h0")))
-(defmacro h1+ () `(*val "h1"))
-(defmacro h5 () `(car (*val "h5")))
+(defmacro h0+ () `(*val+ "h0"))
+(defmacro h0 () `(*val "h0"))
+(defmacro h1+ () `(*val+ "h1"))
+(defmacro h5 () `(*val "h5"))
 
 ;;; FFF Think about macrofying the stack ops for common values.
 
 (defun run (h1 &key trace-level)
-  (prog (ir pq q p symb link s)
+  (prog (card pq q p symb link s)
    START
    INTERPRET-Q
      (when trace-level (format t "INTERPRET-Q w/H1 = ~s!~%" h1))
@@ -141,14 +136,14 @@
        (when trace-level (format t "~%At START: H1 = ~s, de-referencing!~%" h1))
        (setf h1 (symval h1)))
      (when trace-level (format t "~%H1 = ~s!~%" h1))
-     (setq ir (car h1))
-     (setf pq (ir-pq ir)
+     (setq card (car h1))
+     (setf pq (card-pq card)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
-	   symb (ir-symb ir)
-	   link (ir-link ir)
+	   symb (card-symb card)
+	   link (card-link card)
 	   )
-     (when trace-level (format t "~%At INTERPRET-Q: IR =~%~s~%" ir))
+     (when trace-level (format t "~%At INTERPRET-Q: CARD =~%~s~%" card))
      ;; NNN Note that all the following are separate code segments -- we jump
      ;; around, never passing through to the next section.
      ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
@@ -163,8 +158,8 @@
        (0 (setf s symb) (go INTERPRET-P))
        (1 (setf s (*val symb)) (go INTERPRET-P))
        (2 (setf s (*val (*val symb))) (go INTERPRET-P))
-       (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" ir) (setf s symb) (go INTERPRET-P))
-       (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" ir) (setf s symb) (go INTERPRET-P))
+       (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf s symb) (go INTERPRET-P))
+       (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf s symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go Ascend)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!"))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!"))
@@ -198,17 +193,17 @@
      (when trace-level (format t "At TEST-FOR-PRIMITIVE w/Q = ~a~%" q))
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
-     (let* ((sir (car (symval s)))
-	    (q-of-s (getpq :q (ir-pq sir))))
+     (let* ((scard (car (symval s)))
+	    (q-of-s (getpq :q (card-pq scard))))
        (case q-of-s ;; Oh my god, I'm so bored of trying to generalize this!
-	 (5 (setf link (ir-symb ir)) (go ADVANCE))
+	 (5 (setf link (card-symb card)) (go ADVANCE))
 	 (t (go DESCEND))))
      (error "Illegal forward pass: TEST-FOR-PRIMITIVE to ADVANCE!")
    ADVANCE
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
-     (setf link (ir-link ir))
+     (setf link (card-link card))
      (when trace-level (format t "At ADVANCE w/LINK = ~a~%" link))
      (when (string-equal link "") (go ASCEND))
      (setf h1 link) (go INTERPRET-Q)
