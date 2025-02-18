@@ -156,12 +156,18 @@
 
 (defun convert-local-symbols (cards local-symbols.new-names)
   (labels ((replace-symbols (card accessor)
-	     (let ((new-name (assoc (accessor card) local-symbols.new-names)))
-	       (when new-name (setf (accessor card) new-name)))
+	     (let ((new-name (assoc (funcall accessor card) local-symbols.new-names)))
+	       (when new-name (fucking-setf accessor card new-name)))
 	     (loop for card in cards
 		   do (loop for accessor in *symbol-col-accessesors*
 			    do (replace-symbols card accessor)))))))
 			    
+(defun fucking-setf (accessor card new-name)
+  (case accessor
+    (#'card-name (setf (card-name card) new-name))
+    (#'card-symb (setf (card-symb card) new-name))
+    (#'card-link (setf (card-link card) new-name))))
+
 ;;; Things like 9-xxx are local, everything else is global.
 
 (defun global-symbol? (name)
