@@ -64,7 +64,7 @@
     (when (member :run-full *ipl-trace-list*)
       (report-important-registers))))
 
-(defparameter *important-run-registers* '("h0" "h1"))
+(defparameter *important-run-registers* '("h1" "h0" "h5"))
 
 (defun report-important-registers ()
   (format t "~%***** RUN REGISTERS *****~%")
@@ -195,14 +195,18 @@
      ;; symbol, we need to de-reference it to the list. In the case of an
      ;; internal (J) funtion this will be a lambda, in which case we just call
      ;; it and then advance
-     (when (functionp h1)
-       (funcall h1 (*val "h0") (cadr (*val+ "h0")))
-       (go ADVANCE))
      (when (stringp h1)
        (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" h1)
-       (setf h1 (*val+ h1))
-       (setf (h1) h1) ;; Set both the var we're using as a shortcut, and the stack entry.
+       (setf h1 (*val+ h1) (h1) h1) ;; Set both the var we're using as a shortcut, and the stack entry.
        (go INTERPRET-Q))
+     (when (functionp h1)
+       (funcall h1 (*val "h0") (cadr (*val+ "h0"))) ;; Call the fn
+       (pop (h1+)) ;; Remove the JFn call
+       (pop (h1)) ;; And the card that called the JFn
+       (print "ccccccc")
+       (setf h1 (h1))
+       (print "ddddddddd")
+       (go ADVANCE))
      (ipl-trace :run "~%H1 = ~s!~%" h1)
      (setq card (car h1))
      (setf pq (card-pq card)
@@ -272,17 +276,17 @@
      (if (string-equal link "")
 	 (if (null h1)
 	     (go ASCEND)
-	     (progn (setf h1 (cdr h1))
+	     (progn (setf h1 (cdr h1) (h1) h1) ;; Set both the var we're using as a shortcut, and the stack entry.
 		    (go INTERPRET-Q)))
 	 (progn
 	   (setf h1 link)
 	   (go INTERPRET-Q)))
    ASCEND
-     (setf h1 (pop (*val+ "h1"))) ;; ??? Maybe ???
-     (ipl-trace :run "At ASCEND w/H1 = ~a~%" h1)
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
+     (setf h1 (pop (*val+ "h1")) (h1) h1)
+     (ipl-trace :run "At ASCEND w/H1 = ~a~%" h1)
      (go ADVANCE)
    DESCEND
      (ipl-trace :run "At DESCEND w/S = ~a~%" s)
@@ -320,6 +324,6 @@
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 (untrace)
-;(trace global-symb?)
+;(trace global-symb? load-ipl ipl-trace)
 (setf *ipl-trace-list* '(:run :jfns :run-full))
 (load-ipl "runs/20250214/LT.lisp")
