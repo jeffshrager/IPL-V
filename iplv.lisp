@@ -44,6 +44,7 @@
 (defmacro h0+ () `(*val+ "h0"))
 (defmacro h0 () `(*val "h0"))
 (defmacro h1+ () `(*val+ "h1"))
+(defmacro h1 () `(*val "h1"))
 (defmacro h5 () `(*val "h5"))
 
 ;;; ===================================================================
@@ -66,7 +67,7 @@
 (defparameter *important-run-registers* '("h0" "h1"))
 
 (defun report-important-registers ()
-  (format t "***** RUN REGISTERS *****~%")
+  (format t "~%***** RUN REGISTERS *****~%")
   (loop for r in *important-run-registers*
 	do (format t "  ~a* = ~s~%" r (*val+ r)))
   (format t "^^^^^^^^^^^^^^^^^^^^^^^^^~%")
@@ -200,6 +201,7 @@
      (when (stringp h1)
        (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" h1)
        (setf h1 (*val+ h1))
+       (setf (h1) h1) ;; Set both the var we're using as a shortcut, and the stack entry.
        (go INTERPRET-Q))
      (ipl-trace :run "~%H1 = ~s!~%" h1)
      (setq card (car h1))
