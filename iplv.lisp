@@ -44,6 +44,7 @@
 (defmacro h0+ () `(*val+ "h0"))
 (defmacro h0 () `(*val "h0"))
 (defmacro h1+ () `(*val+ "h1"))
+(defmacro ListX (l?) `(let ((l ,l?)) (if (listp l) l (*val+ l)))) ;; Get a list from it's name if necessary
 (defmacro h1 () `(*val "h1"))
 (defmacro h5 () `(*val "h5"))
 
@@ -162,33 +163,58 @@
 ;;; ===================================================================
 
 (eval-when (:execute :load-toplevel :compile-toplevel)
-  (defmacro defj (name form)
+  (defmacro defj (name &rest forms)
     `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtbl*)
 	   (lambda (arg0 arg1)
 	     (ipl-trace :jfns ,(format nil "Calling ~a w/ARG0=~~s, ARG1=~~s~%" name) arg0 arg1)
-	     ,form)))
+	     ,@forms)))
   )
 
 (defun setup-j-fns ()
-  (defj J73
+
+  (defj J73 ;; Copy list
       (setf (h0)
 	    (copy-list
 	     (if (stringp arg0) (*val+ arg0)
 		 (if (listp arg0) arg0
 		     (error "J73 got ARG0=~s" arg0))))))
+
+  (defj J147 ;; Mark routine to trace
+      (format t "WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!~%"))
+
+  (defj j100
+      ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
+      ;; named (0) is performed successively with each of the symbols of list named
+      ;; (1) as input. The order is the order on the list, starting with the first
+      ;; list cell. H5 is always set + at the start of the subprocess. J100 will
+      ;; move in list (1) if it is on auxiliary.
+      (ipl-trace :run-full "J100") (break)
+      (loop with subcall = (h0)
+       	    for elt in (h1*)
+       	    do
+	    (push arg0 (h1+))
+	    (push (ListX arg1) (h1+))
+	    (ipl-eval)
+	    ))
   )
 
 ;;; ===================================================================
 ;;; This is the core of the emulator. It directly implements "3.15 THE
-;;; INTERPRETATION CYCLE", pg. 164 of the IPL-V manual.
+;;; INTERPRETATION CYCLE", pg. 164 of the IPL-V manual. This is actually kinda
+;;; ridiculous with the whole H1 descending and ascending mess. A "modern"
+;;; evaluator would simply recurse. Maybe when I get sick enough of this mess,
+;;; I'll recode it correctly. (IPL-EVAL can actually be called recursively...but
+;;; the caller has to keep track of H1.
 ;;; ===================================================================
 
 (defun run (start-symb)
+  (push start-symb (h1+))
+  (ipl-eval))
+
+(defun ipl-eval ()
   (prog (h1 card pq q p symb link s)
-   START
-     (push start-symb (h1+))
-     (setf h1 start-symb)
    INTERPRET-Q
+     (setf h1 (h1))
      (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" h1)
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
