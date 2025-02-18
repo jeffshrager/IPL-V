@@ -47,39 +47,42 @@
     (loop for read-row = (read i nil nil)
 	  with gather = nil
 	  until (null read-row)
-	  do (let* ((p -1)
-		    (card (make-card
-			 :comments (nth (incf p) read-row)
-			 :type (nth (incf p) read-row)
-			 :name (nth (incf p) read-row)
-			 :sign (nth (incf p) read-row)
-			 :pq (nth (incf p) read-row)
-			 :symb (nth (incf p) read-row)
-			 :link (nth (incf p) read-row)
-			 :comments.1 (nth (incf p) read-row)
-			 :id (nth (incf p) read-row)
-			 ))
-		    (name (card-name card))
-	       	    )
-	       (loop for col in *cols* as val in read-row
-		     unless (string-equal "" val)
-		     do (push val (gethash col *col->vals*)))
-	       (cond ((string-equal "" (card-type card))
-		      (when (global-symb? name)
-			(progn 
-			  (ipl-trace :load "Loading global name: ~a~%" name)
-			  (when gather
-			    (setf gather (reverse gather))
-			    (setf (gethash (card-name (car gather)) *symtbl*) gather)
-			    (setf gather nil))))
-	      	      (push card gather))
-		     ((and (string-equal "5" (card-type card))
-			   (global-symb? (card-symb card)))
-		      (format t "*** Execution start at ~a ***~%" (card-symb card))
-		      (run (card-symb card)))
-		     (t (ipl-trace :load "Ignoring: ~s~%" read-row))))
-	  finally (progn (setf gather (reverse gather))
-			 (setf (gethash (card-name (car gather)) *symtbl*) gather))
+	  do
+	  (labels ((save-gather ()
+		     (when gather
+		       (setf gather (reverse gather))
+		       (setf (gethash (card-name (car gather)) *symtbl*) gather)
+		       (ipl-trace :load "Saved: ~a~%" (card-name (car gather)))
+		       (setf gather nil))))
+	    (let* ((p -1)
+		   (card (make-card
+			  :comments (nth (incf p) read-row)
+			  :type (nth (incf p) read-row)
+			  :name (nth (incf p) read-row)
+			  :sign (nth (incf p) read-row)
+			  :pq (nth (incf p) read-row)
+			  :symb (nth (incf p) read-row)
+			  :link (nth (incf p) read-row)
+			  :comments.1 (nth (incf p) read-row)
+			  :id (nth (incf p) read-row)
+			  ))
+		   (name (card-name card))
+	       	   )
+	      (loop for col in *cols* as val in read-row
+		    unless (string-equal "" val)
+		    do (push val (gethash col *col->vals*)))
+	      (cond ((string-equal "" (card-type card))
+		     (when (global-symb? name)
+		       (ipl-trace :load "Loading global name: ~a~%" name)
+		       (save-gather))
+	      	     (push card gather))
+		    ((and (string-equal "5" (card-type card))
+			  (global-symb? (card-symb card)))
+		     (format t "*** Execution start at ~a ***~%" (card-symb card))
+		     (save-gather)
+		     (run (card-symb card)))
+		    (t (ipl-trace :load "Ignoring: ~s~%" read-row)))))
+	  finally (save-gather)
 	  )))
 
 
@@ -91,6 +94,7 @@
 
 (defun reset! ()
   (clrhash *symtbl*) 
+  (setup-j-fns)
   (clrhash *col->vals*)
   )
 
@@ -140,6 +144,20 @@
 (defmacro h5 () `(*val "h5"))
 
 ;;; ===================================================================
+;;; J-Functions. 
+;;; ===================================================================
+
+(eval-when (:execute :load-toplevel :compile-toplevel)
+  (defmacro defj (name form)
+    `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtbl*)
+	   (lambda (arg0 arg1) ,form)))
+  )
+
+(defun setup-j-fns ()
+  (defj J73 (break "J73 with ~s ~s" arg0 arg1))
+  )
+
+;;; ===================================================================
 ;;; This is the core of the emulator. It directly implements "3.15 THE
 ;;; INTERPRETATION CYCLE", pg. 164 of the IPL-V manual.
 ;;; ===================================================================
@@ -153,10 +171,14 @@
      (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" h1)
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
-     ;; symbol, we need to de-reference it to the list.
+     ;; symbol, we need to de-reference it to the list. In the case of an
+     ;; internal (J) funtion this will be a lambda, in which case we just call
+     ;; it and then advance
+     (when (functionp h1) (funcall h1 (*val "h0") (cadr (*val+ "h0"))))
      (when (stringp h1)
        (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" h1)
-       (setf h1 (*val+ h1)))
+       (setf h1 (*val+ h1))
+       (go INTERPRET-Q))
      (ipl-trace :run "~%H1 = ~s!~%" h1)
      (setq card (car h1))
      (setf pq (card-pq card)
@@ -275,5 +297,5 @@
 
 (untrace)
 ;(trace global-symb?)
-(setf *ipl-trace-list* '(:run))
+(setf *ipl-trace-list* '(:run :load))
 (load-ipl "LT.lisp")
