@@ -5,6 +5,7 @@
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
 (defstruct (card (:print-function print-card)) comments type name sign pq symb link comments.1 id)
+(defparameter *symbol-col-accessesors* (list #'card-name #'card-symb #'card-link))
 
 (defun print-card (card s d)
   (declare (ignore d))
@@ -22,13 +23,13 @@
 ;;; Symbol Table (and Stacks)
 ;;; ===================================================================
 
-(defvar *symtbl* (make-hash-table :test #'equal))
+(defvar *symtab* (make-hash-table :test #'equal))
 
-;;; Symbol is a short hand for getting symbol values from the *symtbl* (FFF
-;;; Think about using the lisp symbol table instead of *symtbl*. Collisions are
+;;; Symbol is a short hand for getting symbol values from the *symtab* (FFF
+;;; Think about using the lisp symbol table instead of *symtab*. Collisions are
 ;;; extremely unlikely with everything called W0, M13, and J123! :-)
 
-(defmacro symval (symb) `(gethash ,symb *symtbl*))
+(defmacro symval (symb) `(gethash ,symb *symtab*))
 
 ;;; *val is symbol value for stacked symbols, like H0 and W0, used where there
 ;;; isn't a special macro for common ones.  WWW Note the convention of adding +
@@ -36,7 +37,7 @@
 ;;; strings just like user-defined symbols. It's up to the user to ot try to
 ;;; push/pop things that aren't stacks!
 
-(defmacro *val+ (symb) `(gethash ,symb *symtbl*)) ;; + Version gets the whole stack
+(defmacro *val+ (symb) `(gethash ,symb *symtab*)) ;; + Version gets the whole stack
 (defmacro *val (symb) `(car (*val+ ,symb)))
 
 ;;; Beacuse H0 is so important it has special macros.
@@ -44,9 +45,11 @@
 (defmacro h0+ () `(*val+ "h0"))
 (defmacro h0 () `(*val "h0"))
 (defmacro h1+ () `(*val+ "h1"))
-(defmacro ListX (l?) `(let ((l ,l?)) (if (listp l) l (*val+ l)))) ;; Get a list from it's name if necessary
 (defmacro h1 () `(*val "h1"))
 (defmacro h5 () `(*val "h5"))
+
+(defun ListX (l) ;; Get a list from it's name if necessary
+  (if (listp l) l (*val+ l)))
 
 ;;; ===================================================================
 ;;; The Loader simply loads everything created by tsv2alist.py
@@ -68,10 +71,10 @@
 (defparameter *important-run-registers* '("h1" "h0" "h5"))
 
 (defun report-important-registers ()
-  (format t "~%***** RUN REGISTERS *****~%")
+  (format t "~%vvvvv RUN REGISTERS vvvvv~%")
   (loop for r in *important-run-registers*
 	do (format t "  ~a* = ~s~%" r (*val+ r)))
-  (format t "^^^^^^^^^^^^^^^^^^^^^^^^^~%")
+  (format t "~%^^^^^^^^^^^^^^^^^^^^^^^^^~%")
   )
 
 (defvar *col->vals* (make-hash-table :test #'equal))
@@ -88,55 +91,94 @@
 	(error "No valid header on ~a" file)
 	)
     (loop for read-row = (read i nil nil)
-	  with gather = nil
+	  with cards = nil
 	  until (null read-row)
 	  do
-	  (labels ((save-gather ()
-		     (when gather
-		       (setf gather (reverse gather))
-		       (setf (gethash (card-name (car gather)) *symtbl*) gather)
-		       (ipl-trace :load "Saved: ~a~%" (card-name (car gather)))
-		       (setf gather nil))))
-	    (let* ((p -1)
-		   (card (make-card
-			  :comments (nth (incf p) read-row)
-			  :type (nth (incf p) read-row)
-			  :name (nth (incf p) read-row)
-			  :sign (nth (incf p) read-row)
-			  :pq (nth (incf p) read-row)
-			  :symb (nth (incf p) read-row)
-			  :link (nth (incf p) read-row)
-			  :comments.1 (nth (incf p) read-row)
-			  :id (nth (incf p) read-row)
-			  ))
-		   (name (card-name card))
-	       	   )
-	      (loop for col in *cols* as val in read-row
-		    unless (string-equal "" val)
-		    do (push val (gethash col *col->vals*)))
-	      (cond ((string-equal "" (card-type card))
-		     (when (global-symb? name)
-		       (ipl-trace :load "Loading global name: ~a~%" name)
-		       (save-gather))
-	      	     (push card gather))
-		    ((and (string-equal "5" (card-type card))
-			  (global-symb? (card-symb card)))
-		     (format t "*** Execution start at ~a ***~%" (card-symb card))
-		     (save-gather)
-		     (run (card-symb card)))
-		    (t (ipl-trace :load "Ignoring: ~s~%" read-row)))))
-	  finally (save-gather)
-	  )))
+	  (let* ((p -1)
+		 (card (make-card
+			:comments (nth (incf p) read-row)
+			:type (nth (incf p) read-row)
+			:name (nth (incf p) read-row)
+			:sign (nth (incf p) read-row)
+			:pq (nth (incf p) read-row)
+			:symb (nth (incf p) read-row)
+			:link (nth (incf p) read-row)
+			:comments.1 (nth (incf p) read-row)
+			:id (nth (incf p) read-row)
+			))
+		 (name (card-name card))
+	       	 )
+	    ;; Collect frequency of symbol use data.
+	    (loop for col in *cols* as val in read-row
+		  unless (string-equal "" val)
+		  do (push val (gethash col *col->vals*)))
+	    (cond ((string-equal "" (card-type card))
+		   (when (global-symbol? name)
+		     (ipl-trace :load "Loading global name: ~a~%" name)
+		     (save-reversed-cards cards))
+	      	   (push card cards))
+		  ((and (string-equal "5" (card-type card))
+			(global-symbol? (card-symb card)))
+		   (format t "*** Execution start at ~a ***~%" (card-symb card))
+		   (save-reversed-cards cards)
+		   (run (card-symb card)))
+		  (t (ipl-trace :load "Ignoring: ~s~%" read-row)))))
+    finally (save-reversed-cards cards)
+    ))
 
+(defun save-reversed-cards (cards)
+  ;; This does a really ugly hack (or, one might consider it a
+  ;; clever hack?) Once we have the thing completely in hand, we
+  ;; change the local symbols to FN_9-... and save those as separate
+  ;; symtab entries. This allows the code to branch, and also run
+  ;; through, and also use sub sections of code in J100 meta-calls
+  ;; (ugh!)
+  (when cards
+    (setf cards (reverse cards))
+    (let* ((top-name (card-name (car cards)))
+	   (local-symbols.new-names
+	    (uniquify-list
+	     (loop for card in cards
+		   append (loop for getter in *symbol-col-accessesors*
+				as symbol = (funcall getter card)
+				if (local-symbol? symbol)
+				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
+      (convert-local-symbols cards local-symbols.new-names)
+      (setf (gethash top-name *symtab*) cards)
+      (ipl-trace :load "Saved: ~a~%" (card-name (car cards)))
+      (loop for (nil . new-name) in local-symbols.new-names
+	    as subcode = (loop for cards on cards
+			       when (string-equal (card-name (car card)) new-name)
+			       do (return cards))
+	    do (setf (gethash new-name *symtab*) subcode)
+	    (ipl-trace :load "Saved subcode: ~a~%" new-name))
+      (setf cards nil))))
 
+(defun convert-local-symbols (cards local-symbols.new-names)
+  (labels ((replace-symbols (card accessor)
+	     (let ((new-name (assoc (accessor card) local-symbols.new-names)))
+	       (when new-name (setf (accessor card) new-name)))
+	     (loop for card in cards
+		   do (loop for accessor in *symbol-col-accessesors*
+			    do (replace-symbols card accessor)))))))
+			    
 ;;; Things like 9-xxx are local, everything else is global.
 
-(defun global-symb? (name)
+(defun global-symbol? (name)
   (and (not (zerop (length name)))
        (not (char-equal #\9 (aref name 0)))))
 
+(defun local-symbol? (name)
+  (and (not (zerop (length name)))
+       (char-equal #\9 (aref name 0))))
+
+(defun uniquify-list (l)
+  (loop for i on l
+	unless (member (car i) (cdr i) :test #'equal)
+	collect (car i)))
+
 (defun reset! ()
-  (clrhash *symtbl*) 
+  (clrhash *symtab*) 
   (setup-j-fns)
   (clrhash *col->vals*)
   )
@@ -164,7 +206,7 @@
 
 (eval-when (:execute :load-toplevel :compile-toplevel)
   (defmacro defj (name &rest forms)
-    `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtbl*)
+    `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtab*)
 	   (lambda (arg0 arg1)
 	     (ipl-trace :jfns ,(format nil "Calling ~a w/ARG0=~~s, ARG1=~~s~%" name) arg0 arg1)
 	     ,@forms)))
@@ -188,13 +230,14 @@
       ;; (1) as input. The order is the order on the list, starting with the first
       ;; list cell. H5 is always set + at the start of the subprocess. J100 will
       ;; move in list (1) if it is on auxiliary.
-      (ipl-trace :run-full "J100") (break)
+      (ipl-trace :run-full "J100") 
       (loop with subcall = (h0)
-       	    for elt in (h1*)
+       	    for elt in (listX arg1)
        	    do
 	    (push arg0 (h1+))
-	    (push (ListX arg1) (h1+))
+	    (push elt (h0+))
 	    (ipl-eval)
+	    (pop (h0+))
 	    ))
   )
 
@@ -212,7 +255,7 @@
   (ipl-eval))
 
 (defun ipl-eval ()
-  (prog (h1 card pq q p symb link s)
+  (prog (h1 card pq q p symb link s trace-name-temp)
    INTERPRET-Q
      (setf h1 (h1))
      (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" h1)
@@ -221,17 +264,17 @@
      ;; symbol, we need to de-reference it to the list. In the case of an
      ;; internal (J) funtion this will be a lambda, in which case we just call
      ;; it and then advance
+     (setf trace-name-temp h1) ;; This is kinda ugly -- just for tracing.
      (when (stringp h1)
        (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" h1)
        (setf h1 (*val+ h1) (h1) h1) ;; Set both the var we're using as a shortcut, and the stack entry.
        (go INTERPRET-Q))
      (when (functionp h1)
+       (ipl-trace :run-full ">> Calling Built-in ~a~%" trace-name-temp) 
        (funcall h1 (*val "h0") (cadr (*val+ "h0"))) ;; Call the fn
        (pop (h1+)) ;; Remove the JFn call
        (pop (h1)) ;; And the card that called the JFn
-       (print "ccccccc")
        (setf h1 (h1))
-       (print "ddddddddd")
        (go ADVANCE))
      (ipl-trace :run "~%H1 = ~s!~%" h1)
      (setq card (car h1))
@@ -330,7 +373,7 @@
      ))
 
 (defun call-ipl-prim (symb)
-  (break "****** UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
+  (break "!!!!!!!! UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
 
 ;;; Getting the P and Q is a little tricky because they can be blank. Blank is
 ;;; interpreted as zero, and if they're both blank ("") it's not a problem --
@@ -350,6 +393,7 @@
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 (untrace)
-;(trace global-symb? load-ipl ipl-trace)
-(setf *ipl-trace-list* '(:run :jfns :run-full))
+;(trace listx)
+
+(setf *ipl-trace-list* '(:load :run :jfns :run-full))
 (load-ipl "runs/20250214/LT.lisp")
