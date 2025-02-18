@@ -1,5 +1,7 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+;;; Things not implemented: Aux storage.
+
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
 (defstruct (card (:print-function print-card)) comments type name sign pq symb link comments.1 id)
@@ -17,6 +19,34 @@
 	  ))
 
 ;;; ===================================================================
+;;; Symbol Table (and Stacks)
+;;; ===================================================================
+
+(defvar *symtbl* (make-hash-table :test #'equal))
+
+;;; Symbol is a short hand for getting symbol values from the *symtbl* (FFF
+;;; Think about using the lisp symbol table instead of *symtbl*. Collisions are
+;;; extremely unlikely with everything called W0, M13, and J123! :-)
+
+(defmacro symval (symb) `(gethash ,symb *symtbl*))
+
+;;; *val is symbol value for stacked symbols, like H0 and W0, used where there
+;;; isn't a special macro for common ones.  WWW Note the convention of adding +
+;;; when the var has the whole stack. System symbols (machine stacks) are
+;;; strings just like user-defined symbols. It's up to the user to ot try to
+;;; push/pop things that aren't stacks!
+
+(defmacro *val+ (symb) `(gethash ,symb *symtbl*)) ;; + Version gets the whole stack
+(defmacro *val (symb) `(car (*val+ ,symb)))
+
+;;; Beacuse H0 is so important it has special macros.
+
+(defmacro h0+ () `(*val+ "h0"))
+(defmacro h0 () `(*val "h0"))
+(defmacro h1+ () `(*val+ "h1"))
+(defmacro h5 () `(*val "h5"))
+
+;;; ===================================================================
 ;;; The Loader simply loads everything created by tsv2alist.py
 ;;; into *symtab*. Nb. You should end with a type 5 card to execute!
 ;;; ===================================================================
@@ -29,7 +59,18 @@
   (when (or (equal *ipl-trace-list* t)
 	    (equal key t)
 	    (member key *ipl-trace-list*))
-    (apply #'format t fmt args)))
+    (apply #'format t fmt args)
+    (when (member :run-full *ipl-trace-list*)
+      (report-important-registers))))
+
+(defparameter *important-run-registers* '("h0" "h1"))
+
+(defun report-important-registers ()
+  (format t "***** RUN REGISTERS *****~%")
+  (loop for r in *important-run-registers*
+	do (format t "  ~a* = ~s~%" r (*val+ r)))
+  (format t "^^^^^^^^^^^^^^^^^^^^^^^^^~%")
+  )
 
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
@@ -116,45 +157,24 @@
     result))
 
 ;;; ===================================================================
-;;; Symbol Table (and Stacks)
-;;; ===================================================================
-
-(defvar *symtbl* (make-hash-table :test #'equal))
-
-;;; Symbol is a short hand for getting symbol values from the *symtbl* (FFF
-;;; Think about using the lisp symbol table instead of *symtbl*. Collisions are
-;;; extremely unlikely with everything called W0, M13, and J123! :-)
-
-(defmacro symval (symb) `(gethash ,symb *symtbl*))
-
-;;; *val is symbol value for stacked symbols, like H0 and W0, used where there
-;;; isn't a special macro for common ones.  WWW Note the convention of adding +
-;;; when the var has the whole stack. System symbols (machine stacks) are
-;;; strings just like user-defined symbols. It's up to the user to ot try to
-;;; push/pop things that aren't stacks!
-
-(defmacro *val+ (symb) `(gethash ,symb *symtbl*)) ;; + Version gets the whole stack
-(defmacro *val (symb) `(car (*val+ ,symb)))
-
-;;; Beacuse H0 is so important it has special macros.
-
-(defmacro h0+ () `(*val+ "h0"))
-(defmacro h0 () `(*val "h0"))
-(defmacro h1+ () `(*val+ "h1"))
-(defmacro h5 () `(*val "h5"))
-
-;;; ===================================================================
 ;;; J-Functions. 
 ;;; ===================================================================
 
 (eval-when (:execute :load-toplevel :compile-toplevel)
   (defmacro defj (name form)
     `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtbl*)
-	   (lambda (arg0 arg1) ,form)))
+	   (lambda (arg0 arg1)
+	     (ipl-trace :jfns ,(format nil "Calling ~a w/ARG0=~~s, ARG1=~~s~%" name) arg0 arg1)
+	     ,form)))
   )
 
 (defun setup-j-fns ()
-  (defj J73 (break "J73 with ~s ~s" arg0 arg1))
+  (defj J73
+      (setf (h0)
+	    (copy-list
+	     (if (stringp arg0) (*val+ arg0)
+		 (if (listp arg0) arg0
+		     (error "J73 got ARG0=~s" arg0))))))
   )
 
 ;;; ===================================================================
@@ -174,7 +194,9 @@
      ;; symbol, we need to de-reference it to the list. In the case of an
      ;; internal (J) funtion this will be a lambda, in which case we just call
      ;; it and then advance
-     (when (functionp h1) (funcall h1 (*val "h0") (cadr (*val+ "h0"))))
+     (when (functionp h1)
+       (funcall h1 (*val "h0") (cadr (*val+ "h0")))
+       (go ADVANCE))
      (when (stringp h1)
        (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" h1)
        (setf h1 (*val+ h1))
@@ -297,5 +319,5 @@
 
 (untrace)
 ;(trace global-symb?)
-(setf *ipl-trace-list* '(:run :load))
-(load-ipl "LT.lisp")
+(setf *ipl-trace-list* '(:run :jfns :run-full))
+(load-ipl "runs/20250214/LT.lisp")
