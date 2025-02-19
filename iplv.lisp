@@ -9,7 +9,7 @@
 
 (defun print-card (card s d)
   (declare (ignore d))
-  (format s "~a::~a/~a/~a/~a [~a/~a]"
+  (format s "{~a::~a/~a/~a/~a [~a/~a]}"
 	  (card-id card)
 	  (card-name card)
 	  (card-pq card)
@@ -231,6 +231,17 @@
 		 (if (listp arg0) arg0
 		     (error "J73 got ARG0=~s" arg0))))))
 
+  (defj J76
+      ;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
+      ;; assume to be describable. Its head is erased (if local, the symbol in
+      ;; the head is erased as a list structure). The string of list cells is
+      ;; inserted after cell (1): LINK of cell (1) is the name of the first list
+      ;; cell, and LINK of the last cell of the string is the name of the cell
+      ;; originally occurring after cell (1). The output (O) is the name of the
+      ;; last cell in the inserted string and H5 is set+. If list (0) has no
+      ;; list cells, then the output (0) is the input (1) and H5 is set -.
+      (break))
+
   (defj J147 ;; Mark routine to trace
       (format t "WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!~%"))
 
@@ -265,8 +276,11 @@
 (defun ipl-eval (start-symb)
   (ipl-trace :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-symb)
   (prog (h1 card pq q p symb link s trace-name-temp)
+     (print (list "aaaaaaaaaa"))
      (push :exit (h1+)) ;; Top of stack -- force exit (may be recursive)
+     (print (list "bbbbbbbbbb"))
      (push start-symb (h1+)) ;; Where we're headed this time in..
+     (print (list "ccccccccc"))
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q (ipl-trace :run-full "*** INTERPRET-Q")
      (setf h1 (h1))
@@ -285,9 +299,9 @@
        (ipl-trace :run-full ">> Calling Built-in ~a~%" trace-name-temp) 
        (funcall h1 (*val "h0") (cadr (*val+ "h0"))) ;; Call the fn
        (pop (h1+)) ;; Remove the JFn call
-       (pop (h1)) ;; And the card that called the JFn
        (setf h1 (h1))
-       (go ADVANCE))
+       (go ADVANCE)
+       )
      (ipl-trace :run "~%H1 = ~s!~%" h1)
      (setq card (car h1))
      (setf pq (card-pq card)
@@ -348,6 +362,10 @@
        (5 (setf link (card-symb scard)) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (ipl-trace :run-full "*** ADVANCE")
+     (when (equal h1 :exit)
+       (ipl-trace :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
+       (pop (h1+))
+       (return))
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
@@ -368,11 +386,8 @@
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
-     (setf h1 (pop (*val+ "h1")) (h1) h1)
+     (setf h1 (pop (h1+)) (h1) h1) ;; ??? Seems redundant ???
      (ipl-trace :run "At ASCEND w/H1 = ~a~%" h1)
-     (when (equal h1 :exit)
-       (ipl-trace :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
-       (return))
      (go ADVANCE)
    DESCEND (ipl-trace :run-full "*** DESCEND")
      (ipl-trace :run "At DESCEND w/S = ~a~%" s)
@@ -410,6 +425,6 @@
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 (untrace)
-;(trace save-reversed-cards fucking-setf convert-local-symbols)
+(trace ipl-eval)
 (setf *ipl-trace-list* '(:load :run :jfns :run-full))
 (load-ipl "runs/20250214/LT.lisp")
