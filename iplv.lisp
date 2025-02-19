@@ -5,7 +5,7 @@
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
 (defstruct (card (:print-function print-card)) comments type name sign pq symb link comments.1 id)
-(defparameter *symbol-col-accessesors* (list #'card-name #'card-symb #'card-link))
+(defparameter *symbol-col-accessors* `((card-name . ,#'card-name) (card-symb . ,#'card-symb) (card-link . ,#'card-link)))
 
 (defun print-card (card s d)
   (declare (ignore d))
@@ -56,7 +56,7 @@
 ;;; into *symtab*. Nb. You should end with a type 5 card to execute!
 ;;; ===================================================================
 
-(defvar *ipl-trace-list* nil) ;; t for all, or: :load :run 
+(defvar *ipl-trace-list* nil) ;; t for all, or: :load :run :run-full
 
 (defun ipl-trace (key fmt &rest args)
   ;; WWW if the arg is actually nil, apply gets confused so we pre-fix this case.
@@ -65,11 +65,11 @@
 	    (equal key t)
 	    (member key *ipl-trace-list*))
     (apply #'format t fmt args)
-    (when (member :run-full *ipl-trace-list*)
+    (when (and (member key '(:run :run-full))
+	       (member :run-full *ipl-trace-list*))
       (report-important-registers))))
 
 (defparameter *important-run-registers* '("h1" "h0" "h5"))
-
 (defun report-important-registers ()
   (format t "~%vvvvv RUN REGISTERS vvvvv~%")
   (loop for r in *important-run-registers*
@@ -115,16 +115,17 @@
 	    (cond ((string-equal "" (card-type card))
 		   (when (global-symbol? name)
 		     (ipl-trace :load "Loading global name: ~a~%" name)
-		     (save-reversed-cards cards))
+		     (save-reversed-cards cards)
+		     (setf cards nil))
 	      	   (push card cards))
 		  ((and (string-equal "5" (card-type card))
 			(global-symbol? (card-symb card)))
 		   (format t "*** Execution start at ~a ***~%" (card-symb card))
 		   (save-reversed-cards cards)
 		   (run (card-symb card)))
-		  (t (ipl-trace :load "Ignoring: ~s~%" read-row)))))
-    finally (save-reversed-cards cards)
-    ))
+		  (t (ipl-trace :load "Ignoring: ~s~%" read-row))))
+	  finally (save-reversed-cards cards)
+	  )))
 
 (defun save-reversed-cards (cards)
   ;; This does a really ugly hack (or, one might consider it a
@@ -139,7 +140,7 @@
 	   (local-symbols.new-names
 	    (uniquify-list
 	     (loop for card in cards
-		   append (loop for getter in *symbol-col-accessesors*
+		   append (loop for (nil . getter) in *symbol-col-accessors*
 				as symbol = (funcall getter card)
 				if (local-symbol? symbol)
 				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
@@ -147,26 +148,27 @@
       (setf (gethash top-name *symtab*) cards)
       (ipl-trace :load "Saved: ~a~%" (card-name (car cards)))
       (loop for (nil . new-name) in local-symbols.new-names
-	    as subcode = (loop for cards on cards
-			       when (string-equal (card-name (car card)) new-name)
-			       do (return cards))
-	    do (setf (gethash new-name *symtab*) subcode)
+	    as subcode = (loop for card+ on cards
+			       when (string-equal (card-name (car card+)) new-name)
+			       do (return card+))
+	    do
+	    (setf (gethash new-name *symtab*) subcode)
 	    (ipl-trace :load "Saved subcode: ~a~%" new-name))
       (setf cards nil))))
 
 (defun convert-local-symbols (cards local-symbols.new-names)
-  (labels ((replace-symbols (card accessor)
-	     (let ((new-name (assoc (funcall accessor card) local-symbols.new-names)))
-	       (when new-name (fucking-setf accessor card new-name)))
-	     (loop for card in cards
-		   do (loop for accessor in *symbol-col-accessesors*
-			    do (replace-symbols card accessor)))))))
+  (labels ((replace-symbols (card accname.accessor)
+	     (let ((new-name (cdr (assoc (funcall (cdr accname.accessor) card) local-symbols.new-names :test #'string-equal))))
+	       (when new-name (fucking-setf (car accname.accessor) card new-name)))))
+    (loop for card in cards
+	  do (loop for accname.accessor in *symbol-col-accessors*
+		   do (replace-symbols card accname.accessor)))))
 			    
-(defun fucking-setf (accessor card new-name)
-  (case accessor
-    (#'card-name (setf (card-name card) new-name))
-    (#'card-symb (setf (card-symb card) new-name))
-    (#'card-link (setf (card-link card) new-name))))
+(defun fucking-setf (accname card new-name)
+  (case accname
+    (card-name (setf (card-name card) new-name))
+    (card-symb (setf (card-symb card) new-name))
+    (card-link (setf (card-link card) new-name))))
 
 ;;; Things like 9-xxx are local, everything else is global.
 
@@ -399,7 +401,6 @@
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 (untrace)
-;(trace listx)
-
+;(trace save-reversed-cards fucking-setf convert-local-symbols)
 (setf *ipl-trace-list* '(:load :run :jfns :run-full))
 (load-ipl "runs/20250214/LT.lisp")
