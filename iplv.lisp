@@ -40,7 +40,9 @@
 (defmacro *val+ (symb) `(gethash ,symb *symtab*)) ;; + Version gets the whole stack
 (defmacro *val (symb) `(car (*val+ ,symb)))
 
-;;; Beacuse H0 is so important it has special macros.
+;;; Important values it have special macros (these are like (h0) = (0) in the
+;;; IPL-V manual). The ...+ fns return the whole stack. (Note that you'll have
+;;; to get (1), that is, the second stack entry in H0 manually!)
 
 (defmacro h0+ () `(*val+ "h0"))
 (defmacro h0 () `(*val "h0"))
@@ -242,9 +244,8 @@
       (loop with subcall = (h0)
        	    for elt in (listX arg1)
        	    do
-	    (push arg0 (h1+))
 	    (push elt (h0+))
-	    (ipl-eval)
+	    (ipl-eval arg0)
 	    (pop (h0+))
 	    ))
   )
@@ -259,12 +260,15 @@
 ;;; ===================================================================
 
 (defun run (start-symb)
-  (push start-symb (h1+))
-  (ipl-eval))
+  (ipl-eval start-symb))
 
-(defun ipl-eval ()
+(defun ipl-eval (start-symb)
+  (ipl-trace :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-symb)
   (prog (h1 card pq q p symb link s trace-name-temp)
-   INTERPRET-Q
+     (push :exit (h1+)) ;; Top of stack -- force exit (may be recursive)
+     (push start-symb (h1+)) ;; Where we're headed this time in..
+     ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
+   INTERPRET-Q (ipl-trace :run-full "*** INTERPRET-Q")
      (setf h1 (h1))
      (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" h1)
      ;; H1 contains the name of the cell holding the instruction to be
@@ -313,7 +317,7 @@
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" card))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" card))
        )
-   INTERPRET-P     
+   INTERPRET-P (ipl-trace :run-full "*** INTERPRET-P")
      (ipl-trace :run "INTERPRET-P w/P = ~a~%" p)
      ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
      ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
@@ -336,14 +340,14 @@
 	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
        )
      (go advance)
-   TEST-FOR-PRIMITIVE
+   TEST-FOR-PRIMITIVE (ipl-trace :run-full "*** TEST-FOR-PRIMITIVE")
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
      (ipl-trace :run "At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a~%" s q)
      (case q 
        (5 (setf link (card-symb scard)) (go ADVANCE))
        (t (go DESCEND)))
-   ADVANCE
+   ADVANCE (ipl-trace :run-full "*** ADVANCE")
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
@@ -358,21 +362,26 @@
 	 (progn
 	   (setf h1 link)
 	   (go INTERPRET-Q)))
-   ASCEND
+     ;; FFF ASCEND and DESCEND could probably be handled more cleanly and
+     ;; correctly by recursing on IPL-EVAL !!!
+   ASCEND (ipl-trace :run-full "*** ASCEND")
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (setf h1 (pop (*val+ "h1")) (h1) h1)
      (ipl-trace :run "At ASCEND w/H1 = ~a~%" h1)
+     (when (equal h1 :exit)
+       (ipl-trace :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
+       (return))
      (go ADVANCE)
-   DESCEND
+   DESCEND (ipl-trace :run-full "*** DESCEND")
      (ipl-trace :run "At DESCEND w/S = ~a~%" s)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (push s (h1+))
-     (setf h1 s)
+     (setf h1 s) 
      (go INTERPRET-Q)
-   BRANCH
+   BRANCH (ipl-trace :run-full "*** BRANCH")
      (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" h5 s)
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - HS+: Go to ADVANCE
