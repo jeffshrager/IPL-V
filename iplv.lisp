@@ -1,6 +1,6 @@
 ;;; (load (compile-file "iplv.lisp"))
 
-;;; Things not implemented: Aux storage.
+;;; Things not implemented: Aux storage, various J functions, 
 
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
@@ -232,7 +232,7 @@
   (defj J147 ;; Mark routine to trace
       (format t "WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!~%"))
 
-  (defj j100
+  (defj J100
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
       ;; named (0) is performed successively with each of the symbols of list named
       ;; (1) as input. The order is the order on the list, starting with the first
