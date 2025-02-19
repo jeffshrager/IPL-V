@@ -251,7 +251,6 @@
       ;; (1) as input. The order is the order on the list, starting with the first
       ;; list cell. H5 is always set + at the start of the subprocess. J100 will
       ;; move in list (1) if it is on auxiliary.
-      (ipl-trace :run-full "J100") 
       (loop with subcall = (h0)
        	    for elt in (listX arg1)
        	    do
@@ -275,35 +274,30 @@
 
 (defun ipl-eval (start-symb)
   (ipl-trace :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-symb)
-  (prog (h1 card pq q p symb link s trace-name-temp)
-     (print (list "aaaaaaaaaa"))
+  (prog (card pq q p symb link s trace-name-temp)
      (push :exit (h1+)) ;; Top of stack -- force exit (may be recursive)
-     (print (list "bbbbbbbbbb"))
      (push start-symb (h1+)) ;; Where we're headed this time in..
-     (print (list "ccccccccc"))
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q (ipl-trace :run-full "*** INTERPRET-Q")
-     (setf h1 (h1))
-     (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" h1)
+     (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" (h1))
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list. In the case of an
      ;; internal (J) funtion this will be a lambda, in which case we just call
      ;; it and then advance
-     (setf trace-name-temp h1) ;; This is kinda ugly -- just for tracing.
-     (when (stringp h1)
-       (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" h1)
-       (setf h1 (*val+ h1) (h1) h1) ;; Set both the var we're using as a shortcut, and the stack entry.
+     (setf trace-name-temp (h1)) ;; This is kinda ugly -- just for tracing.
+     (when (stringp (h1))
+       (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" (h1))
+       (setf (h1) (*val+ (h1)))
        (go INTERPRET-Q))
-     (when (functionp h1)
+     (when (functionp (h1))
        (ipl-trace :run-full ">> Calling Built-in ~a~%" trace-name-temp) 
-       (funcall h1 (*val "h0") (cadr (*val+ "h0"))) ;; Call the fn
+       (funcall (h1) (h0) (second (h0+))) ;; Call the fn
        (pop (h1+)) ;; Remove the JFn call
-       (setf h1 (h1))
        (go ADVANCE)
        )
-     (ipl-trace :run "~%H1 = ~s!~%" h1)
-     (setq card (car h1))
+     (ipl-trace :run "~%H1 = ~s!~%" (h1))
+     (setq card (first (h1)))
      (setf pq (card-pq card)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -342,7 +336,7 @@
 	)
        (2 ;; Output to S (then restore HO)
 	(setf s (pop (h0+))))
-       (3 ;; Restore (pop up) S
+       (3 ;; Restore (pop up) S 
 	(pop (*val+ s)))
        (4 ;; Preserve (push down) S
 	(push (*val s) (*val s)))
@@ -350,7 +344,7 @@
 	(setf (h0) s))
        (6 ;; Copy (0) in S
 	(setf (symval s) (h0)))
-       (7	     ;; Branch to S if H5-
+       (7 ;; Branch to S if H5-
 	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
        )
      (go advance)
@@ -362,7 +356,7 @@
        (5 (setf link (card-symb scard)) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (ipl-trace :run-full "*** ADVANCE")
-     (when (equal h1 :exit)
+     (when (equal (h1) :exit)
        (ipl-trace :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
        (pop (h1+))
        (return))
@@ -373,12 +367,12 @@
      (ipl-trace :run "At ADVANCE w/LINK = ~a~%" link)
      ;; If link is nil ("") in the middle of a function, go next card, else ascend.
      (if (string-equal link "")
-	 (if (null h1)
+	 (if (null (h1))
 	     (go ASCEND)
-	     (progn (setf h1 (cdr h1) (h1) h1) ;; Set both the var we're using as a shortcut, and the stack entry.
+	     (progn (pop (h1)) 
 		    (go INTERPRET-Q)))
 	 (progn
-	   (setf h1 link)
+	   (setf (h1) link)
 	   (go INTERPRET-Q)))
      ;; FFF ASCEND and DESCEND could probably be handled more cleanly and
      ;; correctly by recursing on IPL-EVAL !!!
@@ -386,7 +380,7 @@
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
-     (setf h1 (pop (h1+)) (h1) h1) ;; ??? Seems redundant ???
+     (pop (h1+))
      (ipl-trace :run "At ASCEND w/H1 = ~a~%" h1)
      (go ADVANCE)
    DESCEND (ipl-trace :run-full "*** DESCEND")
@@ -394,7 +388,6 @@
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (push s (h1+))
-     (setf h1 s) 
      (go INTERPRET-Q)
    BRANCH (ipl-trace :run-full "*** BRANCH")
      (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" h5 s)
@@ -426,5 +419,5 @@
 
 (untrace)
 (trace ipl-eval)
-(setf *ipl-trace-list* '(:load :run :jfns :run-full))
+(setf *ipl-trace-list* '(:run :jfns :run-full)) ;; :load
 (load-ipl "runs/20250214/LT.lisp")
