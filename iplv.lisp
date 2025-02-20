@@ -244,8 +244,6 @@
       ;; list cells, then the output (0) is the input (1) and H5 is set -.
       (format t "WWW J76 (INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL) is UNIMPLEMENTED !!!~%"))
 
-
-
   (defj J147 ;; Mark routine to trace
       (format t "WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!~%"))
   (defj J148 ;; Mark routine to propogate trace
@@ -305,7 +303,7 @@
        )
      (ipl-trace :run "~%H1 = ~s!~%" (h1))
      (setq card (first (h1)))
-     (ipl-trace :run "The card is: ~s~%" card)
+     (ipl-trace :cards "Executing card: ~s~%" card)
      (setf pq (card-pq card)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -427,5 +425,5 @@
 
 (untrace)
 (trace ipl-eval)
-(setf *ipl-trace-list* '(:run :jfns :run-full)) ;; :load
+(setf *ipl-trace-list* '(:cards)) ;; :load :run :jfns :run-full :cards
 (load-ipl "runs/20250214/LT.lisp")

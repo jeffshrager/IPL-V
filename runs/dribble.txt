@@ -1,0 +1,84 @@
+* (load (compile-file "iplv.lisp"))
+(load (compile-file "iplv.lisp"))
+(load (compile-file "iplv.lisp"))
+; compiling file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.lisp" (written 19 FEB 2025 05:14:15 PM):
+
+; file: /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.lisp
+; in: DEFUN REPORT-COL-VALS
+;     (SORT (COUNT-VALS VALS) #'> :KEY #'CDR)
+; 
+; note: could not stack allocate SB-IMPL::TEST in:
+;        (SORT (COUNT-VALS VALS) #'> :KEY #'CDR)
+; 
+; note: could not stack allocate SB-IMPL::KEY in:
+;        (SORT (COUNT-VALS VALS) #'> :KEY #'CDR)
+
+; in: DEFUN IPL-EVAL
+;     (CARD-SYMB SCARD??????????)
+; 
+; note: deleting unreachable code
+
+; file: /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.lisp
+; in: DEFUN IPL-EVAL
+;     (SETF (SYMVAL S) (H0))
+; 
+; caught WARNING:
+;   undefined variable: COMMON-LISP-USER::S
+
+;     (CARD-SYMB SCARD??????????)
+; 
+; caught WARNING:
+;   undefined variable: COMMON-LISP-USER::SCARD??????????
+; 
+; compilation unit finished
+;   Undefined variables:
+;     S SCARD??????????
+;   caught 2 WARNING conditions
+;   printed 3 notes
+
+
+; wrote /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.fasl
+; compilation finished in 0:00:00.278
+*** Execution start at X1 ***
+  0: (IPL-EVAL "X1")
+Executing card: {X001R000::X1/11/W26/ [/]}
+Executing card: {X001R010::/10/X23/ [/]}
+Executing card: {X001R020:://J73/ [/]}
+Executing card: {X001R030:://J76/ [SET UP TRAPS./]}
+WWW J76 (INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL) is UNIMPLEMENTED !!!
+Executing card: {X001R040::/50/X21/ [/]}
+Executing card: {X001R050::/10/J147/ [/]}
+Executing card: {X001R060:://J100/ [MARK TO TRACE./]}
+    1: (IPL-EVAL "J147")
+WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!
+    1: IPL-EVAL returned NIL
+Executing card: {X001R070::/10/X22/ [/]}
+Executing card: {X001R080::/10/J148/ [/]}
+Executing card: {X001R090:://J100/ [MARK TO PROPAGATE TRACE./]}
+    1: (IPL-EVAL "J148")
+WWW J147 (Mark routine to propogate trace) is UNIMPLEMENTED !!!
+    1: IPL-EVAL returned NIL
+Executing card: {X001R100:://M89/ [GET NEXT TRUE TEX FROM/]}
+Executing card: {M089R000::M89/40/W0/ [M89 READ NEXT LOGIC EXPRESSION/]}
+Executing card: {M089R010::/40/W25/ [    FROM NORMAL INPUT UNIT./]}
+Executing card: {M089R020::/40/W30/ [    H5- MEANS NONE THERE./]}
+Executing card: {M089R050::M89-9-10//J154/ [CLEAR AND/]}
+Executing card: NIL
+
+debugger invoked on a TYPE-ERROR @53645152 in thread
+#<THREAD "main thread" RUNNING {1001690003}>:
+  The value
+    NIL
+  is not of type
+    COMMON-LISP-USER::CARD
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
+
+(IPL-EVAL "X1")
+; Using form offset instead of character position.
+
+   source: (CARD-PQ CARD)
+0] 
