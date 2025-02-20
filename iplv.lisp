@@ -256,6 +256,8 @@
   (defj J17 (ipl-trace :jfns "WWW J17 IS UNIMPLEMENTED !!!~%"))
   (defj J18 (ipl-trace :jfns "WWW J18 IS UNIMPLEMENTED !!!~%"))
   (defj J19 (ipl-trace :jfns "WWW J19 IS UNIMPLEMENTED !!!~%"))
+
+  ;; Restore W0-Wn
   (defj J31 (ipl-trace :jfns "WWW J31 IS UNIMPLEMENTED !!!~%"))
   (defj J32 (ipl-trace :jfns "WWW J32 IS UNIMPLEMENTED !!!~%"))
   (defj J33 (ipl-trace :jfns "WWW J33 IS UNIMPLEMENTED !!!~%"))
@@ -263,6 +265,7 @@
   (defj J35 (ipl-trace :jfns "WWW J35 IS UNIMPLEMENTED !!!~%"))
   (defj J36 (ipl-trace :jfns "WWW J36 IS UNIMPLEMENTED !!!~%"))
   (defj J38 (ipl-trace :jfns "WWW J38 IS UNIMPLEMENTED !!!~%"))
+
   (defj J41 (ipl-trace :jfns "WWW J41 IS UNIMPLEMENTED !!!~%"))
   (defj J42 (ipl-trace :jfns "WWW J42 IS UNIMPLEMENTED !!!~%"))
   (defj J43 (ipl-trace :jfns "WWW J43 IS UNIMPLEMENTED !!!~%"))
@@ -279,10 +282,15 @@
   (defj J75 (ipl-trace :jfns "WWW J75 IS UNIMPLEMENTED !!!~%"))
   (defj J76 (ipl-trace :jfns "WWW J76 IS UNIMPLEMENTED !!!~%"))
   (defj J78 (ipl-trace :jfns "WWW J78 IS UNIMPLEMENTED !!!~%"))
-  (defj J81 (ipl-trace :jfns "WWW J81 IS UNIMPLEMENTED !!!~%"))
-  (defj J82 (ipl-trace :jfns "WWW J82 IS UNIMPLEMENTED !!!~%"))
-  (defj J90 (ipl-trace :jfns "WWW J90 IS UNIMPLEMENTED !!!~%"))
-  (defj J91 (ipl-trace :jfns "WWW J91 IS UNIMPLEMENTED !!!~%"))
+
+  ;; Find the nth symbol on list (0)
+  (defj J81 (ipl-trace :jfns "WWW J81 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
+  (defj J82 (ipl-trace :jfns "WWW J82 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
+
+  ;; Create a list of n symbols. (n-1) to (0) ???
+  (defj J90 (ipl-trace :jfns "WWW J90 (Create list) IS UNIMPLEMENTED !!!~%"))
+  (defj J91 (ipl-trace :jfns "WWW J91 (Create list) IS UNIMPLEMENTED !!!~%"))
+
   (defj J111 (ipl-trace :jfns "WWW J111 IS UNIMPLEMENTED !!!~%"))
   (defj J115 (ipl-trace :jfns "WWW J115 IS UNIMPLEMENTED !!!~%"))
   (defj J116 (ipl-trace :jfns "WWW J116 IS UNIMPLEMENTED !!!~%"))
@@ -293,6 +301,11 @@
   (defj J136 (ipl-trace :jfns "WWW J136 IS UNIMPLEMENTED !!!~%"))
   (defj J137 (ipl-trace :jfns "WWW J137 IS UNIMPLEMENTED !!!~%"))
   (defj J138 (ipl-trace :jfns "WWW J138 IS UNIMPLEMENTED !!!~%"))
+
+  ;; Tracing
+  (defj J147 (ipl-trace :jfns "WWW J147 (Tracing) IS UNIMPLEMENTED !!!~%"))
+  (defj J148 (ipl-trace :jfns "WWW J148 (Tracing) IS UNIMPLEMENTED !!!~%"))
+  
   (defj J155 (ipl-trace :jfns "WWW J155 IS UNIMPLEMENTED !!!~%"))
   (defj J157 (ipl-trace :jfns "WWW J157 IS UNIMPLEMENTED !!!~%"))
   (defj J160 (ipl-trace :jfns "WWW J160 IS UNIMPLEMENTED !!!~%"))
@@ -348,11 +361,6 @@
 	(setf (*val+ new-name) l)
 	(setf (h0) new-name)))
 
-  (defj J147 ;; Mark routine to trace
-      (format t "WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!~%"))
-  (defj J148 ;; Mark routine to propogate trace
-      (format t "WWW J147 (Mark routine to propogate trace) is UNIMPLEMENTED !!!~%"))
-  
   (defj J154
       ;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
       ;; current entry column, 1W2S, is set equal to the left margin, 1W21.
