@@ -48,6 +48,7 @@
 (defmacro h0 () `(*val "h0"))
 (defmacro h1+ () `(*val+ "h1"))
 (defmacro h1 () `(*val "h1"))
+(defmacro h5+ () `(*val+ "h5"))
 (defmacro h5 () `(*val "h5"))
 (defmacro s+ () `(*val+ "s"))
 (defmacro s () `(*val "s"))
@@ -84,10 +85,13 @@
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
 
+(defvar *input-stream* nil) 
+
 (defun load-ipl (file &key (reset? t))
   (when reset? (reset!))
   (with-open-file
       (i file)
+    (setf *input-stream* i) ;; For reads inside the program executor
     (ipl-trace :load "Loading IPL file: ~a~%" file)
     ;; First line is assumed to be the header which we just check
     (if (equal *cols* (read i))
@@ -202,6 +206,73 @@
 	using (hash-value vals)
 	collect (list col (sort (count-vals vals) #'> :key #'cdr))))
 
+#| List of JFns by frequency:
+
+> (mapcar #'(lambda (i) (when (char-equal #\J (aref (car i) 0)) (print i))) 
+      (second (assoc :symb (report-col-vals))))
+
+("J6" . 40) 
+("J4" . 37) 
+("J81" . 36) 
+("J60" . 35) 
+("J100" . 26) 
+("J71" . 22) 
+("J10" . 18) 
+("J136" . 17) 
+("J155" . 17) 
+("J120" . 17) 
+("J72" . 16) 
+("J154" . 16) 
+("J5" . 15) 
+("J2" . 15) 
+("J11" . 15) 
+("J31" . 14) 
+("J38" . 12) 
+("J161" . 12) 
+("J50" . 12) 
+("J90" . 12) 
+("J33" . 11) 
+("J160" . 11) 
+("J9" . 11) 
+("J82" . 10) 
+("J157" . 10) 
+("J64" . 9) 
+("J34" . 7) 
+("J74" . 6) 
+("J8" . 6) 
+("J116" . 6) 
+("J7" . 6) 
+("J14" . 5) 
+("J133" . 5) 
+("J18" . 5) 
+("J68" . 5) 
+("J41" . 5) 
+("J125" . 5) 
+("J124" . 5) 
+("J3" . 5) 
+("J51" . 4) 
+("J91" . 4) 
+("J43" . 4) 
+("J17" . 4) 
+("J19" . 4) 
+("J42" . 4) 
+("J32" . 4) 
+("J73" . 4) 
+("J65" . 4) 
+("J75" . 4) 
+("J78" . 4) 
+("J35" . 3) 
+("J36" . 3) 
+("J184" . 3) 
+("J111" . 3) 
+("J138" . 3) 
+("J137" . 3) 
+("J66" . 3) 
+("J115" . 3) 
+("J76" . 3) 
+
+|#
+
 (defvar *val->counts* (make-hash-table :test #'equal))
 
 (defun count-vals (lst)
@@ -226,6 +297,65 @@
 
 (defun setup-j-fns ()
 
+  (defj J6 (format t "WWW J6 IS UNIMPLEMENTED !!!~%"))
+  (defj J4 (format t "WWW J4 IS UNIMPLEMENTED !!!~%"))
+  (defj J81 (format t "WWW J81 IS UNIMPLEMENTED !!!~%"))
+  (defj J60 (format t "WWW J60 IS UNIMPLEMENTED !!!~%"))
+  (defj J71 (format t "WWW J71 IS UNIMPLEMENTED !!!~%"))
+  (defj J10 (format t "WWW J10 IS UNIMPLEMENTED !!!~%"))
+  (defj J136 (format t "WWW J136 IS UNIMPLEMENTED !!!~%"))
+  (defj J155 (format t "WWW J155 IS UNIMPLEMENTED !!!~%"))
+  (defj J120 (format t "WWW J120 IS UNIMPLEMENTED !!!~%"))
+  (defj J72 (format t "WWW J72 IS UNIMPLEMENTED !!!~%"))
+  (defj J5 (format t "WWW J5 IS UNIMPLEMENTED !!!~%"))
+  (defj J2 (format t "WWW J2 IS UNIMPLEMENTED !!!~%"))
+  (defj J11 (format t "WWW J11 IS UNIMPLEMENTED !!!~%"))
+  (defj J31 (format t "WWW J31 IS UNIMPLEMENTED !!!~%"))
+  (defj J38 (format t "WWW J38 IS UNIMPLEMENTED !!!~%"))
+  (defj J161 (format t "WWW J161 IS UNIMPLEMENTED !!!~%"))
+  (defj J50 (format t "WWW J50 IS UNIMPLEMENTED !!!~%"))
+  (defj J90 (format t "WWW J90 IS UNIMPLEMENTED !!!~%"))
+  (defj J33 (format t "WWW J33 IS UNIMPLEMENTED !!!~%"))
+  (defj J160 (format t "WWW J160 IS UNIMPLEMENTED !!!~%"))
+  (defj J9 (format t "WWW J9 IS UNIMPLEMENTED !!!~%"))
+  (defj J82 (format t "WWW J82 IS UNIMPLEMENTED !!!~%"))
+  (defj J157 (format t "WWW J157 IS UNIMPLEMENTED !!!~%"))
+  (defj J64 (format t "WWW J64 IS UNIMPLEMENTED !!!~%"))
+  (defj J34 (format t "WWW J34 IS UNIMPLEMENTED !!!~%"))
+  (defj J74 (format t "WWW J74 IS UNIMPLEMENTED !!!~%"))
+  (defj J8 (format t "WWW J8 IS UNIMPLEMENTED !!!~%"))
+  (defj J116 (format t "WWW J116 IS UNIMPLEMENTED !!!~%"))
+  (defj J7 (format t "WWW J7 IS UNIMPLEMENTED !!!~%"))
+  (defj J14 (format t "WWW J14 IS UNIMPLEMENTED !!!~%"))
+  (defj J133 (format t "WWW J133 IS UNIMPLEMENTED !!!~%"))
+  (defj J18 (format t "WWW J18 IS UNIMPLEMENTED !!!~%"))
+  (defj J68 (format t "WWW J68 IS UNIMPLEMENTED !!!~%"))
+  (defj J41 (format t "WWW J41 IS UNIMPLEMENTED !!!~%"))
+  (defj J125 (format t "WWW J125 IS UNIMPLEMENTED !!!~%"))
+  (defj J124 (format t "WWW J124 IS UNIMPLEMENTED !!!~%"))
+  (defj J3 (format t "WWW J3 IS UNIMPLEMENTED !!!~%"))
+  (defj J51 (format t "WWW J51 IS UNIMPLEMENTED !!!~%"))
+  (defj J91 (format t "WWW J91 IS UNIMPLEMENTED !!!~%"))
+  (defj J43 (format t "WWW J43 IS UNIMPLEMENTED !!!~%"))
+  (defj J17 (format t "WWW J17 IS UNIMPLEMENTED !!!~%"))
+  (defj J19 (format t "WWW J19 IS UNIMPLEMENTED !!!~%"))
+  (defj J42 (format t "WWW J42 IS UNIMPLEMENTED !!!~%"))
+  (defj J32 (format t "WWW J32 IS UNIMPLEMENTED !!!~%"))
+  (defj J65 (format t "WWW J65 IS UNIMPLEMENTED !!!~%"))
+  (defj J75 (format t "WWW J75 IS UNIMPLEMENTED !!!~%"))
+  (defj J78 (format t "WWW J78 IS UNIMPLEMENTED !!!~%"))
+  (defj J35 (format t "WWW J35 IS UNIMPLEMENTED !!!~%"))
+  (defj J36 (format t "WWW J36 IS UNIMPLEMENTED !!!~%"))
+  (defj J184 (format t "WWW J184 IS UNIMPLEMENTED !!!~%"))
+  (defj J111 (format t "WWW J111 IS UNIMPLEMENTED !!!~%"))
+  (defj J138 (format t "WWW J138 IS UNIMPLEMENTED !!!~%"))
+  (defj J137 (format t "WWW J137 IS UNIMPLEMENTED !!!~%"))
+  (defj J66 (format t "WWW J66 IS UNIMPLEMENTED !!!~%"))
+  (defj J115 (format t "WWW J115 IS UNIMPLEMENTED !!!~%"))
+  (defj J183 (format t "WWW J115 IS UNIMPLEMENTED !!!~%"))
+  (defj J181 (format t "WWW J115 IS UNIMPLEMENTED !!!~%"))
+  (defj J130 (format t "WWW J115 IS UNIMPLEMENTED !!!~%"))
+
   (defj J73 ;; Copy list
       (setf (h0)
 	    (copy-list
@@ -244,11 +374,6 @@
       ;; list cells, then the output (0) is the input (1) and H5 is set -.
       (format t "WWW J76 (INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL) is UNIMPLEMENTED !!!~%"))
 
-  (defj J147 ;; Mark routine to trace
-      (format t "WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!~%"))
-  (defj J148 ;; Mark routine to propogate trace
-      (format t "WWW J147 (Mark routine to propogate trace) is UNIMPLEMENTED !!!~%"))
-  
   (defj J100
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
       ;; named (0) is performed successively with each of the symbols of list named
@@ -262,6 +387,28 @@
 	    (ipl-eval arg0)
 	    (pop (h0+))
 	    ))
+
+  (defj J147 ;; Mark routine to trace
+      (format t "WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!~%"))
+  (defj J148 ;; Mark routine to propogate trace
+      (format t "WWW J147 (Mark routine to propogate trace) is UNIMPLEMENTED !!!~%"))
+  
+  (defj J154
+      ;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
+      ;; current entry column, 1W2S, is set equal to the left margin, 1W21.
+      (format t "WWW J154 (Clear Print Line) is UNIMPLEMENTED !!!~%"))
+
+  (defj J180 ;; READ LINE J180 READLINE. The next record on unit 1W18 is read to
+      ;; line 1W24. (The record is assumed to be BCD, 80 cols.) Column 1 of the
+      ;; record is read into column 1 of the read line, and so forth. H5 is
+      ;; set+. If no record can be read (end-of-file condition), the line is not
+      ;; changed and HS is set - .
+      (let ((line (read-line *input-stream* nil nil)))
+	(ipl-trace :io "J180 Read:~%~s~%%" line)
+	(cond (line
+	       (push line (*val+ "W24"))
+	       (setf (h5) "+"))
+	      (t (setf (h5) "-")))))
   )
 
 ;;; ===================================================================
@@ -274,7 +421,12 @@
 ;;; ===================================================================
 
 (defun run (start-symb)
+  (initialize-machine)
   (ipl-eval start-symb))
+
+(defun initialize-machine ()
+  (setf (h5+) (list "+"))
+  )
 
 (defun ipl-eval (start-symb)
   (ipl-trace :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-symb)
@@ -291,6 +443,12 @@
      ;; internal (J) funtion this will be a lambda, in which case we just call
      ;; it and then advance
      (setf trace-name-temp (h1)) ;; This is kinda ugly -- just for tracing.
+     (when (null (h1))
+	   (break "
+***
+*** MAYBE MSSING DEFINITION FROM THIS CALL: ~s
+***
+" (caadr (h1+))))
      (when (stringp (h1))
        (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" (h1))
        (setf (h1) (*val+ (h1)))
@@ -399,7 +557,7 @@
      (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" (h5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
-     (when (not (h5)) (setf link (s)))
+     (when (string-equal (h5) "-") (setf link (s)))
      (go ADVANCE)
      ))
 
@@ -425,5 +583,5 @@
 
 (untrace)
 (trace ipl-eval)
-(setf *ipl-trace-list* '(:cards)) ;; :load :run :jfns :run-full :cards
+(setf *ipl-trace-list* '(:cards :io)) ;; :load :run :jfns :run-full :cards :io
 (load-ipl "runs/20250214/LT.lisp")
