@@ -5,6 +5,10 @@
 ;;; FFF Maybe use Lisp lists instead of the morass of symbol table pointers that
 ;;; require a mess of renaming.
 
+;;; FFF Note that the dumper put multiple header lines in (:comments :type :name
+;;; :sign :pq :symb :link :comments.1 :id). Prob. need code to ignore them
+;;; rather than just skipping the first line.
+
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
 (defstruct (card (:print-function print-card)) comments type name sign pq symb link comments.1 id)
@@ -159,8 +163,9 @@
       (ipl-trace :load "Saved: ~a~%" (card-name (car cards)))
       (save-subcodes cards))))
 
-;;; WWW %%% This is duplicative! Each sublist contains all the sublists after it.
-;;; it!
+;;; WWW %%% This looks like it's duplicative as each sublist contains all the
+;;; sublists after it.  However this is unfortunately required as sometimes the
+;;; code runs through.
 
 (defun save-subcodes (l)
     (loop for cards on l
@@ -304,6 +309,8 @@
 	     ,@forms)))
   )
 
+(defun new-list-symbol () (format nil "~a" (gensym "+")))
+
 (defun setup-j-fns ()
 
   (defj J2 (ipl-trace :jfns "WWW J2 IS UNIMPLEMENTED !!!~%"))
@@ -387,12 +394,14 @@
 	    (pop (h0+))
 	    ))
 
+;;; FFF Macrify this: (if (stringp (h0)) (*val+ (h0)) (h0)))
+
   (defj J120
       ;; COPY (0). The output (0) names a new cell containing the identical
       ;; contents to (0). The name is local if the input (0) is local; other-
       ;; wise, it is internal.
       (let ((l (if (stringp (h0)) (*val+ (h0)) (h0)))
-	    (new-name (format nil "~a" (gensym "+"))))
+	    (new-name (new-list-symbol)))
 	(ipl-trace :jfns "J120 created new list pointer ~s from ~s~%" new-name l)
 	(setf (*val+ new-name) l)
 	(setf (h0) new-name)))
@@ -423,35 +432,43 @@
 ;;; Copying an IPL list is a tricky because they aren't represented like normal
 ;;; lisp lists (maybe they shold be?) but instead are a pile of cards where
 ;;; internal structure results from the symb and links pointing to other named
-;;; cards all at the top level. In order to do this we need to go through and
-;;; make a local symbol table, and then change all the symbols as we go. (If we
-;;; knew that the list was guaranteed to be forward-pointing only, we could do
-;;; this in one pass.) Importantly, not all symbols in a list point to the list
-;;; itself, so we don't want to be changing those that don't! WWW We also have
-;;; to chase every list pointed to by this one! Ugh!
+;;; cards all at the top level. In order to do this we need scan the whole list
+;;; recursviely and create new symbols at each point. The only situation where
+;;; we don't need to fill in an explicit pointer is when the list points to the
+;;; NEXT element, but we do that anyway. All lists ground out on a 0 in the symb
+;;; or link.
 
-(defun J74-copy-ipl-list**WRONG! (l &aux local-symbols.new-names)
-  ;; *** THIS IS BROKEN -- IT NEEDS TO COPY THE ENTIRE LIST STRUCTURE ***
-  ;; First pass make the symbol table of the names of symbols in the list
-  ;; itself, and give them new names. These are the only ones we want to
-  ;; change.
-  (ipl-trace :run-full "Copying list: ~s~%" l)
-  (loop for card in l
-	as name = (card-name card)
-	when (not (string-equal "" name))
-	do (push (cons name (format nil "~a" (gensym "+")))
-		 local-symbols.new-names))
-  ;; Okay, so now all we need to do is copy the list an replace the names in
-  ;; the cards with those in the symtab
-  (let ((new-list
-	 (loop for card in l
-	       collect (convert-local-symbols cards local-symbols.new-names))))
-    ;; Finally, register all the new partial lists in the symbtab
-    (save-list-and-sublists l)
-    ;; And return the new-list in (0)
-    (ipl-trace :run-full "   ... New list: ~s~%" new-list)
-    (setf (h0) new-list)
-    ))
+(defun J74-copy-list-structure ()
+  ;; COPY LIST STRUCTURE(0). A new list structure is produced, the cells of
+  ;; which are in one-to-one correspondence with the cells of list structure
+  ;; (0). All the regional and internal symbols in the cells will be identical
+  ;; to the symbols in the correspon- ding cells of (0), as will the contents of
+  ;; data terms. There will be new local symbols, since these are the names of
+  ;; the sublists of the new structure. Description lists will be copied, if
+  ;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
+  ;; the copy will be produced in main storage. In all cases, list structure (0)
+  ;; remains unaffected. The output (0) names the new list structure. It is
+  ;; local if the input (0) is local; It is internal otherwise.
+  (ipl-trace :jfns "J74 is copying list: ~s~%" (h0))
+  (setf (0) (copy-list-structure (if (stringp (h0)) (*val+ (h0)) (h0))))
+  )
+
+(defun copy-list-structure (l)
+  (if (string-equal "0" l) "0" ;; End of sublist, just return the EOsL "0"
+      (let ((new-name (new-list-symbol)))
+	(setf (gethash new-name *symtab* (mapcar #'copy-list-card l)))
+	new-name)))
+
+(defun copy-list-card (card)
+  (if (string-equal "0" card) "0" ;; End of sublist, just return the EOsL "0"
+      (let* ((new-card (copy-card card)))
+	(setf (card-name new-card) (new-list-symbol))
+	;; WWW ??? This has the problem that it's going to copy whole functions
+	;; into copied lists, which is probably not what is intended. Maybe
+	;; things that are defined in the load process shouldn't be copied? 
+	(setf (card-symb new-card) (copy-list-structure (card-symb card)))
+	(setf (card-link new-card) (copy-list-structure (card-link card)))
+	)))
 	
 ;;; ===================================================================
 ;;; This is the core of the emulator. It directly implements "3.15 THE
@@ -626,4 +643,4 @@
 (untrace)
 (trace ipl-eval)
 (setf *ipl-trace-list* '(:jfns :cards :io)) ;; :load :run :jfns :run-full :cards :io
-(load-ipl "runs/20250214/LT.lisp")
+(load-ipl "LTFixed.lisp")
