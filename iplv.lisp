@@ -53,6 +53,7 @@
 
 (defmacro h0+ () `(*val+ "h0"))
 (defmacro h0 () `(*val "h0"))
+(defmacro h0! () `(if (stringp (h0)) (*val+ (h0)) (h0)))
 (defmacro h1+ () `(*val+ "h1"))
 (defmacro h1 () `(*val "h1"))
 (defmacro h5+ () `(*val+ "h5"))
@@ -143,12 +144,12 @@
 	  )))
 
 (defun save-cards (cards)
-  ;; This does a really ugly hack (or, one might consider it a
-  ;; clever hack?) Once we have the thing completely in hand, we
-  ;; change the local symbols to FN_9-... and save those as separate
-  ;; symtab entries. This allows the code to branch, and also run
-  ;; through, and also use sub sections of code in J100 meta-calls
-  ;; (ugh!)
+  ;; Once we have the thing completely in hand, we change the local symbols to
+  ;; FN_9-... and save those as separate symtab entries. This allows the code to
+  ;; branch, and also run through, and also use sub sections of code in J100
+  ;; meta-calls (ugh!) WWW !!! This looks like it's duplicative as each sublist
+  ;; contains all the sublists after it.  However this is unfortunately required
+  ;; as sometimes the code runs through.
   (when cards
     (let* ((top-name (card-name (car cards)))
 	   (local-symbols.new-names
@@ -163,18 +164,12 @@
       (ipl-trace :load "Saved: ~a~%" (card-name (car cards)))
       (save-subcodes cards))))
 
-;;; WWW %%% This looks like it's duplicative as each sublist contains all the
-;;; sublists after it.  However this is unfortunately required as sometimes the
-;;; code runs through.
-
 (defun save-subcodes (l)
     (loop for cards on l
 	  as name = (card-name (car cards))
 	  unless (string-equal "" name)
 	  do (setf (gethash name *symtab*) cards)
 	  (ipl-trace :load "Saved subcode: ~a~%" name)))
-
-;;; WWW This is used both on loading, and in list copying.
 
 (defun convert-local-symbols (cards local-symbols.new-names)
   (labels ((replace-symbols (card accname.accessor)
@@ -220,72 +215,6 @@
   (loop for col being the hash-keys of *col->vals*
 	using (hash-value vals)
 	collect (list col (sort (count-vals vals) #'> :key #'cdr))))
-
-#| List of JFns by frequency:
-
-> (mapcar #'(lambda (i) (when (char-equal #\J (aref (car i) 0)) (print i))) 
-      (second (assoc :symb (report-col-vals))))
-
-("J6" . 40) 
-("J4" . 37) 
-("J81" . 36) 
-("J60" . 35) 
-("J100" . 26) 
-("J71" . 22) 
-("J10" . 18) 
-("J136" . 17) 
-("J155" . 17) 
-("J72" . 16) 
-("J154" . 16) 
-("J5" . 15) 
-("J2" . 15) 
-("J11" . 15) 
-("J31" . 14) 
-("J38" . 12) 
-("J161" . 12) 
-("J50" . 12) 
-("J90" . 12) 
-("J33" . 11) 
-("J160" . 11) 
-("J9" . 11) 
-("J82" . 10) 
-("J157" . 10) 
-("J64" . 9) 
-("J34" . 7) 
-("J74" . 6) 
-("J8" . 6) 
-("J116" . 6) 
-("J7" . 6) 
-("J14" . 5) 
-("J133" . 5) 
-("J18" . 5) 
-("J68" . 5) 
-("J41" . 5) 
-("J125" . 5) 
-("J124" . 5) 
-("J3" . 5) 
-("J51" . 4) 
-("J91" . 4) 
-("J43" . 4) 
-("J17" . 4) 
-("J19" . 4) 
-("J42" . 4) 
-("J32" . 4) 
-("J73" . 4) 
-("J65" . 4) 
-("J75" . 4) 
-("J78" . 4) 
-("J35" . 3) 
-("J36" . 3) 
-("J184" . 3) 
-("J111" . 3) 
-("J138" . 3) 
-("J137" . 3) 
-("J66" . 3) 
-("J115" . 3) 
-("J76" . 3) 
-
-|#
 
 (defvar *val->counts* (make-hash-table :test #'equal))
 
@@ -380,6 +309,21 @@
 		 (if (listp arg0) arg0
 		     (error "J73 got ARG0=~s" arg0))))))
 
+  (defj J74 ;; Copy List Structure
+      ;; COPY LIST STRUCTURE(0). A new list structure is produced, the cells of
+      ;; which are in one-to-one correspondence with the cells of list structure
+      ;; (0). All the regional and internal symbols in the cells will be identical
+      ;; to the symbols in the correspon- ding cells of (0), as will the contents of
+      ;; data terms. There will be new local symbols, since these are the names of
+      ;; the sublists of the new structure. Description lists will be copied, if
+      ;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
+      ;; the copy will be produced in main storage. In all cases, list structure (0)
+      ;; remains unaffected. The output (0) names the new list structure. It is
+      ;; local if the input (0) is local; It is internal otherwise.
+      (ipl-trace :jfns "J74 is copying list: ~s~%" (h0))
+      (setf (0) (copy-list-structure (h0!)))
+      )
+
   (defj J100
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
       ;; named (0) is performed successively with each of the symbols of list named
@@ -394,13 +338,11 @@
 	    (pop (h0+))
 	    ))
 
-;;; FFF Macrify this: (if (stringp (h0)) (*val+ (h0)) (h0)))
-
   (defj J120
       ;; COPY (0). The output (0) names a new cell containing the identical
       ;; contents to (0). The name is local if the input (0) is local; other-
       ;; wise, it is internal.
-      (let ((l (if (stringp (h0)) (*val+ (h0)) (h0)))
+      (let ((l (h0!))
 	    (new-name (new-list-symbol)))
 	(ipl-trace :jfns "J120 created new list pointer ~s from ~s~%" new-name l)
 	(setf (*val+ new-name) l)
@@ -438,29 +380,14 @@
 ;;; NEXT element, but we do that anyway. All lists ground out on a 0 in the symb
 ;;; or link.
 
-(defun J74-copy-list-structure ()
-  ;; COPY LIST STRUCTURE(0). A new list structure is produced, the cells of
-  ;; which are in one-to-one correspondence with the cells of list structure
-  ;; (0). All the regional and internal symbols in the cells will be identical
-  ;; to the symbols in the correspon- ding cells of (0), as will the contents of
-  ;; data terms. There will be new local symbols, since these are the names of
-  ;; the sublists of the new structure. Description lists will be copied, if
-  ;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
-  ;; the copy will be produced in main storage. In all cases, list structure (0)
-  ;; remains unaffected. The output (0) names the new list structure. It is
-  ;; local if the input (0) is local; It is internal otherwise.
-  (ipl-trace :jfns "J74 is copying list: ~s~%" (h0))
-  (setf (0) (copy-list-structure (if (stringp (h0)) (*val+ (h0)) (h0))))
-  )
-
 (defun copy-list-structure (l)
-  (if (string-equal "0" l) "0" ;; End of sublist, just return the EOsL "0"
+  (if (or (string-equal "0" l) (string-equal "" l)) l ;; End of sublist, just return the EOsL "0"
       (let ((new-name (new-list-symbol)))
 	(setf (gethash new-name *symtab* (mapcar #'copy-list-card l)))
 	new-name)))
 
 (defun copy-list-card (card)
-  (if (string-equal "0" card) "0" ;; End of sublist, just return the EOsL "0"
+  (if (or (string-equal "0" card) (string-equal "" card)) card ;; End of sublist, just return the EOsL "0"
       (let* ((new-card (copy-card card)))
 	(setf (card-name new-card) (new-list-symbol))
 	;; WWW ??? This has the problem that it's going to copy whole functions
