@@ -49,6 +49,8 @@
 (defmacro h1+ () `(*val+ "h1"))
 (defmacro h1 () `(*val "h1"))
 (defmacro h5 () `(*val "h5"))
+(defmacro s+ () `(*val+ "s"))
+(defmacro s () `(*val "s"))
 
 (defun ListX (l) ;; Get a list from it's name if necessary
   (if (listp l) l (*val+ l)))
@@ -71,7 +73,7 @@
 	       (member :run-full *ipl-trace-list*))
       (report-important-registers))))
 
-(defparameter *important-run-registers* '("h1" "h0" "h5"))
+(defparameter *important-run-registers* '("h1" "h0" "h5" "s"))
 (defun report-important-registers ()
   (format t "~%vvvvv RUN REGISTERS vvvvv~%")
   (loop for r in *important-run-registers*
@@ -231,7 +233,7 @@
 		 (if (listp arg0) arg0
 		     (error "J73 got ARG0=~s" arg0))))))
 
-  (defj J76
+  (defj J76 
       ;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
       ;; assume to be describable. Its head is erased (if local, the symbol in
       ;; the head is erased as a list structure). The string of list cells is
@@ -240,11 +242,15 @@
       ;; originally occurring after cell (1). The output (O) is the name of the
       ;; last cell in the inserted string and H5 is set+. If list (0) has no
       ;; list cells, then the output (0) is the input (1) and H5 is set -.
-      (break))
+      (format t "WWW J76 (INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL) is UNIMPLEMENTED !!!~%"))
+
+
 
   (defj J147 ;; Mark routine to trace
       (format t "WWW J147 (Mark routine to trace) is UNIMPLEMENTED !!!~%"))
-
+  (defj J148 ;; Mark routine to propogate trace
+      (format t "WWW J147 (Mark routine to propogate trace) is UNIMPLEMENTED !!!~%"))
+  
   (defj J100
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
       ;; named (0) is performed successively with each of the symbols of list named
@@ -274,10 +280,11 @@
 
 (defun ipl-eval (start-symb)
   (ipl-trace :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-symb)
-  (prog (card pq q p symb link s trace-name-temp)
+  (prog (card pq q p symb link trace-name-temp)
      (push :exit (h1+)) ;; Top of stack -- force exit (may be recursive)
      (push start-symb (h1+)) ;; Where we're headed this time in..
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
+     (push :s-top (s+))
    INTERPRET-Q (ipl-trace :run-full "*** INTERPRET-Q")
      (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" (h1))
      ;; H1 contains the name of the cell holding the instruction to be
@@ -298,6 +305,7 @@
        )
      (ipl-trace :run "~%H1 = ~s!~%" (h1))
      (setq card (first (h1)))
+     (ipl-trace :run "The card is: ~s~%" card)
      (setf pq (card-pq card)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -314,46 +322,46 @@
      ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
      ;; storage; put location of routine in block into Hl; go to
      ;; INTERPRET-Q.
-     (ipl-trace :run " w/Q = ~s~%" q)
+     (ipl-trace :run " w/Q = ~s, symb=~s~%" q symb)
      (case q
-       (0 (setf s symb) (go INTERPRET-P))
-       (1 (setf s (*val symb)) (go INTERPRET-P))
-       (2 (setf s (*val (*val symb))) (go INTERPRET-P))
-       (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf s symb) (go INTERPRET-P))
-       (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf s symb) (go INTERPRET-P))
-       (5 (call-ipl-prim symb) (go Ascend)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
+       (0 (setf (s) symb) (go INTERPRET-P))
+       (1 (setf (s) (*val symb)) (go INTERPRET-P))
+       (2 (setf (s) (*val (*val symb))) (go INTERPRET-P))
+       (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf (s) symb) (go INTERPRET-P))
+       (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf (s) symb) (go INTERPRET-P))
+       (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" card))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" card))
        )
    INTERPRET-P (ipl-trace :run-full "*** INTERPRET-P")
-     (ipl-trace :run "INTERPRET-P w/P = ~a~%" p)
+     (ipl-trace :run "INTERPRET-P w/P = ~s, symb=~s~%" p symb)
      ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
      ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 ;; Input S (after preserving HO) ;; ??? Hopefully "input" means to push it on the stack ???
-	(push s (h0+))
+	(push (s) (h0+))
 	)
        (2 ;; Output to S (then restore HO)
-	(setf s (pop (h0+))))
+	(setf (s) (pop (h0+))))
        (3 ;; Restore (pop up) S 
-	(pop (*val+ s)))
+	(pop (s+)))
        (4 ;; Preserve (push down) S
-	(push (*val s) (*val s)))
+	(push (s) (s+)))
        (5 ;; Replace (0) by S
-	(setf (h0) s))
-       (6 ;; Copy (0) in S
+	(setf (h0) (s)))
+       (6 ;; Copy (0) in S ;; ??? Is this just moving H0 to S or to what S points to?
 	(setf (symval s) (h0)))
        (7 ;; Branch to S if H5-
 	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
        )
-     (go advance)
+     (go ADVANCE)
    TEST-FOR-PRIMITIVE (ipl-trace :run-full "*** TEST-FOR-PRIMITIVE")
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
-     (ipl-trace :run "At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a~%" s q)
+     (ipl-trace :run "At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a, symb=~s~%" (s) q symb)
      (case q 
-       (5 (setf link (card-symb scard)) (go ADVANCE))
+       (5 (setf link (card-symb scard??????????)) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (ipl-trace :run-full "*** ADVANCE")
      (when (equal (h1) :exit)
@@ -381,19 +389,19 @@
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (pop (h1+))
-     (ipl-trace :run "At ASCEND w/H1 = ~a~%" h1)
+     (ipl-trace :run "At ASCEND w/H1 = ~a~%" (h1))
      (go ADVANCE)
    DESCEND (ipl-trace :run-full "*** DESCEND")
-     (ipl-trace :run "At DESCEND w/S = ~a~%" s)
+     (ipl-trace :run "At DESCEND w/S = ~a~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
-     (push s (h1+))
+     (push (s) (h1+))
      (go INTERPRET-Q)
    BRANCH (ipl-trace :run-full "*** BRANCH")
-     (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" h5 s)
+     (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" (h5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
-     ;; to ADVANCE. - HS+: Go to ADVANCE
-     (when (not (h5)) (setf link s))
+     ;; to ADVANCE. - H5+: Go to ADVANCE
+     (when (not (h5)) (setf link (s)))
      (go ADVANCE)
      ))
 
