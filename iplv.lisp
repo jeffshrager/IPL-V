@@ -66,19 +66,19 @@
 
 ;;; WWW DO NOT CONFUSE H1 with (1) !!!
 
-(defmacro h0+ () `(*val+ "h0"))
-(defmacro h0 () `(*val "h0"))
+(defmacro h0+ () `(*val+ "H0"))
+(defmacro h0 () `(*val "H0"))
 (defmacro h0! () `(if (stringp (h0)) (*val+ (h0)) (h0)))
 
 ;;; WWW DO NOT CONFUSE H1 with (1) !!!
 
-(defmacro h1+ () `(*val+ "h1"))
-(defmacro h1 () `(*val "h1"))
+(defmacro h1+ () `(*val+ "H1"))
+(defmacro h1 () `(*val "H1"))
 
-(defmacro h5+ () `(*val+ "h5"))
-(defmacro h5 () `(*val "h5"))
-(defmacro s+ () `(*val+ "s"))
-(defmacro s () `(*val "s"))
+(defmacro h5+ () `(*val+ "H5"))
+(defmacro h5 () `(*val "H5"))
+(defmacro s+ () `(*val+ "S"))
+(defmacro s () `(*val "S"))
 
 (defun ListX (l) ;; Get a list from it's name if necessary
   (if (listp l) l (*val+ l)))
@@ -101,7 +101,7 @@
 	       (member :run-full *ipl-trace-list*))
       (report-important-registers))))
 
-(defparameter *important-run-registers* '("h1" "h0" "h5" "s"))
+(defparameter *important-run-registers* '("H1" "H0" "H5" "S"))
 (defun report-important-registers ()
   (format t "~%vvvvv RUN REGISTERS vvvvv~%")
   (loop for r in *important-run-registers*
@@ -328,7 +328,6 @@
   (defj J51 (ipl-trace :jfns "WWW J51 IS UNIMPLEMENTED !!!~%"))
   (defj J64 (ipl-trace :jfns "WWW J64 IS UNIMPLEMENTED !!!~%"))
   (defj J65 (ipl-trace :jfns "WWW J65 IS UNIMPLEMENTED !!!~%"))
-  (defj J66 (ipl-trace :jfns "WWW J66 IS UNIMPLEMENTED !!!~%"))
   (defj J68 (ipl-trace :jfns "WWW J68 IS UNIMPLEMENTED !!!~%"))
   (defj J71 (ipl-trace :jfns "WWW J71 IS UNIMPLEMENTED !!!~%"))
   (defj J72 (ipl-trace :jfns "WWW J72 IS UNIMPLEMENTED !!!~%"))
@@ -372,6 +371,12 @@
       (let ((z (h0)))
 	(setf (h0) (second (h0+)))
 	(setf (second (h0+)) z)))
+
+  (defj J66 
+  ;; Insert the symbol (0) at the end of list (1) if not already on
+  ;; it. If the symbol (0) already exists on list (1), J66 does
+  ;; nothing.
+      )
 
   (defj J73 ;; Copy list
       (setf (h0)
@@ -450,6 +455,9 @@
 	(setf (*val+ new-name) l)
 	(setf (h0) new-name)))
 
+  (defj J151 ;; Print list (0)
+      (mapcar #'print (*val arg0)))
+
   (defj J154
       ;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
       ;; current entry column, 1W2S, is set equal to the left margin, 1W21.
@@ -511,6 +519,13 @@
   (setf (h5+) (list "+"))
   )
 
+;;; De-ref if required!
+(defun card-symb* (card-or-symbol)
+  (card-symb 
+   (if (stringp card-or-symbol)
+       (*val card-or-symbol)
+       card-or-symbol)))
+
 (defun ipl-eval (start-symb)
   (ipl-trace :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-symb)
   (prog (card pq q p symb link trace-name-temp)
@@ -564,8 +579,9 @@
      (ipl-trace :run " w/Q = ~s, symb=~s~%" q symb)
      (case q
        (0 (setf (s) symb) (go INTERPRET-P))
+       ;; ???????????????? There's some sort of screw here between list elements and things like H0. ????????????????????
        (1 (setf (s) (*val symb)) (go INTERPRET-P))
-       (2 (setf (s) (*val (*val symb))) (go INTERPRET-P))
+       (2 (setf (s) (card-symb* (*val symb))) (go INTERPRET-P))
        (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf (s) symb) (go INTERPRET-P))
        (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
@@ -579,7 +595,7 @@
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 ;; Input S (after preserving HO) ;; ??? Hopefully "input" means to push it on the stack ???
-	(push (*val (s)) (h0+))
+	(push (s) (h0+))
 	)
        (2 ;; Output to S (then restore HO)
 	(setf (*val (s)) (pop (h0+))))
@@ -672,7 +688,7 @@
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 (untrace)
-;(trace ipl-eval save-cards)
+(trace card-symb*)
 (setf *ipl-trace-list* '(:load :run :jfns :run-full :cards :io)) ;; :load :run :jfns :run-full :cards :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
