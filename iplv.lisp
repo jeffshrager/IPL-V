@@ -160,7 +160,7 @@
 		(if (string-equal "5" (cell-type cell))
 		    (if (global-symbol? (cell-symb cell))
 			(progn
-			  (format t "(!! Execution start at ~a (!!~%" (cell-symb cell))
+			  (format t "** Execution start at ~a **~%" (cell-symb cell))
 			  (save-cells (reverse cells) load-mode)
 			  (setf cells nil)
 			  (run (cell-symb cell)))
@@ -549,7 +549,7 @@
      (push start-symb (h1+)) ;; Where we're headed this time in..
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
      (push :s-top (s+))
-   INTERPRET-Q (!! :run-full "(!! INTERPRET-Q")
+   INTERPRET-Q (!! :run-full "*** INTERPRET-Q")
      (!! :run "INTERPRET-Q w/H1 = ~s!~%" (h1))
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
@@ -575,7 +575,7 @@
        )
      (!! :run "~%H1 = ~s!~%" (h1))
      (setq cell (first (h1)))
-     (!! :cells "Executing cell: ~s~%" cell)
+     (!! :simple-exec "Executing cell: ~s~%" cell)
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -604,7 +604,7 @@
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
        )
-   INTERPRET-P (!! :run-full "(!! INTERPRET-P")
+   INTERPRET-P (!! :run-full "*** INTERPRET-P")
      (!! :run "INTERPRET-P w/P = ~s, symb=~s~%" p symb)
      ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
      ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
@@ -627,14 +627,14 @@
 	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
        )
      (go ADVANCE)
-   TEST-FOR-PRIMITIVE (!! :run-full "(!! TEST-FOR-PRIMITIVE")
+   TEST-FOR-PRIMITIVE (!! :run-full "*** TEST-FOR-PRIMITIVE")
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
      (!! :run "At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a, symb=~s~%" (s) q symb)
      (case q 
        (5 (setf link (cell-symb scell??????????)) (go ADVANCE))
        (t (go DESCEND)))
-   ADVANCE (!! :run-full "(!! ADVANCE")
+   ADVANCE (!! :run-full "*** ADVANCE")
      (when (equal (h1) :exit)
        (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
        (pop (h1+))
@@ -662,20 +662,20 @@
 	   (go INTERPRET-Q)))
      ;; FFF ASCEND and DESCEND could probably be handled more cleanly and
      ;; correctly by recursing on IPL-EVAL !!!
-   ASCEND (!! :run-full "(!! ASCEND")
+   ASCEND (!! :run-full "*** ASCEND")
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (pop (h1+))
      (!! :run "At ASCEND w/H1 = ~a~%" (h1))
      (go ADVANCE)
-   DESCEND (!! :run-full "(!! DESCEND")
+   DESCEND (!! :run-full "*** DESCEND")
      (!! :run "At DESCEND w/S = ~a~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (push (s) (h1+))
      (go INTERPRET-Q)
-   BRANCH (!! :run-full "(!! BRANCH")
+   BRANCH (!! :run-full "*** BRANCH")
      (!! :run "At BRANCH w/H5 = ~a, S= ~a~%" (h5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
@@ -706,6 +706,6 @@
 (untrace)
 (trace cell-symb*)
 (setf *important-run-registers* '("H1" "H0" "H5" "S" "W0"))
-(setf *ipl-trace-list* '(:run :jfns :cells :io :run-full)) ;; :load :run :jfns :run-full :cells :io
+(setf *ipl-trace-list* '(:simple-exec)) ;; :load :run :jfns :run-full :simple-exec :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
