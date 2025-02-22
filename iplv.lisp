@@ -373,10 +373,26 @@
 	(setf (second (h0+)) z)))
 
   (defj J66 
-  ;; Insert the symbol (0) at the end of list (1) if not already on
-  ;; it. If the symbol (0) already exists on list (1), J66 does
-  ;; nothing.
-      )
+      ;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
+      ;; search of list (1) is made. against (0) (starting with the
+      ;; cell after cell (1) . If (0) is found, J66 does nothing
+      ;; further. If (0) is not found, it is inserted at the end of
+      ;; the list, as in J65. (??? What happens if the list
+      ;; branches??? At the moment this can't do anything sensible
+      ;; with a branching list!)
+      (ipl-trace :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
+      (let ((l (*val+ arg1)))
+	(loop for cell in l
+	      do (cond ((string-equal (card-symb cell) arg0)
+			(ipl-trace "J66 found ~s in the list already. No action!~%" arg0)
+			(return nil))
+		       ((string-equal "0" (card-link cell))
+			(ipl-trace "J66 hit end, adding ~s to the list!~%" arg0)
+			(let* ((new-name (new-list-symbol arg1))
+			       (new-cell (make-card :name new-name :symb arg0 :link "0")))
+			  (setf (card-link cell) new-name)
+			  (setf (*val+ new-name) new-cell)
+			  (setf (*val+ arg1) `(,@l ,new-cell))))))))
 
   (defj J73 ;; Copy list
       (setf (h0)
@@ -386,7 +402,7 @@
 		     (error "J73 got ARG0=~s" arg0))))))
 
   (defj J60
-      ;; LOCATE NEXT SYMBOL AFTER CELL (O). (0) is the name of a
+      ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
       ;; cell. If a next cell exists (LINK of (0) not a termination
       ;; symbol), then the output (0) is the name of the next cell,
       ;; and H5 is set +. If LINK is a termination symbol, then the
@@ -428,7 +444,7 @@
       (let ((name (new-list-symbol "L")))
 	(ipl-trace :jfns "J90 creating blank list ~s~%" name)
 	(setf (*val+ name)
-	      (list (make-card :name name :link "0")))
+	      (list (make-card :name name :symb "0" :link "0")))
 	(push name (h0+))))
 
   (defj J100
