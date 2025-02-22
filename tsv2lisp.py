@@ -1,5 +1,6 @@
 # conda activate iplv
-# python3 tsv2alist.py LT_IPL-V-CODE_129-170.tsv LT_IPL-V-DATA_171-182.tsv LT_IPL-V-CODE_183-184.tsv LT_IPL-V-Exec_Code_71-73.tsv LT.lisp
+# python3 tsv2lisp.py LT_IPL-V-CODE_129-170.tsv LT_IPL-V-DATA_171-182.tsv LT_IPL-V-CODE_183-184.tsv LT_IPL-V-Exec_Code_71-73.tsv LT.lisp
+# python3 tsv2lisp.py F1.tsv F1.lisp
 
 import pandas as pd
 import argparse
