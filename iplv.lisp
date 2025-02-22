@@ -11,7 +11,7 @@
 
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
-(defstruct (card (:print-function print-card))
+(defstruct (cell (:print-function print-cell))
   (comments "")
   (type "")
   (name "")
@@ -22,21 +22,21 @@
   (comments.1 "")
   (id "")
   )
-(defparameter *symbol-col-accessors* `((card-name . ,#'card-name) (card-symb . ,#'card-symb) (card-link . ,#'card-link)))
+(defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
 (defmacro blank? (what) `(string-equal "" ,what))
 
-(defun print-card (card s d)
+(defun print-cell (cell s d)
   (declare (ignore d))
   (format s "{~a~a/~a/~a/~a~a}"
-	  (if (blank? (card-id card)) "" (format nil "~a::" (card-id card)))
-	  (card-name card)
-	  (card-pq card)
-	  (card-symb card)
-	  (card-link card)
-	  (if (and (blank? (card-comments card)) (blank? (card-comments.1 card))) 
+	  (if (blank? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
+	  (cell-name cell)
+	  (cell-pq cell)
+	  (cell-symb cell)
+	  (cell-link cell)
+	  (if (and (blank? (cell-comments cell)) (blank? (cell-comments.1 cell))) 
 	      ""
-	      (format nil " [~a/~a]" (card-comments card) (card-comments card)))))
+	      (format nil " [~a/~a]" (cell-comments cell) (cell-comments cell)))))
 
 ;;; ===================================================================
 ;;; Symbol Table (and Stacks)
@@ -85,12 +85,12 @@
 
 ;;; ===================================================================
 ;;; The Loader simply loads everything created by tsv2alist.py
-;;; into *symtab*. Nb. You should end with a type 5 card to execute!
+;;; into *symtab*. Nb. You should end with a type 5 cell to execute!
 ;;; ===================================================================
 
 (defvar *ipl-trace-list* nil) ;; t for all, or: :load :run :run-full
 
-(defun ipl-trace (key fmt &rest args)
+(defun !! (key fmt &rest args)
   ;; WWW if the arg is actually nil, apply gets confused so we pre-fix this case.
   (unless args (setf args '(())))
   (when (or (equal *ipl-trace-list* t)
@@ -101,11 +101,11 @@
 	       (member :run-full *ipl-trace-list*))
       (report-important-registers))))
 
-(defparameter *important-run-registers* '("H1" "H0" "H5" "S"))
+(defparameter *important-run-registers* '("H1" "H0" "H5" "S" "W0"))
 (defun report-important-registers ()
   (format t "~%vvvvv RUN REGISTERS vvvvv~%")
   (loop for r in *important-run-registers*
-	do (format t "  ~a* = ~s~%" r (*val+ r)))
+	do (format t "  ~a+ = ~s~%" r (*val+ r)))
   (format t "~%^^^^^^^^^^^^^^^^^^^^^^^^^~%")
   )
 
@@ -116,24 +116,24 @@
 
 (defun load-ipl (file &key (reset? t) (load-mode :code))
   ;; Load-mode will be :code or :data as set by the latest type=5
-  ;; card's Q: Q=0=code, Q=1=data) And if the sym entry on a type 5
-  ;; card is filled, it's an execution start card.
+  ;; cell's Q: Q=0=code, Q=1=data) And if the sym entry on a type 5
+  ;; cell is filled, it's an execution start cell.
   (when reset? (reset!))
   (with-open-file
       (i file)
     (setf *input-stream* i) ;; For reads inside the program executor
-    (ipl-trace :load "Loading IPL file: ~a~%" file)
+    (!! :load "Loading IPL file: ~a~%" file)
     ;; First line is assumed to be the header which we just check
     (if (equal *cols* (read i))
-	(ipl-trace :load "Header okay!~%")
+	(!! :load "Header okay!~%")
 	(error "No valid header on ~a" file)
 	)
     (loop for read-row = (read i nil nil)
-	  with cards = nil
+	  with cells = nil
 	  until (null read-row)
 	  do
 	  (let* ((p -1)
-		 (card (make-card
+		 (cell (make-cell
 			:comments (nth (incf p) read-row)
 			:type (nth (incf p) read-row)
 			:name (nth (incf p) read-row)
@@ -144,41 +144,41 @@
 			:comments.1 (nth (incf p) read-row)
 			:id (nth (incf p) read-row)
 			))
-		 (name (card-name card))
+		 (name (cell-name cell))
 	       	 )
 	    ;; Collect frequency of symbol use data.
 	    (loop for col in *cols* as val in read-row
 		  unless (string-equal "" val)
 		  do (push val (gethash col *col->vals*)))
-	    (if (string-equal "" (card-type card))
+	    (if (string-equal "" (cell-type cell))
 		(progn 
 		  (when (global-symbol? name)
-		    (ipl-trace :load "Loading global name: ~a~%" name)
-		    (save-cards (reverse cards) load-mode) (setf cards nil)
+		    (!! :load "Loading global name: ~a~%" name)
+		    (save-cells (reverse cells) load-mode) (setf cells nil)
 		    )
-	      	  (push card cards))
-		(if (string-equal "5" (card-type card))
-		    (if (global-symbol? (card-symb card))
+	      	  (push cell cells))
+		(if (string-equal "5" (cell-type cell))
+		    (if (global-symbol? (cell-symb cell))
 			(progn
-			  (format t "*** Execution start at ~a ***~%" (card-symb card))
-			  (save-cards (reverse cards) load-mode)
-			  (setf cards nil)
-			  (run (card-symb card)))
-			(if (member (card-pq card) '("1" "01") :test #'string-equal)
+			  (format t "(!! Execution start at ~a (!!~%" (cell-symb cell))
+			  (save-cells (reverse cells) load-mode)
+			  (setf cells nil)
+			  (run (cell-symb cell)))
+			(if (member (cell-pq cell) '("1" "01") :test #'string-equal)
 			    (progn
-			      (save-cards (reverse cards) load-mode) (setf cards nil)
-			      (ipl-trace :load "Switching to DATA load mode.~%")
+			      (save-cells (reverse cells) load-mode) (setf cells nil)
+			      (!! :load "Switching to DATA load mode.~%")
 			      (setf load-mode :data))
-			    (if (member (card-pq card) '("0" "00" "") :test #'string-equal)
+			    (if (member (cell-pq cell) '("0" "00" "") :test #'string-equal)
 				(progn
-				  (ipl-trace :load "Switching to CODE load mode.~%")
-				  (save-cards (reverse cards) load-mode) (setf cards nil)
+				  (!! :load "Switching to CODE load mode.~%")
+				  (save-cells (reverse cells) load-mode) (setf cells nil)
 				  (setf load-mode :code))
-				(ipl-trace :load "Ignoring: ~s~%" read-row)))))))
-	  finally (save-cards (reverse cards) load-mode)
+				(!! :load "Ignoring: ~s~%" read-row)))))))
+	  finally (save-cells (reverse cells) load-mode)
 	  )))
 
-(defun save-cards (cards load-mode)
+(defun save-cells (cells load-mode)
   ;; Once we have the thing completely in hand, we change the local
   ;; symbols to FN_9-... and save those as separate symtab
   ;; entries. This allows the code to branch, and also run through,
@@ -186,65 +186,65 @@
   ;; !!! This looks like it's duplicative as each sublist contains all
   ;; the sublists after it.  However this is unfortunately required as
   ;; sometimes the code runs through. In load-mode :data we have to
-  ;; assign a local symbol to every card. (Really we could do this in
+  ;; assign a local symbol to every cell. (Really we could do this in
   ;; every mode since the functions are just lists, but things would
   ;; look extremely messy and the symtab would be totally full of ugly
   ;; crap -- which is, of course, how the actual computer works, where
   ;; core is the symtab! So for the sake of a bit of cleanliness we
   ;; create a spaghetti monster out of the emulator!)
-  (when cards
-    (let* ((top-name (card-name (car cards)))
+  (when cells
+    (let* ((top-name (cell-name (car cells)))
 	   (local-symbols.new-names
 	    (uniquify-list
-	     (loop for card in cards
+	     (loop for cell in cells
 		   append (loop for (nil . getter) in *symbol-col-accessors*
-				as symbol = (funcall getter card)
+				as symbol = (funcall getter cell)
 				if (local-symbol? symbol)
 				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
-      (convert-local-symbols cards local-symbols.new-names)
-      (setf (gethash top-name *symtab*) cards)
-      (ipl-trace :load "Saved: ~a~%" (card-name (car cards)))
+      (convert-local-symbols cells local-symbols.new-names)
+      (setf (gethash top-name *symtab*) cells)
+      (!! :load "Saved: ~a~%" (cell-name (car cells)))
       (when (eq :data load-mode)
 	;; Loop through the whole list and create aa local symbol for
 	;; every cell that doesn't already have one. This has to do a
 	;; messy look ahead.
-	(loop for (this-card next-card) on cards
-	      as this-link = (card-link this-card)
-	      as next-name = (when next-card (card-name next-card))
-	      when next-card ;; This usually isn't needed anyway bcs there should be a 0
+	(loop for (this-cell next-cell) on cells
+	      as this-link = (cell-link this-cell)
+	      as next-name = (when next-cell (cell-name next-cell))
+	      when next-cell ;; This usually isn't needed anyway bcs there should be a 0
 	      do (if (string-equal "" this-link)
 		     (if (string-equal "" next-name)
 			 (let ((new-symbol (new-list-symbol top-name)))
-			   (setf (card-name next-card) new-symbol)
-			   (setf (card-link this-card) new-symbol))
-			 (setf (card-link this-card) next-name))))))
-    (save-sublists cards)))
+			   (setf (cell-name next-cell) new-symbol)
+			   (setf (cell-link this-cell) new-symbol))
+			 (setf (cell-link this-cell) next-name))))))
+    (save-sublists cells)))
 
 (defun new-list-symbol (&optional (prefix "")) (format nil "~a~a" prefix (gensym "+")))
 
 (defun save-sublists (l)
-    (loop for cards on l
-	  as name = (card-name (car cards))
+    (loop for cells on l
+	  as name = (cell-name (car cells))
 	  unless (string-equal "" name)
-	  do (setf (gethash name *symtab*) cards)
-	  (ipl-trace :load "Saved sublist: ~a~%" name)))
+	  do (setf (gethash name *symtab*) cells)
+	  (!! :load "Saved sublist: ~a~%" name)))
 
-(defun convert-local-symbols (cards local-symbols.new-names)
-  (labels ((replace-symbols (card accname.accessor)
-	     (let ((new-name (cdr (assoc (funcall (cdr accname.accessor) card) local-symbols.new-names :test #'string-equal))))
-	       (when new-name (setf* (car accname.accessor) card new-name)))))
-    (loop for card in cards
+(defun convert-local-symbols (cells local-symbols.new-names)
+  (labels ((replace-symbols (cell accname.accessor)
+	     (let ((new-name (cdr (assoc (funcall (cdr accname.accessor) cell) local-symbols.new-names :test #'string-equal))))
+	       (when new-name (setf* (car accname.accessor) cell new-name)))))
+    (loop for cell in cells
 	  do (loop for accname.accessor in *symbol-col-accessors*
-		   do (replace-symbols card accname.accessor)))))
+		   do (replace-symbols cell accname.accessor)))))
 			    
 ;;; This stupidity is needed because setf doesn't know how to set a value based
 ;;; on an arbitrary accessor.
 
-(defun setf* (accname card new-name)
+(defun setf* (accname cell new-name)
   (case accname
-    (card-name (setf (card-name card) new-name))
-    (card-symb (setf (card-symb card) new-name))
-    (card-link (setf (card-link card) new-name))))
+    (cell-name (setf (cell-name cell) new-name))
+    (cell-symb (setf (cell-symb cell) new-name))
+    (cell-link (setf (cell-link cell) new-name))))
 
 ;;; Things like 9-xxx are local, everything else is global.
 
@@ -292,80 +292,80 @@
   (defmacro defj (name &rest forms)
     `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtab*)
 	   (lambda (arg0 arg1)
-	     (ipl-trace :jfns ,(format nil "Calling ~a w/ARG0=~~s, ARG1=~~s~%" name) arg0 arg1)
+	     (!! :jfns ,(format nil "Calling ~a w/ARG0=~~s, ARG1=~~s~%" name) arg0 arg1)
 	     ,@forms)))
   )
 
 (defun setup-j-fns ()
 
-  (defj J2 (ipl-trace :jfns "WWW J2 IS UNIMPLEMENTED !!!~%"))
-  (defj J3 (ipl-trace :jfns "WWW J3 IS UNIMPLEMENTED !!!~%"))
-  (defj J4 (ipl-trace :jfns "WWW J4 IS UNIMPLEMENTED !!!~%"))
-  (defj J5 (ipl-trace :jfns "WWW J5 IS UNIMPLEMENTED !!!~%"))
-  (defj J7 (ipl-trace :jfns "WWW J7 IS UNIMPLEMENTED !!!~%"))
-  (defj J8 (ipl-trace :jfns "WWW J8 IS UNIMPLEMENTED !!!~%"))
-  (defj J9 (ipl-trace :jfns "WWW J9 IS UNIMPLEMENTED !!!~%"))
-  (defj J10 (ipl-trace :jfns "WWW J10 IS UNIMPLEMENTED !!!~%"))
-  (defj J11 (ipl-trace :jfns "WWW J11 IS UNIMPLEMENTED !!!~%"))
-  (defj J14 (ipl-trace :jfns "WWW J14 IS UNIMPLEMENTED !!!~%"))
-  (defj J17 (ipl-trace :jfns "WWW J17 IS UNIMPLEMENTED !!!~%"))
-  (defj J18 (ipl-trace :jfns "WWW J18 IS UNIMPLEMENTED !!!~%"))
-  (defj J19 (ipl-trace :jfns "WWW J19 IS UNIMPLEMENTED !!!~%"))
+  (defj J2 (!! :jfns "WWW J2 IS UNIMPLEMENTED !!!~%"))
+  (defj J3 (!! :jfns "WWW J3 IS UNIMPLEMENTED !!!~%"))
+  (defj J4 (!! :jfns "WWW J4 IS UNIMPLEMENTED !!!~%"))
+  (defj J5 (!! :jfns "WWW J5 IS UNIMPLEMENTED !!!~%"))
+  (defj J7 (!! :jfns "WWW J7 IS UNIMPLEMENTED !!!~%"))
+  (defj J8 (!! :jfns "WWW J8 IS UNIMPLEMENTED !!!~%"))
+  (defj J9 (!! :jfns "WWW J9 IS UNIMPLEMENTED !!!~%"))
+  (defj J10 (!! :jfns "WWW J10 IS UNIMPLEMENTED !!!~%"))
+  (defj J11 (!! :jfns "WWW J11 IS UNIMPLEMENTED !!!~%"))
+  (defj J14 (!! :jfns "WWW J14 IS UNIMPLEMENTED !!!~%"))
+  (defj J17 (!! :jfns "WWW J17 IS UNIMPLEMENTED !!!~%"))
+  (defj J18 (!! :jfns "WWW J18 IS UNIMPLEMENTED !!!~%"))
+  (defj J19 (!! :jfns "WWW J19 IS UNIMPLEMENTED !!!~%"))
 
   ;; Restore W0-Wn
-  (defj J31 (ipl-trace :jfns "WWW J31 IS UNIMPLEMENTED !!!~%"))
-  (defj J32 (ipl-trace :jfns "WWW J32 IS UNIMPLEMENTED !!!~%"))
-  (defj J33 (ipl-trace :jfns "WWW J33 IS UNIMPLEMENTED !!!~%"))
-  (defj J34 (ipl-trace :jfns "WWW J34 IS UNIMPLEMENTED !!!~%"))
-  (defj J35 (ipl-trace :jfns "WWW J35 IS UNIMPLEMENTED !!!~%"))
-  (defj J36 (ipl-trace :jfns "WWW J36 IS UNIMPLEMENTED !!!~%"))
-  (defj J38 (ipl-trace :jfns "WWW J38 IS UNIMPLEMENTED !!!~%"))
+  (defj J31 (!! :jfns "WWW J31 IS UNIMPLEMENTED !!!~%"))
+  (defj J32 (!! :jfns "WWW J32 IS UNIMPLEMENTED !!!~%"))
+  (defj J33 (!! :jfns "WWW J33 IS UNIMPLEMENTED !!!~%"))
+  (defj J34 (!! :jfns "WWW J34 IS UNIMPLEMENTED !!!~%"))
+  (defj J35 (!! :jfns "WWW J35 IS UNIMPLEMENTED !!!~%"))
+  (defj J36 (!! :jfns "WWW J36 IS UNIMPLEMENTED !!!~%"))
+  (defj J38 (!! :jfns "WWW J38 IS UNIMPLEMENTED !!!~%"))
 
-  (defj J41 (ipl-trace :jfns "WWW J41 IS UNIMPLEMENTED !!!~%"))
-  (defj J42 (ipl-trace :jfns "WWW J42 IS UNIMPLEMENTED !!!~%"))
-  (defj J43 (ipl-trace :jfns "WWW J43 IS UNIMPLEMENTED !!!~%"))
-  (defj J50 (ipl-trace :jfns "WWW J50 IS UNIMPLEMENTED !!!~%"))
-  (defj J51 (ipl-trace :jfns "WWW J51 IS UNIMPLEMENTED !!!~%"))
-  (defj J64 (ipl-trace :jfns "WWW J64 IS UNIMPLEMENTED !!!~%"))
-  (defj J65 (ipl-trace :jfns "WWW J65 IS UNIMPLEMENTED !!!~%"))
-  (defj J68 (ipl-trace :jfns "WWW J68 IS UNIMPLEMENTED !!!~%"))
-  (defj J71 (ipl-trace :jfns "WWW J71 IS UNIMPLEMENTED !!!~%"))
-  (defj J72 (ipl-trace :jfns "WWW J72 IS UNIMPLEMENTED !!!~%"))
-  (defj J74 (ipl-trace :jfns "WWW J74 IS UNIMPLEMENTED !!!~%"))
-  (defj J75 (ipl-trace :jfns "WWW J75 IS UNIMPLEMENTED !!!~%"))
-  (defj J76 (ipl-trace :jfns "WWW J76 IS UNIMPLEMENTED !!!~%"))
-  (defj J78 (ipl-trace :jfns "WWW J78 IS UNIMPLEMENTED !!!~%"))
+  (defj J41 (!! :jfns "WWW J41 IS UNIMPLEMENTED !!!~%"))
+  (defj J42 (!! :jfns "WWW J42 IS UNIMPLEMENTED !!!~%"))
+  (defj J43 (!! :jfns "WWW J43 IS UNIMPLEMENTED !!!~%"))
+  (defj J50 (!! :jfns "WWW J50 IS UNIMPLEMENTED !!!~%"))
+  (defj J51 (!! :jfns "WWW J51 IS UNIMPLEMENTED !!!~%"))
+  (defj J64 (!! :jfns "WWW J64 IS UNIMPLEMENTED !!!~%"))
+  (defj J65 (!! :jfns "WWW J65 IS UNIMPLEMENTED !!!~%"))
+  (defj J68 (!! :jfns "WWW J68 IS UNIMPLEMENTED !!!~%"))
+  (defj J71 (!! :jfns "WWW J71 IS UNIMPLEMENTED !!!~%"))
+  (defj J72 (!! :jfns "WWW J72 IS UNIMPLEMENTED !!!~%"))
+  (defj J74 (!! :jfns "WWW J74 IS UNIMPLEMENTED !!!~%"))
+  (defj J75 (!! :jfns "WWW J75 IS UNIMPLEMENTED !!!~%"))
+  (defj J76 (!! :jfns "WWW J76 IS UNIMPLEMENTED !!!~%"))
+  (defj J78 (!! :jfns "WWW J78 IS UNIMPLEMENTED !!!~%"))
 
   ;; Find the nth symbol on list (0)
-  (defj J81 (ipl-trace :jfns "WWW J81 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
-  (defj J82 (ipl-trace :jfns "WWW J82 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
+  (defj J81 (!! :jfns "WWW J81 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
+  (defj J82 (!! :jfns "WWW J82 (Find Symbol in List) IS UNIMPLEMENTED !!!~%"))
 
   ;; Create a list of n symbols. (n-1) to (0) ???
-  (defj J91 (ipl-trace :jfns "WWW J91 (Create list) IS UNIMPLEMENTED !!!~%"))
+  (defj J91 (!! :jfns "WWW J91 (Create list) IS UNIMPLEMENTED !!!~%"))
 
-  (defj J111 (ipl-trace :jfns "WWW J111 IS UNIMPLEMENTED !!!~%"))
-  (defj J115 (ipl-trace :jfns "WWW J115 IS UNIMPLEMENTED !!!~%"))
-  (defj J116 (ipl-trace :jfns "WWW J116 IS UNIMPLEMENTED !!!~%"))
-  (defj J124 (ipl-trace :jfns "WWW J124 IS UNIMPLEMENTED !!!~%"))
-  (defj J125 (ipl-trace :jfns "WWW J125 IS UNIMPLEMENTED !!!~%"))
-  (defj J130 (ipl-trace :jfns "WWW J130 IS UNIMPLEMENTED !!!~%"))
-  (defj J133 (ipl-trace :jfns "WWW J133 IS UNIMPLEMENTED !!!~%"))
-  (defj J136 (ipl-trace :jfns "WWW J136 IS UNIMPLEMENTED !!!~%"))
-  (defj J137 (ipl-trace :jfns "WWW J137 IS UNIMPLEMENTED !!!~%"))
-  (defj J138 (ipl-trace :jfns "WWW J138 IS UNIMPLEMENTED !!!~%"))
+  (defj J111 (!! :jfns "WWW J111 IS UNIMPLEMENTED !!!~%"))
+  (defj J115 (!! :jfns "WWW J115 IS UNIMPLEMENTED !!!~%"))
+  (defj J116 (!! :jfns "WWW J116 IS UNIMPLEMENTED !!!~%"))
+  (defj J124 (!! :jfns "WWW J124 IS UNIMPLEMENTED !!!~%"))
+  (defj J125 (!! :jfns "WWW J125 IS UNIMPLEMENTED !!!~%"))
+  (defj J130 (!! :jfns "WWW J130 IS UNIMPLEMENTED !!!~%"))
+  (defj J133 (!! :jfns "WWW J133 IS UNIMPLEMENTED !!!~%"))
+  (defj J136 (!! :jfns "WWW J136 IS UNIMPLEMENTED !!!~%"))
+  (defj J137 (!! :jfns "WWW J137 IS UNIMPLEMENTED !!!~%"))
+  (defj J138 (!! :jfns "WWW J138 IS UNIMPLEMENTED !!!~%"))
 
   ;; Tracing
-  (defj J147 (ipl-trace :jfns "WWW J147 (Tracing) IS UNIMPLEMENTED !!!~%"))
-  (defj J148 (ipl-trace :jfns "WWW J148 (Tracing) IS UNIMPLEMENTED !!!~%"))
+  (defj J147 (!! :jfns "WWW J147 (Tracing) IS UNIMPLEMENTED !!!~%"))
+  (defj J148 (!! :jfns "WWW J148 (Tracing) IS UNIMPLEMENTED !!!~%"))
   
-  (defj J155 (ipl-trace :jfns "WWW J155 IS UNIMPLEMENTED !!!~%"))
-  (defj J157 (ipl-trace :jfns "WWW J157 IS UNIMPLEMENTED !!!~%"))
-  (defj J160 (ipl-trace :jfns "WWW J160 IS UNIMPLEMENTED !!!~%"))
-  (defj J161 (ipl-trace :jfns "WWW J161 IS UNIMPLEMENTED !!!~%"))
-  (defj J176 (ipl-trace :jfns "WWW J176 IS UNIMPLEMENTED !!!~%"))
-  (defj J181 (ipl-trace :jfns "WWW J181 IS UNIMPLEMENTED !!!~%"))
-  (defj J183 (ipl-trace :jfns "WWW J183 IS UNIMPLEMENTED !!!~%"))
-  (defj J184 (ipl-trace :jfns "WWW J184 IS UNIMPLEMENTED !!!~%"))
+  (defj J155 (!! :jfns "WWW J155 IS UNIMPLEMENTED !!!~%"))
+  (defj J157 (!! :jfns "WWW J157 IS UNIMPLEMENTED !!!~%"))
+  (defj J160 (!! :jfns "WWW J160 IS UNIMPLEMENTED !!!~%"))
+  (defj J161 (!! :jfns "WWW J161 IS UNIMPLEMENTED !!!~%"))
+  (defj J176 (!! :jfns "WWW J176 IS UNIMPLEMENTED !!!~%"))
+  (defj J181 (!! :jfns "WWW J181 IS UNIMPLEMENTED !!!~%"))
+  (defj J183 (!! :jfns "WWW J183 IS UNIMPLEMENTED !!!~%"))
+  (defj J184 (!! :jfns "WWW J184 IS UNIMPLEMENTED !!!~%"))
 
   (defj J6 ;; REVERSE (0) and (1) WWW H1 is not (1)
       (let ((z (h0)))
@@ -380,17 +380,17 @@
       ;; the list, as in J65. (??? What happens if the list
       ;; branches??? At the moment this can't do anything sensible
       ;; with a branching list!)
-      (ipl-trace :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
+      (!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
       (let ((l (*val+ arg1)))
 	(loop for cell in l
-	      do (cond ((string-equal (card-symb cell) arg0)
-			(ipl-trace "J66 found ~s in the list already. No action!~%" arg0)
+	      do (cond ((string-equal (cell-symb cell) arg0)
+			(!! "J66 found ~s in the list already. No action!~%" arg0)
 			(return nil))
-		       ((string-equal "0" (card-link cell))
-			(ipl-trace "J66 hit end, adding ~s to the list!~%" arg0)
+		       ((string-equal "0" (cell-link cell))
+			(!! "J66 hit end, adding ~s to the list!~%" arg0)
 			(let* ((new-name (new-list-symbol arg1))
-			       (new-cell (make-card :name new-name :symb arg0 :link "0")))
-			  (setf (card-link cell) new-name)
+			       (new-cell (make-cell :name new-name :symb arg0 :link "0")))
+			  (setf (cell-link cell) new-name)
 			  (setf (*val+ new-name) new-cell)
 			  (setf (*val+ arg1) `(,@l ,new-cell))))))))
 
@@ -416,8 +416,8 @@
       ;; data term as a standard IPL cell.
       (setf (h5) "+")
       (let* ((this-cell (*val arg0))
-	     (link (card-link this-cell)))
-	(ipl-trace :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
+	     (link (cell-link this-cell)))
+	(!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
 	(if (string-equal "0" link)
 	    (setf (h5) "-")
 	    (setf (h0) link) ;; (h5) is already + from above
@@ -434,7 +434,7 @@
       ;; the copy will be produced in main storage. In all cases, list structure (0)
       ;; remains unaffected. The output (0) names the new list structure. It is
       ;; local if the input (0) is local; It is internal otherwise.
-      (ipl-trace :jfns "J74 is copying list: ~s~%" (h0))
+      (!! :jfns "J74 is copying list: ~s~%" (h0))
       (setf (0) (copy-list-structure (h0!)))
       )
 
@@ -442,9 +442,9 @@
       ;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
       ;; The output (0) is the name a the new list.
       (let ((name (new-list-symbol "L")))
-	(ipl-trace :jfns "J90 creating blank list ~s~%" name)
+	(!! :jfns "J90 creating blank list ~s~%" name)
 	(setf (*val+ name)
-	      (list (make-card :name name :symb "0" :link "0")))
+	      (list (make-cell :name name :symb "0" :link "0")))
 	(push name (h0+))))
 
   (defj J100
@@ -467,7 +467,7 @@
       ;; wise, it is internal.
       (let ((l (h0!))
 	    (new-name (new-list-symbol)))
-	(ipl-trace :jfns "J120 created new list pointer ~s from ~s~%" new-name l)
+	(!! :jfns "J120 created new list pointer ~s from ~s~%" new-name l)
 	(setf (*val+ new-name) l)
 	(setf (h0) new-name)))
 
@@ -485,7 +485,7 @@
       ;; set+. If no record can be read (end-of-file condition), the line is not
       ;; changed and HS is set - .
       (let ((line (read-line *input-stream* nil nil)))
-	(ipl-trace :io "J180 Read:~%~s~%%" line)
+	(!! :io "J180 Read:~%~s~%%" line)
 	(cond (line
 	       (push line (*val+ "W24"))
 	       (setf (h5) "+"))
@@ -493,9 +493,9 @@
   )
 
 ;;; Copying an IPL list is a tricky because they aren't represented like normal
-;;; lisp lists (maybe they shold be?) but instead are a pile of cards where
+;;; lisp lists (maybe they shold be?) but instead are a pile of cells where
 ;;; internal structure results from the symb and links pointing to other named
-;;; cards all at the top level. In order to do this we need scan the whole list
+;;; cells all at the top level. In order to do this we need scan the whole list
 ;;; recursviely and create new symbols at each point. The only situation where
 ;;; we don't need to fill in an explicit pointer is when the list points to the
 ;;; NEXT element, but we do that anyway. All lists ground out on a 0 in the symb
@@ -504,18 +504,18 @@
 (defun copy-list-structure (l)
   (if (or (string-equal "0" l) (string-equal "" l)) l ;; End of sublist, just return the EOsL "0"
       (let ((new-name (new-list-symbol)))
-	(setf (gethash new-name *symtab* (mapcar #'copy-list-card l)))
+	(setf (gethash new-name *symtab* (mapcar #'copy-list-cell l)))
 	new-name)))
 
-(defun copy-list-card (card)
-  (if (or (string-equal "0" card) (string-equal "" card)) card ;; End of sublist, just return the EOsL "0"
-      (let* ((new-card (copy-card card)))
-	(setf (card-name new-card) (new-list-symbol))
+(defun copy-list-cell (cell)
+  (if (or (string-equal "0" cell) (string-equal "" cell)) cell ;; End of sublist, just return the EOsL "0"
+      (let* ((new-cell (copy-cell cell)))
+	(setf (cell-name new-cell) (new-list-symbol))
 	;; WWW ??? This has the problem that it's going to copy whole functions
 	;; into copied lists, which is probably not what is intended. Maybe
 	;; things that are defined in the load process shouldn't be copied? 
-	(setf (card-symb new-card) (copy-list-structure (card-symb card)))
-	(setf (card-link new-card) (copy-list-structure (card-link card)))
+	(setf (cell-symb new-cell) (copy-list-structure (cell-symb cell)))
+	(setf (cell-link new-cell) (copy-list-structure (cell-link cell)))
 	)))
 	
 ;;; ===================================================================
@@ -536,21 +536,21 @@
   )
 
 ;;; De-ref if required!
-(defun card-symb* (card-or-symbol)
-  (card-symb 
-   (if (stringp card-or-symbol)
-       (*val card-or-symbol)
-       card-or-symbol)))
+(defun cell-symb* (cell-or-symbol)
+  (cell-symb 
+   (if (stringp cell-or-symbol)
+       (*val cell-or-symbol)
+       cell-or-symbol)))
 
 (defun ipl-eval (start-symb)
-  (ipl-trace :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-symb)
-  (prog (card pq q p symb link trace-name-temp)
+  (!! :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-symb)
+  (prog (cell pq q p symb link trace-name-temp)
      (push :exit (h1+)) ;; Top of stack -- force exit (may be recursive)
      (push start-symb (h1+)) ;; Where we're headed this time in..
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
      (push :s-top (s+))
-   INTERPRET-Q (ipl-trace :run-full "*** INTERPRET-Q")
-     (ipl-trace :run "INTERPRET-Q w/H1 = ~s!~%" (h1))
+   INTERPRET-Q (!! :run-full "(!! INTERPRET-Q")
+     (!! :run "INTERPRET-Q w/H1 = ~s!~%" (h1))
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list. In the case of an
@@ -559,30 +559,30 @@
      (setf trace-name-temp (h1)) ;; This is kinda ugly -- just for tracing.
      (when (null (h1))
 	   (break "
-***
-*** MAYBE MSSING DEFINITION FROM THIS CALL: ~s
-***
+(!!
+(!! MAYBE MSSING DEFINITION FROM THIS CALL: ~s
+(!!
 " (caadr (h1+))))
      (when (stringp (h1))
-       (ipl-trace :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" (h1))
+       (!! :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" (h1))
        (setf (h1) (*val+ (h1)))
        (go INTERPRET-Q))
      (when (functionp (h1))
-       (ipl-trace :run-full ">> Calling Built-in ~a~%" trace-name-temp) 
+       (!! :run-full ">> Calling Built-in ~a~%" trace-name-temp) 
        (funcall (h1) (h0) (second (h0+))) ;; Call the fn
        (pop (h1+)) ;; Remove the JFn call
        (go ADVANCE)
        )
-     (ipl-trace :run "~%H1 = ~s!~%" (h1))
-     (setq card (first (h1)))
-     (ipl-trace :cards "Executing card: ~s~%" card)
-     (setf pq (card-pq card)
+     (!! :run "~%H1 = ~s!~%" (h1))
+     (setq cell (first (h1)))
+     (!! :cells "Executing cell: ~s~%" cell)
+     (setf pq (cell-pq cell)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
-	   symb (card-symb card)
-	   link (card-link card)
+	   symb (cell-symb cell)
+	   link (cell-link cell)
 	   )
-     (ipl-trace :run "~%At INTERPRET-Q: CARD =~s;" card)
+     (!! :run "~%At INTERPRET-Q: CELL =~s;" cell)
      ;; NNN Note that all the following are separate code segments -- we jump
      ;; around, never passing through to the next section.
      ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
@@ -592,20 +592,20 @@
      ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
      ;; storage; put location of routine in block into Hl; go to
      ;; INTERPRET-Q.
-     (ipl-trace :run " w/Q = ~s, symb=~s~%" q symb)
+     (!! :run " w/Q = ~s, symb=~s~%" q symb)
      (case q
        (0 (setf (s) symb) (go INTERPRET-P))
        ;; ???????????????? There's some sort of screw here between list elements and things like H0. ????????????????????
        (1 (setf (s) (*val symb)) (go INTERPRET-P))
-       (2 (setf (s) (card-symb* (*val symb))) (go INTERPRET-P))
-       (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf (s) symb) (go INTERPRET-P))
-       (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" card) (setf (s) symb) (go INTERPRET-P))
+       (2 (setf (s) (cell-symb* (*val symb))) (go INTERPRET-P))
+       (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" cell) (setf (s) symb) (go INTERPRET-P))
+       (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
-       (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" card))
-       (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" card))
+       (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
+       (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
        )
-   INTERPRET-P (ipl-trace :run-full "*** INTERPRET-P")
-     (ipl-trace :run "INTERPRET-P w/P = ~s, symb=~s~%" p symb)
+   INTERPRET-P (!! :run-full "(!! INTERPRET-P")
+     (!! :run "INTERPRET-P w/P = ~s, symb=~s~%" p symb)
      ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
      ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
      (case p
@@ -627,24 +627,24 @@
 	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
        )
      (go ADVANCE)
-   TEST-FOR-PRIMITIVE (ipl-trace :run-full "*** TEST-FOR-PRIMITIVE")
+   TEST-FOR-PRIMITIVE (!! :run-full "(!! TEST-FOR-PRIMITIVE")
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
-     (ipl-trace :run "At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a, symb=~s~%" (s) q symb)
+     (!! :run "At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a, symb=~s~%" (s) q symb)
      (case q 
-       (5 (setf link (card-symb scard??????????)) (go ADVANCE))
+       (5 (setf link (cell-symb scell??????????)) (go ADVANCE))
        (t (go DESCEND)))
-   ADVANCE (ipl-trace :run-full "*** ADVANCE")
+   ADVANCE (!! :run-full "(!! ADVANCE")
      (when (equal (h1) :exit)
-       (ipl-trace :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
+       (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
        (pop (h1+))
        (return))
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
-     (setf link (card-link card))
-     (ipl-trace :run "At ADVANCE w/LINK = ~a~%" link)
-     ;; If link is nil ("") in the middle of a function, go next card, else ascend.
+     (setf link (cell-link cell))
+     (!! :run "At ADVANCE w/LINK = ~a~%" link)
+     ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
      (if (or (string-equal link "") (string-equal link "0"))
 	 (if (null (h1))
 	     (go ASCEND)
@@ -662,21 +662,21 @@
 	   (go INTERPRET-Q)))
      ;; FFF ASCEND and DESCEND could probably be handled more cleanly and
      ;; correctly by recursing on IPL-EVAL !!!
-   ASCEND (ipl-trace :run-full "*** ASCEND")
+   ASCEND (!! :run-full "(!! ASCEND")
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (pop (h1+))
-     (ipl-trace :run "At ASCEND w/H1 = ~a~%" (h1))
+     (!! :run "At ASCEND w/H1 = ~a~%" (h1))
      (go ADVANCE)
-   DESCEND (ipl-trace :run-full "*** DESCEND")
-     (ipl-trace :run "At DESCEND w/S = ~a~%" (s))
+   DESCEND (!! :run-full "(!! DESCEND")
+     (!! :run "At DESCEND w/S = ~a~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (push (s) (h1+))
      (go INTERPRET-Q)
-   BRANCH (ipl-trace :run-full "*** BRANCH")
-     (ipl-trace :run "At BRANCH w/H5 = ~a, S= ~a~%" (h5) (s))
+   BRANCH (!! :run-full "(!! BRANCH")
+     (!! :run "At BRANCH w/H5 = ~a, S= ~a~%" (h5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
      (when (string-equal (h5) "-") (setf link (s)))
@@ -689,7 +689,7 @@
 ;;; Getting the P and Q is a little tricky because they can be blank. Blank is
 ;;; interpreted as zero, and if they're both blank ("") it's not a problem --
 ;;; both zero, but if only one is blank it can be ambiguous because these didn't
-;;; come from cards. This isn't suppose to happen, so if it does, we raise a
+;;; come from cells. This isn't suppose to happen, so if it does, we raise a
 ;;; warning, and intepret it as if P is blank (0). So, for example, technically
 ;;; they could have entered "9_" instead of "_9", but we can't tell the
 ;;; difference. We should always code these as with 90 or 09 to disambiguate.
@@ -704,7 +704,8 @@
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 (untrace)
-(trace card-symb*)
-(setf *ipl-trace-list* '(:load :run :jfns :run-full :cards :io)) ;; :load :run :jfns :run-full :cards :io
+(trace cell-symb*)
+(setf *important-run-registers* '("H1" "H0" "H5" "S" "W0"))
+(setf *ipl-trace-list* '(:run :jfns :cells :io :run-full)) ;; :load :run :jfns :run-full :cells :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
