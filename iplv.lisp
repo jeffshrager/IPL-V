@@ -9,6 +9,19 @@
 ;;; :sign :pq :symb :link :comments.1 :id). Prob. need code to ignore them
 ;;; rather than just skipping the first line.
 
+;;; IMPORTANT WARNING: I've diverged here a bit from the language spec
+;;; which describes system cells, such as H0 and W0 as also being
+;;; cells, having a name, pq, symb, and link. The names at the machine
+;;; level are just addresses, and only the symb is ever used in these
+;;; (I think), so I just treat them as a set of push down symbols
+;;; (strings, actually in this model -- a problem I wish I could get
+;;; away from!). This simplification also spares me having to carry
+;;; around the comments and all that jazz with the system cell that
+;;; never use these. Although this is generally fine, it does cause
+;;; some complexity in the interepreter where, if these were true
+;;; cells, I wouldn't have to check to see whether the thing being
+;;; operated on was a string or a cell.
+
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
 (defstruct (cell (:print-function print-cell))
@@ -88,17 +101,16 @@
 ;;; into *symtab*. Nb. You should end with a type 5 cell to execute!
 ;;; ===================================================================
 
-(defvar *ipl-trace-list* nil) ;; t for all, or: :load :run :run-full
+(defvar *!!list* nil) ;; t for all, or: :load :run :run-full
 
 (defun !! (key fmt &rest args)
   ;; WWW if the arg is actually nil, apply gets confused so we pre-fix this case.
   (unless args (setf args '(())))
-  (when (or (equal *ipl-trace-list* t)
+  (when (or (equal *!!list* t)
 	    (equal key t)
-	    (member key *ipl-trace-list*))
+	    (member key *!!list*))
     (apply #'format t fmt args)
-    (when (and (member key '(:run :run-full))
-	       (member :run-full *ipl-trace-list*))
+    (when (and (member key '(:run :run-full)) (member :run-full *!!list*))
       (report-important-registers))))
 
 (defparameter *important-run-registers* '("H1" "H0" "H5" "S" "W0"))
@@ -392,7 +404,8 @@
 			       (new-cell (make-cell :name new-name :symb arg0 :link "0")))
 			  (setf (cell-link cell) new-name)
 			  (setf (*val+ new-name) new-cell)
-			  (setf (*val+ arg1) `(,@l ,new-cell))))))))
+			  (setf (*val+ arg1) `(,@l ,new-cell)))))))
+      )
 
   (defj J73 ;; Copy list
       (setf (h0)
@@ -415,8 +428,8 @@
       ;; (0) is not a data term, and J60 will attempt to interpret a
       ;; data term as a standard IPL cell.
       (setf (h5) "+")
-      (let* ((this-cell (*val arg0))
-	     (link (cell-link this-cell)))
+    (let* ((this-cell (*val arg0))
+	   (link (cell-link this-cell)))
 	(!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
 	(if (string-equal "0" link)
 	    (setf (h5) "-")
@@ -575,7 +588,10 @@
        )
      (!! :run "~%H1 = ~s!~%" (h1))
      (setq cell (first (h1)))
-     (!! :simple-exec "Executing cell: ~s~%" cell)
+     (when (member :pre-exec-dump *!!list*)
+       (format t "~%============== STATE BEFORE NEXT EXEC ==============~%")
+       (report-important-registers))
+     (!! :exec "Executing cell: ~s~%" cell)
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -595,11 +611,10 @@
      (!! :run " w/Q = ~s, symb=~s~%" q symb)
      (case q
        (0 (setf (s) symb) (go INTERPRET-P))
-       ;; ???????????????? There's some sort of screw here between list elements and things like H0. ????????????????????
        (1 (setf (s) (*val symb)) (go INTERPRET-P))
        (2 (setf (s) (cell-symb* (*val symb))) (go INTERPRET-P))
-       (3 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" cell) (setf (s) symb) (go INTERPRET-P))
-       (4 (format t "UNIMPLEMENTED MONITOR ACTION IN ~%~s~% -- CONTINUING!" cell) (setf (s) symb) (go INTERPRET-P))
+       (3 (format t "Unimplemented monitor action in ~s; Executing w/o monitor!" cell) (setf (s) symb) (go INTERPRET-P))
+       (4 (format t "Unimplemented monitor action in ~s; Executing w/o monitor!" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
@@ -706,6 +721,6 @@
 (untrace)
 (trace cell-symb*)
 (setf *important-run-registers* '("H1" "H0" "H5" "S" "W0"))
-(setf *ipl-trace-list* '(:simple-exec)) ;; :load :run :jfns :run-full :simple-exec :io
+(setf *!!list* '(:exec :pre-exec-dump)) ;; :pre-exec-dump :load :run :jfns :run-full :exec :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
