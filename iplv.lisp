@@ -57,7 +57,8 @@
 ;;; strings just like user-defined symbols. It's up to the user to ot try to
 ;;; push/pop things that aren't stacks!
 
-(defmacro *stack (symb) `(gethash ,symb *symtab*)) ;; + Version gets the whole stack
+(defmacro cell (symb) `(gethash ,symb *symtab*)) ;; If it's not a stack you can access it this way
+(defmacro *stack (symb) `(gethash ,symb *symtab*)) 
 (defmacro *cell (symb) `(car (*stack ,symb)))
 
 ;;; Important values it have special macros (these are like (H0) = (0)
@@ -177,6 +178,7 @@
 	  )))
 
 (defun save-cells (cells load-mode)
+  (setf load-mode :data) ;; ****************************************************************
   ;; Once we have the thing completely in hand, we change the local
   ;; symbols to FN_9-... and save those as separate symtab
   ;; entries. This allows the code to branch, and also run through,
@@ -200,7 +202,7 @@
 				if (local-symbol? symbol)
 				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
       (convert-local-symbols cells local-symbols.new-names)
-      (setf (gethash top-name *symtab*) cells)
+      (setf (gethash top-name *symtab*) (car cells)) ;; ***********************************************
       (!! :load "Saved: ~a~%" (cell-name (car cells)))
       (when (eq :data load-mode)
 	;; Loop through the whole list and create aa local symbol for
@@ -224,7 +226,7 @@
     (loop for cells on l
 	  as name = (cell-name (car cells))
 	  unless (zero? name)
-	  do (setf (gethash name *symtab*) cells)
+	  do (setf (gethash name *symtab*) (car cells)) ;; ***************************************************
 	  (!! :load "Saved sublist: ~a~%" name)))
 
 (defun convert-local-symbols (cells local-symbols.new-names)
@@ -263,7 +265,6 @@
   (clrhash *symtab*) 
   (setup-j-fns)
   (clrhash *col->vals*)
-  (create-system-cells)
   )
 
 ;;; Note that (S) is not a system cell(stack) but just a
@@ -424,12 +425,12 @@
       ;; (0) is not a data term, and J60 will attempt to interpret a
       ;; data term as a standard IPL cell.
       (setf (h5) "+")
-    (let* ((this-cell (*cell arg0))
+    (let* ((this-cell arg0)
 	   (link (cell-link this-cell)))
 	(!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
 	(if (zero? link)
 	    (setf (h5) "-")
-	    (setf (H0) link) ;; (h5) is already + from above
+	    (setf (H0) (cell link)) ;; (h5) is already + from above
 	    )))
 
   (defj J74 ;; Copy List Structure
@@ -450,11 +451,11 @@
   (defj J90
       ;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
       ;; The output (0) is the name a the new list.
-      (let ((name (new-list-symbol "L")))
+      (let* ((name (new-list-symbol "L"))
+	     (cell (make-cell :name name :symb "0" :link "0")))
 	(!! :jfns "J90 creating blank list ~s~%" name)
-	(setf (*stack name)
-	      (list (make-cell :name name :symb "0" :link "0")))
-	(push name (H0+))))
+	(setf (cell name) cell)
+	(push cell (H0+))))
 
   (defj J100
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
@@ -536,38 +537,35 @@
 
 (defun run (start-symb)
   (initialize-machine)
-  (ipl-eval (*cell start-symb)))
+  (ipl-eval (cell start-symb)))
 
 (defun initialize-machine ()
+  (create-system-cells)
   (setf (h5+) (list "+"))
   )
 
 (defun ipl-eval (start-cell)
   (!! :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-cell)
-  (prog (cell pq q p symb link trace-name-temp)
+  (prog (cell pq q p symb link)
      (push (new-symb-cell "exit") (h1+)) ;; Top of stack -- force exit (may be recursive)
      (push start-cell (h1+)) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
      (push (new-symb-cell "s-top") (s+))
-     (print "aaaaaaaaaaaaaaaaaa")
-   INTERPRET-Q (!! :run-full "*** INTERPRET-Q")
-     (!! :run "INTERPRET-Q w/H1 = ~s!~%" (h1))
+   INTERPRET-Q 
+     (!! :run-full "INTERPRET-Q w/H1 = ~s!~%" (h1))
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list. In the case of an
      ;; internal (J) funtion this will be a lambda, in which case we just call
      ;; it and then advance
-     (setf trace-name-temp (cell-symb (h1))) ;; This is kinda ugly -- just for tracing.
      (when (null (h1))
        (break "*** MAYBE MSSING DEFINITION FROM THIS CALL: ~s ***" (caadr (h1+))))
      ;; With everything being cells, this shouldn't be needed any longer.
      ;; (when (stringp (h1))
-     ;;   (!! :run "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" (h1))
+     ;;   (!! :run-full "~%At INTERPRET-Q: H1 = ~s, de-referencing!~%" (h1))
      ;;   (setf (h1) (*stack (h1)))
      ;;   (go INTERPRET-Q))
-     (print "bbbbbbbbbbbbbbbbbb")
      (when (functionp (h1))
-       (!! :run-full ">> Calling Built-in ~a~%" trace-name-temp) 
        (funcall (h1) (H0) (second (H0+))) ;; Call the fn passing the top and second cells in H0 as Arg0 and Arg1
        (pop (h1+)) ;; Remove the JFn call
        (go ADVANCE)
@@ -576,15 +574,14 @@
      (when (member :pre-exec-dump *!!list*)
        (format t "~%============== STATE BEFORE NEXT EXEC ==============~%")
        (report-system-cells))
-     (!! :exec "Executing cell: ~s~%" cell)
+     (!! :run ">>>>>>>>>> Executing cell: ~s~%" cell)
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
 	   symb (cell-symb cell)
 	   link (cell-link cell)
 	   )
-     (print "ccccccccccccccccc")
-     (!! :run "~%At INTERPRET-Q: CELL =~s;" cell)
+     (!! :run-full "~%***** At INTERPRET-Q: CELL =~s;" cell)
      ;; NNN Note that all the following are separate code segments -- we jump
      ;; around, never passing through to the next section.
      ;; INTERPRET-Q: - Q = 0, 1, 2: Apply Q to SYMBto yield S; go to
@@ -594,25 +591,25 @@
      ;; ASCEND.  - Q = 6, 7: Bring blocks of routines in from auxiliary
      ;; storage; put location of routine in block into Hl; go to
      ;; INTERPRET-Q.
-     (!! :run " w/Q = ~s, symb=~s~%" q symb)
+     (!! :run-full "   w/Q = ~s, symb=~s~%" q symb)
      (case q
        (0 (setf (s) symb) (go INTERPRET-P))
        (1 (setf (s) (cell-symb (*cell symb))) (go INTERPRET-P))
-       (2 (setf (s) (cell-symb (*cell (cell-symb symb)))) (go INTERPRET-P))
-       (3 (format t "Unimplemented monitor action in ~s; Executing w/o monitor!" cell) (setf (s) symb) (go INTERPRET-P))
-       (4 (format t "Unimplemented monitor action in ~s; Executing w/o monitor!" cell) (setf (s) symb) (go INTERPRET-P))
+       (2 (setf (s) (cell-symb (*cell (cell-symb (*cell symb))))) (go INTERPRET-P))
+       (3 (format t "Unimplemented monitor action in ~s; Executing w/o monitor!~%" cell) (setf (s) symb) (go INTERPRET-P))
+       (4 (format t "Unimplemented monitor action in ~s; Executing w/o monitor!~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
        )
-   INTERPRET-P (!! :run-full "*** INTERPRET-P")
-     (!! :run "INTERPRET-P w/P = ~s, (s)=~s~%" p (s))
+   INTERPRET-P 
+     (!! :run-full "***** INTERPRET-P w/P = ~s, (s)=~s~%" p (s))
      ;; - P = 0: Go to TEST FOR PRIMITIVE. - P=1, 2, 3, 4, 5, 6: Perform the
      ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 ;; Input S (after preserving HO) ;; ??? Hopefully "input" means to push it on the stack ???
-	(push (s) (H0+))
+	(push (cell (s)) (H0+))
 	)
        (2 ;; Output to S (then restore HO)
 	(setf (*cell (s)) (pop (H0+))))
@@ -630,26 +627,26 @@
 	(go BRANCH)) ;;; ??? WWW The 3.15 and cheat sheet slightly disagree on this ??? WWW
        )
      (go ADVANCE)
-   TEST-FOR-PRIMITIVE (!! :run-full "*** TEST-FOR-PRIMITIVE")
+   TEST-FOR-PRIMITIVE 
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
-     (!! :run "At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a, symb=~s~%" (s) q symb)
+     (!! :run-full "***** At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a, symb=~s~%" (s) q symb)
      (case q 
        (5 (setf link (s)) (go ADVANCE))
        (t (go DESCEND)))
-   ADVANCE (!! :run-full "*** ADVANCE")
+   ADVANCE (!! :run-full "***** At ADVANCE")
      (when (string-equal (cell-symb (h1)) "exit")
-       (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
+       (!! :run-full "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
        (pop (h1+))
        (return))
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
      (setf link (cell-link cell))
-     (!! :run "At ADVANCE w/LINK = ~a~%" link)
+     (!! :run-full "In ADVANCE: LINK = ~a~%" link)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
      (if (zero? link)
-	 (if (null (h1)) ;; WWW THIS CAN'T BE RIGHT !!!
+	 (if (break "(null (h1))") ;; WWW THIS CAN'T BE RIGHT !!!
 	     (go ASCEND)
 	     (pop (h1+)))
 	 ;; Note that if there is a link to a different function
@@ -659,29 +656,29 @@
 	 ;; end a function, that is, by branching off to a J
 	 ;; function which, when it completes, pops to whereever its
 	 ;; caller came from.
-	 (setf (h1) (*cell link))
+	 (setf (h1) (cell link))
 	 )
      (go INTERPRET-Q)
      ;; FFF ASCEND and DESCEND could probably be handled more cleanly and
      ;; correctly by recursing on IPL-EVAL !!!
-   ASCEND (!! :run-full "*** ASCEND")
+   ASCEND 
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (pop (h1+))
-     (!! :run "At ASCEND w/H1 = ~a~%" (h1))
+     (!! :run-full "***** At ASCEND w/H1 = ~a~%" (h1))
      (go ADVANCE)
-   DESCEND (!! :run-full "*** DESCEND")
-     (!! :run "At DESCEND w/S = ~a~%" (s))
+   DESCEND 
+     (!! :run-full "***** At DESCEND w/S = ~a~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
-     (push (new-symb-cell (s)) (h1+)) ;; %%% S not being a cell leads to creating a bunch of junk cells!
+     (push (cell (s)) (h1+)) 
      (go INTERPRET-Q)
-   BRANCH (!! :run-full "*** BRANCH")
-     (!! :run "At BRANCH w/H5 = ~a, S= ~a~%" (h5) (s))
+   BRANCH 
+     (!! :run-full "***** At BRANCH w/H5 = ~a, S= ~a~%" (h5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
-     (when (string-equal (cell-symb (h5)) "-") (setf link (s)))
+     (when (string-equal (h5) "-") (setf link (s)))
      (go ADVANCE)
      ))
 
@@ -706,7 +703,7 @@
 	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 (untrace)
-;(trace cell-symb*)
-(setf *!!list* '(:pre-exec-dump :load :run :jfns :run-full :exec :io)) ;; :pre-exec-dump :load :run :jfns :run-full :exec :io
+(trace ipl-eval run)
+(setf *!!list* '(:pre-exec-dump :load :run :jfns :run-full :io)) ;; :pre-exec-dump :load :run :jfns :run-full :io
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
