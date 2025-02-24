@@ -381,8 +381,8 @@
 
   (defj J6 ;; REVERSE (0) and (1) WWW H1 is not (1)
       (let ((z (H0)))
-	(setf (H0) (second (H0+)))
-	(setf (second (H0+)) z)))
+	(setf (H0) (first (H0+)))
+	(setf (first (H0+)) z)))
 
   (defj J66 
       ;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
@@ -601,10 +601,9 @@
        ;; 1 Take the name the symbol is pointing to
        (1 (setf (s) (cell-name (cell symb))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to
-       (2 (print (list "----------------------" symb (cell symb) (cell-name (cell symb)) (cell (cell-name (cell symb)))))
-	  (setf (s) (cell-symb (cell (cell-name (cell symb))))) (go INTERPRET-P))
-       (3 (format t "Unimplemented monitor action in ~s; Executing w/o monitor!~%" cell) (setf (s) symb) (go INTERPRET-P))
-       (4 (format t "Unimplemented monitor action in ~s; Executing w/o monitor!~%" cell) (setf (s) symb) (go INTERPRET-P))
+       (2 (setf (s) (cell-symb (cell (cell-name (cell symb))))) (go INTERPRET-P))
+       (3 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
+       (4 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
@@ -615,17 +614,17 @@
      ;; - operation; go to  ADVANCE. - P = 7: Go to BRANCH.
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
-       (1 ;; Input S (after preserving HO) ;; ??? Hopefully "input" means to push it on the stack ???
-	(vv "H0" (s)))
+       (1 ;; Input S (after preserving HO) 
+	(vv "H0" (S)))
        (2 ;; Output to S (then restore HO)
-	(setf (S) (h0)) (^^ "H0"))
+	(setf (cell (S)) (H0)) (^^ "H0"))
        (3 ;; Restore (pop up) S 
 	(^^ "S"))
        (4 ;; Preserve (push down) S
 	(vv "S"))
        (5 ;; Replace (0) by S -- Here we need to make a cell to hold S
 	  ;; because it's just a list symbol (string, actually)
-	(setf (H0) (new-symb-cell (s))))
+	(setf (H0) (new-symb-cell (S))))
        (6 ;; Copy (0) in S -- This is the opposite of 5, and we need
 	  ;; to unpack the cell into the symbol.
 	(setf (s) (cell-symb (H0))))
