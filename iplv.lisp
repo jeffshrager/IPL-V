@@ -9,6 +9,14 @@
 ;;; :sign :pq :symb :link :comments.1 :id). Prob. need code to ignore them
 ;;; rather than just skipping the first line.
 
+;;; The whole symbol v. cell thing in IPL is a compelete mess. All
+;;; symbols can be addresses of cells -- in fact they all are -- but
+;;; sometimes they are treated as their character representation, and
+;;; sometimes they are treated as the cell, and the symbol the author
+;;; means is the symbol in the cell pointed to by the symbol in
+;;; hand. And then there are the special symbols (H0, etc) that have a
+;;; special push down mechanism. Ugh.
+
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
 (defstruct (cell (:print-function print-cell))
@@ -80,6 +88,15 @@
 (defun ListX (l) ;; Get a list from it's name if necessary
   (if (listp l) l (stack l)))
 
+(defun cell? (cell?)
+  (eq 'cell (type-of cell?)))
+
+(defun de-ref-or-die (cell-or-name)
+  (let ((cell (if (cell? cell-or-name) cell-or-name
+		  (if (stringp cell-or-name) (cell cell-or-name)))))
+    (if (cell? cell) cell
+      (break "Trying to deref ~s which isn't a cell!" cell-or-name))))
+
 ;;; ===================================================================
 ;;; The Loader simply loads everything created by tsv2alist.py
 ;;; into *symtab*. Nb. You should end with a type 5 cell to execute!
@@ -97,12 +114,27 @@
     (when (and (member key '(:run :run-full)) (member :run-full *!!list*))
       (report-system-cells))))
 
+;;; This also checks to make sure that there isn't crap left on the
+;;; stacks or in the cells and breaks if ther is. 
+
 (defun report-system-cells ()
   (format t "~%~%------ RUN REGISTERS ------~%")
-  (loop for r in *system-cells*
-	do (format t "  ~a=~s ~s~%" r (cell r) (stack r)))
+  (loop for cellname in *system-cells*
+	do (format t "  ~a=~s ~s~%" cellname (cell cellname) (stack cellname)))
   (format t "-----------------------~%~%")
-  )
+  ;; Check for disasters
+  (loop for cellname in *system-cells*
+	with break = nil
+	as cell = (cell cellname)
+	as stack = (stack cellname)
+	do (cond ((illegal-value? cell) (format t "!!!!! ~s contains a zero or blank !!!!!~%" cellname) (setf break t))
+		 ((loop for entry in stack if (illegal-value? entry) do (return t))
+		  (format t "!!!!! An entry in ~s's stack is zero or blank !!!!!~%" cellname) (setf break t))
+		 )
+	finally (when break (break "--------------> Executing: ~s :: This shouldn't happen!" *current-cell*))))
+
+(defun illegal-value? (val) ;; Might be other conditions.
+  (or (null val) (and (stringp val) (string-equal val ""))))
 
 (defvar *col->vals* (make-hash-table :test #'equal))
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
@@ -428,6 +460,8 @@
       ;; (0) is not a data term, and J60 will attempt to interpret a
       ;; data term as a standard IPL cell.
       (setf (h5) "+")
+    ;; De-ref symbol to list if necessary
+    (setf arg0 (de-ref-or-die arg0))
     (let* ((this-cell arg0)
 	   (link (cell-link this-cell)))
 	(!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
@@ -459,7 +493,7 @@
 	     (cell (make-cell :name name :symb "0" :link "0")))
 	(!! :jfns "J90 creating blank list ~s~%" name)
 	(setf (cell name) cell)
-	(setf (H0) cell)))
+	(vv "H0" cell)))
 
   (defj J100
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
@@ -554,6 +588,8 @@
   (push (cell ssname) (stack ssname))
   (when new-value (setf (cell ssname) new-value)))
 
+(defvar *current-cell* nil)
+
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
   (prog (cell pq q p symb link)
@@ -578,6 +614,7 @@
        (format t "~%============== STATE BEFORE NEXT EXEC ==============~%")
        (report-system-cells))
      (!! :run "~%~%>>>>>>>>>> Executing: ~s~%~%" cell)
+     (setf *current-cell* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -623,8 +660,11 @@
        (4 ;; Preserve (push down) S
 	(vv "S"))
        (5 ;; Replace (0) by S -- Here we need to make a cell to hold S
-	  ;; because it's just a list symbol (string, actually)
-	(setf (H0) (new-symb-cell (S))))
+	;; because it's just a list symbol (string, actually)
+	;; (But if H0 is already a cell we can just replace it.)
+	(if (cell? (H0))
+	    (setf (cell-symb (H0)) (S))
+	    (setf (H0) (new-symb-cell (S)))))
        (6 ;; Copy (0) in S -- This is the opposite of 5, and we need
 	  ;; to unpack the cell into the symbol.
 	(setf (s) (cell-symb (H0))))
