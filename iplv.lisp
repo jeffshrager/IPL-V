@@ -98,10 +98,10 @@
       (report-system-cells))))
 
 (defun report-system-cells ()
-  (format t "~%~%  :: RUN REGISTERS ::~%")
+  (format t "~%~%------ RUN REGISTERS ------~%")
   (loop for r in *system-cells*
-	do (format t "  ~a=~s ~a~%" r (cell r) (stack r)))
-  (format t "  S=~s ~s~%~%" (s) (s+))
+	do (format t "  ~a=~s ~s~%" r (cell r) (stack r)))
+  (format t "-----------------------~%~%")
   )
 
 (defvar *col->vals* (make-hash-table :test #'equal))
@@ -117,11 +117,11 @@
   (with-open-file
       (i file)
     (setf *input-stream* i) ;; For reads inside the program executor
-    (!! :load "Loading IPL file: ~a~%" file)
+    (!! :load "Loading IPL file: ~s~%" file)
     ;; First line is assumed to be the header which we just check
     (if (equal *cols* (read i))
 	(!! :load "Header okay!~%")
-	(error "No valid header on ~a" file)
+	(error "No valid header on ~s" file)
 	)
     (loop for read-row = (read i nil nil)
 	  with cells = nil
@@ -148,14 +148,14 @@
 	    (if (zero? (cell-type cell))
 		(progn 
 		  (when (global-symbol? name)
-		    (!! :load "Loading global name: ~a~%" name)
+		    (!! :load "Loading global name: ~s~%" name)
 		    (save-cells (reverse cells) load-mode) (setf cells nil)
 		    )
 	      	  (push cell cells))
 		(if (string-equal "5" (cell-type cell))
 		    (if (global-symbol? (cell-symb cell))
 			(progn
-			  (format t "** Execution start at ~a **~%" (cell-symb cell))
+			  (format t "** Execution start at ~s **~%" (cell-symb cell))
 			  (save-cells (reverse cells) load-mode)
 			  (setf cells nil)
 			  (run (cell-symb cell)))
@@ -199,7 +199,7 @@
 				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
       (convert-local-symbols cells local-symbols.new-names)
       (setf (gethash top-name *symtab*) (car cells)) ;; ***********************************************
-      (!! :load "Saved: ~a~%" (cell-name (car cells)))
+      (!! :load "Saved: ~s~%" (cell-name (car cells)))
       (when (eq :data load-mode)
 	;; Loop through the whole list and create aa local symbol for
 	;; every cell that doesn't already have one. This has to do a
@@ -223,7 +223,7 @@
 	  as name = (cell-name (car cells))
 	  unless (zero? name)
 	  do (setf (gethash name *symtab*) (car cells)) ;; ***************************************************
-	  (!! :load "Saved sublist: ~a~%" name)))
+	  (!! :load "Saved sublist: ~s~%" name)))
 
 (defun convert-local-symbols (cells local-symbols.new-names)
   (labels ((replace-symbols (cell accname.accessor)
@@ -263,8 +263,8 @@
   (clrhash *col->vals*)
   )
 
-;;; Note that (S) is not a system cell(stack) but just a
-;;; symbol(stack).
+;;; Note that S and H5 are nots cells but just symbols, but they're
+;;; both stackable (protectable), so they need to have stacks.
 
 (defparameter *system-cells* '("H0" "H1" "W0" "H5" "S"))
 
@@ -304,7 +304,7 @@
   (defmacro defj (name &rest forms)
     `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtab*)
 	   (lambda (arg0 arg1)
-	     (!! :jfns ,(format nil "~%%%% Calling ~a w/ARG0=~~s, ARG1=~~s~%~%" name) arg0 arg1)
+	     (!! :jfns ,(format nil "~%>>>>>>>>>> Calling ~a w/ARG0=~~s, ARG1=~~s~%~%" name) arg0 arg1)
 	     ,@forms)))
   )
 
@@ -452,13 +452,14 @@
       )
 
   (defj J90
+      ;; J90: Get a cell from the available space list, H2, and leave its name in HO.
       ;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
       ;; The output (0) is the name a the new list.
       (let* ((name (new-list-symbol "L"))
 	     (cell (make-cell :name name :symb "0" :link "0")))
 	(!! :jfns "J90 creating blank list ~s~%" name)
 	(setf (cell name) cell)
-	(push cell (H0+))))
+	(setf (H0) cell)))
 
   (defj J100
       ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
@@ -554,9 +555,9 @@
   (when new-value (setf (cell ssname) new-value)))
 
 (defun ipl-eval (start-cell)
-  (!! :run "Entering IPL-EVAL at ~a vvvvvvvvvvvvvvv" start-cell)
+  (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
   (prog (cell pq q p symb link)
-     (push (new-symb-cell "exit") (h1+)) ;; Top of stack -- force exit (may be recursive)
+     (setf (h1) (new-symb-cell "exit")) ;; Top of stack -- force exit (may be recursive)
      (vv "H1" start-cell) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q 
@@ -576,7 +577,7 @@
      (when (member :pre-exec-dump *!!list*)
        (format t "~%============== STATE BEFORE NEXT EXEC ==============~%")
        (report-system-cells))
-     (!! :run "~%~%>>>>>>>>>>~%      Executing cell: ~s~%~%" cell)
+     (!! :run "~%~%>>>>>>>>>> Executing: ~s~%~%" cell)
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -617,7 +618,7 @@
        (1 ;; Input S (after preserving HO) ;; ??? Hopefully "input" means to push it on the stack ???
 	(vv "H0" (s)))
        (2 ;; Output to S (then restore HO)
-	(setf (s) (h0)) (^^ "H0"))
+	(setf (S) (h0)) (^^ "H0"))
        (3 ;; Restore (pop up) S 
 	(^^ "S"))
        (4 ;; Preserve (push down) S
@@ -670,16 +671,16 @@
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (^^ "H1")
-     (!! :run-full "-----> AtASCEND w/H1 = ~s~%" (h1))
+     (!! :run-full "-----> At ASCEND w/H1 = ~s~%" (h1))
      (go ADVANCE)
    DESCEND 
-     (!! :run-full "-----> AtDESCEND w/S = ~s~%" (s))
+     (!! :run-full "-----> At DESCEND w/S = ~s~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (vv "H1" (cell (s)))
      (go INTERPRET-Q)
    BRANCH 
-     (!! :run-full "-----> AtBRANCH w/H5 = ~s, S= ~s~%" (h5) (s))
+     (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (h5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
      (when (string-equal (h5) "-") (setf link (s)))
