@@ -98,10 +98,10 @@
       (report-system-cells))))
 
 (defun report-system-cells ()
-  (format t "~%  :: RUN REGISTERS ::")
+  (format t "~%~%  :: RUN REGISTERS ::~%")
   (loop for r in *system-cells*
-	do (format t "  ~a+=~s ~a~%" r (cell r) (stack r)))
-  (format t "  S=~s ~s~%" (s) (s+))
+	do (format t "  ~a=~s ~a~%" r (cell r) (stack r)))
+  (format t "  S=~s ~s~%~%" (s) (s+))
   )
 
 (defvar *col->vals* (make-hash-table :test #'equal))
@@ -639,7 +639,7 @@
      (case q 
        (5 (setf link (s)) (go ADVANCE))
        (t (go DESCEND)))
-   ADVANCE (!! :run-full "-----> AtADVANCE")
+   ADVANCE (!! :run-full "-----> At ADVANCE")
      (when (string-equal (cell-symb (h1)) "exit")
        (!! :run-full "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
        (^^ "H1") (return))
