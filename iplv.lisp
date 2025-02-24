@@ -274,7 +274,10 @@
   (loop for name in *system-cells*
 	do (setf (cell name) (make-cell :name name))
 	(setf (gethash name *systacks*) (list (format nil "~a-empty" name)))
-	(format t "Created system cell: ~s and its stack.~%" name)))
+	(format t "Created system cell: ~s and its stack.~%" name))
+  (setf (cell "H5") "+")
+  (setf (cell "S") "S-is-null")
+  )
 
 ;;; Loaded code analysis:
 
@@ -301,7 +304,7 @@
   (defmacro defj (name &rest forms)
     `(setf (gethash (string-upcase (format nil "~a" ',name)) *symtab*)
 	   (lambda (arg0 arg1)
-	     (!! :jfns ,(format nil "Calling ~a w/ARG0=~~s, ARG1=~~s~%" name) arg0 arg1)
+	     (!! :jfns ,(format nil "~%%%% Calling ~a w/ARG0=~~s, ARG1=~~s~%~%" name) arg0 arg1)
 	     ,@forms)))
   )
 
@@ -632,7 +635,7 @@
    TEST-FOR-PRIMITIVE 
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
-     (!! :run-full "-----> At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~a, symb=~s~%" (s) q symb)
+     (!! :run-full "-----> At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~s, symb=~s~%" (s) q symb)
      (case q 
        (5 (setf link (s)) (go ADVANCE))
        (t (go DESCEND)))
@@ -644,7 +647,7 @@
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
      (setf link (cell-link cell))
-     (!! :run-full "In ADVANCE: LINK = ~a~%" link)
+     (!! :run-full "In ADVANCE: LINK = ~s~%" link)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
      (if (zero? link)
 	 (if (break "(null (h1))") ;; WWW THIS CAN'T BE RIGHT !!!
@@ -667,16 +670,16 @@
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
      (^^ "H1")
-     (!! :run-full "-----> AtASCEND w/H1 = ~a~%" (h1))
+     (!! :run-full "-----> AtASCEND w/H1 = ~s~%" (h1))
      (go ADVANCE)
    DESCEND 
-     (!! :run-full "-----> AtDESCEND w/S = ~a~%" (s))
+     (!! :run-full "-----> AtDESCEND w/S = ~s~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (vv "H1" (cell (s)))
      (go INTERPRET-Q)
    BRANCH 
-     (!! :run-full "-----> AtBRANCH w/H5 = ~a, S= ~a~%" (h5) (s))
+     (!! :run-full "-----> AtBRANCH w/H5 = ~s, S= ~s~%" (h5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
      (when (string-equal (h5) "-") (setf link (s)))
