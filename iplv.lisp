@@ -34,6 +34,7 @@
 (defun new-symb-cell (symbol &optional (prefix "c"))
   (make-cell :name (symbol-name (gensym prefix)) :symb symbol))
 
+
 (defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
 (defun zero? (what)
@@ -91,11 +92,16 @@
 (defun cell? (cell?)
   (eq 'cell (type-of cell?)))
 
+;;; This is a protected version of cell-name that de-refs if necessary.
+
+(defun cell-name% (cell-or-name)
+  (cell-name (de-ref-or-die cell-or-name)))
+
 (defun de-ref-or-die (cell-or-name)
   (let ((cell (if (cell? cell-or-name) cell-or-name
 		  (if (stringp cell-or-name) (cell cell-or-name)))))
     (if (cell? cell) cell
-      (break "Trying to deref ~s which isn't a cell!" cell-or-name))))
+      (break "Trying to deref ~s, which isn't a cell, while executing ~s!" cell-or-name *trace-intruction*))))
 
 ;;; ===================================================================
 ;;; The Loader simply loads everything created by tsv2alist.py
@@ -131,7 +137,7 @@
 		 ((loop for entry in stack if (illegal-value? entry) do (return t))
 		  (format t "!!!!! An entry in ~s's stack is zero or blank !!!!!~%" cellname) (setf break t))
 		 )
-	finally (when break (break "--------------> Executing: ~s :: This shouldn't happen!" *current-cell*))))
+	finally (when break (break "--------------> Executing: ~s :: This shouldn't happen!" *trace-intruction*))))
 
 (defun illegal-value? (val) ;; Might be other conditions.
   (or (null val) (and (stringp val) (string-equal val ""))))
@@ -425,19 +431,18 @@
       ;; branches??? At the moment this can't do anything sensible
       ;; with a branching list!)
       (!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
-      (let ((l (stack arg1)))
-	(loop for cell in l
-	      do (cond ((string-equal (cell-symb cell) arg0)
-			(!! "J66 found ~s in the list already. No action!~%" arg0)
-			(return nil))
-		       ((zero? (cell-link cell))
-			(!! "J66 hit end, adding ~s to the list!~%" arg0)
-			(let* ((new-name (new-list-symbol arg1))
-			       (new-cell (make-cell :name new-name :symb arg0 :link "0")))
-			  (setf (cell-link cell) new-name)
-			  (setf (stack new-name) new-cell)
-			  (setf (stack arg1) `(,@l ,new-cell)))))))
-      )
+    (loop with cell = (cell arg1)
+	  do (cond ((string-equal (cell-symb cell) arg0)
+		    (!! :jfns "J66 found ~s in the list already. No action!~%" arg0)
+		    (return nil))
+		   ((zero? (cell-link cell))
+		    (!! :jfns "J66 hit end, adding ~s to the list!~%" arg0)
+		    (let* ((new-name (new-list-symbol arg1))
+			   (new-cell (make-cell :name new-name :symb arg0 :link "0")))
+		      (setf (cell-link cell) new-name)
+		      (setf (cell new-name) new-cell)
+		      (return t))))
+	  (setf cell (cell (cell-link cell)))))
 
   (defj J73 ;; Copy list
       (setf (H0)
@@ -467,7 +472,7 @@
 	(!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
 	(if (zero? link)
 	    (setf (h5) "-")
-	    (setf (H0) (cell link)) ;; (h5) is already + from above
+	    (vv (H0) (cell link)) ;; (h5) is already + from above
 	    )))
 
   (defj J74 ;; Copy List Structure
@@ -588,7 +593,7 @@
   (push (cell ssname) (stack ssname))
   (when new-value (setf (cell ssname) new-value)))
 
-(defvar *current-cell* nil)
+(defvar *trace-intruction* nil)
 
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
@@ -614,7 +619,7 @@
        (format t "~%============== STATE BEFORE NEXT EXEC ==============~%")
        (report-system-cells))
      (!! :run "~%~%>>>>>>>>>> Executing: ~s~%~%" cell)
-     (setf *current-cell* cell) ;; For tracing and error reporting
+     (setf *trace-intruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
 	   p (getpq :p pq)
@@ -638,7 +643,7 @@
        ;; 1 Take the name the symbol is pointing to
        (1 (setf (s) (cell-name (cell symb))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to
-       (2 (setf (s) (cell-symb (cell (cell-name (cell symb))))) (go INTERPRET-P))
+       (2 (setf (s) (cell-symb (cell (cell-name% (cell symb))))) (go INTERPRET-P))
        (3 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (4 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
