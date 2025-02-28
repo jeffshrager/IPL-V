@@ -507,6 +507,18 @@
 	(setf (H0) (copy-list-structure arg0))
 	)
 
+  (defj J76 (arg0 arg1) "INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL"
+	 ;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
+	 ;; assume to desescribable. Its head is erased (if local, the symbol in
+	 ;; the head is erased as a list structure). The string of list cells is
+	 ;; inserted after cell (1): LINK of cell (1) is the name of the first
+	 ;; list cell, and LINK of the last cell of the string is the name of
+	 ;; the cell originally occurring after cell (1). The output (0) is the
+	 ;; name of the last cell in the inserted string and H5 is set +. If list
+	 ;; (0) has no list cells, then the output (0) is the input (1) and H5 is
+	 ;; set -. OMFG!
+	(break "J76 is unimplemented!"))
+
   (defj J90 () "Create a blank cell on H0"
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
@@ -600,7 +612,6 @@
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
-  (defj J76 () "Unimplemented!" (break "J76 is unimplemented!"))
   (defj J130 () "Unimplemented!" (break "J130 is unimplemented!"))
   (defj J183 () "Unimplemented!" (break "J183 is unimplemented!"))
   (defj J182 () "Unimplemented!" (break "J182 is unimplemented!"))
