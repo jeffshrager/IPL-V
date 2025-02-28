@@ -28,9 +28,15 @@
 
 (defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
+;;; Overprotective version deprecated:
+;;; (defun zero? (what)
+;;;   (member (if (stringp what) what
+;;; 	      (cell-symb what))
+;;; 	  '("" "0") :test #'string-equal))
+
 (defun zero? (what)
   (member (if (stringp what) what
-	      (cell-symb what))
+	      (break "ZERO? sent ~s which should be a string or nil." what))
 	  '("" "0") :test #'string-equal))
 
 (defun print-cell (cell s d)
@@ -95,10 +101,10 @@
 (defun new-local-symbol (&optional (prefix "9")) (format nil "~a~a" prefix (gensym "+")))
 
 (defun store-cells (l)
-    (loop for cells on l
-	  as name = (cell-name (car cells))
-	  unless (zero? name)
-	  do (setf (gethash name *symtab*) (car cells))))
+  (loop for cells on l
+	as name = (cell-name (car cells))
+	unless (zero? name)
+	do (setf (gethash name *symtab*) (car cells))))
 
 ;;; ===================================================================
 ;;; Debugging Utils
@@ -484,7 +490,7 @@
 	;; the list from (0) on. (Nothing else is copied, not even the
 	;; description list of (0), if it exists.)  The name is local if the
 	;; input (0) is local; otherwise, it is internal.
-	(setf (H0) (copy-ipl-list-and-return-head (drod name-or-cell))))
+	(setf (H0) (copy-ipl-list-and-return-head (drod arg0))))
 
   (defj J74 (arg0) "Copy List Structure"
       ;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
@@ -534,7 +540,7 @@
 	(setf (H0) new-cell)))
 
   (defj J151 (arg0) "Print list (0)"
-	 (prlist arg0))
+	 (print-linear-list arg0))
 
   (defj J154 () "Clear print line"
       ;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
@@ -575,12 +581,14 @@
 
 (defun copy-ipl-list-and-return-head (head)
   (setf *copy-list-collector* nil)
-  (copy-ipl-list-2 (drod head))
+  (copy-ipl-list (drod head) (new-local-symbol))
   (store-cells *copy-list-collector*)
   (car (last *copy-list-collector*)))
 
 (defun copy-ipl-list (cell-or-symb/link &optional new-cell-name)
   (cond
+    ;; If you get a zero, just return it to get pluged back in.
+    ((zero? cell-or-symb/link) "0")
     ;; If you're handed a cell, create a new one
     ((cell? cell-or-symb/link)
      (let ((new-name (or new-cell-name (new-local-symbol))))
@@ -594,7 +602,7 @@
     ((local-symbol? cell-or-symb/link)
      (let ((new-name (new-local-symbol)))
        (push (new-cell (make-cell :name new-name
-				:symb (copy-ipl-list cell-symb cell-or-symb/link)
+				:symb (copy-ipl-list (cell-symb cell-or-symb/link))
 				:link (copy-ipl-list (cell-link cell-or-symb/link))))
 	     *copy-list-collector*)
        new-name))
@@ -620,7 +628,9 @@
 	(setf (cell-link new-cell) (copy-list-structure (cell-link cell)))
 	)))
 	
-(defun prlist (cell)
+;;; This only prints lists that are linked via their LINK symbols.
+
+(defun print-linear-list (cell)
   (setf cell (drod cell))
   (format t "~%+---------------------------------------------------------------------+~%")
   (loop do (format t "| ~s~70T|~%" cell)
@@ -814,7 +824,7 @@
 ;;; Test calls
 
 (untrace)
-(trace ipl-eval run)
-(setf *!!list* '(:load :run :jfns :run-full :io)) ;; :load :run :jfns :run-full :io (t for all)
+;(trace ipl-eval run copy-ipl-list copy-ipl-list-and-return-head store-cells)
+(setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
