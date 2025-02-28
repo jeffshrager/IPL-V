@@ -384,9 +384,9 @@
   (defj J4 () "SET H5 +" (setf (H5) "+"))
 
   (defj J6 () "REVERSE (0) and (1)" ;; WWW H1 is not (1)
-      (let ((z (H0)))
-	(setf (H0) (first (H0+)))
-	(setf (first (H0+)) z)))
+	(let ((z (H0)))
+	  (setf (H0) (first (H0+)))
+	  (setf (first (H0+)) z)))
 
   (defj J8 () "RESTORE H0" (^^ "H0"))
 
@@ -429,58 +429,58 @@
   (defj J49 () "PRESERVE W0-W9" (J4n=preserve-wn 9))
 
   (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)"
-    ;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
-    ;; cell. If a next cell exists (LINK of (0) not a termination
-    ;; symbol), then the output (0) is the name of the next cell, and
-    ;; H5 is set +.  (!!! This whole "name" thing is an f'ing lie!
-    ;; It's the actual cell !!!)  If LINK is a termination symbol,
-    ;; then the output (0) is the input (0), which is the name of the
-    ;; last cell on the list, and H5 is set -. If the next cell is a
-    ;; private termination cell, J60 will work as specified above, but
-    ;; in addition, the private termination cell will be returned to
-    ;; available space and the LINK of the input cell (0) will be
-    ;; changed to hold 0. No test is made to see that (0) is not a
-    ;; data term, and J60 will attempt to interpret a data term as a
-    ;; standard IPL cell.
-    (setf (h5) "+")
-    ;; De-ref symbol to list if necessary
-    (setf arg0 (drod arg0)) 
-    (let* ((this-cell arg0)
-	   (link (cell-link this-cell)))
-      (!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
-      (if (zero? link)
-	  (setf (h5) "-")
-	  (setf (H0) (cell link)) ;; (h5) is already + from above
-	  )))
+	;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
+	;; cell. If a next cell exists (LINK of (0) not a termination
+	;; symbol), then the output (0) is the name of the next cell, and
+	;; H5 is set +.  (!!! This whole "name" thing is an f'ing lie!
+	;; It's the actual cell !!!)  If LINK is a termination symbol,
+	;; then the output (0) is the input (0), which is the name of the
+	;; last cell on the list, and H5 is set -. If the next cell is a
+	;; private termination cell, J60 will work as specified above, but
+	;; in addition, the private termination cell will be returned to
+	;; available space and the LINK of the input cell (0) will be
+	;; changed to hold 0. No test is made to see that (0) is not a
+	;; data term, and J60 will attempt to interpret a data term as a
+	;; standard IPL cell.
+	(setf (h5) "+")
+	;; De-ref symbol to list if necessary
+	(setf arg0 (drod arg0)) 
+	(let* ((this-cell arg0)
+	       (link (cell-link this-cell)))
+	  (!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
+	  (if (zero? link)
+	      (setf (h5) "-")
+	      (setf (H0) (cell link)) ;; (h5) is already + from above
+	      )))
 
   (defj J66 (arg0 arg1) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
-      ;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
-      ;; search of list (1) is made. against (0) (starting with the
-      ;; cell after cell (1) . If (0) is found, J66 does nothing
-      ;; further. If (0) is not found, it is inserted at the end of
-      ;; the list, as in J65. (??? What happens if the list
-      ;; branches??? At the moment this can't do anything sensible
-      ;; with a branching list!)
-      (!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
-    (loop with list-cell = (drod arg1)
-	  with symb = (if (stringp arg0)
-			  arg0
-			  (if (cell? arg0)
-			      (cell-symb arg0)
-			      (break "Error in J66: ~a should be a symbol or cell!" arg0)))
-	  do
-	  (cond ((string-equal (cell-symb list-cell) symb)
-		 (!! :jfns "J66 found ~s in the list already. No action!~%" symb)
-		 (return nil))
-		((zero? (cell-link list-cell))
-		 (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
-		 (let* ((new-name (new-local-symbol (cell-name list-cell)))
-			(new-cell (make-cell :name new-name :symb symb :link "0")))
-		   (setf (cell-link list-cell) new-name)
-		   (setf (cell new-name) new-cell)
-		   (return t))))
-	  ;; Move to next cell if nothnig above returned out
-	  (setf list-cell (cell (cell-link list-cell)))))
+	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
+	;; search of list (1) is made. against (0) (starting with the
+	;; cell after cell (1) . If (0) is found, J66 does nothing
+	;; further. If (0) is not found, it is inserted at the end of
+	;; the list, as in J65. (??? What happens if the list
+	;; branches??? At the moment this can't do anything sensible
+	;; with a branching list!)
+	(!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
+	(loop with list-cell = (drod arg1)
+	      with symb = (if (stringp arg0)
+			      arg0
+			      (if (cell? arg0)
+				  (cell-symb arg0)
+				  (break "Error in J66: ~a should be a symbol or cell!" arg0)))
+	      do
+	      (cond ((string-equal (cell-symb list-cell) symb)
+		     (!! :jfns "J66 found ~s in the list already. No action!~%" symb)
+		     (return nil))
+		    ((zero? (cell-link list-cell))
+		     (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
+		     (let* ((new-name (new-local-symbol (cell-name list-cell)))
+			    (new-cell (make-cell :name new-name :symb symb :link "0")))
+		       (setf (cell-link list-cell) new-name)
+		       (setf (cell new-name) new-cell)
+		       (return t))))
+	      ;; Move to next cell if nothnig above returned out
+	      (setf list-cell (cell (cell-link list-cell)))))
 
   (defj J73 (arg0) "Copy list"
 	;; COPYLIST (O). The output (0) names a new list, with the identical
@@ -493,74 +493,137 @@
 	(setf (H0) (copy-ipl-list-and-return-head (drod arg0))))
 
   (defj J74 (arg0) "Copy List Structure"
-      ;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
-      ;; which are in one-to-one correspondence with the cells of list structure
-      ;; (0). All the regional and internal symbols in the cells will be identical
-      ;; to the symbols in the corresponding cells of (0), as will the contents of
-      ;; data terms. There will be new local symbols, since these are the names of
-      ;; the sublists of the new structure. Description lists will be copied, if
-      ;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
-      ;; the copy will be produced in main storage. In all cases, list structure (0)
-      ;; remains unaffected. The output (0) names the new list structure. It is
-      ;; local if the input (0) is local; It is internal otherwise.
-      (!! :jfns "J74 is copying list: ~s~%" (H0))
-      (setf (H0) (copy-list-structure arg0))
-      )
+	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
+	;; which are in one-to-one correspondence with the cells of list structure
+	;; (0). All the regional and internal symbols in the cells will be identical
+	;; to the symbols in the corresponding cells of (0), as will the contents of
+	;; data terms. There will be new local symbols, since these are the names of
+	;; the sublists of the new structure. Description lists will be copied, if
+	;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
+	;; the copy will be produced in main storage. In all cases, list structure (0)
+	;; remains unaffected. The output (0) names the new list structure. It is
+	;; local if the input (0) is local; It is internal otherwise.
+	(!! :jfns "J74 is copying list: ~s~%" (H0))
+	(setf (H0) (copy-list-structure arg0))
+	)
 
   (defj J90 () "Create a blank cell on H0"
-      ;; J90: Get a cell from the available space list, H2, and leave its name in HO.
-      ;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
-      ;; The output (0) is the name a the new list.
-      (let* ((name (new-local-symbol "L"))
-	     (cell (make-cell :name name :symb "0" :link "0")))
-	(!! :jfns "J90 creating blank list ~s~%" name)
-	(setf (cell name) cell)
-	(vv "H0" cell)))
+	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
+	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
+	;; The output (0) is the name a the new list.
+	(let* ((name (new-local-symbol "L"))
+	       (cell (make-cell :name name :symb "0" :link "0")))
+	  (!! :jfns "J90 creating blank list ~s~%" name)
+	  (setf (cell name) cell)
+	  (vv "H0" cell)))
 
   (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)"
-      ;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
-      ;; named (0) is performed successively with each of the symbols of list named
-      ;; (1) as input. The order is the order on the list, starting with the first
-      ;; list cell. H5 is always set + at the start of the subprocess. J100 will
-      ;; move in list (1) if it is on auxiliary.
-      (loop with subcall = (H0)
-       	    for elt in (break "(listX arg1) isn't implemented")
-       	    do
-	    (push elt (H0+))
-	    (ipl-eval arg0)
-	    (pop (H0+))
-	    ))
+	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
+	;; named (0) is performed successively with each of the symbols of list named
+	;; (1) as input. The order is the order on the list, starting with the first
+	;; list cell. H5 is always set + at the start of the subprocess. J100 will
+	;; move in list (1) if it is on auxiliary.
+	(loop with subcall = (H0)
+       	      for elt in (break "(listX arg1) isn't implemented")
+       	      do
+	      (push elt (H0+))
+	      (ipl-eval arg0)
+	      (pop (H0+))
+	      ))
 
   (defj J120 (arg0) "COPY (0)"
-      ;; COPY (0). The output (0) names a new cell containing the identical
-      ;; contents to (0). The name is local if the input (0) is local; other-
-      ;; wise, it is internal.
-      (let ((new-cell (copy-cell (H0))))
-	(setf (cell-name new-cell) (new-local-symbol))
-	(setf (H0) new-cell)))
+	;; COPY (0). The output (0) names a new cell containing the identical
+	;; contents to (0). The name is local if the input (0) is local; other-
+	;; wise, it is internal.
+	(let ((new-cell (copy-cell (H0))))
+	  (setf (cell-name new-cell) (new-local-symbol))
+	  (setf (H0) new-cell)))
 
   (defj J151 (arg0) "Print list (0)"
-	 (print-linear-list arg0))
+	(print-linear-list arg0))
 
   (defj J154 () "Clear print line"
-      ;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
-      ;; current entry column, 1W2S, is set equal to the left margin, 1W21.
-      (format t "WWW J154 (Clear Print Line) is UNIMPLEMENTED !!!~%"))
+	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
+	;; current entry column, 1W2S, is set equal to the left margin, 1W21.
+	(format t "WWW J154 (Clear Print Line) is UNIMPLEMENTED !!!~%"))
 
   (defj J180 () "READ LINE J180 READLINE"
-    ;; The next record on unit 1W18 is read to line 1W24. (The record
-      ;; is assumed to be BCD, 80 cols.) Column 1 of the record is
-      ;; read into column 1 of the read line, and so forth. H5 is
-      ;; set+. If no record can be read (end-of-file condition), the
-      ;; line is not changed and HS is set - .
-      (let ((line (read-line *input-stream* nil nil)))
-	(!! :io "J180 Read:~%~s~%%" line)
-	(cond (line
-	       (push line (stack "W24"))
-	       (setf (cell-symb (h5)) "+"))
-	      (t (setf (cell-symb (h5)) "-")))))
+	;; The next record on unit 1W18 is read to line 1W24. (The record
+	;; is assumed to be BCD, 80 cols.) Column 1 of the record is
+	;; read into column 1 of the read line, and so forth. H5 is
+	;; set+. If no record can be read (end-of-file condition), the
+	;; line is not changed and HS is set - .
+	(let ((line (read-line *input-stream* nil nil)))
+	  (!! :io "J180 Read:~%~s~%%" line)
+	  (cond (line
+		 (push line (stack "W24"))
+		 (setf (cell-symb (h5)) "+"))
+		(t (setf (cell-symb (h5)) "-")))))
 
-)
+  (defj J51 () "Unimplemented!" (break "J51 is unimplemented!"))
+  (defj J52 () "Unimplemented!" (break "J52 is unimplemented!"))
+  (defj J53 () "Unimplemented!" (break "J53 is unimplemented!"))
+  (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
+  (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
+  (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
+  (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
+  (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
+  (defj J100 () "Unimplemented!" (break "J100 is unimplemented!"))
+  (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
+  (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
+  (defj J10 () "Unimplemented!" (break "J10 is unimplemented!"))
+  (defj J155 () "Unimplemented!" (break "J155 is unimplemented!"))
+  (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
+  (defj J5 () "Unimplemented!" (break "J5 is unimplemented!"))
+  (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
+  (defj J11 () "Unimplemented!" (break "J11 is unimplemented!"))
+  (defj J161 () "Unimplemented!" (break "J161 is unimplemented!"))
+  (defj J50 () "Unimplemented!" (break "J50 is unimplemented!"))
+  (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
+  (defj J157 () "Unimplemented!" (break "J157 is unimplemented!"))
+  (defj J64 () "Unimplemented!" (break "J64 is unimplemented!"))
+  (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
+  (defj J7 () "Unimplemented!" (break "J7 is unimplemented!"))
+  (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
+  (defj J133 () "Unimplemented!" (break "J133 is unimplemented!"))
+  (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
+  (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
+  (defj J125 () "Unimplemented!" (break "J125 is unimplemented!"))
+  (defj J124 () "Unimplemented!" (break "J124 is unimplemented!"))
+  (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
+  (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
+  (defj J65 () "Unimplemented!" (break "J65 is unimplemented!"))
+  (defj J75 () "Unimplemented!" (break "J75 is unimplemented!"))
+  (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
+  (defj J184 () "Unimplemented!" (break "J184 is unimplemented!"))
+  (defj J111 () "Unimplemented!" (break "J111 is unimplemented!"))
+  (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
+  (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
+  (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
+  (defj J76 () "Unimplemented!" (break "J76 is unimplemented!"))
+  (defj J130 () "Unimplemented!" (break "J130 is unimplemented!"))
+  (defj J183 () "Unimplemented!" (break "J183 is unimplemented!"))
+  (defj J182 () "Unimplemented!" (break "J182 is unimplemented!"))
+  (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
+  (defj J80 () "Unimplemented!" (break "J80 is unimplemented!"))
+  (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
+  (defj J30 () "Unimplemented!" (break "J30 is unimplemented!"))
+  (defj J15 () "Unimplemented!" (break "J15 is unimplemented!"))
+  (defj J166 () "Unimplemented!" (break "J166 is unimplemented!"))
+  (defj J0 () "Unimplemented!" (break "J0 is unimplemented!"))
+  (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
+  (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
+  (defj J156 () "Unimplemented!" (break "J156 is unimplemented!"))
+  (defj J181 () "Unimplemented!" (break "J181 is unimplemented!"))
+  (defj J186 () "Unimplemented!" (break "J186 is unimplemented!"))
+  (defj J62 () "Unimplemented!" (break "J62 is unimplemented!"))
+  (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
+  (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
+
+  )
+
+
+
 
 ;;; ===================================================================
 ;;; JFn Utilities
@@ -824,7 +887,7 @@
 ;;; Test calls
 
 (untrace)
-(trace ipl-eval run copy-ipl-list copy-ipl-list-and-return-head store-cells)
-(setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io (t for all)
-(load-ipl "LTFixed.lisp")
-;(load-ipl "F1.lisp")
+;(trace ipl-eval run copy-ipl-list copy-ipl-list-and-return-head store-cells)
+(setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io (t for all)
+;(load-ipl "LTFixed.lisp")
+(load-ipl "F1.lisp")
