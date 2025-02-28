@@ -587,8 +587,6 @@
 
 (defun copy-ipl-list (cell-or-symb/link &optional new-cell-name)
   (cond
-    ;; If you get a zero, just return it to get pluged back in.
-    ((zero? cell-or-symb/link) "0")
     ;; If you're handed a cell, create a new one
     ((cell? cell-or-symb/link)
      (let ((new-name (or new-cell-name (new-local-symbol))))
@@ -597,6 +595,8 @@
 			:link (copy-ipl-list (cell-link cell-or-symb/link)))
 	     *copy-list-collector*)
        new-name))
+    ;; If you get a zero, just return it to get pluged back in.
+    ((zero? cell-or-symb/link) "0")
     ;; If it's a local symbol, create a new cell with a new symbol and copy the cell,
     ;; recursing for the symb and links
     ((local-symbol? cell-or-symb/link)
@@ -824,7 +824,7 @@
 ;;; Test calls
 
 (untrace)
-;(trace ipl-eval run copy-ipl-list copy-ipl-list-and-return-head store-cells)
+(trace ipl-eval run copy-ipl-list copy-ipl-list-and-return-head store-cells)
 (setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io (t for all)
-;(load-ipl "LTFixed.lisp")
-(load-ipl "F1.lisp")
+(load-ipl "LTFixed.lisp")
+;(load-ipl "F1.lisp")
