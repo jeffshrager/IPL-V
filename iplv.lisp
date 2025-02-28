@@ -1,7 +1,5 @@
 ;;; (load (compile-file "iplv.lisp"))
 
-;;; Last commit confirmed to run F1 correctly is ebc4887 (~20250228@0919)
-
 ;;; The whole symbol v. cell thing in IPL is a compelete mess. All
 ;;; symbols can be addresses of cells -- in fact they all are -- but
 ;;; sometimes they are treated as their character representation, and
@@ -93,6 +91,14 @@
 		  (if (stringp cell-or-name) (cell cell-or-name)))))
     (if (cell? cell) cell
       (break "Trying to deref ~s, which isn't a cell, while executing ~s!" cell-or-name *trace-instruction*))))
+
+(defun new-local-symbol (&optional (prefix "9")) (format nil "~a~a" prefix (gensym "+")))
+
+(defun store-cells (l)
+    (loop for cells on l
+	  as name = (cell-name (car cells))
+	  unless (zero? name)
+	  do (setf (gethash name *symtab*) (car cells))))
 
 ;;; ===================================================================
 ;;; Debugging Utils
@@ -242,19 +248,11 @@
 	    when next-cell ;; This usually isn't needed anyway bcs there should be a 0
 	    do (if (zero? this-link)
 		   (if (zero? next-name)
-		       (let ((new-symbol (new-list-symbol top-name)))
+		       (let ((new-symbol (new-local-symbol top-name)))
 			 (setf (cell-name next-cell) new-symbol)
 			 (setf (cell-link this-cell) new-symbol))
 		       (setf (cell-link this-cell) next-name)))))
     (store-cells cells)))
-
-(defun new-list-symbol (&optional (prefix "")) (format nil "~a~a" prefix (gensym "+")))
-
-(defun store-cells (l)
-    (loop for cells on l
-	  as name = (cell-name (car cells))
-	  unless (zero? name)
-	  do (setf (gethash name *symtab*) (car cells))))
 
 (defun convert-local-symbols (cells local-symbols.new-names)
   (labels ((replace-symbols (cell accname.accessor)
@@ -470,7 +468,7 @@
 		 (return nil))
 		((zero? (cell-link list-cell))
 		 (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
-		 (let* ((new-name (new-list-symbol (cell-name list-cell)))
+		 (let* ((new-name (new-local-symbol (cell-name list-cell)))
 			(new-cell (make-cell :name new-name :symb symb :link "0")))
 		   (setf (cell-link list-cell) new-name)
 		   (setf (cell new-name) new-cell)
@@ -479,11 +477,14 @@
 	  (setf list-cell (cell (cell-link list-cell)))))
 
   (defj J73 (arg0) "Copy list"
-      (setf (H0)
-	    (copy-list
-	     (if (stringp arg0) (stack arg0)
-		 (if (listp arg0) arg0
-		     (error "J73 got ARG0=~s" arg0))))))
+	;; COPYLIST (O). The output (0) names a new list, with the identical
+	;; symbols in the cells as are in the corresponding cells of list (0),
+	;; including the head. If (0) is the name of a list cell, rather that
+	;; [sic: than] a head, the output (0) will be a copy of the remainder of
+	;; the list from (0) on. (Nothing else is copied, not even the
+	;; description list of (0), if it exists.)  The name is local if the
+	;; input (0) is local; otherwise, it is internal.
+	(setf (H0) (copy-ipl-list-and-return-head (drod name-or-cell))))
 
   (defj J74 (arg0) "Copy List Structure"
       ;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
@@ -504,7 +505,7 @@
       ;; J90: Get a cell from the available space list, H2, and leave its name in HO.
       ;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
       ;; The output (0) is the name a the new list.
-      (let* ((name (new-list-symbol "L"))
+      (let* ((name (new-local-symbol "L"))
 	     (cell (make-cell :name name :symb "0" :link "0")))
 	(!! :jfns "J90 creating blank list ~s~%" name)
 	(setf (cell name) cell)
@@ -529,7 +530,7 @@
       ;; contents to (0). The name is local if the input (0) is local; other-
       ;; wise, it is internal.
       (let ((new-cell (copy-cell (H0))))
-	(setf (cell-name new-cell) (new-list-symbol))
+	(setf (cell-name new-cell) (new-local-symbol))
 	(setf (H0) new-cell)))
 
   (defj J151 (arg0) "Print list (0)"
@@ -570,25 +571,48 @@
 (defun J4n=preserve-wn (n)
   (loop for nn from 0 to n do (vv (format nil "W~a" nn))))
 
-;;; Copying an IPL list is a tricky because they aren't represented like normal
-;;; lisp lists (maybe they shold be?) but instead are a pile of cells where
-;;; internal structure results from the symb and links pointing to other named
-;;; cells all at the top level. In order to do this we need scan the whole list
-;;; recursviely and create new symbols at each point. The only situation where
-;;; we don't need to fill in an explicit pointer is when the list points to the
-;;; NEXT element, but we do that anyway. All lists ground out on a 0 in the symb
-;;; or link.
+(defvar *copy-list-collector* nil)
+
+(defun copy-ipl-list-and-return-head (head)
+  (setf *copy-list-collector* nil)
+  (copy-ipl-list-2 (drod head))
+  (store-cells *copy-list-collector*)
+  (car (last *copy-list-collector*)))
+
+(defun copy-ipl-list (cell-or-symb/link &optional new-cell-name)
+  (cond
+    ;; If you're handed a cell, create a new one
+    ((cell? cell-or-symb/link)
+     (let ((new-name (or new-cell-name (new-local-symbol))))
+       (push (make-cell :name new-name
+			:symb (copy-ipl-list (cell-symb cell-or-symb/link))
+			:link (copy-ipl-list (cell-link cell-or-symb/link)))
+	     *copy-list-collector*)
+       new-name))
+    ;; If it's a local symbol, create a new cell with a new symbol and copy the cell,
+    ;; recursing for the symb and links
+    ((local-symbol? cell-or-symb/link)
+     (let ((new-name (new-local-symbol)))
+       (push (new-cell (make-cell :name new-name
+				:symb (copy-ipl-list cell-symb cell-or-symb/link)
+				:link (copy-ipl-list (cell-link cell-or-symb/link))))
+	     *copy-list-collector*)
+       new-name))
+    ;; If we're handed a global symbol, just return it.
+    ((global-symbol? cell-or-symb/link)
+     cell-or-symb/link)
+    (t (break "In copy-ipl-list got ~s which wasn't expected." cell-or-symb/link))))
 
 (defun copy-list-structure (l)
   (if (zero? l) l ;; End of sublist, just return the EOsL "0"
-      (let ((new-name (new-list-symbol)))
+      (let ((new-name (new-local-symbol)))
 	(setf (gethash new-name *symtab*) (mapcar #'copy-list-cell l))
 	new-name)))
 
 (defun copy-list-cell (cell)
   (if (zero? cell) cell ;; End of sublist, just return the EOsL "0"
       (let* ((new-cell (copy-cell cell)))
-	(setf (cell-name new-cell) (new-list-symbol))
+	(setf (cell-name new-cell) (new-local-symbol))
 	;; WWW ??? This has the problem that it's going to copy whole functions
 	;; into copied lists, which is probably not what is intended. Maybe
 	;; things that are defined in the load process shouldn't be copied? 
@@ -791,6 +815,6 @@
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io (t for all)
+(setf *!!list* '(:load :run :jfns :run-full :io)) ;; :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
