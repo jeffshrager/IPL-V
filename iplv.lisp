@@ -11,6 +11,9 @@
 ;;; WWW Leaves these at high debug etc or things break for unknown reasons.
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
+;;; ===================================================================
+;;; Cell, Storage, and Special Symbols
+
 (defstruct (cell (:print-function print-cell))
   (comments "")
   (type "")
@@ -25,8 +28,6 @@
 
 (defun new-symb-cell (symbol &optional (prefix "c"))
   (make-cell :name (symbol-name (gensym prefix)) :symb symbol))
-
-(defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
 ;;; Overprotective version deprecated:
 ;;; (defun zero? (what)
@@ -51,8 +52,7 @@
 	      ""
 	      (format nil " [~a/~a]" (cell-comments cell) (cell-comments cell)))))
 
-;;; ===================================================================
-;;; Storage and Special Symbols
+(defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 
 (defvar *symtab* (make-hash-table :test #'equal))
 
@@ -64,6 +64,7 @@
 
 (defmacro cell (symb) `(gethash ,symb *symtab*))
 (defmacro stack (symb) `(gethash ,symb *systacks*)) ;; Only system cells have stacks
+(defun cell? (cell?) (eq 'cell (type-of cell?)))
 
 ;;; Important values it have special macros (these are like (H0) = (0)
 ;;; in the IPL-V manual). The ...+ fns return the whole stack. (Note
@@ -82,15 +83,15 @@
 (defmacro S () `(cell "S"))
 (defmacro S+ () `(stack "S"))
 
-(defun cell? (cell?)
-  (eq 'cell (type-of cell?)))
+(defun ^^ (ssname) (setf (cell ssname) (pop (stack ssname))))
+(defun vv (ssname &optional new-value)
+  (push (cell ssname) (stack ssname))
+  (when new-value (setf (cell ssname) new-value)))
 
 ;;; This is a protected version of cell-name that de-refs if necessary.
 
 (defun cell-name% (cell-or-name)
   (cell-name (drod cell-or-name)))
-
-(defvar *trace-instruction* nil)
 
 (defun drod (cell-or-name) ;; de-ref-or-die
   (let ((cell (if (cell? cell-or-name) cell-or-name
@@ -226,6 +227,8 @@
 				(!! :load "Ignoring: ~s~%" read-row)))))))
 	  finally (save-cells (reverse cells) load-mode)
 	  )))
+
+(defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
 (defun save-cells (cells load-mode)
   ;; Once we have the thing completely in hand, we change the local
@@ -799,12 +802,6 @@
   (create-system-cells)
   (setf (h5+) (list "+"))
   )
-
-(defun ^^ (ssname)
-  (setf (cell ssname) (pop (stack ssname))))
-(defun vv (ssname &optional new-value)
-  (push (cell ssname) (stack ssname))
-  (when new-value (setf (cell ssname) new-value)))
 
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
