@@ -508,16 +508,26 @@
 	)
 
   (defj J76 (arg0 arg1) "INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL"
-	 ;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
-	 ;; assume to desescribable. Its head is erased (if local, the symbol in
-	 ;; the head is erased as a list structure). The string of list cells is
-	 ;; inserted after cell (1): LINK of cell (1) is the name of the first
-	 ;; list cell, and LINK of the last cell of the string is the name of
-	 ;; the cell originally occurring after cell (1). The output (0) is the
-	 ;; name of the last cell in the inserted string and H5 is set +. If list
-	 ;; (0) has no list cells, then the output (0) is the input (1) and H5 is
-	 ;; set -. OMFG!
-	(break "J76 is unimplemented!"))
+	;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
+	;; assume to desescribable. Its head is erased (if local, the symbol in
+	;; the head is erased as a list structure). The string of list cells is
+	;; inserted after cell (1): LINK of cell (1) is the name of the first
+	;; list cell, and LINK of the last cell of the string is the name of the
+	;; cell originally occurring after cell (1). The output (0) is the name
+	;; of the last cell in the inserted string and H5 is set +. If list (0)
+	;; has no list cells, then the output (0) is the input (1) and H5 is set
+	;; -. [Again, I think that this is intended only to work on linear lists
+	;; since there's no "last symbol" in a non-linear list.]
+	(let* ((l0 (drod arg0))
+	       (c1 (drod arg1))
+	       (c1link (cell-link c1))
+	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
+	  (cond ((zero? (cell-link l0))
+		 (setf (h0) c1)
+		 (setf (h5) "-"))
+		(t (setf (cell-link c1) (cell-link l0))
+		   (setf (cell-link last-cell-in-l0) c1link)
+		   (setf (h0) last-cell-in-l0)))))
 
   (defj J90 () "Create a blank cell on H0"
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
@@ -675,9 +685,9 @@
     ;; recursing for the symb and links
     ((local-symbol? cell-or-symb/link)
      (let ((new-name (new-local-symbol)))
-       (push (new-cell (make-cell :name new-name
+       (push (make-cell :name new-name
 				:symb (copy-ipl-list (cell-symb cell-or-symb/link))
-				:link (copy-ipl-list (cell-link cell-or-symb/link))))
+				:link (copy-ipl-list (cell-link cell-or-symb/link)))
 	     *copy-list-collector*)
        new-name))
     ;; If we're handed a global symbol, just return it.
@@ -702,6 +712,10 @@
 	(setf (cell-link new-cell) (copy-list-structure (cell-link cell)))
 	)))
 	
+(defun last-cell-of-linear-list (l)
+  (cond ((zero? (cell-link l)) l)
+	(t (last-cell-of-linear-list (cell (cell-link l))))))
+
 ;;; This only prints lists that are linked via their LINK symbols.
 
 (defun print-linear-list (cell)
@@ -899,6 +913,6 @@
 
 (untrace)
 ;(trace ipl-eval run copy-ipl-list copy-ipl-list-and-return-head store-cells)
-(setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io (t for all)
-;(load-ipl "LTFixed.lisp")
-(load-ipl "F1.lisp")
+(setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io (t for all)
+(load-ipl "LTFixed.lisp")
+;(load-ipl "F1.lisp")
