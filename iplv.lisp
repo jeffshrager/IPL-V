@@ -395,16 +395,16 @@
 
   ;; FFF Macrofiy these!!!
 
-  (defj J20 () "MOVE(0)-(n) into WO-n [J20: n=0]" (J2n=move-0-to-n-into-w0-wn 0))
-  (defj J21 () "MOVE(0)-(n) into WO-n [J21: n=1]" (J2n=move-0-to-n-into-w0-wn 1))
-  (defj J22 () "MOVE(0)-(n) into WO-n [J22: n=2]" (J2n=move-0-to-n-into-w0-wn 2))
-  (defj J23 () "MOVE(0)-(n) into WO-n [J23: n=3]" (J2n=move-0-to-n-into-w0-wn 3))
-  (defj J24 () "MOVE(0)-(n) into WO-n [J24: n=4]" (J2n=move-0-to-n-into-w0-wn 4))
-  (defj J25 () "MOVE(0)-(n) into WO-n [J25: n=5]" (J2n=move-0-to-n-into-w0-wn 5))
-  (defj J26 () "MOVE(0)-(n) into WO-n [J26: n=6]" (J2n=move-0-to-n-into-w0-wn 6))
-  (defj J27 () "MOVE(0)-(n) into WO-n [J27: n=7]" (J2n=move-0-to-n-into-w0-wn 7))
-  (defj J28 () "MOVE(0)-(n) into WO-n [J28: n=8]" (J2n=move-0-to-n-into-w0-wn 8))
-  (defj J29 () "MOVE(0)-(n) into WO-n [J29: n=9]" (J2n=move-0-to-n-into-w0-wn 9))
+  (defj J20 () "MOVE(0)-(0) into W0-0" (J2n=move-0-to-n-into-w0-wn 0))
+  (defj J21 () "MOVE(0)-(1) into W0-1" (J2n=move-0-to-n-into-w0-wn 1))
+  (defj J22 () "MOVE(0)-(2) into W0-2" (J2n=move-0-to-n-into-w0-wn 2))
+  (defj J23 () "MOVE(0)-(3) into W0-3" (J2n=move-0-to-n-into-w0-wn 3))
+  (defj J24 () "MOVE(0)-(4) into W0-4" (J2n=move-0-to-n-into-w0-wn 4))
+  (defj J25 () "MOVE(0)-(5) into W0-5" (J2n=move-0-to-n-into-w0-wn 5))
+  (defj J26 () "MOVE(0)-(6) into W0-6" (J2n=move-0-to-n-into-w0-wn 6))
+  (defj J27 () "MOVE(0)-(7) into W0-7" (J2n=move-0-to-n-into-w0-wn 7))
+  (defj J28 () "MOVE(0)-(8) into W0-8" (J2n=move-0-to-n-into-w0-wn 8))
+  (defj J29 () "MOVE(0)-(9) into W0-9" (J2n=move-0-to-n-into-w0-wn 9))
 
   (defj J30 () "RESTORE W0-W0" (J3n=restore-wn 0))
   (defj J31 () "RESTORE W0-W1" (J3n=restore-wn 1))
@@ -427,6 +427,11 @@
   (defj J47 () "PRESERVE W0-W7" (J4n=preserve-wn 7))
   (defj J48 () "PRESERVE W0-W8" (J4n=preserve-wn 8))
   (defj J49 () "PRESERVE W0-W9" (J4n=preserve-wn 9))
+
+  (defj J50 () "PRESERVE W0-W0 THEN MOVE(0)-(0) into W0-W0" (J5n=preserve-wn-then-move-0-n-into-w0-wn 0))
+  (defj J51 () "PRESERVE W0-W1 THEN MOVE(0)-(1) into W0-W1" (J5n=preserve-wn-then-move-0-n-into-w0-wn 1))
+  (defj J52 () "PRESERVE W0-W2 THEN MOVE(0)-(2) into W0-W2" (J5n=preserve-wn-then-move-0-n-into-w0-wn 2))
+  (defj J53 () "PRESERVE W0-W3 THEN MOVE(0)-(3) into W0-W3" (J5n=preserve-wn-then-move-0-n-into-w0-wn 3))
 
   (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)"
 	;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
@@ -582,15 +587,11 @@
 		 (setf (cell-symb (h5)) "+"))
 		(t (setf (cell-symb (h5)) "-")))))
 
-  (defj J51 () "Unimplemented!" (break "J51 is unimplemented!"))
-  (defj J52 () "Unimplemented!" (break "J52 is unimplemented!"))
-  (defj J53 () "Unimplemented!" (break "J53 is unimplemented!"))
   (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
   (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
   (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
   (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
   (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
-  (defj J100 () "Unimplemented!" (break "J100 is unimplemented!"))
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
   (defj J10 () "Unimplemented!" (break "J10 is unimplemented!"))
@@ -600,7 +601,6 @@
   (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
   (defj J11 () "Unimplemented!" (break "J11 is unimplemented!"))
   (defj J161 () "Unimplemented!" (break "J161 is unimplemented!"))
-  (defj J50 () "Unimplemented!" (break "J50 is unimplemented!"))
   (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
   (defj J157 () "Unimplemented!" (break "J157 is unimplemented!"))
   (defj J64 () "Unimplemented!" (break "J64 is unimplemented!"))
@@ -660,6 +660,10 @@
 
 (defun J4n=preserve-wn (n)
   (loop for nn from 0 to n do (vv (format nil "W~a" nn))))
+
+(defun J5n=preserve-wn-then-move-0-n-into-w0-wn (n)
+  (J4n=preserve-wn n)
+  (J2n=move-0-to-n-into-w0-wn n))
 
 (defvar *copy-list-collector* nil)
 
@@ -914,5 +918,5 @@
 (untrace)
 ;(trace ipl-eval run copy-ipl-list copy-ipl-list-and-return-head store-cells)
 (setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io (t for all)
-(load-ipl "LTFixed.lisp")
-;(load-ipl "F1.lisp")
+;(load-ipl "LTFixed.lisp")
+(load-ipl "F1.lisp")
