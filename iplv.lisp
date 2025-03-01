@@ -106,6 +106,11 @@
 	unless (zero? name)
 	do (setf (gethash name *symtab*) (car cells))))
 
+(defvar *W24[80chars]* "") ;; This is used for all IO at the moment, under the
+		   ;; assumption (until otherwise demonstrated wrong) that LT
+		   ;; does it's IO one line at a time, full processing those
+		   ;; lines and then clearing the buffer and doing the next.
+
 ;;; ===================================================================
 ;;; Debugging Utils
 
@@ -195,8 +200,7 @@
 		(progn 
 		  (when (global-symbol? name)
 		    (!! :load "Loading global name: ~s~%" name)
-		    (save-cells (reverse cells) load-mode) (setf cells nil)
-		    )
+		    (save-cells (reverse cells) load-mode) (setf cells nil))
 	      	  (push cell cells))
 		(if (string-equal "5" (cell-type cell))
 		    (if (global-symbol? (cell-symb cell))
@@ -549,13 +553,16 @@
 	;; named (0) is performed successively with each of the symbols of list named
 	;; (1) as input. The order is the order on the list, starting with the first
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
-	;; move in list (1) if it is on auxiliary.
-	(loop with subcall = (H0)
-       	      for elt in (break "(listX arg1) isn't implemented")
-       	      do
-	      (push elt (H0+))
+	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
+	(loop with cell-name = (cell-link (drod arg1))
+	      until (zero? cell-name)
+	      do 
+	      (setf cell (cell cell-name))
+	      (vv "H0" (cell-symb (cell cell)))
+	      (setf (H5) "+")
 	      (ipl-eval arg0)
-	      (pop (H0+))
+	      (^^ "H0")
+	      (setf cell-name (cell-link cell))
 	      ))
 
   (defj J120 (arg0) "COPY (0)"
@@ -566,32 +573,38 @@
 	  (setf (cell-name new-cell) (new-local-symbol))
 	  (setf (H0) new-cell)))
 
+  ;; Input and output are completely kludged, and unlike in original IPL. Partly
+  ;; this is required because we don't have the same sort of physical
+  ;; environment. There are tapes, and so on. But also, partly it's for
+  ;; kludge-convenience. For example, there is exactly one 80 column
+  ;; input/output buffer and it's used for all input and output.
+
   (defj J151 (arg0) "Print list (0)"
 	(print-linear-list arg0))
 
   (defj J154 () "Clear print line"
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
 	;; current entry column, 1W2S, is set equal to the left margin, 1W21.
-	(format t "WWW J154 (Clear Print Line) is UNIMPLEMENTED !!!~%"))
+	(setf *W24[80chars]* (subseq (format nil "~81d" 0) 0 80)))
 
   (defj J180 () "READ LINE J180 READLINE"
-	;; The next record on unit 1W18 is read to line 1W24. (The record
-	;; is assumed to be BCD, 80 cols.) Column 1 of the record is
-	;; read into column 1 of the read line, and so forth. H5 is
-	;; set+. If no record can be read (end-of-file condition), the
-	;; line is not changed and HS is set - .
+	;; The next record on unit 1W18 is read to line 1W24. (The record is
+	;; assumed to be BCD, 80 cols.) Column 1 of the record is read into
+	;; column 1 of the read line, and so forth. H5 is set+. If no record can
+	;; be read (end-of-file condition), the line is not changed and HS is
+	;; set - . [Note that 1W24 is ignored here and the input is put into 
 	(let ((line (read-line *input-stream* nil nil)))
 	  (!! :io "J180 Read:~%~s~%%" line)
-	  (cond (line
-		 (push line (stack "W24"))
-		 (setf (cell-symb (h5)) "+"))
-		(t (setf (cell-symb (h5)) "-")))))
+	  (setf (h5) "+")
+	  (if line (scan-input-into-*W24[80chars]* line)
+	      (setf (h5) "-"))))
 
   (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
   (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
   (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
   (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
   (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
+
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
   (defj J10 () "Unimplemented!" (break "J10 is unimplemented!"))
@@ -648,6 +661,12 @@
 
 ;;; ===================================================================
 ;;; JFn Utilities
+
+(defun scan-input-into-*W24[80chars]* (line)
+  (loop for c across line
+	as p from 0 by 1
+	do (setf (aref *W24[80chars]* p) c))
+  (!! :jfns "Read into *W24[80chars]*: ~s~%" *W24[80chars]*))
 
 (defun J2n=move-0-to-n-into-w0-wn (n)
   (setf (cell "W0") (H0))
@@ -916,7 +935,7 @@
 ;;; Test calls
 
 (untrace)
-;(trace ipl-eval run copy-ipl-list copy-ipl-list-and-return-head store-cells)
-(setf *!!list* '(:run)) ;; :load :run :jfns :run-full :io (t for all)
+(trace ipl-eval run)
+(setf *!!list* '(:run :jfns :load)) ;; :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
