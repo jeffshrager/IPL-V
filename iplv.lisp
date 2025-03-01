@@ -100,16 +100,20 @@
 
 (defun new-local-symbol (&optional (prefix "9")) (format nil "~a~a" prefix (gensym "+")))
 
-(defun store-cells (l)
-  (loop for cells on l
-	as name = (cell-name (car cells))
-	unless (zero? name)
-	do (setf (gethash name *symtab*) (car cells))))
+(defun store (cell &optional (name (cell-name cell)))
+  (setf (gethash name *symtab*) cell))
+  
+(defun store-cells (cells)
+  (loop for cell in cells
+	as name = (cell-name cell)
+	unless (zero? name) ;; Until?
+	do (store cell)))
 
-(defvar *W24[80chars]* "") ;; This is used for all IO at the moment, under the
-		   ;; assumption (until otherwise demonstrated wrong) that LT
-		   ;; does it's IO one line at a time, full processing those
-		   ;; lines and then clearing the buffer and doing the next.
+;;; This is used for all IO at the moment, under the assumption (until otherwise
+;;; demonstrated wrong) that LT does it's IO one line at a time, full processing
+;;; those lines and then clearing the buffer and doing the next.
+
+(defvar *W24[80chars]* (Blank80))
 
 ;;; ===================================================================
 ;;; Debugging Utils
@@ -248,7 +252,7 @@
 				if (local-symbol? symbol)
 				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
       (convert-local-symbols cells local-symbols.new-names)
-      (setf (gethash top-name *symtab*) (car cells)) 
+      (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
       ;; Loop through the whole list and create aa local symbol for
       ;; every cell that doesn't already have one. 
@@ -538,15 +542,34 @@
 		   (setf (cell-link last-cell-in-l0) c1link)
 		   (setf (h0) last-cell-in-l0)))))
 
+  ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <= n <= 9. (Ten routines: J80-J89)
+  ;; Set H5 + if the nth symbol exists, - if not. Assume list (0) describable,
+  ;; so that J81 finds symbol in first list cell, etc. J80 finds symbol in head;
+  ;; and sets H5- if (0) is a termination symbol. 
+
+  (defj J80 () "Unimplemented!" (break "J80 is unimplemented!"))
+  (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
+  (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
+
+  ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0 <= n <=
+  ;; 9. The order is (n-1) first, (n-2) second, ..., (0) last. The output (0) is
+  ;; the name (internal) of the new list; it is describable. J90 creates an
+  ;; empty list (also used to create empty storage cells, and empty data terms).
+
   (defj J90 () "Create a blank cell on H0"
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
 	;; The output (0) is the name a the new list.
 	(let* ((name (new-local-symbol "L"))
 	       (cell (make-cell :name name :symb "0" :link "0")))
-	  (!! :jfns "J90 creating blank list ~s~%" name)
 	  (setf (cell name) cell)
+	  (!! :jfns "J90 creating blank list cell: ~s~%" cell)
+	  (store cell)
 	  (vv "H0" cell)))
+
+  (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
+  (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
+  (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
 
   (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)"
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
@@ -569,8 +592,12 @@
 	;; COPY (0). The output (0) names a new cell containing the identical
 	;; contents to (0). The name is local if the input (0) is local; other-
 	;; wise, it is internal.
-	(let ((new-cell (copy-cell (H0))))
-	  (setf (cell-name new-cell) (new-local-symbol))
+	(let* ((old-cell (drod (H0)))
+	      (new-cell (copy-cell old-cell))
+	      (new-name (new-local-symbol)))
+	  (setf (cell-name new-cell) new-name)
+	  (!! :jfns "Copied ~s -> ~s into H0.~%" old-cell new-cell)
+	  (store new-cell)
 	  (setf (H0) new-cell)))
 
   ;; Input and output are completely kludged, and unlike in original IPL. Partly
@@ -584,27 +611,27 @@
 
   (defj J154 () "Clear print line"
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
-	;; current entry column, 1W2S, is set equal to the left margin, 1W21.
-	(setf *W24[80chars]* (subseq (format nil "~81d" 0) 0 80)))
+	;; current entry column, 1W25, is set equal to the left margin, 1W21 [always 1 at the moment].
+	(setf *W24[80chars]* (blank80))
+	(setf (cell-symb (cell "W25")) 1))
+
 
   (defj J180 () "READ LINE J180 READLINE"
 	;; The next record on unit 1W18 is read to line 1W24. (The record is
 	;; assumed to be BCD, 80 cols.) Column 1 of the record is read into
 	;; column 1 of the read line, and so forth. H5 is set+. If no record can
 	;; be read (end-of-file condition), the line is not changed and HS is
-	;; set - . [Note that 1W24 is ignored here and the input is put into 
+	;; set - . [Note that 1W24 is ignored here and the input is put into our
+	;; global single-line store: *W24[80chars]*. Also, we set W25, the read
+	;; position to numerical 1.]
 	(let ((line (read-line *input-stream* nil nil)))
 	  (!! :io "J180 Read:~%~s~%%" line)
 	  (setf (h5) "+")
 	  (if line (scan-input-into-*W24[80chars]* line)
-	      (setf (h5) "-"))))
-
-  (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
-  (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
-  (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
-  (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
-  (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
-
+	      (setf (h5) "-"))
+	  (setf (cell-symb (cell "W25")) 1)
+	  ))
+	
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
   (defj J10 () "Unimplemented!" (break "J10 is unimplemented!"))
@@ -639,7 +666,6 @@
   (defj J183 () "Unimplemented!" (break "J183 is unimplemented!"))
   (defj J182 () "Unimplemented!" (break "J182 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
-  (defj J80 () "Unimplemented!" (break "J80 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J30 () "Unimplemented!" (break "J30 is unimplemented!"))
   (defj J15 () "Unimplemented!" (break "J15 is unimplemented!"))
@@ -661,6 +687,8 @@
 
 ;;; ===================================================================
 ;;; JFn Utilities
+
+(defun blank80 () (subseq (format nil "~81d" 0) 0 80))
 
 (defun scan-input-into-*W24[80chars]* (line)
   (loop for c across line
@@ -719,6 +747,7 @@
     (t (break "In copy-ipl-list got ~s which wasn't expected." cell-or-symb/link))))
 
 (defun copy-list-structure (l)
+  (break "COPY-LIST-STRUCTURE is probably wrong!")
   (if (zero? l) l ;; End of sublist, just return the EOsL "0"
       (let ((new-name (new-local-symbol)))
 	(setf (gethash new-name *symtab*) (mapcar #'copy-list-cell l))
