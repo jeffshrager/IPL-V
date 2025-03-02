@@ -1,12 +1,15 @@
 ;;; (load (compile-file "iplv.lisp"))
 
-;;; The whole symbol v. cell thing in IPL is a compelete mess. All
-;;; symbols can be addresses of cells -- in fact they all are -- but
-;;; sometimes they are treated as their character representation, and
-;;; sometimes they are treated as the cell, and the symbol the author
-;;; means is the symbol in the cell pointed to by the symbol in
-;;; hand. And then there are the special symbols (H0, etc) that have a
-;;; special push down mechanism. Ugh.
+#|
+
+To Do (or at least think about):
+
+? Should W24 (read/print line) be in an actual cell? Right now it's in a special
+global that can only process on line of I or O at a time.
+
+|#
+
+
 
 ;;; WWW Leaves these at high debug etc or things break for unknown reasons.
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
@@ -359,20 +362,7 @@
 
 #|
 
-("J51" . 4)
-("J52" . 1)
-("J53" . 1)
-
-("J81" . 36)
-("J82" . 10)
-
-("J91" . 4)
-("J92" . 1)
-("J93" . 1)
-
-????("J" . 2)????
-
-("J100" . 26) ("J71" . 22) ("J136" . 17) ("J10" . 17)
+("J71" . 22) ("J136" . 17) ("J10" . 17)
 ("J155" . 17) ("J72" . 16) ("J5" . 15)
 ("J2" . 15) ("J11" . 15)  ("J161" . 12) ("J50" . 12) ("J160" . 11)
 ("J157" . 10) ("J64" . 9)  
@@ -550,7 +540,12 @@
   ;; so that J81 finds symbol in first list cell, etc. J80 finds symbol in head;
   ;; and sets H5- if (0) is a termination symbol. 
 
-  (defj J80 () "Unimplemented!" (break "J80 is unimplemented!"))
+  (defj J80 (arg0) "FIND THE HEAD SYMBOL OF (0)"
+	(setf (H5) "+")
+	(let* ((cell (drod arg0)))
+	  (setf (H0) (cell-symb cell))
+	  (if (zero? (cell-link cell)) (setf (H5) "-"))))
+	
   (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
   (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
 
@@ -581,6 +576,7 @@
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
 	(loop with cell-name = (cell-link (drod arg1))
+	      with cell
 	      until (zero? cell-name)
 	      do 
 	      (setf cell (cell cell-name))
@@ -635,6 +631,26 @@
 	  (setf (cell-symb (cell "W25")) 1)
 	  ))
 	
+  ;; J183 SET (0) TO NEXT BLANK. (0) is taken as a decimal integer data
+  ;; term. Line 1W24 is scanned, left to right, starting with column 1W25+1, for
+  ;; a blank. One is added to (0) for each column scanned, including that in
+  ;; which the scanned-for character ('blank' in J183) is found. (0) is left as
+  ;; output (0). H5 is set + if the character is found in the line, and - if it
+  ;; is not. (Thus, if input (0) = 1W25, after scanning, output (0) will specify
+  ;; the column holding the scanned-for character. If input (0) = decimal
+  ;; integer 0, after scanning, output (0) will be the size of a field beginning
+  ;; in column 1W25 and delimited on the right by the next occurrence of the
+  ;; scanned-for character.)
+
+  (defj J183 (arg0) "SET (0) TO NEXT BLANK"
+	(J183/4-Scanner arg0 :blank))
+ 
+  ;; J184 SET (0) TO NEXT NON-BLANK. Same as J183, except scans for any
+  ;; non-blank character.
+
+  (defj J184 (arg0) "SET (0) TO NEXT NON-BLANK"
+	(J183/4-Scanner arg0 :non-blank))
+
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
   (defj J10 () "Unimplemented!" (break "J10 is unimplemented!"))
@@ -660,13 +676,11 @@
   (defj J65 () "Unimplemented!" (break "J65 is unimplemented!"))
   (defj J75 () "Unimplemented!" (break "J75 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
-  (defj J184 () "Unimplemented!" (break "J184 is unimplemented!"))
   (defj J111 () "Unimplemented!" (break "J111 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
   (defj J130 () "Unimplemented!" (break "J130 is unimplemented!"))
-  (defj J183 () "Unimplemented!" (break "J183 is unimplemented!"))
   (defj J182 () "Unimplemented!" (break "J182 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
@@ -690,6 +704,26 @@
 
 ;;; ===================================================================
 ;;; JFn Utilities
+
+(defun J183/4-Scanner (arg0 mode)
+  (let* ((H0 (drod arg0))
+	 (w25p (cell-symb (cell "W25")))
+	 (h0p (cell-symb H0))
+	 (string *W24[80chars]*))
+    (if (not (numberp h0p)) (break "In J183/4 expected H0(p) (~a) to be a number.~%" (H0)))
+    (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
+    (setf (H5) "-")
+    (incf w25p)		    ;; Start at W25+1 (per manual)
+    (loop until (= w25p 81) ;; WWW OBIWON ???
+	  as char = (aref *W24[80chars]* w25p)
+	  do (incf H0p) (incf w25p)
+	  (when (case mode
+		  (:blank (char-equal char #\blank))
+		  (:non-blank (not (char-equal char #\blank))))
+	    (setf (cell-symb H0) h0p)
+	    (setf (cell-symb (cell "W25")) w25p)
+	    (setf (H5) "+")
+	    (return t)))))
 
 (defun blank80 () (subseq (format nil "~81d" 0) 0 80))
 
@@ -801,6 +835,8 @@
 (defun initialize-machine ()
   (create-system-cells)
   (setf (h5+) (list "+"))
+  (setf *W24[80chars]* (Blank80))
+  (setf (cell-symb (cell "W25")) 1)
   )
 
 (defun ipl-eval (start-cell)
