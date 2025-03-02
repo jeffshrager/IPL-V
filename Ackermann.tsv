@@ -1,0 +1,47 @@
+Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [then] LINK MEANING
+1	ACKERMANN-S FUNCTION IN IPL-V	9													
+1	From From Newell_Ackermann_IPL-V_xf438wz4428.pdf	1													
+1	GIVEN M AND N, COMPUTE A(M,N)	1													
+1	A(0,N) = N + 1	1													
+1	A(M,0) = A(M-1, 1)	1													
+1	A(M,N) = A(M-1,A(M,N-1))	1													
+1	TRACE ALL ROUTINES	1													
+1	PRINT RESULTS	1													
+1		1													
+1	DEFINE REGIONS	2	E0				2								
+1		2	A0				2								
+1		2	M0				2								
+1		2	N0				2								
+1		2	K0				2								
+1		5			0										
+1	EXECUTE A0 TO COMPUTE A(M,N)		E0		03	A0									
+1	INPUT N0 = RESULT				10	N0									
+1	PRINT RESULT, QUIT.					J152	0								
+1		1													
+1		5			00										
+1	INPUT M		A0		14	M0									
+1	IS M = 0				00	J117									
+1	INPUT N (DELAY BRANCHING)				10	N0									
+1	BRANCH IF M NOT = 0				70	9-1									
+1	M=0. N+1 IF N, EXIT WITH J8=30H0				00	J125	J8								
+1	IS N = 0		9-1		00	J117									
+1	BRANCH IF N NOT = 0				70	9-2									
+1	M NOT = 0, N = 0. INPUT N				10	N0									
+1	SET N =1 (STILL LEFT IN H0)				00	J125	9-3								
+1	INPUT 1		9-2		10	K1									
+1	INPUT N				10	N0									
+1	INPUT N				10	N0									
+1	N-1 TO N (STILL LEFT IN H0)				00	J111									
+1	COMPUTE A(M,N-1). N HAS VALUE				00	A0									
+1	COMMON TO M NOT 0. K1 REPLACES N		9-3		50	K1									
+1	INPUT M				10	M0									
+1	INPUT M				10	M0									
+1	M-1 TO M (STILL LEFT IN H0)				00	J111									
+1	COMPUTE A(M-1,1) OR A(M-1,A(M,N-1)				00	A0									
+1	M+1 TO M. EXIT WITH J8=30H0				00	J125	J8								
+1		1													
+1		5			01										
+1	CONSTANT 1		K1		01		1								
+1	VALUE OF M		M0		01		1								
+1	VALUE OF N		N0		01		1								
+1	START CARD. EXECUTE E0	5				E0									

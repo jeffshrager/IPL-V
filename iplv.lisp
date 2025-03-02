@@ -234,6 +234,17 @@ global that can only process on line of I or O at a time.
 (defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
 (defun save-cells (cells load-mode)
+  ;; Before doing anything else we massage data-type cards (load-mode :data) in
+  ;; accord with the PQ.
+  (when (eq load-mode :data)
+    (loop for cell in cells
+	  as pq = (cell-pq cell)
+	  do (cond ((member pq '("1" "01"))
+		    (setf (cell-link (parse-integer (cell-link cell)))))
+		   ((string-equal pq "11")
+		    (break "Floating point is not implemented: ~s" cell))
+		   ((not (string-equal pq ""))
+		    (break "Invalid PQ in ~s" cell)))))
   ;; Once we have the thing completely in hand, we change the local
   ;; symbols to FN_9-... and save those as separate symtab
   ;; entries. This allows the code to branch, and also run through,
@@ -998,6 +1009,6 @@ global that can only process on line of I or O at a time.
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run :jfns :load)) ;; :load :run :jfns :run-full :io (t for all)
-;(load-ipl "LTFixed.lisp")
-(load-ipl "F1.lisp")
+(setf *!!list* '(:run :jfns :run-full :load)) ;; :load :run :jfns :run-full :io (t for all)
+(load-ipl "LTFixed.lisp")
+;(load-ipl "F1.lisp")
