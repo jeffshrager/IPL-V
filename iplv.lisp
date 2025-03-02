@@ -117,6 +117,8 @@ global that can only process on line of I or O at a time.
 ;;; demonstrated wrong) that LT does it's IO one line at a time, full processing
 ;;; those lines and then clearing the buffer and doing the next.
 
+(defun blank80 () (subseq (format nil "~81d" 0) 0 80))
+
 (defvar *W24[80chars]* (Blank80))
 
 ;;; ===================================================================
@@ -239,8 +241,8 @@ global that can only process on line of I or O at a time.
   (when (eq load-mode :data)
     (loop for cell in cells
 	  as pq = (cell-pq cell)
-	  do (cond ((member pq '("1" "01"))
-		    (setf (cell-link (parse-integer (cell-link cell)))))
+	  do (cond ((member pq '("1" "01") :test #'string-equal)
+		    (setf (cell-link cell) (parse-integer (cell-link cell))))
 		   ((string-equal pq "11")
 		    (break "Floating point is not implemented: ~s" cell))
 		   ((not (string-equal pq ""))
@@ -258,7 +260,6 @@ global that can only process on line of I or O at a time.
   ;; crap -- which is, of course, how the actual computer works, where
   ;; core is the symtab! So for the sake of a bit of cleanliness we
   ;; create a spaghetti monster out of the emulator!)
-  (declare (ignore load-mode)) ;; **************** WILL BE NEEDED LATER ***************
   (when cells
     (let* ((top-name (cell-name (car cells)))
 	   (local-symbols.new-names
@@ -719,8 +720,7 @@ global that can only process on line of I or O at a time.
 (defun J183/4-Scanner (arg0 mode)
   (let* ((H0 (drod arg0))
 	 (w25p (cell-symb (cell "W25")))
-	 (h0p (cell-symb H0))
-	 (string *W24[80chars]*))
+	 (h0p (cell-symb H0)))
     (if (not (numberp h0p)) (break "In J183/4 expected H0(p) (~a) to be a number.~%" (H0)))
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
     (setf (H5) "-")
@@ -735,8 +735,6 @@ global that can only process on line of I or O at a time.
 	    (setf (cell-symb (cell "W25")) w25p)
 	    (setf (H5) "+")
 	    (return t)))))
-
-(defun blank80 () (subseq (format nil "~81d" 0) 0 80))
 
 (defun scan-input-into-*W24[80chars]* (line)
   (loop for c across line
@@ -1010,5 +1008,6 @@ global that can only process on line of I or O at a time.
 (untrace)
 (trace ipl-eval run)
 (setf *!!list* '(:run :jfns :run-full :load)) ;; :load :run :jfns :run-full :io (t for all)
-(load-ipl "LTFixed.lisp")
-;(load-ipl "F1.lisp")
+;(load-ipl "LTFixed.lisp")
+(load-ipl "F1.lisp")
+;(load-ipl "Ackermann.iplv")
