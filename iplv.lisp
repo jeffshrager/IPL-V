@@ -29,15 +29,6 @@ global that can only process on line of I or O at a time.
   (id "")
   )
 
-(defun new-symb-cell (symbol &optional (prefix "*"))
-  (make-cell! :name (symbol-name (gensym prefix)) :symb symbol))
-
-;;; Overprotective version deprecated:
-;;; (defun zero? (what)
-;;;   (member (if (stringp what) what
-;;; 	      (cell-symb what))
-;;; 	  '("" "0") :test #'string-equal))
-
 (defun zero? (what)
   (member (if (stringp what) what
 	      (break "ZERO? sent ~s which should be a string or nil." what))
@@ -99,6 +90,7 @@ global that can only process on line of I or O at a time.
 (defun <== (cell-or-name) ;; de-ref-or-die
   (let ((cell (if (cell? cell-or-name) cell-or-name
 		  (if (stringp cell-or-name) (cell cell-or-name)))))
+    (!! :deep-memory "<== Retreive == ~s = ~s [mem]~%" cell-or-name cell)
     (if (cell? cell) cell
       (break "Trying to deref ~s, which isn't a cell, while executing ~s!" cell-or-name *trace-instruction*))))
 
@@ -108,7 +100,7 @@ global that can only process on line of I or O at a time.
   `(store (make-cell ,@args)))
 
 (defun store (cell &optional (name (cell-name cell)))
-  (!! :deep-memory "Storing ~s~%" cell)
+  (!! :deep-memory "== Store ==> ~s [mem]~%" cell)
   (setf (gethash name *symtab*) cell)
   cell)
   
@@ -890,7 +882,7 @@ global that can only process on line of I or O at a time.
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
   (prog (cell pq q p symb link)
-     (setf (h1) (new-symb-cell "exit")) ;; Top of stack -- force exit (may be recursive)
+     (setf (h1) (make-cell! :name (gensym) :symb "exit"))
      (vv "H1" start-cell) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q 
