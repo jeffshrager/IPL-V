@@ -29,8 +29,8 @@ global that can only process on line of I or O at a time.
   (id "")
   )
 
-(defun new-symb-cell (symbol &optional (prefix "c"))
-  (make-cell :name (symbol-name (gensym prefix)) :symb symbol))
+(defun new-symb-cell (symbol &optional (prefix "*"))
+  (make-cell! :name (symbol-name (gensym prefix)) :symb symbol))
 
 ;;; Overprotective version deprecated:
 ;;; (defun zero? (what)
@@ -53,7 +53,7 @@ global that can only process on line of I or O at a time.
 	  (cell-link cell)
 	  (if (and (zero? (cell-comments cell)) (zero? (cell-comments.1 cell))) 
 	      ""
-	      (format nil " [~a/~a]" (cell-comments cell) (cell-comments cell)))))
+	      (format nil " [~a/~a]" (cell-comments cell) (cell-comments.1 cell)))))
 
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 
@@ -104,8 +104,12 @@ global that can only process on line of I or O at a time.
 
 (defun new-local-symbol (&optional (prefix "9")) (format nil "~a~a" prefix (gensym "+")))
 
+(defmacro make-cell! (&rest args)
+  `(store (make-cell ,@args)))
+
 (defun store (cell &optional (name (cell-name cell)))
-  (setf (gethash name *symtab*) cell))
+  (setf (gethash name *symtab*) cell)
+  cell)
   
 (defun store-cells (cells)
   (loop for cell in cells
@@ -170,7 +174,7 @@ global that can only process on line of I or O at a time.
 
 (defvar *input-stream* nil) 
 
-(defun load-ipl (file &key (reset? t) (load-mode :code))
+(defun load-ipl (file &key (reset? t) (load-mode :code) (adv-limit 100))
   ;; Load-mode will be :code or :data as set by the latest type=5
   ;; cell's Q: Q=0=code, Q=1=data) And if the sym entry on a type 5
   ;; cell is filled, it's an execution start cell.
@@ -218,7 +222,7 @@ global that can only process on line of I or O at a time.
 			  (format t "** Execution start at ~s **~%" (cell-symb cell))
 			  (save-cells (reverse cells) load-mode)
 			  (setf cells nil)
-			  (run (cell-symb cell)))
+			  (run (cell-symb cell) :adv-limit adv-limit))
 			(if (member (cell-pq cell) '("1" "01") :test #'string-equal)
 			    (progn
 			      (save-cells (reverse cells) load-mode) (setf cells nil)
@@ -310,8 +314,9 @@ global that can only process on line of I or O at a time.
        (not (char-equal #\9 (aref name 0)))))
 
 (defun local-symbol? (name)
-  (and (not (zerop (length name)))
-       (char-equal #\9 (aref name 0))))
+  (if (numberp name) nil
+      (and (not (zerop (length name)))
+	   (char-equal #\9 (aref name 0)))))
 
 (defun uniquify-list (l)
   (loop for i on l
@@ -335,7 +340,8 @@ global that can only process on line of I or O at a time.
 
 (defun create-system-cells ()
   (loop for name in (append *system-cells* (loop for w below 43 collect (format nil "W~a" w)))
-	do (setf (cell name) (make-cell :name name))
+	do
+	(setf (cell name) (make-cell :name name))
 	(setf (gethash name *systacks*) (list (format nil "~a-empty" name)))
 	(format t "Created system cell: ~s and its stack.~%" name))
   (setf (cell "H5") "+")
@@ -493,7 +499,7 @@ global that can only process on line of I or O at a time.
 		    ((zero? (cell-link list-cell))
 		     (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
 		     (let* ((new-name (new-local-symbol (cell-name list-cell)))
-			    (new-cell (make-cell :name new-name :symb symb :link "0")))
+			    (new-cell (make-cell! :name new-name :symb symb :link "0")))
 		       (setf (cell-link list-cell) new-name)
 		       (setf (cell new-name) new-cell)
 		       (return t))))
@@ -571,7 +577,7 @@ global that can only process on line of I or O at a time.
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
 	;; The output (0) is the name a the new list.
 	(let* ((name (new-local-symbol "L"))
-	       (cell (make-cell :name name :symb "0" :link "0")))
+	       (cell (make-cell! :name name :symb "0" :link "0")))
 	  (setf (cell name) cell)
 	  (!! :jfns "J90 creating blank list cell: ~s~%" cell)
 	  (store cell)
@@ -598,6 +604,19 @@ global that can only process on line of I or O at a time.
 	      (^^ "H0")
 	      (setf cell-name (cell-link cell))
 	      ))
+
+  (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)."
+	;; The number (0) is set equal to the a gebraic difference between numbers
+	;; (1) and (2). The output (0) is the input (0).
+	(let* ((n1 (num?get arg1))
+	       (n2 (num?get arg2))
+	       (r (- n1 n2)))
+	  (!! :jfns "J111: ~a - ~a = ~a~%" n1 n2 r)
+	  (setf (H0) (make-cell! :link r))))
+
+  (defj J117 (arg0) "TEST IF (O) = 0."
+	(let ((n (num?get arg0)))
+	  (if (zerop n) (setf (H5) "+") (setf (H5) "-"))))
 
   (defj J120 (arg0) "COPY (0)"
 	;; COPY (0). The output (0) names a new cell containing the identical
@@ -688,7 +707,6 @@ global that can only process on line of I or O at a time.
   (defj J65 () "Unimplemented!" (break "J65 is unimplemented!"))
   (defj J75 () "Unimplemented!" (break "J75 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
-  (defj J111 () "Unimplemented!" (break "J111 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
@@ -716,6 +734,13 @@ global that can only process on line of I or O at a time.
 
 ;;; ===================================================================
 ;;; JFn Utilities
+
+(defun num?get (sym)
+  (let* ((cell (drod sym))
+	 (n (cell-link cell)))
+    (if (numberp n) n
+	(break "In ~a, asked to test a non-number: ~s from ~s (~s)." n cell sym))))
+    
 
 (defun J183/4-Scanner (arg0 mode)
   (let* ((H0 (drod arg0))
@@ -771,7 +796,7 @@ global that can only process on line of I or O at a time.
     ;; If you're handed a cell, create a new one
     ((cell? cell-or-symb/link)
      (let ((new-name (or new-cell-name (new-local-symbol))))
-       (push (make-cell :name new-name
+       (push (make-cell! :name new-name
 			:symb (copy-ipl-list (cell-symb cell-or-symb/link))
 			:link (copy-ipl-list (cell-link cell-or-symb/link)))
 	     *copy-list-collector*)
@@ -782,7 +807,7 @@ global that can only process on line of I or O at a time.
     ;; recursing for the symb and links
     ((local-symbol? cell-or-symb/link)
      (let ((new-name (new-local-symbol)))
-       (push (make-cell :name new-name
+       (push (make-cell! :name new-name
 				:symb (copy-ipl-list (cell-symb cell-or-symb/link))
 				:link (copy-ipl-list (cell-link cell-or-symb/link)))
 	     *copy-list-collector*)
@@ -835,8 +860,11 @@ global that can only process on line of I or O at a time.
 ;;; hard way", so there's generally no need to call this fn
 ;;; recursively.
 
-(defun run (start-symb)
+(defvar *adv-limit* nil)
+
+(defun run (start-symb &key (adv-limit 1000))
   (initialize-machine)
+  (setf *adv-limit* adv-limit)
   (ipl-eval (cell start-symb))
   (report-system-cells)
   )
@@ -848,18 +876,16 @@ global that can only process on line of I or O at a time.
   (setf (cell-symb (cell "W25")) 1)
   )
 
+(defvar *fname-hint* "") ;; for messages in the middle of jfn ops
+
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
-  (prog (cell pq q p symb link fname-hint)
-     ;; fname-hint is needed because I can't figure out how to get the
-     ;; number of arguments a lambda needs in SBCL, and anyway it's
-     ;; useful for tracing which jfn we think we're running when all
-     ;; we have in hand is the lambda list.
+  (prog (cell pq q p symb link)
      (setf (h1) (new-symb-cell "exit")) ;; Top of stack -- force exit (may be recursive)
      (vv "H1" start-cell) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q 
-     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (fname-hint = ~s)~%" (h1) fname-hint)
+     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (*fname-hint* = ~s)~%" (h1) *fname-hint*)
      ;; H1 contains the name of the cell holding the instruction to be
      ;; interpreted. At this point it could be a symbol or a list. If it's a
      ;; symbol, we need to de-reference it to the list. In the case of an
@@ -874,13 +900,15 @@ global that can only process on line of I or O at a time.
 				    as val in (h0+)
 				    collect val)))))
 	 (!! :run ">>>>>>>>>> Calling ~a [~a]~%           ~s = ~s~%"
-	     fname-hint (getf (gethash fname-hint *jfn-plists*) 'explanation) arglist args)
+	     *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args)
 	 (apply (H1) args))
        (^^ "H1") ;; Remove the JFn call
        (go ADVANCE)
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
-     (!! :run "~%>>>>>>>>>> Executing: ~s~%" cell)
+     (!! :run "~%>>>>>>>>>> Executing: ~s (~a)~%" cell *adv-limit*)
+     (if (and *adv-limit* (zerop (decf *adv-limit*)))
+	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!"))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
@@ -962,7 +990,7 @@ global that can only process on line of I or O at a time.
      (!! :run-full "-----> At DESCEND w/S = ~s~%" (s))
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
-     (setf fname-hint (s))
+     (setf *fname-hint* (s))
      (vv "H1" (cell (s)))
      (go INTERPRET-Q)
    BRANCH 
@@ -1007,7 +1035,8 @@ global that can only process on line of I or O at a time.
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run :jfns :run-full :load)) ;; :load :run :jfns :run-full :io (t for all)
+(setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
-;(load-ipl "Ackermann.iplv")
+;(load-ipl "Ackermann.iplv" :adv-limit 100)
+
