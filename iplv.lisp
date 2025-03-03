@@ -615,7 +615,8 @@ global that can only process on line of I or O at a time.
 	  (setf (H0) (make-cell! :link r))))
 
   (defj J117 (arg0) "TEST IF (O) = 0."
-	(let ((n (num?get arg0)))
+	(let* ((n (num?get arg0)))
+	  (!! :jfns "J117: Testing if ~s (~s: ~s) = 0?~%" arg0 (drod arg0) n)
 	  (if (zerop n) (setf (H5) "+") (setf (H5) "-"))))
 
   (defj J120 (arg0) "COPY (0)"

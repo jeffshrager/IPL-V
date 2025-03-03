@@ -40,6 +40,6 @@
 1	                                   1
 1	                                   5       01
 1	CONSTANT 1                           K1    01      1
-1	VALUE OF M                           M0    01      1
-1	VALUE OF N                           N0    01      1
+1	VALUE OF M                           M0    01      2
+1	VALUE OF N                           N0    01      2
 1	START CARD.  EXECUTE E0            5         E0
