@@ -108,6 +108,7 @@ global that can only process on line of I or O at a time.
   `(store (make-cell ,@args)))
 
 (defun store (cell &optional (name (cell-name cell)))
+  (!! :deep-memory "Storing ~s~%" cell)
   (setf (gethash name *symtab*) cell)
   cell)
   
@@ -612,7 +613,8 @@ global that can only process on line of I or O at a time.
 	       (n2 (num?get arg2))
 	       (r (- n1 n2)))
 	  (!! :jfns "J111: ~a - ~a = ~a~%" n1 n2 r)
-	  (setf (H0) (make-cell! :link r))))
+	  (let ((H0 (drod (H0))))
+	    (setf (cell-link H0) r))))
 
   (defj J117 (arg0) "TEST IF (O) = 0."
 	(let* ((n (num?get arg0)))
@@ -1036,7 +1038,7 @@ global that can only process on line of I or O at a time.
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io (t for all)
+(setf *!!list* '(:run :run-full :jfns :deep-memory)) ;; :deep-memory :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
 ;(load-ipl "F1.lisp")
 (load-ipl "Ackermann.iplv" :adv-limit 100)
