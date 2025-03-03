@@ -10,7 +10,6 @@ global that can only process on line of I or O at a time.
 |#
 
 
-
 ;;; WWW Leaves these at high debug etc or things break for unknown reasons.
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
 
@@ -639,7 +638,10 @@ global that can only process on line of I or O at a time.
   ;; input/output buffer and it's used for all input and output.
 
   (defj J151 (arg0) "Print list (0)"
-	(print-linear-list arg0))
+	(line-print-linear-list arg0))
+
+  (defj J152 () "PRINT SYMBOL (0)"
+	(line-print-cell (H0)))
 
   (defj J154 () "Clear print line"
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
@@ -842,13 +844,20 @@ global that can only process on line of I or O at a time.
 
 ;;; This only prints lists that are linked via their LINK symbols.
 
-(defun print-linear-list (cell)
+(defun line-print-linear-list (cell)
   (setf cell (<== cell))
   (format t "~%+---------------------------------------------------------------------+~%")
   (loop do (format t "| ~s~70T|~%" cell)
 	(let ((link (cell-link cell)))
 	  (if (zero? link) (return :end-of-list))
 	  (setf cell (cell link))))
+  (format t "+---------------------------------------------------------------------+~%")
+  )
+
+(defun line-print-cell (cell)
+  (setf cell (<== cell))
+  (format t "~%+---------------------------------------------------------------------+~%")
+  (format t "| ~s~70T|~%" cell)
   (format t "+---------------------------------------------------------------------+~%")
   )
 
@@ -1040,8 +1049,7 @@ global that can only process on line of I or O at a time.
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run :run-full :jfns :deep-memory)) ;; :deep-memory :load :run :jfns :run-full :io (t for all)
+(setf *!!list* '(:run)) ;; :deep-memory :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
-(load-ipl "F1.lisp")
-;(load-ipl "Ackermann.iplv" :adv-limit 100)
-
+;(load-ipl "F1.lisp")
+(load-ipl "Ackermann.iplv" :adv-limit 1000)
