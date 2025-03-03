@@ -628,7 +628,7 @@ global that can only process on line of I or O at a time.
     ;; An integer 1 is added to the number (0). The type of the result is the
     ;; same as the type of (0). It is left as the output (0).
     (let ((H0 (<== (H0))))
-      (!! :jfns "J125: (decf H0): ~a" h0)
+      (!! :jfns "J125: Tally (H0): ~s~%" H0)
       (setf (cell-link H0) (1+ (cell-link H0)))))
 
   ;; Input and output are completely kludged, and unlike in original IPL. Partly
@@ -874,6 +874,7 @@ global that can only process on line of I or O at a time.
 
 (defun run (start-symb &key (adv-limit 1000))
   (initialize-machine)
+  (format t "********** Starting run at ~a with adv-limit = ~a **********~%" start-symb adv-limit)
   (setf *adv-limit* adv-limit)
   (ipl-eval (cell start-symb))
   (report-system-cells)
@@ -934,8 +935,8 @@ global that can only process on line of I or O at a time.
        (1 (setf (s) (cell symb)) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to
        (2 (setf (s) (cell (cell-name% (cell symb)))) (go INTERPRET-P))
-       (3 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
-       (4 (format t "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
+       (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
+       (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
@@ -1049,7 +1050,7 @@ global that can only process on line of I or O at a time.
 
 (untrace)
 (trace ipl-eval run)
-(setf *!!list* '(:run)) ;; :deep-memory :load :run :jfns :run-full :io (t for all)
+(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
-;(load-ipl "F1.lisp")
-(load-ipl "Ackermann.iplv" :adv-limit 1000)
+(load-ipl "F1.lisp")
+(load-ipl "Ackermann.iplv" :adv-limit 100000)
