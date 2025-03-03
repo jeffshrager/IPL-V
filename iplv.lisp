@@ -94,9 +94,9 @@ global that can only process on line of I or O at a time.
 ;;; This is a protected version of cell-name that de-refs if necessary.
 
 (defun cell-name% (cell-or-name)
-  (cell-name (drod cell-or-name)))
+  (cell-name (<== cell-or-name)))
 
-(defun drod (cell-or-name) ;; de-ref-or-die
+(defun <== (cell-or-name) ;; de-ref-or-die
   (let ((cell (if (cell? cell-or-name) cell-or-name
 		  (if (stringp cell-or-name) (cell cell-or-name)))))
     (if (cell? cell) cell
@@ -469,7 +469,7 @@ global that can only process on line of I or O at a time.
 	;; standard IPL cell.
 	(setf (h5) "+")
 	;; De-ref symbol to list if necessary
-	(setf arg0 (drod arg0)) 
+	(setf arg0 (<== arg0)) 
 	(let* ((this-cell arg0)
 	       (link (cell-link this-cell)))
 	  (!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
@@ -487,7 +487,7 @@ global that can only process on line of I or O at a time.
 	;; branches??? At the moment this can't do anything sensible
 	;; with a branching list!)
 	(!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
-	(loop with list-cell = (drod arg1)
+	(loop with list-cell = (<== arg1)
 	      with symb = (if (stringp arg0)
 			      arg0
 			      (if (cell? arg0)
@@ -515,7 +515,7 @@ global that can only process on line of I or O at a time.
 	;; the list from (0) on. (Nothing else is copied, not even the
 	;; description list of (0), if it exists.)  The name is local if the
 	;; input (0) is local; otherwise, it is internal.
-	(setf (H0) (copy-ipl-list-and-return-head (drod arg0))))
+	(setf (H0) (copy-ipl-list-and-return-head (<== arg0))))
 
   (defj J74 (arg0) "Copy List Structure"
 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
@@ -543,8 +543,8 @@ global that can only process on line of I or O at a time.
 	;; has no list cells, then the output (0) is the input (1) and H5 is set
 	;; -. [Again, I think that this is intended only to work on linear lists
 	;; since there's no "last symbol" in a non-linear list.]
-	(let* ((l0 (drod arg0))
-	       (c1 (drod arg1))
+	(let* ((l0 (<== arg0))
+	       (c1 (<== arg1))
 	       (c1link (cell-link c1))
 	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
 	  (cond ((zero? (cell-link l0))
@@ -561,7 +561,7 @@ global that can only process on line of I or O at a time.
 
   (defj J80 (arg0) "FIND THE HEAD SYMBOL OF (0)"
 	(setf (H5) "+")
-	(let* ((cell (drod arg0)))
+	(let* ((cell (<== arg0)))
 	  (setf (H0) (cell-symb cell))
 	  (if (zero? (cell-link cell)) (setf (H5) "-"))))
 	
@@ -594,7 +594,7 @@ global that can only process on line of I or O at a time.
 	;; (1) as input. The order is the order on the list, starting with the first
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
-	(loop with cell-name = (cell-link (drod arg1))
+	(loop with cell-name = (cell-link (<== arg1))
 	      with cell
 	      until (zero? cell-name)
 	      do 
@@ -613,19 +613,19 @@ global that can only process on line of I or O at a time.
 	       (n2 (num?get arg2))
 	       (r (- n1 n2)))
 	  (!! :jfns "J111: ~a - ~a = ~a~%" n1 n2 r)
-	  (let ((H0 (drod (H0))))
+	  (let ((H0 (<== (H0))))
 	    (setf (cell-link H0) r))))
 
   (defj J117 (arg0) "TEST IF (O) = 0."
 	(let* ((n (num?get arg0)))
-	  (!! :jfns "J117: Testing if ~s (~s: ~s) = 0?~%" arg0 (drod arg0) n)
+	  (!! :jfns "J117: Testing if ~s (~s: ~s) = 0?~%" arg0 (<== arg0) n)
 	  (if (zerop n) (setf (H5) "+") (setf (H5) "-"))))
 
   (defj J120 (arg0) "COPY (0)"
 	;; COPY (0). The output (0) names a new cell containing the identical
 	;; contents to (0). The name is local if the input (0) is local; other-
 	;; wise, it is internal.
-	(let* ((old-cell (drod (H0)))
+	(let* ((old-cell (<== (H0)))
 	      (new-cell (copy-cell old-cell))
 	      (new-name (new-local-symbol)))
 	  (setf (cell-name new-cell) new-name)
@@ -636,7 +636,7 @@ global that can only process on line of I or O at a time.
   (defj J125 () "TALLY1 IN (0)"
     ;; An integer 1 is added to the number (0). The type of the result is the
     ;; same as the type of (0). It is left as the output (0).
-    (let ((H0 (drod (H0))))
+    (let ((H0 (<== (H0))))
       (!! :jfns "J125: (decf H0): ~a" h0)
       (setf (cell-link H0) (1+ (cell-link H0)))))
 
@@ -745,14 +745,14 @@ global that can only process on line of I or O at a time.
 ;;; JFn Utilities
 
 (defun num?get (sym)
-  (let* ((cell (drod sym))
+  (let* ((cell (<== sym))
 	 (n (cell-link cell)))
     (if (numberp n) n
 	(break "In ~a, asked to test a non-number: ~s from ~s (~s)." n cell sym))))
     
 
 (defun J183/4-Scanner (arg0 mode)
-  (let* ((H0 (drod arg0))
+  (let* ((H0 (<== arg0))
 	 (w25p (cell-symb (cell "W25")))
 	 (h0p (cell-symb H0)))
     (if (not (numberp h0p)) (break "In J183/4 expected H0(p) (~a) to be a number.~%" (H0)))
@@ -796,7 +796,7 @@ global that can only process on line of I or O at a time.
 
 (defun copy-ipl-list-and-return-head (head)
   (setf *copy-list-collector* nil)
-  (copy-ipl-list (drod head) (new-local-symbol))
+  (copy-ipl-list (<== head) (new-local-symbol))
   (store-cells *copy-list-collector*)
   (car (last *copy-list-collector*)))
 
@@ -851,7 +851,7 @@ global that can only process on line of I or O at a time.
 ;;; This only prints lists that are linked via their LINK symbols.
 
 (defun print-linear-list (cell)
-  (setf cell (drod cell))
+  (setf cell (<== cell))
   (format t "~%+---------------------------------------------------------------------+~%")
   (loop do (format t "| ~s~70T|~%" cell)
 	(let ((link (cell-link cell)))
@@ -948,13 +948,17 @@ global that can only process on line of I or O at a time.
        (3 (^^ (s)))                         ;; Restore (pop up) S 
        (4 (vv (S)))                         ;; Preserve (push down) S
        (5 
-	;; Replace (0) by S -- Here if S is just a symbol we need to
-	;; make a cell to hold it because it's just a list symbol
-	;; (string, actually) (But if H0 is already a cell we can
-	;; just replace it.)
-	(setf (H0) (if (cell? (s)) (s)
-		       (if (stringp (s)) (new-symb-cell (s))
-			   (break "Having trouble interpreteing (s)=~s in P=5." (s))))))
+	;; Replace (0) by S -- Here if S is just a symbol we need to either get
+	;; it, or make a cell to hold it because it's just a list symbol
+	;; (string, actually) (But if H0 is already a cell we can just replace
+	;; it.)
+
+	;; Depreciated overly-complex version:
+	;; (setf (H0) (if (cell? (s)) (s)
+	;; 	       (if (stringp (s)) (new-symb-cell (s))
+	;; 		   (break "Having trouble interpreteing (s)=~s in P=5." (s)))))
+	(setf (H0) (<== (s)))
+	)
        (6 (setf (s) (cell-symb (H0))))      ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
