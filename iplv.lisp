@@ -50,6 +50,7 @@ themselves, and/or not absorbing their inputs.
 	      (format nil " [~a/~a]" (cell-comments cell) (cell-comments.1 cell)))))
 
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
+(defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 
 (defvar *symtab* (make-hash-table :test #'equal))
 
@@ -132,6 +133,7 @@ themselves, and/or not absorbing their inputs.
   (when (or (equal *!!list* t)
 	    (equal key t)
 	    (member key *!!list*))
+    (format t "!![~a]::" key)
     (apply #'format t fmt args)
     (when (and (member key '(:run :run-full)) (member :run-full *!!list*))
       (report-system-cells))))
@@ -169,6 +171,7 @@ themselves, and/or not absorbing their inputs.
 (defparameter *cols* '(:comments :type :name :sign :pq :symb :link :comments.1 :id))
 
 (defvar *input-stream* nil) 
+(defvar *card-number* nil)
 
 (defun load-ipl (file &key (reset? t) (load-mode :code) (adv-limit 100))
   ;; Load-mode will be :code or :data as set by the latest type=5
@@ -177,6 +180,7 @@ themselves, and/or not absorbing their inputs.
   (when reset? (reset!))
   (with-open-file
       (i file)
+    (setf *card-number* 0)
     (setf *input-stream* i) ;; For reads inside the program executor
     (!! :load "Loading IPL file: ~s~%" file)
     ;; First line is assumed to be the header which we just check
@@ -187,7 +191,7 @@ themselves, and/or not absorbing their inputs.
     (loop for read-row = (read i nil nil)
 	  with cells = nil
 	  until (null read-row)
-	  do
+	  do (!! :load "Reading card number ~a: ~s~%" (incf *card-number*) read-row)
 	  (let* ((p -1)
 		 (cell (make-cell
 			:comments (nth (incf p) read-row)
@@ -215,7 +219,7 @@ themselves, and/or not absorbing their inputs.
 		(if (string-equal "5" (cell-type cell))
 		    (if (global-symbol? (cell-symb cell))
 			(progn
-			  (format t "** Execution start at ~s **~%" (cell-symb cell))
+			  (!! :run "** Execution start at ~s **~%" (cell-symb cell))
 			  (save-cells (reverse cells) load-mode)
 			  (setf cells nil)
 			  (run (cell-symb cell) :adv-limit adv-limit))
@@ -330,9 +334,18 @@ themselves, and/or not absorbing their inputs.
 ;;; Note that S and H5 are nots cells but just symbols, but they're
 ;;; both stackable (protectable), so they need to have stacks.
 
-(defparameter *system-cells* '("H0" "H1" "W0" "H5" "S"))
+(defparameter *system-cells* '("H0" "H1" "H3" "H5" "W0" "S"))
 
 (defvar *systacks* (make-hash-table :test #'equal))
+
+(defun create-system-cells ()
+  (loop for name in (append *system-cells* (loop for w below 43 collect (format nil "W~a" w)))
+	do
+	(make-cell! :name name)
+	(setf (gethash name *systacks*) (list (format nil "~a-empty" name)))
+	(!! :deep-memory "Created system cell: ~s and its stack.~%" name))
+  (setf (cell "S") "S-is-null")
+  )
 
 ;;; This is needed because of H0 memory leaks, probably from JFNS.
 (defvar *stack-depth-limit* 100)
@@ -348,16 +361,6 @@ themselves, and/or not absorbing their inputs.
 	    (loop for s+ on stack
 		  as d below *stack-depth-limit*
 		  finally (setf (cdr s+) nil))))))
-
-(defun create-system-cells ()
-  (loop for name in (append *system-cells* (loop for w below 43 collect (format nil "W~a" w)))
-	do
-	(setf (cell name) (make-cell :name name))
-	(setf (gethash name *systacks*) (list (format nil "~a-empty" name)))
-	(!! :deep-memory "Created system cell: ~s and its stack.~%" name))
-  (setf (cell "H5") "+")
-  (setf (cell "S") "S-is-null")
-  )
 
 ;;; Loaded code analysis:
 
@@ -893,20 +896,19 @@ themselves, and/or not absorbing their inputs.
 
 (defun run (start-symb &key (adv-limit 1000))
   (initialize-machine)
-  (format t "********** Starting run at ~a with adv-limit = ~a **********~%" start-symb adv-limit)
+  (!! :run "********** Starting run at ~a with adv-limit = ~a **********~%" start-symb adv-limit)
   (setf *adv-limit* adv-limit)
   (ipl-eval (cell start-symb))
-  (report-system-cells)
+  (if (member :end-dump *!!list*) (report-system-cells))
   )
 
 (defun initialize-machine ()
-  (create-system-cells)
-  (setf (h5+) (list "+"))
-  (setf *W24[80chars]* (Blank80))
-  (setf (cell-symb (cell "W25")) 1)
+  (create-system-cells) ;; See above in storage section
+  (setf (h5+) (list "+")) ;; Init H5 +
+  (setf (cell-link (cell "H3")) 0) ;; Init H3 Cycle-Counter
+  (setf *W24[80chars]* (Blank80)) ;; Init Read Line buffer
+  (setf (cell-symb (cell "W25")) 1) ;; Init read/print position
   )
-
-(defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 
 (defun ipl-eval (start-cell)
   (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
@@ -937,8 +939,6 @@ themselves, and/or not absorbing their inputs.
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
      (!! :run "~%>>>>>>>>>> Executing: ~s (~a)~%" cell *adv-limit*)
-     (if (and *adv-limit* (zerop (decf *adv-limit*)))
-	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!"))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
@@ -992,6 +992,9 @@ themselves, and/or not absorbing their inputs.
        (5 (setf link (s)) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (!! :run-full "-----> At ADVANCE")
+     (if (and *adv-limit* (zerop (decf *adv-limit*)))
+	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!"))
+     (incf (cell-link (cell "H3")))
      (when (string-equal (cell-symb (h1)) "exit")
        (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
        (^^ "H1") (return))
@@ -1069,8 +1072,8 @@ themselves, and/or not absorbing their inputs.
 ;;; Test calls
 
 (untrace)
-(trace ipl-eval run)
-(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io (t for all)
+;(trace ipl-eval run)
+(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
 (setf *stack-depth-limit* 100)
