@@ -633,6 +633,13 @@ global that can only process on line of I or O at a time.
 	  (store new-cell)
 	  (setf (H0) new-cell)))
 
+  (defj J125 () "TALLY1 IN (0)"
+    ;; An integer 1 is added to the number (0). The type of the result is the
+    ;; same as the type of (0). It is left as the output (0).
+    (let ((H0 (drod (H0))))
+      (!! :jfns "J125: (decf H0): ~a" h0)
+      (setf (cell-link H0) (1+ (cell-link H0)))))
+
   ;; Input and output are completely kludged, and unlike in original IPL. Partly
   ;; this is required because we don't have the same sort of physical
   ;; environment. There are tapes, and so on. But also, partly it's for
@@ -703,7 +710,6 @@ global that can only process on line of I or O at a time.
   (defj J133 () "Unimplemented!" (break "J133 is unimplemented!"))
   (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
   (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
-  (defj J125 () "Unimplemented!" (break "J125 is unimplemented!"))
   (defj J124 () "Unimplemented!" (break "J124 is unimplemented!"))
   (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
   (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
@@ -1040,6 +1046,6 @@ global that can only process on line of I or O at a time.
 (trace ipl-eval run)
 (setf *!!list* '(:run :run-full :jfns :deep-memory)) ;; :deep-memory :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
-;(load-ipl "F1.lisp")
-(load-ipl "Ackermann.iplv" :adv-limit 100)
+(load-ipl "F1.lisp")
+;(load-ipl "Ackermann.iplv" :adv-limit 100)
 
