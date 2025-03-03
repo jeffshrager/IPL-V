@@ -1037,6 +1037,6 @@ global that can only process on line of I or O at a time.
 (trace ipl-eval run)
 (setf *!!list* '(:run :run-full :jfns)) ;; :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
-(load-ipl "F1.lisp")
-;(load-ipl "Ackermann.iplv" :adv-limit 100)
+;(load-ipl "F1.lisp")
+(load-ipl "Ackermann.iplv" :adv-limit 100)
 
