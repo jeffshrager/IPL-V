@@ -7,6 +7,10 @@ To Do (or at least think about):
 ? Should W24 (read/print line) be in an actual cell? Right now it's in a special
 global that can only process on line of I or O at a time.
 
+Need to find out where the memory leaks are that are leaving shit on the
+stacks (primarily H0) -- I think it's the Jfns that aren't cleaning up after
+themselves, and/or not absorbing their inputs.
+
 |#
 
 
@@ -330,12 +334,27 @@ global that can only process on line of I or O at a time.
 
 (defvar *systacks* (make-hash-table :test #'equal))
 
+;;; This is needed because of H0 memory leaks, probably from JFNS.
+(defvar *stack-depth-limit* 100)
+
+(defun clean-stacks ()
+  (when *stack-depth-limit*
+    (loop for key being the hash-keys of *systacks*
+	  using (hash-value stack)
+	  as depth = (length stack)
+	  do
+	  (when (> depth *stack-depth-limit*)
+	    (!! :deep-memory "Tailing stack ~a, now ~a deep, to ~a. [mem]~%" key depth *stack-depth-limit*)
+	    (loop for s+ on stack
+		  as d below *stack-depth-limit*
+		  finally (setf (cdr s+) nil))))))
+
 (defun create-system-cells ()
   (loop for name in (append *system-cells* (loop for w below 43 collect (format nil "W~a" w)))
 	do
 	(setf (cell name) (make-cell :name name))
 	(setf (gethash name *systacks*) (list (format nil "~a-empty" name)))
-	(format t "Created system cell: ~s and its stack.~%" name))
+	(!! :deep-memory "Created system cell: ~s and its stack.~%" name))
   (setf (cell "H5") "+")
   (setf (cell "S") "S-is-null")
   )
@@ -981,6 +1000,7 @@ global that can only process on line of I or O at a time.
      ;; to INTERPRET-Q.
      (setf link (cell-link (H1)))
    ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK (link=~s)" link)
+     (clean-stacks)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
      (if (zero? link) (go ASCEND))
      ;; Note that if there is a link to a different function
@@ -1053,4 +1073,5 @@ global that can only process on line of I or O at a time.
 (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io (t for all)
 ;(load-ipl "LTFixed.lisp")
 (load-ipl "F1.lisp")
+(setf *stack-depth-limit* 100)
 (load-ipl "Ackermann.iplv" :adv-limit 100000)
