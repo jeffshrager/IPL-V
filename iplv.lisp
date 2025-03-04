@@ -87,8 +87,11 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (defmacro S () `(cell "S"))
 (defmacro S+ () `(stack "S"))
 
-(defun ^^ (ssname) (setf (cell ssname) (pop (stack ssname))))
+(defun ^^ (ssname)
+  (trace-cell-or-name? ssname)
+  (setf (cell ssname) (pop (stack ssname))))
 (defun vv (ssname &optional new-value)
+  (trace-cell-or-name? ssname)
   (push (cell ssname) (stack ssname))
   (when new-value (setf (cell ssname) new-value)))
 
@@ -111,9 +114,28 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defun store (cell &optional (name (cell-name cell)))
   (!! :deep-memory "== Store ==> ~s [mem]~%" cell)
+  (trace-cell-or-name? name)
   (setf (gethash name *symtab*) cell)
   cell)
   
+;;; This can trace strings, or any element (name/symb/link) of a cell
+;;; incl. stackables.
+
+(defvar *running?* nil)
+
+(defun trace-cell-or-name? (cell-or-name)
+  (when *running?* 
+    (let ((names (if (stringp cell-or-name)
+		     (list cell-or-name)
+		     (if (cell? cell-or-name)
+			 (cell-name (list (cell-name cell-or-name) (cell-symb cell-or-name) (cell-link cell-or-name)))))))
+      (when (intersection names *trace-cell-names* :test #'string-equal)
+	(format t "======= Tracing ~s: ~s =======~%" (car names) (<== (car names)))
+	(when (gethash (car names) *systacks*)
+	  (pprint (gethash (car names) *systacks*))
+	  (format t "============================~%"))
+	))))
+
 (defun store-cells (cells)
   (loop for cell in cells
 	as name = (cell-name cell)
@@ -131,6 +153,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;;; ===================================================================
 ;;; Debugging Utils
 
+(defvar *trace-cell-names* nil) 
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
 
 (defun !! (key fmt &rest args)
@@ -183,6 +206,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   ;; Load-mode will be :code or :data as set by the latest type=5
   ;; cell's Q: Q=0=code, Q=1=data) And if the sym entry on a type 5
   ;; cell is filled, it's an execution start cell.
+  (setf *running?* nil) ;; Protect from deep tracing of things that aren't setup yet!
   (when reset? (reset!))
   (with-open-file
       (i file)
@@ -704,7 +728,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (setf (h5) "+")
 	  (if line (scan-input-into-*W24-Line-Buffer* line)
 	      (setf (h5) "-"))
-	  (setf (cell-link (cell "W25")) 1)
+	  (setf (cell-link (cell "W25")) 0)
 	  ))
 	
   (defj J181 () "INPUT LINE SYMBOL."
@@ -723,7 +747,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	       (start (- (1+ w25p) 2))
 	       (end (+ start w30n))
 	       (string (subseq *W24-Line-Buffer* start end)))
-	  (!! :jfns "J181 exracted ~s (~a-~a in ~s) [w25=~a, w30=~a]~%" string start end *W24-Line-Buffer* w25p w30n)
+	  (!! :jfns "J181 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a]~%" string start end *W24-Line-Buffer* w25p w30n)
 	  (incf (cell-link w25) w30n) 
 	  (if (j181-helper-is-regional-symbol? string)
 	      (progn
@@ -802,12 +826,14 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;;; ===================================================================
 ;;; JFn Utilities
 
+(defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
+
 (defun j181-helper-is-regional-symbol? (string)
-  (and (find (aref string 0) "ABCDEFGHIJKLMONOPQRSTUVWXYZ")
+  (and (find (aref string 0) *LT-Regional-Chars*)
        (loop for p from 1 by 1
 	     with lim = (1- (length string))
 	     until (= p lim)
-	     if (not (find (aref string p) "0123456789"))
+	     if (not (find (aref string p) "0123456789."))
 	     do (return nil)
 	     finally (return t))))
 
@@ -817,25 +843,32 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
     (if (numberp n) n
 	(break "In ~a, asked to test a non-number: ~s from ~s (~s)." n cell sym))))
     
+;;; !!! WWW OBIWAN UNIVERSE WITH LISP ZERO ORIGIN INDEXING WWW !!!
 
 (defun J183/4-Scanner (arg0 mode)
   (let* ((H0 (<== arg0))
 	 (w25p (cell-link (cell "W25")))
 	 (h0p (cell-link H0)))
+    (!! :jfns "Starting in J183/4-Scanner: H0 = ~s, w25p = ~a, h0p = ~%" H0 w25p h0p)
     (if (not (numberp h0p)) (break "In J183/4 expected H0(p) (~a) to be a number.~%" (H0)))
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
     (setf (H5) "-")
     (incf w25p)		    ;; Start at W25+1 (per manual)
-    (loop until (= w25p 81) ;; WWW OBIWON ???
-	  as char = (aref *W24-Line-Buffer* w25p)
-	  do (incf H0p) (incf w25p)
+    (loop until (= w25p 80) 
+	  ;; WWW OBIWON !!! The only place I should have to correct this is here (I hope!) 
+	  as char = (aref *W24-Line-Buffer* (1- w25p))
+	  do 
+	  (!! :jfns "Deep in J183/4-Scanner: w25p = ~a, char = ~s, h0p = ~%" w25p char h0p)
 	  (when (case mode
 		  (:blank (char-equal char #\space))
-		  (:non-blank (not (char-equal char #\space))))
+		  (:non-blank (not (char-equal char #\space)))
+		  (t (error "!!! J183/4-Scanner given unknown mode: ~s" mode)))
 	    (setf (cell-link H0) h0p)
 	    (setf (cell-link (cell "W25")) w25p)
 	    (setf (H5) "+")
-	    (return t)))))
+	    (return t))
+	  (incf H0p) (incf w25p)
+	  )))
 
 (defun scan-input-into-*W24-Line-Buffer* (line)
   (loop for c across line
@@ -949,7 +982,9 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (initialize-machine)
   (!! :run "********** Starting run at ~a with adv-limit = ~a **********~%" start-symb adv-limit)
   (setf *adv-limit* adv-limit)
+  (setf *running?* t)
   (ipl-eval (cell start-symb))
+  (setf *running?* nil)
   (if (member :end-dump *!!list*) (report-system-cells))
   )
 
@@ -1126,7 +1161,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (if (= 61 (cell-link (cell "N0")))
     (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
   (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
+(trace j181-helper-is-regional-symbol? J183/4-Scanner)
+(setf *trace-cell-names* '("W25" "W26" "W30"))
 (setf *!!list* '(:run-full :run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(trace vv)
 (load-ipl "LTFixed.lisp")
-
