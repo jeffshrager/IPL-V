@@ -147,9 +147,9 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;;; This also checks to make sure that there isn't crap left on the
 ;;; stacks or in the cells and breaks if ther is. 
 
-(defun report-system-cells ()
+(defun report-system-cells (&optional all?)
   (format t "~%~%------ RUN REGISTERS ------~%")
-  (loop for cellname in *system-cells*
+  (loop for cellname in (if all? *all-system-cells* *system-cells*)
 	do (format t "  ~a=~s ~s~%" cellname (cell cellname) (stack cellname)))
   (format t "-----------------------~%~%")
   ;; Check for disasters
@@ -353,11 +353,12 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;;; both stackable (protectable), so they need to have stacks.
 
 (defparameter *system-cells* '("H0" "H1" "H3" "H5" "W0" "S"))
+(defparameter *all-system-cells* (append *system-cells* (loop for w below 43 collect (format nil "W~a" w))))
 
 (defvar *systacks* (make-hash-table :test #'equal))
 
 (defun create-system-cells ()
-  (loop for name in (append *system-cells* (loop for w below 43 collect (format nil "W~a" w)))
+  (loop for name in *all-system-cells*
 	do
 	(make-cell! :name name)
 	(setf (gethash name *systacks*) (list (format nil "~a-empty" name)))
@@ -409,24 +410,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
      (setf (gethash uname *symtab*)
 	   (lambda ,args
 	     ,@forms))))
-
-#|
-
-("J71" . 22) ("J136" . 17) ("J10" . 17)
-("J155" . 17) ("J72" . 16) ("J5" . 15)
-("J2" . 15) ("J11" . 15)  ("J161" . 12) ("J50" . 12) ("J160" . 11)
-("J157" . 10) ("J64" . 9)  
-("J116" . 6) ("J7" . 6) ("J14" . 5) ("J133" . 5) ("J18" . 5) ("J68" . 5) 
-("J125" . 5) ("J124" . 5)  ("J17" . 4) ("J19" . 4) 
-("J65" . 4) ("J75" . 4) ("J78" . 4)  ("J184" . 3) ("J111" . 3)
-("J138" . 3) ("J137" . 3) ("J115" . 3) ("J76" . 3) 
-("J130" . 2) ("J183" . 2) ("J182" . 2) ("J114" . 2)
-("J80" . 2) ("J126" . 2) ("J30" . 2) ("J15" . 2)
-("J166" . 2) ("J0" . 2) ("J1" . 1) ("J79" . 1)  ("J156" . 1)
-("J181" . 1) ("J186" . 1) ("J62" . 1)  ("J110" . 1)
-("J147" . 1) 
-
-|#
 
 (defun setup-j-fns ()
 
@@ -687,7 +670,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
 	;; current entry column, 1W25, is set equal to the left margin, 1W21 [always 1 at the moment].
 	(setf *W24[80chars]* (blank80))
-	(setf (cell-symb (cell "W25")) 1))
+	(setf (cell-link (cell "W25")) 1))
 
 
   (defj J180 () "READ LINE J180 READLINE"
@@ -703,7 +686,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (setf (h5) "+")
 	  (if line (scan-input-into-*W24[80chars]* line)
 	      (setf (h5) "-"))
-	  (setf (cell-symb (cell "W25")) 1)
+	  (setf (cell-link (cell "W25")) 1)
 	  ))
 	
   ;; J183 SET (0) TO NEXT BLANK. (0) is taken as a decimal integer data
@@ -787,8 +770,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defun J183/4-Scanner (arg0 mode)
   (let* ((H0 (<== arg0))
-	 (w25p (cell-symb (cell "W25")))
-	 (h0p (cell-symb H0)))
+	 (w25p (cell-link (cell "W25")))
+	 (h0p (cell-link H0)))
     (if (not (numberp h0p)) (break "In J183/4 expected H0(p) (~a) to be a number.~%" (H0)))
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
     (setf (H5) "-")
@@ -799,8 +782,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (when (case mode
 		  (:blank (char-equal char #\blank))
 		  (:non-blank (not (char-equal char #\blank))))
-	    (setf (cell-symb H0) h0p)
-	    (setf (cell-symb (cell "W25")) w25p)
+	    (setf (cell-link H0) h0p)
+	    (setf (cell-link (cell "W25")) w25p)
 	    (setf (H5) "+")
 	    (return t)))))
 
@@ -1089,6 +1072,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;;; =========================================================================
 ;;; Test calls
 
+(define-symbol-macro rsc (report-system-cells))
+(define-symbol-macro rsc* (report-system-cells t))
 (untrace)
 ;(trace ipl-eval run)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
