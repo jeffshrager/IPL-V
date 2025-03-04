@@ -126,7 +126,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defun blank80 () (subseq (format nil "~81d" 0) 0 80))
 
-(defvar *W24[80chars]* (Blank80))
+(defvar *W24-Line-Buffer* (Blank80))
 
 ;;; ===================================================================
 ;;; Debugging Utils
@@ -677,7 +677,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J154 () "Clear print line"
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
 	;; current entry column, 1W25, is set equal to the left margin, 1W21 [always 1 at the moment].
-	(setf *W24[80chars]* (blank80))
+	(setf *W24-Line-Buffer* (blank80))
 	(setf (cell-link (cell "W25")) 1))
 
 
@@ -687,16 +687,42 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; column 1 of the read line, and so forth. H5 is set+. If no record can
 	;; be read (end-of-file condition), the line is not changed and HS is
 	;; set - . [Note that 1W24 is ignored here and the input is put into our
-	;; global single-line store: *W24[80chars]*. Also, we set W25, the read
+	;; global single-line store: *W24-Line-Buffer*. Also, we set W25, the read
 	;; position to numerical 1.]
 	(let ((line (read-line *input-stream* nil nil)))
 	  (!! :io "J180 Read:~%~s~%%" line)
 	  (setf (h5) "+")
-	  (if line (scan-input-into-*W24[80chars]* line)
+	  (if line (scan-input-into-*W24-Line-Buffer* line)
 	      (setf (h5) "-"))
 	  (setf (cell-link (cell "W25")) 1)
 	  ))
 	
+  (defj J181 () "INPUT LINE SYMBOL."
+	;; INPUT LINE SYMBOL. The IPL symbol in the field starting in column
+	;; 1W25, of size 1W30, in line 1W24, is input to HO and H5 is set +. The
+	;; symbol is regional if the first (leftmost) column holds a regional
+	;; character; otherwise, it is absolute internal. All non-numerical
+	;; characters except in the first column are ignored. If the field is
+	;; entirely blank, or ignored, there is no input to HO, and H5 is set -
+	;; . In either case, 1W25 is incremented by the amount 1W30. (J181 turns
+	;; unused regional symbols into empty but used symbols.)
+	(let* ((w25 (cell "W25"))
+	       (w25p (cell-link w25))
+	       (w30 (cell "W30"))
+	       (w30n (cell-link w30))
+	       (start (- (1+ w25p) 2))
+	       (end (+ start w30n))
+	       (string (subseq *W24-Line-Buffer* start end)))
+	  (!! :jfns "J181 exracted ~s (~a-~a in ~s) [w25=~a, w30=~a]~%" string start end *W24-Line-Buffer* w25p w30n)
+	  (incf (cell-link w25) w30n) 
+	  (if (j181-helper-is-regional-symbol? string)
+	      (progn
+		(!! :jfns "J181 decided that ~s IS a regional symbol.~%" string)
+		(setf (H0) string) (setf (H5) "+"))
+	      (progn
+		(!! :jfns "J181 decided that ~s is NOT a regional symbol.~%" string)
+		(setf (H5) "-")))))
+
   ;; J183 SET (0) TO NEXT BLANK. (0) is taken as a decimal integer data
   ;; term. Line 1W24 is scanned, left to right, starting with column 1W25+1, for
   ;; a blank. One is added to (0) for each column scanned, including that in
@@ -754,7 +780,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
   (defj J156 () "Unimplemented!" (break "J156 is unimplemented!"))
-  (defj J181 () "Unimplemented!" (break "J181 is unimplemented!"))
   (defj J186 () "Unimplemented!" (break "J186 is unimplemented!"))
   (defj J62 () "Unimplemented!" (break "J62 is unimplemented!"))
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
@@ -767,6 +792,15 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 ;;; ===================================================================
 ;;; JFn Utilities
+
+(defun j181-helper-is-regional-symbol? (string)
+  (and (find (aref string 0) "ABCDEFGHIJKLMONOPQRSTUVWXYZ")
+       (loop for p from 1 by 1
+	     with lim = (1- (length string))
+	     until (= p lim)
+	     if (not (find (aref string p) "0123456789"))
+	     do (return nil)
+	     finally (return t))))
 
 (defun num?get (sym)
   (let* ((cell (<== sym))
@@ -784,21 +818,21 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
     (setf (H5) "-")
     (incf w25p)		    ;; Start at W25+1 (per manual)
     (loop until (= w25p 81) ;; WWW OBIWON ???
-	  as char = (aref *W24[80chars]* w25p)
+	  as char = (aref *W24-Line-Buffer* w25p)
 	  do (incf H0p) (incf w25p)
 	  (when (case mode
-		  (:blank (char-equal char #\blank))
-		  (:non-blank (not (char-equal char #\blank))))
+		  (:blank (char-equal char #\space))
+		  (:non-blank (not (char-equal char #\space))))
 	    (setf (cell-link H0) h0p)
 	    (setf (cell-link (cell "W25")) w25p)
 	    (setf (H5) "+")
 	    (return t)))))
 
-(defun scan-input-into-*W24[80chars]* (line)
+(defun scan-input-into-*W24-Line-Buffer* (line)
   (loop for c across line
 	as p from 0 by 1
-	do (setf (aref *W24[80chars]* p) c))
-  (!! :jfns "Read into *W24[80chars]*: ~s~%" *W24[80chars]*))
+	do (setf (aref *W24-Line-Buffer* p) c))
+  (!! :jfns "Read into *W24-Line-Buffer*: ~s~%" *W24-Line-Buffer*))
 
 (defun J2n=move-0-to-n-into-w0-wn (n)
   (setf (cell "W0") (H0))
@@ -914,7 +948,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (create-system-cells) ;; See above in storage section
   (setf (h5+) (list "+")) ;; Init H5 +
   (setf (cell-link (cell "H3")) 0) ;; Init H3 Cycle-Counter
-  (setf *W24[80chars]* (Blank80)) ;; Init Read Line buffer
+  (setf *W24-Line-Buffer* (Blank80)) ;; Init Read Line buffer
   (setf (cell-symb (cell "W25")) 1) ;; Init read/print position
   )
 
