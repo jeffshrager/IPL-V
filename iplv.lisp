@@ -154,14 +154,14 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (format t "-----------------------~%~%")
   ;; Check for disasters
   (loop for cellname in *system-cells*
-	with break = nil
+	with warn = nil
 	as cell = (cell cellname)
 	as stack = (stack cellname)
-	do (cond ((illegal-value? cell) (format t "!!!!! ~s contains a zero or blank !!!!!~%" cellname) (setf break t))
+	do (cond ((illegal-value? cell) (format t "!!!!! ~s contains a zero or blank !!!!!~%" cellname) (setf warn t))
 		 ((loop for entry in stack if (illegal-value? entry) do (return t))
-		  (format t "!!!!! An entry in ~s's stack is zero or blank !!!!!~%" cellname) (setf break t))
+		  (format t "!!!!! An entry in ~s's stack is zero or blank !!!!!~%" cellname) (setf warn t))
 		 )
-	finally (when break (break "--------------> Executing: ~s :: This shouldn't happen!" *trace-instruction*))))
+	finally (when warn (format t "!!! Illegal cell while executing: ~s :: This shouldn't happen !!!~%" *trace-instruction*))))
 
 (defun illegal-value? (val) ;; Might be other conditions.
   (or (null val) (and (stringp val) (string-equal val ""))))
@@ -292,7 +292,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	    when next-cell ;; This usually isn't needed anyway bcs there should be a 0
 	    do
 	    (if (and (blank? this-link) (blank? this-symb))
-		(break "Both symb and link can't be blank: ~s!!" cell))
+		(break "Both symb and link can't be blank: ~s!!" this-cell))
 	    (if (blank? this-link)
 		(if (blank? next-name)
 		    (let ((new-symbol (new-local-symbol top-name)))
@@ -344,6 +344,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (defvar *jfn-plists* (make-hash-table :test #'equal))
 
 (defun reset! ()
+  (clrhash *systacks*)
   (clrhash *symtab*) 
   (setup-j-fns)
   (clrhash *col->vals*)
@@ -662,6 +663,15 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
       (!! :jfns "J125: Tally (H0): ~s~%" H0)
       (setf (cell-link H0) (1+ (cell-link H0)))))
 
+  (defj J130 (H0) "TEST IF (O) IS REGIONAL SYMBOL"
+	;; Tests if Q = 0 in H0.
+	(if (zerop (getpq :q (cell-pq (<== H0))))
+	    (setf (H5) "+") (setf (H5) "-")))
+
+  (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE."
+	;; Identical to Jl47, except uses Q = 4.
+	(!! :jfns "J148 (MARK ROUTINE (0) TO PROPAGATE TRACE.) is a noop."))
+
   ;; Input and output are completely kludged, and unlike in original IPL. Partly
   ;; this is required because we don't have the same sort of physical
   ;; environment. There are tapes, and so on. But also, partly it's for
@@ -703,9 +713,9 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; symbol is regional if the first (leftmost) column holds a regional
 	;; character; otherwise, it is absolute internal. All non-numerical
 	;; characters except in the first column are ignored. If the field is
-	;; entirely blank, or ignored, there is no input to HO, and H5 is set -
-	;; . In either case, 1W25 is incremented by the amount 1W30. (J181 turns
-	;; unused regional symbols into empty but used symbols.)
+	;; entirely blank, or ignored, there is no input to HO, and H5 is set
+	;; -. In either case, 1W25 is incremented by the amount 1W30. (J181
+	;; turns unused regional symbols into empty but used symbols.)
 	(let* ((w25 (cell "W25"))
 	       (w25p (cell-link w25))
 	       (w30 (cell "W30"))
@@ -769,7 +779,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
-  (defj J130 () "Unimplemented!" (break "J130 is unimplemented!"))
   (defj J182 () "Unimplemented!" (break "J182 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
@@ -1015,11 +1024,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; it, or make a cell to hold it because it's just a list symbol
 	;; (string, actually) (But if H0 is already a cell we can just replace
 	;; it.)
-
-	;; Depreciated overly-complex version:
-	;; (setf (H0) (if (cell? (s)) (s)
-	;; 	       (if (stringp (s)) (new-symb-cell (s))
-	;; 		   (break "Having trouble interpreteing (s)=~s in P=5." (s)))))
 	(setf (H0) (<== (s)))
 	)
        (6 (setf (s) (cell-symb (H0))))      ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
@@ -1057,8 +1061,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
      ;; caller came from.
      (setf (h1) (cell link))
      (go INTERPRET-Q)
-     ;; FFF ASCEND and DESCEND could probably be handled more cleanly and
-     ;; correctly by recursing on IPL-EVAL !!!
    ASCEND 
      (!! :run-full "-----> At ASCEND w/H1 = ~s~%" (h1))
      ;; Restore H1 (returning to H1 the name of the cell holding the current
@@ -1124,6 +1126,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (if (= 61 (cell-link (cell "N0")))
     (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
   (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
-(setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *!!list* '(:run-full :run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(trace vv)
 (load-ipl "LTFixed.lisp")
 
