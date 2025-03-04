@@ -745,7 +745,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	       (w30 (cell "W30"))
 	       (w30n (cell-link w30))
 	       (start (- (1+ w25p) 2))
-	       (end (+ start w30n))
+	       (end (+ 1 start w30n))
 	       (string (subseq *W24-Line-Buffer* start end)))
 	  (!! :jfns "J181 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a]~%" string start end *W24-Line-Buffer* w25p w30n)
 	  (incf (cell-link w25) w30n) 
@@ -864,7 +864,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 		  (:non-blank (not (char-equal char #\space)))
 		  (t (error "!!! J183/4-Scanner given unknown mode: ~s" mode)))
 	    (setf (cell-link H0) h0p)
-	    (setf (cell-link (cell "W25")) w25p)
+	    ;;(setf (cell-link (cell "W25")) w25p) ;; I don't think that this gets reset !!! ???
 	    (setf (H5) "+")
 	    (return t))
 	  (incf H0p) (incf w25p)
