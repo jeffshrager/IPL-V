@@ -1082,11 +1082,14 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (define-symbol-macro rsc (report-system-cells))
 (define-symbol-macro rsc* (report-system-cells t))
 (untrace)
-;(trace ipl-eval run)
+(trace ipl-eval run)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
 (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "F1.lisp")
 (load-ipl "Ackermann.iplv" :adv-limit 100000)
+(if (= 61 (cell-link (cell "N0")))
+    (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
+  (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "LTFixed.lisp")
 
