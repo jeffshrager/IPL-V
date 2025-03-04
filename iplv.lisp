@@ -4,12 +4,15 @@
 
 To Do (or at least think about):
 
-? Should W24 (read/print line) be in an actual cell? Right now it's in a special
-global that can only process on line of I or O at a time.
+??? FFF Should W24 (read/print line) be in an actual cell? Right now it's in a
+special global that can only process on line of I or O at a time.
 
-Need to find out where the memory leaks are that are leaving shit on the
+FFF Need to find out where the memory leaks are that are leaving junk on the
 stacks (primarily H0) -- I think it's the Jfns that aren't cleaning up after
 themselves, and/or not absorbing their inputs.
+
+FFF There's a hack for true blanks in both symb and link in LT:/016D070 to avoid
+the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 |#
 
@@ -281,32 +284,27 @@ themselves, and/or not absorbing their inputs.
       (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
       ;; Loop through the whole list and create a local symbol for every cell
-      ;; that doesn't already have one. This works differently in code v data
-      ;; mode because data lists can have a description list, which occupies
-      ;; their symb entry. (In code mode the symb can be blank, I think.) Also,
-      ;; in data mode we distinguish between true zeros and blanks, and don't
-      ;; convert true zeros to locals.
+      ;; that doesn't already have one. 
       (loop for (this-cell next-cell) on cells
 	    as this-symb = (cell-symb this-cell)
 	    as this-link = (cell-link this-cell)
 	    as next-name = (when next-cell (cell-name next-cell))
 	    when next-cell ;; This usually isn't needed anyway bcs there should be a 0
 	    do
-	    ;; Convert the link regardless.
+	    (if (and (blank? this-link) (blank? this-symb))
+		(break "Both symb and link can't be blank: ~s!!" cell))
 	    (if (blank? this-link)
 		(if (blank? next-name)
 		    (let ((new-symbol (new-local-symbol top-name)))
 		      (setf (cell-name next-cell) new-symbol)
 		      (setf (cell-link this-cell) new-symbol))
 		    (setf (cell-link this-cell) next-name)))
-	    ;; In data mode only, also convert the symb.
-	    (when (eq :data load-mode)
-	      (if (blank? this-symb)
-		  (if (blank? next-name)
-		      (let ((new-symbol (new-local-symbol top-name)))
-			(setf (cell-name next-cell) new-symbol)
-			(setf (cell-symb this-cell) new-symbol))
-		      (setf (cell-symb this-cell) next-name)))))
+	    (if (blank? this-symb)
+		(if (blank? next-name)
+		    (let ((new-symbol (new-local-symbol top-name)))
+		      (setf (cell-name next-cell) new-symbol)
+		      (setf (cell-symb this-cell) new-symbol))
+		    (setf (cell-symb this-cell) next-name))))
       (store-cells cells)
       )))
 
@@ -1093,10 +1091,10 @@ themselves, and/or not absorbing their inputs.
 
 (untrace)
 ;(trace ipl-eval run)
-(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
+(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "F1.lisp")
 (load-ipl "Ackermann.iplv" :adv-limit 100000)
-(setf *!!list* '(:deep-memory :load :run :run-deep :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-;(load-ipl "LTFixed.lisp")
+(setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(load-ipl "LTFixed.lisp")
 
