@@ -37,6 +37,9 @@ themselves, and/or not absorbing their inputs.
 	      (break "ZERO? sent ~s which should be a string or nil." what))
 	  '("" "0") :test #'string-equal))
 
+(defun blank? (what)
+  (string-equal "" what))
+
 (defun print-cell (cell s d)
   (declare (ignore d))
   (format s "{~a~a/~a/~a/~a~a}"
@@ -249,6 +252,7 @@ themselves, and/or not absorbing their inputs.
 		    (setf (cell-link cell) (parse-integer (cell-link cell))))
 		   ((string-equal pq "11")
 		    (break "Floating point is not implemented: ~s" cell))
+		   ((string-equal pq "21")) ;; Alpha -- just leave the symb as is
 		   ((not (string-equal pq ""))
 		    (break "Invalid PQ in ~s" cell)))))
   ;; Once we have the thing completely in hand, we change the local
@@ -276,19 +280,35 @@ themselves, and/or not absorbing their inputs.
       (convert-local-symbols cells local-symbols.new-names)
       (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
-      ;; Loop through the whole list and create aa local symbol for
-      ;; every cell that doesn't already have one. 
+      ;; Loop through the whole list and create a local symbol for every cell
+      ;; that doesn't already have one. This works differently in code v data
+      ;; mode because data lists can have a description list, which occupies
+      ;; their symb entry. (In code mode the symb can be blank, I think.) Also,
+      ;; in data mode we distinguish between true zeros and blanks, and don't
+      ;; convert true zeros to locals.
       (loop for (this-cell next-cell) on cells
+	    as this-symb = (cell-symb this-cell)
 	    as this-link = (cell-link this-cell)
 	    as next-name = (when next-cell (cell-name next-cell))
 	    when next-cell ;; This usually isn't needed anyway bcs there should be a 0
-	    do (if (zero? this-link)
-		   (if (zero? next-name)
-		       (let ((new-symbol (new-local-symbol top-name)))
-			 (setf (cell-name next-cell) new-symbol)
-			 (setf (cell-link this-cell) new-symbol))
-		       (setf (cell-link this-cell) next-name)))))
-    (store-cells cells)))
+	    do
+	    ;; Convert the link regardless.
+	    (if (blank? this-link)
+		(if (blank? next-name)
+		    (let ((new-symbol (new-local-symbol top-name)))
+		      (setf (cell-name next-cell) new-symbol)
+		      (setf (cell-link this-cell) new-symbol))
+		    (setf (cell-link this-cell) next-name)))
+	    ;; In data mode only, also convert the symb.
+	    (when (eq :data load-mode)
+	      (if (blank? this-symb)
+		  (if (blank? next-name)
+		      (let ((new-symbol (new-local-symbol top-name)))
+			(setf (cell-name next-cell) new-symbol)
+			(setf (cell-symb this-cell) new-symbol))
+		      (setf (cell-symb this-cell) next-name)))))
+      (store-cells cells)
+      )))
 
 (defun convert-local-symbols (cells local-symbols.new-names)
   (labels ((replace-symbols (cell accname.accessor)
@@ -1074,7 +1094,9 @@ themselves, and/or not absorbing their inputs.
 (untrace)
 ;(trace ipl-eval run)
 (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-;(load-ipl "LTFixed.lisp")
+(setf *stack-depth-limit* 100) ;; FFF ? Localize ?
 (load-ipl "F1.lisp")
-(setf *stack-depth-limit* 100)
 (load-ipl "Ackermann.iplv" :adv-limit 100000)
+(setf *!!list* '(:deep-memory :load :run :run-deep :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+;(load-ipl "LTFixed.lisp")
+
