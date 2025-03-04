@@ -647,6 +647,14 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (store new-cell)
 	  (setf (H0) new-cell)))
 
+  (defj J124 () "CLEAR (0)"
+	;; The number (0) is set to be 0. If the ce 1is not a data term, it is
+	;; made an in- teger data term= 0. If a number, its type, integer, or
+	;; floating point, is unaffected. It is left as the output (0).
+	(let ((H0 (<== (H0))))
+	  (!! :jfns "J124: Clear (H0): ~s~%" H0)
+	  (setf (cell-link H0) 0)))
+
   (defj J125 () "TALLY1 IN (0)"
     ;; An integer 1 is added to the number (0). The type of the result is the
     ;; same as the type of (0). It is left as the output (0).
@@ -727,7 +735,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J133 () "Unimplemented!" (break "J133 is unimplemented!"))
   (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
   (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
-  (defj J124 () "Unimplemented!" (break "J124 is unimplemented!"))
   (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
   (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
   (defj J65 () "Unimplemented!" (break "J65 is unimplemented!"))
