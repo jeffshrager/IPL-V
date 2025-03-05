@@ -188,6 +188,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 		  (format t "!!!!! An entry in ~s's stack is zero or blank !!!!!~%" cellname) (setf warn t))
 		 )
 	finally (when warn (format t "!!! Illegal cell while executing: ~s :: This shouldn't happen !!!~%" *trace-instruction*))))
+(define-symbol-macro rsc (report-system-cells))
+(define-symbol-macro rsc* (report-system-cells t))
+(define-symbol-macro rcs (report-system-cells))
+(define-symbol-macro rcs* (report-system-cells t))
 
 (defun illegal-value? (val) ;; Might be other conditions.
   (or (null val) (and (stringp val) (string-equal val ""))))
@@ -987,17 +991,23 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defun line-print-linear-list (cell)
   (setf cell (<== cell))
-  (format t "~%+---------------------------------------------------------------------+~%")
+  (format t "~%+--------------------- ~s ---------------------+~%" cell)
+  ;; FFF Maintain depth and indent.
+  (when (not (zero? (cell-symb cell)))
+      (format t "| Description list:~%")
+      (line-print-linear-list (cell-symb cell))
+      (format t "| End of description list~%| ---------------------~%"))
   (loop do (format t "| ~s~70T|~%" cell)
 	(let ((link (cell-link cell)))
 	  (if (zero? link) (return :end-of-list))
 	  (setf cell (cell link))))
   (format t "+---------------------------------------------------------------------+~%")
   )
+(defun lpll (c) (line-print-linear-list c))
 
 (defun line-print-cell (cell)
   (setf cell (<== cell))
-  (format t "~%+---------------------------------------------------------------------+~%")
+  (format t "~%+--------------------- ~s ---------------------+~%" cell)
   (format t "| ~s~70T|~%" cell)
   (format t "+---------------------------------------------------------------------+~%")
   )
@@ -1185,8 +1195,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;;; =========================================================================
 ;;; Test calls
 
-(define-symbol-macro rsc (report-system-cells))
-(define-symbol-macro rsc* (report-system-cells t))
+;;; rsc rsc* (lpll cell)
+
 (untrace)
 (trace ipl-eval run)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
