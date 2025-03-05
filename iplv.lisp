@@ -156,6 +156,9 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (defvar *trace-cell-names* nil) 
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
 
+;;; FFF Maybe make this a optional progn so that we don't have to put progns all
+;;; over the place in order to trace.
+
 (defun !! (key fmt &rest args)
   ;; WWW if the arg is actually nil, apply gets confused so we pre-fix this case.
   (unless args (setf args '(())))
@@ -742,7 +745,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
 	;; current entry column, 1W25, is set equal to the left margin, 1W21 [always 1 at the moment].
 	(setf *W24-Line-Buffer* (blank80))
-	(setf (cell-link (cell "W25")) 1))
+	(setf (cell-link (cell "W25")) 0))
 
   (defj J155 () "Print line"
 	(!! :io "J155 Print Line vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv~%")
