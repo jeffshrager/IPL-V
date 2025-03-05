@@ -452,7 +452,33 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   ;; I don't think that this is necessary as we don't need to do our own GC.
   (defj J9 () "ERASE CELL (0)" (!! :jfns "J9 is a noop as we don't need to do our own GC."))
 
-  ;; FFF Macrofiy these!!!
+  (defj J10 (arg0 arg1) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)"
+	;; If the symbol (0) is on the description list of list (1) as an
+	;; attribute, then its value--i.e., the symbol following it--is output
+	;; as (0) and H5 set + ; if not found, or if the description list
+	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
+	;; by a search and test of all attributes on the description list.)
+	(!! :jfns "In J10 trying to find the value of ~s in ~s!%" arg0 arg1)
+	(let* ((l (<== arg1))
+	       (dls (cell-symb l)))
+	  (if (zero? dls)
+	      (progn
+		(!! :jfns "In J10 -- no dl, so we're done with H5-~%")
+		(setf (H5) "-"))
+	      (loop with dl-attribute-cell = (cell (cell-link (<== dls))) ;; Note we're skipping the dl of the dl if any
+		    do
+		    (if (string-equal arg0 (cell-symb dl-attribute-cell))
+			(let* ((val (cell (cell-link dl-attribute-cell))))
+			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" arg0 dl-attribute-cell val) 
+			  (setf (H5) "+") (setf (H0) val) (return t))
+			(let* ((next-att-link (cell-link dl-attribute-cell)))
+			  (if (zero? next-att-link)
+			      (progn
+				(!! :jfns "J10 failed to find ~s.~%" arg0)
+				(setf (H0) "-") (return nil))
+			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
+				
+
 
   (defj J20 () "MOVE(0)-(0) into W0-0" (J2n=move-0-to-n-into-w0-wn 0))
   (defj J21 () "MOVE(0)-(1) into W0-1" (J2n=move-0-to-n-into-w0-wn 1))
@@ -719,7 +745,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; The next record on unit 1W18 is read to line 1W24. (The record is
 	;; assumed to be BCD, 80 cols.) Column 1 of the record is read into
 	;; column 1 of the read line, and so forth. H5 is set+. If no record can
-	;; be read (end-of-file condition), the line is not changed and HS is
+	;; be read (end-of-file condition), the line is not changed and H5 is
 	;; set - . [Note that 1W24 is ignored here and the input is put into our
 	;; global single-line store: *W24-Line-Buffer*. Also, we set W25, the read
 	;; position to numerical 1.]
@@ -751,7 +777,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (incf (cell-link w25) w30n) 
 	  (if (j181-helper-is-regional-symbol? string)
 	      (progn
-		(!! :jfns "J181 decided that ~s IS a regional symbol.~%" string)
+		(!! :jfns "J181 decided that ~s IS a regional symbol, so we're installing it.~%" string)
+		(make-cell! :name string)
 		(setf (H0) string) (setf (H5) "+"))
 	      (progn
 		(!! :jfns "J181 decided that ~s is NOT a regional symbol.~%" string)
@@ -779,7 +806,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
-  (defj J10 () "Unimplemented!" (break "J10 is unimplemented!"))
   (defj J155 () "Unimplemented!" (break "J155 is unimplemented!"))
   (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
   (defj J5 () "Unimplemented!" (break "J5 is unimplemented!"))
@@ -1163,5 +1189,5 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
 (trace j181-helper-is-regional-symbol? J183/4-Scanner)
 (setf *trace-cell-names* '("W25" "W26" "W30"))
-(setf *!!list* '(:run-full :run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "LTFixed.lisp")
