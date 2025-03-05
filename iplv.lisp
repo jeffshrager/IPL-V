@@ -461,7 +461,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J8 () "RESTORE H0" (^^ "H0"))
 
   ;; I don't think that this is necessary as we don't need to do our own GC.
-  (defj J9 () "ERASE CELL (0)" (!! :jfns "J9 is a noop as we don't need to do our own GC."))
+  (defj J9 () "ERASE CELL (0)" (!! :jfns "J9 is a noop as we don't need to do our own GC.~%"))
 
   (defj J10 (arg0 arg1) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)"
 	;; If the symbol (0) is on the description list of list (1) as an
@@ -766,7 +766,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; global single-line store: *W24-Line-Buffer*. Also, we set W25, the read
 	;; position to numerical 1.]
 	(let ((line (read-line *input-stream* nil nil)))
-	  (!! :io "J180 Read:~%~s~%%" line)
+	  (!! :io "J180 Read: ~s~%" line)
 	  (setf (h5) "+")
 	  (if line (scan-input-into-*W24-Line-Buffer* line)
 	      (setf (h5) "-"))
@@ -1069,7 +1069,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
        (go ADVANCE)
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
-     (!! :run "~%>>>>>>>>>> Executing: ~s (~a)~%" cell *adv-limit*)
+     (!! :run ">>>>>>>>>> Executing: ~s (~a)~%" cell *adv-limit*)
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
@@ -1077,7 +1077,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	   symb (cell-symb cell)
 	   link (cell-link cell)
 	   )
-     (!! :run-full "~%-----> At INTERPRET-Q: CELL =~s~%      Q = ~s, symb=~s~%" cell q symb)
+     (!! :run-full "-----> At INTERPRET-Q: CELL =~s~%      Q = ~s, symb=~s~%" cell q symb)
      (case q
        ;; 0 take the symbol itself
        (0 (setf (s) symb) (go INTERPRET-P))
@@ -1208,5 +1208,5 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
 (trace j181-helper-is-regional-symbol? J183/4-Scanner)
 (setf *trace-cell-names* '("W25" "W26" "W30"))
-(setf *!!list* '(:io :run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(load-ipl "LTFixed.lisp" :adv-limit 100000)
+(setf *!!list* '(:run-full :io :run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(load-ipl "LTFixed.lisp" :adv-limit 300)
