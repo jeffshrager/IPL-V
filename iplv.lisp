@@ -744,6 +744,11 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	(setf *W24-Line-Buffer* (blank80))
 	(setf (cell-link (cell "W25")) 1))
 
+  (defj J155 () "Print line"
+	(!! :io "J155 Print Line vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv~%")
+	(format t "~a~%" *W24-Line-Buffer*)
+	(!! :io "J155 Print Line ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^~%")
+	)
 
   (defj J180 () "READ LINE J180 READLINE"
 	;; The next record on unit 1W18 is read to line 1W24. (The record is
@@ -810,7 +815,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
-  (defj J155 () "Unimplemented!" (break "J155 is unimplemented!"))
   (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
   (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
   (defj J11 () "Unimplemented!" (break "J11 is unimplemented!"))
@@ -835,7 +839,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J182 () "Unimplemented!" (break "J182 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
-  (defj J30 () "Unimplemented!" (break "J30 is unimplemented!"))
   (defj J15 () "Unimplemented!" (break "J15 is unimplemented!"))
   (defj J166 () "Unimplemented!" (break "J166 is unimplemented!"))
   (defj J0 () "Unimplemented!" (break "J0 is unimplemented!"))
@@ -1192,5 +1195,5 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
 (trace j181-helper-is-regional-symbol? J183/4-Scanner)
 (setf *trace-cell-names* '("W25" "W26" "W30"))
-(setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *!!list* '(:io :run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "LTFixed.lisp" :adv-limit 100000)
