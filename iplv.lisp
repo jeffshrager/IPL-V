@@ -441,6 +441,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J2 (arg0 arg1) "TEST (0) = (1)?" (setf (h5) (if (equal arg0 arg1) "+" "-")))
   (defj J3 () "SET H5 -" (setf (H5) "-"))
   (defj J4 () "SET H5 +" (setf (H5) "+"))
+  (defj J5 () "REVERSE H5"
+	(if (string-equal "+" (H5))
+	    (setf (H5) "-")
+	    (setf (H5) "+")))
 
   (defj J6 () "REVERSE (0) and (1)" ;; WWW H1 is not (1)
 	(let ((z (H0)))
@@ -808,7 +812,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
   (defj J155 () "Unimplemented!" (break "J155 is unimplemented!"))
   (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
-  (defj J5 () "Unimplemented!" (break "J5 is unimplemented!"))
   (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
   (defj J11 () "Unimplemented!" (break "J11 is unimplemented!"))
   (defj J161 () "Unimplemented!" (break "J161 is unimplemented!"))
@@ -1190,4 +1193,4 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (trace j181-helper-is-regional-symbol? J183/4-Scanner)
 (setf *trace-cell-names* '("W25" "W26" "W30"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(load-ipl "LTFixed.lisp")
+(load-ipl "LTFixed.lisp" :adv-limit 100000)
