@@ -136,6 +136,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (format t "============================~%"))
 	))))
 
+(defun report-traced-cells ()
+  (loop for name in *trace-cell-names*
+	do (format t "[Tracing ~s = ~s]~%" name (cell name))))
+
 (defun store-cells (cells)
   (loop for cell in cells
 	as name = (cell-name cell)
@@ -168,7 +172,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
     (format t "!![~a]::" key)
     (apply #'format t fmt args)
     (when (and (member key '(:run :run-full)) (member :run-full *!!list*))
-      (report-system-cells))))
+      (report-system-cells)))
+  )
 
 ;;; This also checks to make sure that there isn't crap left on the
 ;;; stacks or in the cells and breaks if ther is. 
@@ -486,7 +491,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 			  (if (zero? next-att-link)
 			      (progn
 				(!! :jfns "J10 failed to find ~s.~%" arg0)
-				(setf (H0) "-") (return nil))
+				(setf (H5) "-") (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 				
 
@@ -1120,6 +1125,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
        (5 (setf link (s)) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (!! :run-full "-----> At ADVANCE")
+     (report-traced-cells)
      (if (and *adv-limit* (zerop (decf *adv-limit*)))
 	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!"))
      (incf (cell-link (cell "H3")))
@@ -1209,6 +1215,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;    (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
 ;  (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
 ;(trace j181-helper-is-regional-symbol? J183/4-Scanner)
-(setf *trace-cell-names* '("W25" "W26" "W30"))
+(setf *trace-cell-names* '("H5"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "LTFixed.lisp" :adv-limit 100)
