@@ -469,7 +469,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; as (0) and H5 set + ; if not found, or if the description list
 	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
 	;; by a search and test of all attributes on the description list.)
-	(!! :jfns "In J10 trying to find the value of ~s in ~s!%" arg0 arg1)
+	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
 	(let* ((l (<== arg1))
 	       (dls (cell-symb l)))
 	  (if (zero? dls)
