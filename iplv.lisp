@@ -1062,8 +1062,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 			      (loop for arg in (cdr arglist)
 				    as val in (h0+)
 				    collect val)))))
-	 (!! :run ">>>>>>>>>> Calling ~a [~a]~%           ~s = ~s~%"
-	     *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args)
+	 (when *fname-hint* 
+	   (!! :run ">>>>>>>>>> Calling ~a [~a]~%           ~s = ~s~%"
+	       *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args)
+	   (setf *fname-hint* nil))
 	 (apply (H1) args))
        (^^ "H1") ;; Remove the JFn call
        (go ADVANCE)
@@ -1200,13 +1202,13 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (untrace)
 (trace ipl-eval run)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
-(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(load-ipl "F1.lisp")
-(load-ipl "Ackermann.iplv" :adv-limit 100000)
-(if (= 61 (cell-link (cell "N0")))
-    (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
-  (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
-(trace j181-helper-is-regional-symbol? J183/4-Scanner)
+;(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+;(load-ipl "F1.lisp")
+;(load-ipl "Ackermann.iplv" :adv-limit 100000)
+;(if (= 61 (cell-link (cell "N0")))
+;    (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
+;  (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
+;(trace j181-helper-is-regional-symbol? J183/4-Scanner)
 (setf *trace-cell-names* '("W25" "W26" "W30"))
-(setf *!!list* '(:run-full :io :run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(load-ipl "LTFixed.lisp" :adv-limit 300)
+(setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(load-ipl "LTFixed.lisp" :adv-limit 100)
