@@ -88,10 +88,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (defmacro S+ () `(stack "S"))
 
 (defun ^^ (ssname)
-  (trace-cell-or-name? ssname)
+  ;;(trace-cell-or-name? ssname)
   (setf (cell ssname) (pop (stack ssname))))
 (defun vv (ssname &optional new-value)
-  (trace-cell-or-name? ssname)
+  ;;(trace-cell-or-name? ssname)
   (push (cell ssname) (stack ssname))
   (when new-value (setf (cell ssname) new-value)))
 
@@ -100,12 +100,14 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (defun cell-name% (cell-or-name)
   (cell-name (<== cell-or-name)))
 
-(defun <== (cell-or-name) ;; de-ref-or-die
+(defun <== (cell-or-name &key create-if-does-not-exist?) ;; de-ref-or-die
   (let ((cell (if (cell? cell-or-name) cell-or-name
 		  (if (stringp cell-or-name) (cell cell-or-name)))))
     (!! :deep-memory "<== Retreive == ~s = ~s [mem]~%" cell-or-name cell)
     (if (cell? cell) cell
-      (break "Trying to deref ~s, which isn't a cell, while executing ~s!" cell-or-name *trace-instruction*))))
+	(if create-if-does-not-exist?
+	    (make-cell! :name cell-or-name)
+	    (error "Trying to deref ~s, which isn't a cell, while executing ~s!" cell-or-name *trace-instruction*)))))
 
 (defun new-local-symbol (&optional (prefix "9")) (format nil "~a~a" prefix (gensym "+")))
 
@@ -114,7 +116,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defun store (cell &optional (name (cell-name cell)))
   (!! :deep-memory "== Store ==> ~s [mem]~%" cell)
-  (trace-cell-or-name? name)
+  ;;(trace-cell-or-name? name)
   (setf (gethash name *symtab*) cell)
   cell)
   
@@ -123,7 +125,11 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defvar *running?* nil)
 
+;;; This is temporarily deprecated bcs it fails tracing H0 (and some
+;;; others) that can contain strings.
+
 (defun trace-cell-or-name? (cell-or-name)
+  (break "trace-cell-or-name? is temporarily deprecated")
   (when *running?* 
     (let ((names (if (stringp cell-or-name)
 		     (list cell-or-name)
@@ -135,10 +141,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (pprint (gethash (car names) *systacks*))
 	  (format t "============================~%"))
 	))))
-
-(defun report-traced-cells ()
-  (loop for name in *trace-cell-names*
-	do (format t "[Tracing ~s = ~s]~%" name (cell name))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -496,6 +498,18 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 				
 
 
+  (defj J11 (a0 a1 a2) "ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)"
+	;; After J11, the symbol (1) is on the description list of
+	;; list (2) as the value of attribute (0). If (0) was already
+	;; on the description list, the old value has been removed,
+	;; and (1) has taken its place; if the old value was local, it
+	;; has been erased as a list structure (J72). If (0) is a new
+	;; attribute, it is placed at the front of the description
+	;; list. J11 will create the description list (with a local
+	;; name) if it does not exist (head of (2) empty). There is no
+	;; output in HO.
+    "Unimplemented!" (break "J11 is unimplemented!"))
+
   (defj J20 () "MOVE(0)-(0) into W0-0" (J2n=move-0-to-n-into-w0-wn 0))
   (defj J21 () "MOVE(0)-(1) into W0-1" (J2n=move-0-to-n-into-w0-wn 1))
   (defj J22 () "MOVE(0)-(2) into W0-2" (J2n=move-0-to-n-into-w0-wn 2))
@@ -734,8 +748,24 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	(if (zerop (getpq :q (cell-pq (<== H0))))
 	    (setf (H5) "+") (setf (H5) "-")))
 
+  (defj J136 (H0) "MAKE SYMBOL(O) LOCAL."
+	;; The output (0) is the input (0) with Q = 2. Since all
+	;; copies of this symbol carry along the Q value, if a symbol
+	;; is made local when created, it will be local in all its
+	;; occurrences. [I have no idea what his last sentence means!]
+	(let ((cell (<== H0 :create-if-does-not-exist? t)))
+	  (setf (cell-pq cell)
+		(let* ((pq (cell-pq cell))
+		      (l (length pq)))
+		  (case l
+		    (0 "02")
+		    (1 (!! :jfns "Warning: J136 assuming ~s is q-only!%") "02")
+		    (2 (setf (aref pq 1) #\2) pq)
+		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))
+	  (setf (H0) cell)))
+
   (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE."
-	;; Identical to Jl47, except uses Q = 4.
+	;; Identical to J147, except uses Q = 4.
 	(!! :jfns "J148 (MARK ROUTINE (0) TO PROPAGATE TRACE.) is a noop."))
 
   ;; Input and output are completely kludged, and unlike in original IPL. Partly
@@ -805,6 +835,37 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 		(!! :jfns "J181 decided that ~s is NOT a regional symbol.~%" string)
 		(setf (H5) "-")))))
 
+  (defj J182 (arg0) "INPUT LINE DATATERM (0)"
+	;; J182 INPUT LINE DATA TERM (0). The field specified as J181
+	;; is taken as the value of a data term. Input data term (0)
+	;; is set to that value and left as output (0). H5 is set +.
+	;; The data type of input (0) determines the data type of the
+	;; output. If the input (0) is a decimal or octal integer, or
+	;; BCD, the read line field is interpreted as that type. Any
+	;; other data type is treated as BCD. In composing BCD data
+	;; terms, the field is left-justified and the full data term
+	;; completed with blanks on the right, if necessary. If the
+	;; specified field exceeds five columns, the rightmost five
+	;; columns are taken as the field. In composing decimal and
+	;; octal integer data terms, non-numerical charac-ters are
+	;; ignored. If the resulting information exceeds the capacity
+	;; of the data term, the rightmost digits are retained. If the
+	;; read line field is entirely blank (or non-numerical, for
+	;; integer data types), (0) is cleared (to blanks for BCD; to
+	;; zero for integer) and H5 is set - . In either case, 1W25 is
+	;; incremented by the amount 1W30.
+	(let* ((w25 (cell "W25"))
+	       (w25p (cell-link w25))
+	       (w30 (cell "W30"))
+	       (w30n (cell-link w30))
+	       (start (- (1+ w25p) 2))
+	       (end (+ 1 start w30n))
+	       (string (subseq *W24-Line-Buffer* start end)))
+	  ;; WWW Assumes that the target is alpha, which could be wrong in future applications!
+	  (setf (cell-symb arg0) string)
+	  (!! :jfns "J182 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a] and jammed it into ~s~%" string start end *W24-Line-Buffer* w25p w30n arg0)
+	))
+
   ;; J183 SET (0) TO NEXT BLANK. (0) is taken as a decimal integer data
   ;; term. Line 1W24 is scanned, left to right, starting with column 1W25+1, for
   ;; a blank. One is added to (0) for each column scanned, including that in
@@ -826,10 +887,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	(J183/4-Scanner arg0 :non-blank))
 
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
-  (defj J136 () "Unimplemented!" (break "J136 is unimplemented!"))
   (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
   (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
-  (defj J11 () "Unimplemented!" (break "J11 is unimplemented!"))
   (defj J161 () "Unimplemented!" (break "J161 is unimplemented!"))
   (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
   (defj J157 () "Unimplemented!" (break "J157 is unimplemented!"))
@@ -848,7 +907,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
-  (defj J182 () "Unimplemented!" (break "J182 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J15 () "Unimplemented!" (break "J15 is unimplemented!"))
@@ -1125,7 +1183,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
        (5 (setf link (s)) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (!! :run-full "-----> At ADVANCE")
-     (report-traced-cells)
+     (loop for name in *trace-cell-names*
+	   do (format t "[Tracing ~s = ~s : ~s]~%" name (cell name) (first-n 5 (gethash name *systacks*))))
      (if (and *adv-limit* (zerop (decf *adv-limit*)))
 	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!"))
      (incf (cell-link (cell "H3")))
@@ -1194,6 +1253,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;;; =========================================================================
 ;;; Utilities
 
+(defun first-n (n l) (loop for i below n as e in l collect e))
+
 (defun core-dump (table)
   (format t "~a contains ~a entries:~%" table (hash-table-count table))
   (loop for key being the hash-keys of table
@@ -1207,14 +1268,17 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (untrace)
 (trace ipl-eval run)
+(setf *trace-cell-names* nil)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
-;(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-;(load-ipl "F1.lisp")
-;(load-ipl "Ackermann.iplv" :adv-limit 100000)
-;(if (= 61 (cell-link (cell "N0")))
-;    (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
-;  (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
-;(trace j181-helper-is-regional-symbol? J183/4-Scanner)
-(setf *trace-cell-names* '("H5"))
-(setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+
+(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(load-ipl "F1.lisp")
+(load-ipl "Ackermann.iplv" :adv-limit 100000)
+(if (= 61 (cell-link (cell "N0")))
+    (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
+  (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
+
+;(trace <== trace-cell-or-name?)
+;(setf *trace-cell-names* '("H0"))
+(setf *!!list* '(:run)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "LTFixed.lisp" :adv-limit 100)
