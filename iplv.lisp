@@ -729,15 +729,17 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (if (zerop n) (setf (H5) "+") (setf (H5) "-"))))
 
   (defj J120 (arg0) "COPY (0)"
-	;; COPY (0). The output (0) names a new cell containing the identical
-	;; contents to (0). The name is local if the input (0) is local; other-
-	;; wise, it is internal.
+	;; COPY (0). The output (0) names a new cell containing the
+	;; identical contents to (0). The name is local if the input
+	;; (0) is local; otherwise, it is internal.
 	(let* ((old-cell (<== (H0)))
 	      (new-cell (copy-cell old-cell))
 	      (new-name (new-local-symbol)))
 	  (setf (cell-name new-cell) new-name)
 	  (!! :jfns "Copied ~s -> ~s into H0.~%" old-cell new-cell)
 	  (store new-cell)
+	  ;; WWW Some code seems to want the copy to push the old H0,
+	  ;; but the doc doesn't say that this does a push. ???
 	  (setf (H0) new-cell)))
 
   (defj J124 () "CLEAR (0)"
@@ -836,6 +838,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	       (start (- (1+ w25p) 2))
 	       (end (+ 1 start w30n))
 	       (string (subseq *W24-Line-Buffer* start end)))
+	  ;; Note that, unlike J182, here "All non-numerical
+	  ;; characters except in the first column are ignored." So we
+	  ;; need a special scraping step to carry this out.
+	  (setf string (j181-helper-remove-non-numeric-except-first string))
 	  (!! :jfns "J181 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a]~%" string start end *W24-Line-Buffer* w25p w30n)
 	  (incf (cell-link w25) w30n) 
 	  (if (j181-helper-is-regional-symbol? string)
@@ -942,12 +948,21 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
+(defun j181-helper-remove-non-numeric-except-first (s)
+  (let* ((r (copy-seq " ")))
+    (setf (aref r 0) (aref s 0))
+    (loop as p from 1 to (1- (length s))
+	  as c = (aref s p)
+	  do (if (find c "0123456789")
+		 (setf r (format nil "~a~c" r c)))
+	  finally (return r))))
+
 (defun j181-helper-is-regional-symbol? (string)
   (and (find (aref string 0) *LT-Regional-Chars*)
        (loop for p from 1 by 1
 	     with lim = (1- (length string))
 	     until (= p lim)
-	     if (not (find (aref string p) "0123456789."))
+	     if (not (find (aref string p) "0123456789"))
 	     do (return nil)
 	     finally (return t))))
 
@@ -1196,7 +1211,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
        (t (go DESCEND)))
    ADVANCE (!! :run-full "-----> At ADVANCE")
      (loop for name in *trace-cell-names*
-	   do (format t "[Tracing ~s = ~s : ~s]~%" name (cell name) (first-n 5 (gethash name *systacks*))))
+	   do (format t "** Tracing ~s = ~s~%**   :: ~s~%" name (cell name) (first-n 5 (gethash name *systacks*))))
      (if (and *adv-limit* (zerop (decf *adv-limit*)))
 	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!"))
      (incf (cell-link (cell "H3")))
@@ -1294,5 +1309,5 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 ;(trace <== trace-cell-or-name?)
 (setf *trace-cell-names* '("H0"))
-(setf *!!list* '(:run :run-full :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "LTFixed.lisp" :adv-limit 100)
