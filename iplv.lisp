@@ -1296,7 +1296,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (when (or (equal t *breaks*)
 	    (member t *breaks*)
 	    (member s *breaks* :test #'string-equal))
-    (break "************************** Break called by user at ~s (BEFORE execution!)" s)))
+    (break "************************** Break called by user at ~s (BEFORE execution!)" s)
+    (report-system-cells)))
 
 ;;; =========================================================================
 ;;; Test calls
@@ -1320,5 +1321,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;(trace <== trace-cell-or-name?)
 (setf *trace-cell-names* '("H0" "W0"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(setf *breaks* t) ;; If this is set to t (or '(t)) it break on every call
+(defun step! () (setf *breaks* t) "Use :c to step.")
+(defun free! () (setf *breaks* nil) "Use :c to run free.")
+(setf *breaks* '("M089R270")) ;; If this is set to t (or '(t)) it break on every call
 (load-ipl "LTFixed.lisp" :adv-limit 100)
