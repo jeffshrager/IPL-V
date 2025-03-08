@@ -2,6 +2,18 @@
 
 #|
 
+PQ Meaning
+00 (blank) Execute Symb name per se
+10 Push the symb (name) itself on H0
+11 Push content of the cell named by symb on H0 
+20 Move H0 to the named symbol (per se) and pop (restore) H0.
+   (? This is a little weird bcs it seems like you should be moving
+      the value to the command itself!)   
+40 Push down (preserve) the named symb (per se)
+50 Replace H0 by the symbol (name)
+70 Branch to symb name (per se) if H5-
+
+
 To Do (or at least think about):
 
 ??? FFF Should W24 (read/print line) be in an actual cell? Right now it's in a
@@ -1267,18 +1279,20 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;;; rsc rsc* (lpll cell)
 
 (untrace)
-(trace ipl-eval run)
 (setf *trace-cell-names* nil)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
-
 (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(load-ipl "F1.lisp")
-(load-ipl "Ackermann.iplv" :adv-limit 100000)
-(if (= 61 (cell-link (cell "N0")))
-    (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
-  (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
+
+'(progn ;; Just quote this line to suppress these tests
+  (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+  (load-ipl "F1.lisp")
+  (load-ipl "Ackermann.iplv" :adv-limit 100000)
+  (if (= 61 (cell-link (cell "N0")))
+      (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
+      (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
+  )
 
 ;(trace <== trace-cell-or-name?)
-;(setf *trace-cell-names* '("H0"))
-(setf *!!list* '(:run)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *trace-cell-names* '("H0"))
+(setf *!!list* '(:run :run-full :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (load-ipl "LTFixed.lisp" :adv-limit 100)
