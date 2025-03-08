@@ -5,7 +5,7 @@
 PQ Meaning
 00 (blank) Execute Symb name per se
 10 Push the symb (name) itself on H0
-11 Push content of the cell named by symb on H0 
+11 Push content of the cell named by symb on H0
 20 Move H0 to the named symbol (per se) and pop (restore) H0.
    (? This is a little weird bcs it seems like you should be moving
       the value to the command itself!)   
@@ -173,6 +173,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defvar *trace-cell-names* nil) 
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
+(defvar *breaks* nil) 
 
 ;;; FFF Maybe make this a optional progn so that we don't have to put progns all
 ;;; over the place in order to trace.
@@ -1155,13 +1156,16 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	 (when *fname-hint* 
 	   (!! :run ">>>>>>>>>> Calling ~a [~a]~%           ~s = ~s~%"
 	       *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args)
-	   (setf *fname-hint* nil))
+	   (maybe-break? *fname-hint*)
+	   (setf *fname-hint* nil)
+	   )
 	 (apply (H1) args))
        (^^ "H1") ;; Remove the JFn call
        (go ADVANCE)
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
      (!! :run ">>>>>>>>>> Executing: ~s (~a)~%" cell *adv-limit*)
+     (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
 	   q (getpq :q pq)
@@ -1288,6 +1292,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	using (hash-value value)
 	do (format t "~s => ~s~%" key value)))
 
+(defun maybe-break? (s)
+  (when (member s *breaks* :test #'string-equal)
+    (break "************************** Break called by user at ~s" s)))
+
 ;;; =========================================================================
 ;;; Test calls
 
@@ -1308,6 +1316,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   )
 
 ;(trace <== trace-cell-or-name?)
-(setf *trace-cell-names* '("H0"))
+(setf *trace-cell-names* '("H0" "W0"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *breaks* '("M089R215"))
 (load-ipl "LTFixed.lisp" :adv-limit 100)
