@@ -173,7 +173,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defvar *trace-cell-names* nil) 
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
-(defvar *breaks* nil) 
+(defvar *breaks* nil) ;; If this is set to * it break on every call
 
 ;;; FFF Maybe make this a optional progn so that we don't have to put progns all
 ;;; over the place in order to trace.
@@ -1293,8 +1293,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	do (format t "~s => ~s~%" key value)))
 
 (defun maybe-break? (s)
-  (when (member s *breaks* :test #'string-equal)
-    (break "************************** Break called by user at ~s" s)))
+  (when (or (equal t *breaks*)
+	    (member t *breaks*)
+	    (member s *breaks* :test #'string-equal))
+    (break "************************** Break called by user at ~s (BEFORE execution!)" s)))
 
 ;;; =========================================================================
 ;;; Test calls
@@ -1318,5 +1320,5 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 ;(trace <== trace-cell-or-name?)
 (setf *trace-cell-names* '("H0" "W0"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(setf *breaks* '("M089R215"))
+(setf *breaks* t) ;; If this is set to t (or '(t)) it break on every call
 (load-ipl "LTFixed.lisp" :adv-limit 100)
