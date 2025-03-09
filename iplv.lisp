@@ -2,16 +2,29 @@
 
 #|
 
-PQ Meaning
-00 (blank) Execute Symb name per se
-10 Push the symb (name) itself on H0
-11 Push content of the cell named by symb on H0
-20 Move H0 to the named symbol (per se) and pop (restore) H0.
+PQ Meaning for all PQ used in LT:
+---------------------------------
+00 (blank) Execute fn named by symb name per se (*)
+01 Execute fn contained in cell named by symb (*>)
+04 (blank) Execute fn named by symb name per se (same as 00 bcs no tracing) (>)
+10 Push the symb (name) itself on H0 (*>)
+11 Push content of the cell named by symb, onto H0 (*>)
+12 Push 2nd deref on H0 (*>>)
+14 Push the symb (name) itself on H0 (same as 10 bcs no tracining) (*)
+20 Move H0 to the named symbol (per se) and pop (restore) H0. (*)
    (? This is a little weird bcs it seems like you should be moving
       the value to the command itself!)   
+21 Move H0 to the cell named by symb, and pop (restore) H0. (*>)
+30 Pop the named stack (per se) (*)
+31 Pop the stack of the sym in the named cell (1st ref) (*>)
+32 Pop the stack of the 2nd derefed cell (*>>)
 40 Push down (preserve) the named symb (per se)
-50 Replace H0 by the symbol (name)
-70 Branch to symb name (per se) if H5-
+50 Replace H0 by the named symb (per se) (*)
+51 Replace H0 by the cell named in the H0 symb (*>)
+52 Replace H0 2nd deref (*>>)
+60 Set the symb name per se to H0 (or cell named by H0 if string) (*)
+64 Set the symb name per se to H0 (or cell named by H0 if string) (Same as 60 (no tracing)) (*)
+70 Branch to symb name (per se) if H5- (*)
 
 
 To Do (or at least think about):
