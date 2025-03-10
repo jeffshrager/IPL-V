@@ -971,12 +971,12 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
 (defun add-to-dlist (dlisthead att valcell &key (if-aleady-exists :replace)) ;; :error :allow-multiple
-  (loop attname = (if (stringp att) att
-		      (if (cell? att) (cell-name attcell)
-			  (error "In ADD-TO-DLIST, att must be a string or cell, but is ~s" att)))
+  (loop with attname = (if (stringp att) att
+			   (if (cell? att) (cell-name att)
+			       (error "In ADD-TO-DLIST, att must be a string or cell, but is ~s" att)))
 	with next-att-cell = (cell-symb dlisthead)
-	with last-val-cell = nil
-	until (blank? next-att-cell)
+	with last-val-cell = dlisthead ;; In case we fall through immediately
+	until (zero? next-att-cell)
 	do
 	(if (string-equal attname (cell-symb next-att-cell))
 	    (case if-aleady-exists
@@ -990,15 +990,17 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (setf last-val-cell (cell val-link))
 	  (setf next-att-cell (cell (cell-link last-val-cell))))
 	finally
-	;; If we got here we're holding the last val in last-val-cell and
-	;; need to append the new att and val.
+	;; If we got here we're holding the last val in last-val-cell
+	;; and need to append the new att and val. The one edge case
+	;; is if there are not atts at all, in which case
+	;; last-val-cell will be dlisthead ... which I hope is right!
 	(progn
 	  (setf (cell-link last-val-cell)
 		(cell-name (make-cell! :symb attname :link valcell)))
-	  (setf (cell-link val-cell) "0")
+	  (setf (cell-link last-val-cell) "0")
 	  (setf (H5) "+")
-	  (return t))
-	))
+	  (return t)))
+  )
 
 (defun dlist-of (listhead &key (create-if-does-not-exist? nil))
   (let* ((dlisthead (cell-symb listhead)))
@@ -1377,10 +1379,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-;(trace <== trace-cell-or-name?)
 (setf *trace-cell-names* '("H0" "W0"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
+(trace  add-to-dlist)
 (load-ipl "LTFixed.lisp" :adv-limit 100)
