@@ -29,6 +29,11 @@ PQ Meaning for all PQ used in LT:
 
 To Do (or at least think about):
 
+WWW Noting handles multiply-nested dlists!
+
+WWW A lot of code assumes that a list isn't branching -- e.g., DLIST
+processing.
+
 ??? FFF Should W24 (read/print line) be in an actual cell? Right now it's in a
 special global that can only process on line of I or O at a time.
 
@@ -534,7 +539,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; list. J11 will create the description list (with a local
 	;; name) if it does not exist (head of (2) empty). There is no
 	;; output in HO.
-    "Unimplemented!" (break "J11 is unimplemented!"))
+	(add-to-dlist (dlist-of (<== a2 :create-if-does-not-exist? t) :create-if-does-not-exist? t)
+		      (<== a0)
+		      ;; FFF ??? Maybe unrestrict this by auto-creating the cell?
+		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1))))
 
   (defj J20 () "MOVE(0)-(0) into W0-0" (J2n=move-0-to-n-into-w0-wn 0))
   (defj J21 () "MOVE(0)-(1) into W0-1" (J2n=move-0-to-n-into-w0-wn 1))
@@ -962,6 +970,44 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
+(defun add-to-dlist (dlisthead att valcell &key (if-aleady-exists :replace)) ;; :error :allow-multiple
+  (loop attname = (if (stringp att) att
+		      (if (cell? att) (cell-name attcell)
+			  (error "In ADD-TO-DLIST, att must be a string or cell, but is ~s" att)))
+	with next-att-cell = (cell-symb dlisthead)
+	with last-val-cell = nil
+	until (blank? next-att-cell)
+	do
+	(if (string-equal attname (cell-symb next-att-cell))
+	    (case if-aleady-exists
+	      (:replace (setf (cell-link next-att-cell) valcell) (setf (H5) "+") (return t))
+	      (:error (error "In ADD-TO-DLIST, att ~a already exits in ~s" att dlisthead))
+	      (:allow-multiple nil) ;; When we get to the end we'll add a new one.
+	      ))
+	(let* ((val-link (cell-link next-att-cell)))
+	  (if (blank? val-link)
+	      (error "In ADD-TO-DLIST, att ~a has no value in ~a" next-att-cell dlisthead))
+	  (setf last-val-cell (cell val-link))
+	  (setf next-att-cell (cell (cell-link last-val-cell))))
+	finally
+	;; If we got here we're holding the last val in last-val-cell and
+	;; need to append the new att and val.
+	(progn
+	  (setf (cell-link last-val-cell)
+		(cell-name (make-cell! :symb attname :link valcell)))
+	  (setf (cell-link val-cell) "0")
+	  (setf (H5) "+")
+	  (return t))
+	))
+
+(defun dlist-of (listhead &key (create-if-does-not-exist? nil))
+  (let* ((dlisthead (cell-symb listhead)))
+    (if (not (blank? dlisthead)) dlisthead
+	(if (not :create-if-does-not-exist?)
+	    (error "DLIST-OF wants there to already be a dlist in ~s" listhead)
+	    (setf (cell-symb listhead)
+		  (make-cell! :name (new-local-symbol (cell-name listhead)) :symb "0" :link "0"))))))
+	      
 (defun j181-helper-remove-non-numeric-except-first (s)
   (let* ((r (copy-seq " ")))
     (setf (aref r 0) (aref s 0))
