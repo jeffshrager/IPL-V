@@ -1336,5 +1336,5 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
-(setf *breaks* '("M089R270")) ;; If this is set to t (or '(t)) it break on every call
+(setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 (load-ipl "LTFixed.lisp" :adv-limit 100)
