@@ -1057,8 +1057,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun dlist-of (listhead &key (create-if-does-not-exist? nil))
   (let* ((dlisthead (cell-symb listhead)))
-    (if (not (blank? dlisthead)) (cell dlisthead)
-	(if (not :create-if-does-not-exist?)
+    (if (not (zero? dlisthead)) (cell dlisthead)
+	(if (not create-if-does-not-exist?)
 	    (error "DLIST-OF wants there to already be a dlist in ~s" listhead)
 	    (let* ((dlname  (new-local-symbol (cell-name listhead)))
 		   (dlhead (make-cell! :name dlname :symb "0" :link "0")))
@@ -1445,5 +1445,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
-;(trace add-to-dlist dlist-of)
+(trace add-to-dlist dlist-of)
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
+
+We are trying to figure out (among other things) why J11 is creating a
+ new DList in *101 to add Q18 (second att) rather than  adding it to
+ the existing dlist.
