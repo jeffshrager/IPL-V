@@ -608,6 +608,28 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	      (setf (H0) (cell link)) ;; (h5) is already + from above
 	      )))
 
+  (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
+	;; Identical to J66 except that it always inserts at the end
+	;; of the list.
+	(!! :jfns "J65 trying to append ~s to ~s~%" arg0 arg1)
+	(loop with list-cell = (<== arg1)
+	      with symb = (if (stringp arg0)
+			      arg0
+			      (if (cell? arg0)
+				  (cell-symb arg0)
+				  (break "Error in J66: ~a should be a symbol or cell!" arg0)))
+	      do
+	      (cond
+		    ((zero? (cell-link list-cell))
+		     (!! :jfns "J65 hit end, adding ~s to the list!~%" symb)
+		     (let* ((new-name (new-local-symbol)) ;; (cell-name list-cell)))
+			    (new-cell (make-cell! :name new-name :symb symb :link "0")))
+		       (setf (cell-link list-cell) new-name)
+		       (setf (cell new-name) new-cell)
+		       (return t))))
+	      ;; Move to next cell if nothnig above returned out
+	      (setf list-cell (cell (cell-link list-cell)))))
+
   (defj J66 (arg0 arg1) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
 	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
 	;; search of list (1) is made. against (0) (starting with the
@@ -773,12 +795,18 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (!! :jfns "J124: Clear (H0): ~s~%" H0)
 	  (setf (cell-link H0) 0)))
 
-  (defj J125 () "TALLY1 IN (0)"
-    ;; An integer 1 is added to the number (0). The type of the result is the
-    ;; same as the type of (0). It is left as the output (0).
-    (let ((H0 (<== (H0))))
-      (!! :jfns "J125: Tally (H0): ~s~%" H0)
-      (setf (cell-link H0) (1+ (cell-link H0)))))
+  (defj J125 () "TALLY 1 IN (0)"
+    ;; An integer 1 is added to the number (0). The type of the result
+    ;; is the same as the type of (0). It is left as the output
+    ;; (0). [NNN: If there is no value in (0) this assumes zero and
+    ;; set the number to 1"
+	(let* ((H0 (<== (H0)))
+	       (curval (cell-link H0)))
+	  (!! :jfns "J125: Tally (H0) currently: ~s~%" H0)
+	  (setf (cell-link H0)
+		(if (not (numberp curval))
+		    (progn (!! :jfns "Warning! J125 was send a non-number: ~s, stting result to 1~%" curval) 1)
+		    (1+ curval)))))
 
   (defj J130 (H0) "TEST IF (O) IS REGIONAL SYMBOL"
 	;; Tests if Q = 0 in H0.
@@ -921,10 +949,9 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J183 (arg0) "SET (0) TO NEXT BLANK"
 	(J183/4-Scanner arg0 :blank))
  
-  ;; J184 SET (0) TO NEXT NON-BLANK. Same as J183, except scans for any
-  ;; non-blank character.
-
   (defj J184 (arg0) "SET (0) TO NEXT NON-BLANK"
+	;; J184 SET (0) TO NEXT NON-BLANK. Same as J183, except scans for any
+	;; non-blank character.
 	(J183/4-Scanner arg0 :non-blank))
 
   (defj J186 () "INPUT LINE CHARACTER"
@@ -934,7 +961,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; zeroth symbol in the region designated by that character is
 	;; input; i.e., A->AO, 3->3. If the character is a blank,
 	;; there is no input and H5 is set - In either case, 1W25 is
-	;; not advanced.
+	;; not advanced. [??? Really ??? How is 1W25 advanced?!?
+	;; Hopefully the caller does it!]
 	(let* ((c (aref *W24-Line-Buffer* (1- (cell-link (cell "W25"))))))
 	  (!! :jfns "J186 read ~s~%" c)
 	  (if (blank? c)
@@ -958,7 +986,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
   (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
   (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
-  (defj J65 () "Unimplemented!" (break "J65 is unimplemented!"))
   (defj J75 () "Unimplemented!" (break "J75 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
@@ -1405,10 +1432,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-(setf *trace-cell-names* '("H0" "W0"))
+(setf *trace-cell-names* '("H0" "W25"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
-(trace add-to-dlist dlist-of)
+;(trace add-to-dlist dlist-of)
 (load-ipl "LTFixed.lisp" :adv-limit 100)
