@@ -970,7 +970,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; not advanced.
 	(let* ((c (aref *W24-Line-Buffer* (1- (cell-link (cell "W25"))))))
 	  (!! :jfns "J186 read ~s~%" c)
-	  (if (blank? c)
+	  (if (char-equal #\space c)
 	      (setf (H5) "-")
 	      (setf (H0) (make-cell! :name (new-local-symbol)
 				     :symb (format nil (if (numchar? c) "~c" "~c0") c))
