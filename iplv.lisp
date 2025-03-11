@@ -44,6 +44,8 @@ themselves, and/or not absorbing their inputs.
 FFF There's a hack for true blanks in both symb and link in LT:/016D070 to avoid
 the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 
+WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will be wrong.
+
 |#
 
 
@@ -608,6 +610,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	      (setf (H0) (cell link)) ;; (h5) is already + from above
 	      )))
 
+  ;; WWW If this tries to work with numeric data there's gonna be a
+  ;; problem bcs PQ will be wrong.
   (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
@@ -623,7 +627,8 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 		    ((zero? (cell-link list-cell))
 		     (!! :jfns "J65 hit end, adding ~s to the list!~%" symb)
 		     (let* ((new-name (new-local-symbol)) ;; (cell-name list-cell)))
-			    (new-cell (make-cell! :name new-name :symb symb :link "0")))
+			    ;; WWW If this tries to work with numeric data there's gonna be a problem!
+			    (new-cell (make-cell! :name new-name :pq "21" :symb symb :link "0")))
 		       (setf (cell-link list-cell) new-name)
 		       (setf (cell new-name) new-cell)
 		       (return t))))
@@ -805,7 +810,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  (!! :jfns "J125: Tally (H0) currently: ~s~%" H0)
 	  (setf (cell-link H0)
 		(if (not (numberp curval))
-		    (progn (!! :jfns "Warning! J125 was send a non-number: ~s, stting result to 1~%" curval) 1)
+		    (progn (!! :jfns "Warning! J125 was send a non-number: ~s, setting result to 1~%" curval) 1)
 		    (1+ curval)))))
 
   (defj J130 (H0) "TEST IF (O) IS REGIONAL SYMBOL"
@@ -962,8 +967,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; zeroth symbol in the region designated by that character is
 	;; input; i.e., A->AO, 3->3. If the character is a blank,
 	;; there is no input and H5 is set - In either case, 1W25 is
-	;; not advanced. [??? Really ??? How is 1W25 advanced?!?
-	;; Hopefully the caller does it!]
+	;; not advanced.
 	(let* ((c (aref *W24-Line-Buffer* (1- (cell-link (cell "W25"))))))
 	  (!! :jfns "J186 read ~s~%" c)
 	  (if (blank? c)
@@ -1089,13 +1093,15 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	(break "In ~a, asked to test a non-number: ~s from ~s (~s)." n cell sym))))
     
 ;;; !!! WWW OBIWAN UNIVERSE WITH LISP ZERO ORIGIN INDEXING WWW !!!
+;;; (NNN H0p might be deprecated FFF Remove?)
 
 (defun J183/4-Scanner (arg0 mode)
   (let* ((H0 (<== arg0))
 	 (w25p (cell-link (cell "W25")))
-	 (h0p (cell-link H0)))
-    (!! :jfns "Starting in J183/4-Scanner: H0 = ~s, w25p = ~a, h0p = ~%" H0 w25p h0p)
-    (if (not (numberp h0p)) (break "In J183/4 expected H0(p) (~a) to be a number.~%" (H0)))
+	 ;;(h0p (cell-link H0))
+	 )
+    (!! :jfns "Starting in J183/4-Scanner: H0 = ~s, w25p = ~a, h0p = ~%" H0 w25p) ;; h0p)
+    ;; (if (not (numberp h0p)) (break "In J183/4 expected H0(p) (~a) to be a number.~%" (H0)))
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
     (setf (H5) "-")
     (incf w25p)		    ;; Start at W25+1 (per manual)
@@ -1103,16 +1109,17 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	  ;; WWW OBIWON !!! The only place I should have to correct this is here (I hope!) 
 	  as char = (aref *W24-Line-Buffer* (1- w25p))
 	  do 
-	  (!! :jfns "Deep in J183/4-Scanner: w25p = ~a, char = ~s, h0p = ~%" w25p char h0p)
+	  (!! :jfns "Deep in J183/4-Scanner: w25p = ~a, char = ~s, h0p = ~%" w25p char) ;; h0p)
 	  (when (case mode
 		  (:blank (char-equal char #\space))
 		  (:non-blank (not (char-equal char #\space)))
 		  (t (error "!!! J183/4-Scanner given unknown mode: ~s" mode)))
-	    (setf (cell-link H0) h0p)
-	    ;;(setf (cell-link (cell "W25")) w25p) ;; I don't think that this gets reset !!! ???
+	    ;;(setf (cell-link H0) h0p)
+	    (setf (cell-link H0) w25p)
 	    (setf (H5) "+")
 	    (return t))
-	  (incf H0p) (incf w25p)
+	  ;; (incf H0p)
+	  (incf w25p)
 	  )))
 
 (defun scan-input-into-*W24-Line-Buffer* (line)
@@ -1433,10 +1440,10 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-(setf *trace-cell-names* '("H0" "W25"))
+;(setf *trace-cell-names* '("H0" "W25"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 ;(trace add-to-dlist dlist-of)
-(load-ipl "LTFixed.lisp" :adv-limit 100)
+(load-ipl "LTFixed.lisp" :adv-limit 10000)

@@ -1268,6 +1268,7 @@
 ("" "" "" "" "11" "W0" "" "" "M089R400")
 ("" "" "" "" "" "J6" "" "" "M089R410")
 ("ADD AT END OF LIST EXPRESSION," "" "" "" "" "J65" "" "" "M089R420")
+("Jeff: Put W25 back on H0" "" "" "" "11" "W25" "" "" "M089R422+Jeff")
 ("TALLY 1W25 AND LOOP FOR NEXT." "" "" "" "" "J125" "9-3" "" "M089R430")
 ("LOCATE FIRST OF SUFFIX." "" "9-6" "" "" "J184" "" "" "M089R440")
 ("   IF NONE, SKIP IT." "" "" "" "70" "9-7" "" "" "M089R480")
