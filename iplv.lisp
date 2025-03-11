@@ -932,6 +932,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	       (string (subseq *W24-Line-Buffer* start end)))
 	  ;; WWW Assumes that the target is alpha, which could be wrong in future applications!
 	  (setf (cell-symb arg0) string)
+	  (incf (cell-link w25) w30n)
 	  (!! :jfns "J182 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a] and jammed it into ~s~%" string start end *W24-Line-Buffer* w25p w30n arg0)
 	))
 
