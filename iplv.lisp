@@ -509,21 +509,22 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 	;; by a search and test of all attributes on the description list.)
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
 	(let* ((l (<== arg1))
-	       (dls (cell-symb l)))
+	       (dls (cell-symb l))
+	       (att-name (if (stringp arg0) arg0 (cell-symb arg0))))
 	  (if (zero? dls)
 	      (progn
 		(!! :jfns "In J10 -- no dl, so we're done with H5-~%")
 		(setf (H5) "-"))
 	      (loop with dl-attribute-cell = (cell (cell-link (<== dls))) ;; Note we're skipping the dl of the dl if any
 		    do
-		    (if (string-equal arg0 (cell-symb dl-attribute-cell))
+		    (if (string-equal att-name (cell-symb dl-attribute-cell))
 			(let* ((val (cell (cell-link dl-attribute-cell))))
-			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" arg0 dl-attribute-cell val) 
+			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" att-name dl-attribute-cell val) 
 			  (setf (H5) "+") (setf (H0) val) (return t))
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
 			      (progn
-				(!! :jfns "J10 failed to find ~s.~%" arg0)
+				(!! :jfns "J10 failed to find ~s.~%" att-name)
 				(setf (H5) "-") (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 				
@@ -926,6 +927,22 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J184 (arg0) "SET (0) TO NEXT NON-BLANK"
 	(J183/4-Scanner arg0 :non-blank))
 
+  (defj J186 () "INPUT LINE CHARACTER"
+	;; The character in column 1W25 of line 1W24 is input to HO,
+	;; H5 is set +. If the character is numerical, that internal
+	;; symbol is input; if the character is non-numerical, the
+	;; zeroth symbol in the region designated by that character is
+	;; input; i.e., A->AO, 3->3. If the character is a blank,
+	;; there is no input and H5 is set - In either case, 1W25 is
+	;; not advanced.
+	(let* ((c (aref *W24-Line-Buffer* (1- (cell-link (cell "W25"))))))
+	  (!! :jfns "J186 read ~s~%" c)
+	  (if (blank? c)
+	      (setf (H5) "-")
+	      (setf (H0) (make-cell! :name (new-local-symbol)
+				     :symb (format nil (if (numchar? c) "~c" "~c0") c))
+		    (H5) "+"))))
+
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
   (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
@@ -955,7 +972,6 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
   (defj J156 () "Unimplemented!" (break "J156 is unimplemented!"))
-  (defj J186 () "Unimplemented!" (break "J186 is unimplemented!"))
   (defj J62 () "Unimplemented!" (break "J62 is unimplemented!"))
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
@@ -1022,9 +1038,12 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
     (setf (aref r 0) (aref s 0))
     (loop as p from 1 to (1- (length s))
 	  as c = (aref s p)
-	  do (if (find c "0123456789")
+	  do (if (numchar? c)
 		 (setf r (format nil "~a~c" r c)))
 	  finally (return r))))
+
+(defun numchar? (c)
+  (find c "0123456789"))
 
 (defun j181-helper-is-regional-symbol? (string)
   (and (find (aref string 0) *LT-Regional-Chars*)
