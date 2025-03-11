@@ -971,44 +971,51 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
 (defun add-to-dlist (dlisthead att valcell &key (if-aleady-exists :replace)) ;; :error :allow-multiple
-  (loop with attname = (if (stringp att) att
-			   (if (cell? att) (cell-name att)
-			       (error "In ADD-TO-DLIST, att must be a string or cell, but is ~s" att)))
-	with next-att-cell = (cell-symb dlisthead)
-	with last-val-cell = dlisthead ;; In case we fall through immediately
-	until (zero? next-att-cell)
-	do
-	(if (string-equal attname (cell-symb next-att-cell))
-	    (case if-aleady-exists
-	      (:replace (setf (cell-link next-att-cell) valcell) (setf (H5) "+") (return t))
-	      (:error (error "In ADD-TO-DLIST, att ~a already exits in ~s" att dlisthead))
-	      (:allow-multiple nil) ;; When we get to the end we'll add a new one.
-	      ))
-	(let* ((val-link (cell-link next-att-cell)))
-	  (if (blank? val-link)
-	      (error "In ADD-TO-DLIST, att ~a has no value in ~a" next-att-cell dlisthead))
-	  (setf last-val-cell (cell val-link))
-	  (setf next-att-cell (cell (cell-link last-val-cell))))
-	finally
-	;; If we got here we're holding the last val in last-val-cell
-	;; and need to append the new att and val. The one edge case
-	;; is if there are not atts at all, in which case
-	;; last-val-cell will be dlisthead ... which I hope is right!
-	(progn
-	  (setf (cell-link last-val-cell)
-		(cell-name (make-cell! :symb attname :link valcell)))
-	  (setf (cell-link last-val-cell) "0")
-	  (setf (H5) "+")
-	  (return t)))
+ (!! :jfns "ADD-TO-DLIST entry: dlisthead = ~s, att=~s, valcell = valcell=~s~%" dlisthead att valcell)
+ (loop with dlist-name = (cell-name dlisthead)
+       with valcell-name = (cell-name valcell)
+       with attname = (if (stringp att) att
+			  (if (cell? att) (cell-name att)
+			      (error "In ADD-TO-DLIST, att must be a string or cell, but is ~s" att)))
+       with next-att-cell = (cell-symb dlisthead)
+       with last-val-cell = dlisthead ;; In case we fall through immediately
+       until (zero? next-att-cell)
+       do
+       (if (string-equal attname (cell-symb next-att-cell))
+	   (case if-aleady-exists
+	     (:replace (setf (cell-link next-att-cell) valcell-name) (setf (H5) "+") (return t))
+	     (:error (error "In ADD-TO-DLIST, att ~a already exits in ~s" att dlisthead))
+	     (:allow-multiple nil) ;; When we get to the end we'll add a new one.
+	     ))
+       (let* ((val-link (cell-link next-att-cell)))
+	 (if (blank? val-link)
+	     (error "In ADD-TO-DLIST, att ~a has no value in ~a" next-att-cell dlisthead))
+	 (setf last-val-cell (cell val-link))
+	 (setf next-att-cell (cell (cell-link last-val-cell))))
+       finally
+       ;; If we got here we're holding the last val in last-val-cell
+       ;; and need to append the new att and val. The one edge case
+       ;; is if there are not atts at all, in which case
+       ;; last-val-cell will be dlisthead ... which I hope is right!
+       (let*
+	   ((val-linking-cell (make-cell! :name (new-local-symbol dlist-name) :symb valcell-name :link "0"))
+	    (new-att-cell (make-cell! :name (new-local-symbol dlist-name) :symb attname :link (cell-name val-linking-cell))))
+	 (!! :jfns "ADD-TO-DLIST taking the finally option: last-val-cell=~s, val-linking-cell=~s, new-att-cell = ~s~%"
+	     last-val-cell val-linking-cell new-att-cell)
+	 (setf (cell-link last-val-cell) (cell-name new-att-cell))
+	 (setf (H5) "+")
+	 (return t)))
   )
 
 (defun dlist-of (listhead &key (create-if-does-not-exist? nil))
   (let* ((dlisthead (cell-symb listhead)))
-    (if (not (blank? dlisthead)) dlisthead
+    (if (not (blank? dlisthead)) (cell dlisthead)
 	(if (not :create-if-does-not-exist?)
 	    (error "DLIST-OF wants there to already be a dlist in ~s" listhead)
-	    (setf (cell-symb listhead)
-		  (make-cell! :name (new-local-symbol (cell-name listhead)) :symb "0" :link "0"))))))
+	    (let* ((dlname  (new-local-symbol (cell-name listhead)))
+		   (dlhead (make-cell! :name dlname :symb "0" :link "0")))
+	      (setf (cell-symb listhead) dlname)
+	      dlhead)))))
 	      
 (defun j181-helper-remove-non-numeric-except-first (s)
   (let* ((r (copy-seq " ")))
@@ -1370,7 +1377,7 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
 (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
-'(progn ;; Just quote this line to suppress these tests
+(progn ;; Just quote this line to suppress these tests
   (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
   (load-ipl "F1.lisp")
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
@@ -1384,5 +1391,5 @@ the load-time trap. Eventually, test for data mode 21 to allow both blanks.
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
-(trace  add-to-dlist)
+(trace add-to-dlist dlist-of)
 (load-ipl "LTFixed.lisp" :adv-limit 100)
