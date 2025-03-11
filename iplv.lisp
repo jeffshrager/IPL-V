@@ -542,10 +542,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; list. J11 will create the description list (with a local
 	;; name) if it does not exist (head of (2) empty). There is no
 	;; output in HO.
+	(lpll a2)
 	(add-to-dlist (dlist-of (<== a2 :create-if-does-not-exist? t) :create-if-does-not-exist? t)
 		      (<== a0)
 		      ;; FFF ??? Maybe unrestrict this by auto-creating the cell?
-		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1))))
+		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1)))
+	(lpll a2)
+	)
 
   (defj J20 () "MOVE(0)-(0) into W0-0" (J2n=move-0-to-n-into-w0-wn 0))
   (defj J21 () "MOVE(0)-(1) into W0-1" (J2n=move-0-to-n-into-w0-wn 1))
@@ -1025,10 +1028,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        with attname = (if (stringp att) att
 			  (if (cell? att) (cell-name att)
 			      (error "In ADD-TO-DLIST, att must be a string or cell, but is ~s" att)))
-       with next-att-cell = (cell-symb dlisthead)
+       with next-att-cell = (cell-link dlisthead)
        with last-val-cell = dlisthead ;; In case we fall through immediately
        until (zero? next-att-cell)
        do
+       (setf next-att-cell (cell next-att-cell)) ;; Can't do this above bcs need zero? check
+       (!! :jfns "ADD-TO-DLIST is checking next-att-cell=~s, last-val-cell=~s~%"
+	   next-att-cell last-val-cell)
        (if (string-equal attname (cell-symb next-att-cell))
 	   (case if-aleady-exists
 	     (:replace (setf (cell-link next-att-cell) valcell-name) (setf (H5) "+") (return t))
@@ -1039,7 +1045,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	 (if (blank? val-link)
 	     (error "In ADD-TO-DLIST, att ~a has no value in ~a" next-att-cell dlisthead))
 	 (setf last-val-cell (cell val-link))
-	 (setf next-att-cell (cell (cell-link last-val-cell))))
+	 (setf next-att-cell (cell-link last-val-cell)))
        finally
        ;; If we got here we're holding the last val in last-val-cell
        ;; and need to append the new att and val. The one edge case
