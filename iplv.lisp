@@ -26,6 +26,9 @@ PQ Meaning for all PQ used in LT:
 64 Set the symb name per se to H0 (or cell named by H0 if string) (Same as 60 (no tracing)) (*)
 70 Branch to symb name (per se) if H5- (*)
 
+It seems that all JFns will remove their inputs, e.g., p.10: "...it is
+understood from the definition of TEST that J2 will remove both (0)
+and (1) from HO."
 
 To Do (or at least think about):
 
@@ -473,8 +476,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; ===================================================================
 ;;; J-Functions. 
 
-;;; (WWW You's think we could pop the input args off H0 automatically,
-;;; but some IPL code leave the input args in place on purpose.)
+;;; WWW You's think we could pop the input args off H0 automatically,
+;;; but some IPL code leave the input args in place on purpose. See
+;;; PopH0 utility. Some jfns destroy the (0) by replacing it with the
+;;; output. In this case you don't want to pop bcs you'll lose the
+;;; result.
 
 (defmacro defj (name args explanation &rest forms)
   `(let ((uname ,(string-upcase (format nil "~a" name))))
@@ -485,7 +491,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun setup-j-fns ()
 
-  (defj J2 (arg0 arg1) "TEST (0) = (1)?" (setf (h5) (if (equal arg0 arg1) "+" "-")))
+  (defj J2 (arg0 arg1) "TEST (0) = (1)?"
+	(PopH0 2) (setf (h5) (if (equal arg0 arg1) "+" "-")))
   (defj J3 () "SET H5 -" (setf (H5) "-"))
   (defj J4 () "SET H5 +" (setf (H5) "+"))
   (defj J5 () "REVERSE H5"
@@ -501,7 +508,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J8 () "RESTORE H0" (^^ "H0"))
 
   ;; I don't think that this is necessary as we don't need to do our own GC.
-  (defj J9 () "ERASE CELL (0)" (!! :jfns "J9 is a noop as we don't need to do our own GC.~%"))
+  (defj J9 (a0) "ERASE CELL (0)"
+	(!! :jfns "J9 is a noop as we don't need to do our own GC.~%")
+	(poph0 1))
 
   (defj J10 (arg0 arg1) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)"
 	;; If the symbol (0) is on the description list of list (1) as an
@@ -509,6 +518,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; as (0) and H5 set + ; if not found, or if the description list
 	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
 	;; by a search and test of all attributes on the description list.)
+	(PopH0 2)
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
 	(let* ((l (<== arg1))
 	       (dls (cell-symb l))
@@ -542,14 +552,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; list. J11 will create the description list (with a local
 	;; name) if it does not exist (head of (2) empty). There is no
 	;; output in HO.
-	(lpll a2)
+	(PopH0 3)
 	(add-to-dlist (dlist-of (<== a2 :create-if-does-not-exist? t) :create-if-does-not-exist? t)
 		      (<== a0)
 		      ;; FFF ??? Maybe unrestrict this by auto-creating the cell?
-		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1)))
-	(lpll a2)
-	)
+		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1))))
 
+  ;; It's sort of unclear, but (p. 179) seems to imply that these
+  ;; remove the Hns: "Ten routines, J2 through J29, that provide block
+  ;; transfers out of HO into working storage." Note: "out of H0"
   (defj J20 () "MOVE(0)-(0) into W0-0" (J2n=move-0-to-n-into-w0-wn 0))
   (defj J21 () "MOVE(0)-(1) into W0-1" (J2n=move-0-to-n-into-w0-wn 1))
   (defj J22 () "MOVE(0)-(2) into W0-2" (J2n=move-0-to-n-into-w0-wn 2))
@@ -616,6 +627,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; WWW If this tries to work with numeric data there's gonna be a
   ;; problem bcs PQ will be wrong.
   (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
+	(PopH0 2)
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
 	(!! :jfns "J65 trying to append ~s to ~s~%" arg0 arg1)
@@ -646,6 +658,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; the list, as in J65. (??? What happens if the list
 	;; branches??? At the moment this can't do anything sensible
 	;; with a branching list!)
+	(PopH0 2)
 	(!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
 	(loop with list-cell = (<== arg1)
 	      with symb = (if (stringp arg0)
@@ -666,6 +679,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		       (return t))))
 	      ;; Move to next cell if nothnig above returned out
 	      (setf list-cell (cell (cell-link list-cell)))))
+
+  ;; =========== PopH0 figure up to here ===========
 
   (defj J73 (arg0) "Copy list"
 	;; COPYLIST (O). The output (0) names a new list, with the identical
@@ -894,6 +909,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (setf (cell-link (cell "W25")) (+ l p) ;; !!!!!!! WWWWWW OBIWAN !!!!!!!!
 		(H5) "+")))
 
+  (defj J161 (a0) "INCREMENT COLUMN BY (0)"
+	;; (0) is taken as the name of an integer data term. Current
+	;; entry column, 1W25, is set equal to 1W25 + (0).
+	(let ((w25 (cell "W25")))
+	  (setf (cell-link w25) (+ (cell-link (<== a0)) (cell-link w25)))))
   
   (defj J180 () "READ LINE J180 READLINE"
 	;; The next record on unit 1W18 is read to line 1W24. (The record is
@@ -1012,7 +1032,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
   (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
-  (defj J161 () "Unimplemented!" (break "J161 is unimplemented!"))
   (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
   (defj J64 () "Unimplemented!" (break "J64 is unimplemented!"))
   (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
@@ -1047,6 +1066,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;;; ===================================================================
 ;;; JFn Utilities
+
+;;; Used to pop the inputs of JFns. Usually you'll want to do this
+;;; before the operation because you'll often want to put a result
+;;; back on. Unfortunately, it's not consistent whether a jfn removes
+;;; all its args.
+
+(defun PopH0 (n) (dotimes (i n) (^^ "H0")))
 
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
@@ -1167,7 +1193,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (setf (cell "W0") (H0))
   (loop for nn from 1 to n ;; Won't do anything if n=0
 	as val in (H0+)
-	do (setf (cell (format nil "W~a" nn)) val)))
+	do (setf (cell (format nil "W~a" nn)) val))
+  (PopH0 n))
 
 (defun J3n=restore-wn (n)
   (loop for nn from 0 to n do (^^ (format nil "W~a" nn))))
@@ -1177,7 +1204,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun J5n=preserve-wn-then-move-0-n-into-w0-wn (n)
   (J4n=preserve-wn n)
-  (J2n=move-0-to-n-into-w0-wn n))
+  (J2n=move-0-to-n-into-w0-wn n)
+  )
 
 (defvar *copy-list-collector* nil)
 
@@ -1475,7 +1503,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-(setf *trace-cell-names* '("H1"))
+;(setf *trace-cell-names* '("H1"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
@@ -1483,6 +1511,4 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (trace add-to-dlist dlist-of)
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
 
-We are trying to figure out (among other things) why J11 is creating a
- new DList in *101 to add Q18 (second att) rather than  adding it to
- the existing dlist.
+
