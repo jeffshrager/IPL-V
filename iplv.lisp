@@ -891,8 +891,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(line-print-linear-list arg0))
 
   (defj J152 () "PRINT SYMBOL (0)"
-	(PopH0 1)
-	(line-print-cell (H0)))
+	;; Pop after!!
+	(line-print-cell (H0))
+	(PopH0 1))
 
   (defj J154 () "Clear print line"
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
