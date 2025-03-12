@@ -754,15 +754,28 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; (1) as input. The order is the order on the list, starting with the first
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
+	(!! :jfns "J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg0 arg1)
 	(loop with cell-name = (cell-link (<== arg1))
 	      with cell
+	      with exec-cell = (make-cell! :symb arg0 :link "0")
 	      until (zero? cell-name)
-	      do 
+	      do ;; FFF %%% There's a mofit here that could be
+		 ;; captured in a macro, of getting the name to check
+		 ;; for zero? and then when it's not zero, getting the
+		 ;; cell.
 	      (setf cell (cell cell-name))
-	      (vv "H0" (cell-symb (cell cell)))
+	      ;; Push the arg
+	      (vv "H0" (cell-symb cell))
 	      (setf (H5) "+")
-	      (ipl-eval arg0)
+	      ;; Call the routine
+	      (!! :jfns "J100 is applying ~s to ~s~%" arg0 (H0))
+	      ;; Unfortunately, ipl-eval needs a start cell. If we are
+	      ;; given a symbol here, we need to wrap it in a dummy
+	      ;; execution cell with an immediate pop.
+	      (ipl-eval exec-cell)
+	      ;; Pop the result
 	      (^^ "H0")
+	      ;; Move to next cell (name)
 	      (setf cell-name (cell-link cell))
 	      ))
 
@@ -865,6 +878,23 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(!! :io "J155 Print Line ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^~%")
 	)
 
+  (defj J157 (a0) "ENTER DATA TERM (0) LEFT-JUSTIFIED"
+	;; Data term (0) is entered in the current print line with its
+	;; leftmost character in print position 1W25, 1W25 is
+	;; advanced, and H5 is set + . If (0) exceeds the remaining
+	;; space, no entry is made and H5 is set - .
+	(!! :jfns "J157 called on ~s~%" a0)
+	(let* ((s (cell-symb (<== a0)))
+	       (l (length s))
+	       (p (cell-link (cell "W25"))))
+	  (when (> (+ l p) 80) (setf (H5) "-") (return nil))
+	  (loop for c across s
+		as i from p by 1
+		do (setf (aref *W24-Line-Buffer* i) c))
+	  (setf (cell-link (cell "W25")) (+ l p) ;; !!!!!!! WWWWWW OBIWAN !!!!!!!!
+		(H5) "+")))
+
+  
   (defj J180 () "READ LINE J180 READLINE"
 	;; The next record on unit 1W18 is read to line 1W24. (The record is
 	;; assumed to be BCD, 80 cols.) Column 1 of the record is read into
@@ -984,7 +1014,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
   (defj J161 () "Unimplemented!" (break "J161 is unimplemented!"))
   (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
-  (defj J157 () "Unimplemented!" (break "J157 is unimplemented!"))
   (defj J64 () "Unimplemented!" (break "J64 is unimplemented!"))
   (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
   (defj J7 () "Unimplemented!" (break "J7 is unimplemented!"))
@@ -1345,16 +1374,16 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
      (loop for name in *trace-cell-names*
 	   do (format t "** Tracing ~s = ~s~%**   :: ~s~%" name (cell name) (first-n 5 (gethash name *systacks*))))
      (if (and *adv-limit* (zerop (decf *adv-limit*)))
-	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!"))
+	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!~%"))
      (incf (cell-link (cell "H3")))
      (when (string-equal (cell-symb (h1)) "exit")
-       (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^")
-       (^^ "H1") (return))
+       (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^~%")
+       (return))
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
      (setf link (cell-link (H1)))
-   ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK (link=~s)" link)
+   ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK (link=~s)~%" link)
      (clean-stacks)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
      (if (zero? link) (go ASCEND))
@@ -1446,7 +1475,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-;(setf *trace-cell-names* '("H0" "W25"))
+(setf *trace-cell-names* '("H1"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
