@@ -32,6 +32,8 @@ and (1) from HO."
 
 To Do (or at least think about):
 
+FFF Normalize the poph0 (to the extent possible) and fold into DefJ?
+
 WWW Noting handles multiply-nested dlists!
 
 WWW A lot of code assumes that a list isn't branching -- e.g., DLIST
@@ -492,7 +494,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun setup-j-fns ()
 
   (defj J2 (arg0 arg1) "TEST (0) = (1)?"
-	(PopH0 2) (setf (h5) (if (equal arg0 arg1) "+" "-")))
+	;; Pop?
+	(setf (h5) (if (equal arg0 arg1) "+" "-")))
   (defj J3 () "SET H5 -" (setf (H5) "-"))
   (defj J4 () "SET H5 +" (setf (H5) "+"))
   (defj J5 () "REVERSE H5"
@@ -680,8 +683,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      ;; Move to next cell if nothnig above returned out
 	      (setf list-cell (cell (cell-link list-cell)))))
 
-  ;; =========== PopH0 figure up to here ===========
-
   (defj J73 (arg0) "Copy list"
 	;; COPYLIST (O). The output (0) names a new list, with the identical
 	;; symbols in the cells as are in the corresponding cells of list (0),
@@ -718,16 +719,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; has no list cells, then the output (0) is the input (1) and H5 is set
 	;; -. [Again, I think that this is intended only to work on linear lists
 	;; since there's no "last symbol" in a non-linear list.]
+	(PopH0 2)
 	(let* ((l0 (<== arg0))
 	       (c1 (<== arg1))
 	       (c1link (cell-link c1))
 	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
 	  (cond ((zero? (cell-link l0))
-		 (setf (h0) c1)
+		 (vv (h0) c1)
 		 (setf (h5) "-"))
 		(t (setf (cell-link c1) (cell-link l0))
 		   (setf (cell-link last-cell-in-l0) c1link)
-		   (setf (h0) last-cell-in-l0)))))
+		   (vv (h0) last-cell-in-l0)))))
 
   ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <= n <= 9. (Ten routines: J80-J89)
   ;; Set H5 + if the nth symbol exists, - if not. Assume list (0) describable,
@@ -769,6 +771,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; (1) as input. The order is the order on the list, starting with the first
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
+	(PopH0 2) ;; WWW ???
 	(!! :jfns "J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg0 arg1)
 	(loop with cell-name = (cell-link (<== arg1))
 	      with cell
@@ -788,15 +791,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      ;; given a symbol here, we need to wrap it in a dummy
 	      ;; execution cell with an immediate pop.
 	      (ipl-eval exec-cell)
-	      ;; Pop the result
-	      (^^ "H0")
+	      ;; Pop the arg
+	      (^^ "H0") 
 	      ;; Move to next cell (name)
 	      (setf cell-name (cell-link cell))
 	      ))
 
   (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)."
-	;; The number (0) is set equal to the a gebraic difference between numbers
+	;; The number (0) is set equal to the algebraic difference between numbers
 	;; (1) and (2). The output (0) is the input (0).
+	;; *** WWW (PopH0 2) -- Ackermann fails if this gets done!!! *** WWW
+	;;     and it's unclear how to do is anyway, because it says it changes (0) *** ???
 	(let* ((n1 (num?get arg1))
 	       (n2 (num?get arg2))
 	       (r (- n1 n2)))
@@ -813,6 +818,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; COPY (0). The output (0) names a new cell containing the
 	;; identical contents to (0). The name is local if the input
 	;; (0) is local; otherwise, it is internal.
+	;; (No pop bcs H0 is replaced -- Maybe pop and push?)
 	(let* ((old-cell (<== (H0)))
 	      (new-cell (copy-cell old-cell))
 	      (new-name (new-local-symbol)))
@@ -827,15 +833,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; The number (0) is set to be 0. If the ce 1is not a data term, it is
 	;; made an in- teger data term= 0. If a number, its type, integer, or
 	;; floating point, is unaffected. It is left as the output (0).
+	;; (No pop bcs H0 is replaced -- Maybe pop and push?)
 	(let ((H0 (<== (H0))))
 	  (!! :jfns "J124: Clear (H0): ~s~%" H0)
 	  (setf (cell-link H0) 0)))
 
   (defj J125 () "TALLY 1 IN (0)"
-    ;; An integer 1 is added to the number (0). The type of the result
-    ;; is the same as the type of (0). It is left as the output
-    ;; (0). [NNN: If there is no value in (0) this assumes zero and
-    ;; set the number to 1"
+	;; An integer 1 is added to the number (0). The type of the result
+	;; is the same as the type of (0). It is left as the output
+	;; (0). [NNN: If there is no value in (0) this assumes zero and
+	;; set the number to 1"
+	;; (No pop)
 	(let* ((H0 (<== (H0)))
 	       (curval (cell-link H0)))
 	  (!! :jfns "J125: Tally (H0) currently: ~s~%" H0)
@@ -846,14 +854,16 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J130 (H0) "TEST IF (O) IS REGIONAL SYMBOL"
 	;; Tests if Q = 0 in H0.
+	;; No Pop H0
 	(if (zerop (getpq :q (cell-pq (<== H0))))
 	    (setf (H5) "+") (setf (H5) "-")))
 
-  (defj J136 (H0) "MAKE SYMBOL(O) LOCAL."
+  (defj J136 (H0) "MAKE SYMBOL (O) LOCAL."
 	;; The output (0) is the input (0) with Q = 2. Since all
 	;; copies of this symbol carry along the Q value, if a symbol
 	;; is made local when created, it will be local in all its
 	;; occurrences. [I have no idea what his last sentence means!]
+	;; (No pop bcs H0 is modified)
 	(let ((cell (<== H0 :create-if-does-not-exist? t)))
 	  (setf (cell-pq cell)
 		(let* ((pq (cell-pq cell))
@@ -867,6 +877,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE."
 	;; Identical to J147, except uses Q = 4.
+	;; Pop????
 	(!! :jfns "J148 (MARK ROUTINE (0) TO PROPAGATE TRACE.) is a noop."))
 
   ;; Input and output are completely kludged, and unlike in original IPL. Partly
@@ -876,9 +887,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; input/output buffer and it's used for all input and output.
 
   (defj J151 (arg0) "Print list (0)"
+	(PopH0 1)
 	(line-print-linear-list arg0))
 
   (defj J152 () "PRINT SYMBOL (0)"
+	(PopH0 1)
 	(line-print-cell (H0)))
 
   (defj J154 () "Clear print line"
@@ -898,6 +911,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; leftmost character in print position 1W25, 1W25 is
 	;; advanced, and H5 is set + . If (0) exceeds the remaining
 	;; space, no entry is made and H5 is set - .
+	(poph0 1)
 	(!! :jfns "J157 called on ~s~%" a0)
 	(let* ((s (cell-symb (<== a0)))
 	       (l (length s))
@@ -912,6 +926,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J161 (a0) "INCREMENT COLUMN BY (0)"
 	;; (0) is taken as the name of an integer data term. Current
 	;; entry column, 1W25, is set equal to 1W25 + (0).
+	(poph0 1)
 	(let ((w25 (cell "W25")))
 	  (setf (cell-link w25) (+ (cell-link (<== a0)) (cell-link w25)))))
   
@@ -963,6 +978,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		(setf (H5) "-")))))
 
   (defj J182 (arg0) "INPUT LINE DATATERM (0)"
+	;; Pop???
 	;; J182 INPUT LINE DATA TERM (0). The field specified as J181
 	;; is taken as the value of a data term. Input data term (0)
 	;; is set to that value and left as output (0). H5 is set +.
@@ -1497,12 +1513,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (progn ;; Just quote this line to suppress these tests
   (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
   (load-ipl "F1.lisp")
+  (trace ipl-eval)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
+  (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
       (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
+(untrace)
 ;(setf *trace-cell-names* '("H1"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
