@@ -2,6 +2,30 @@
 
 #|
 
+Current issue:
+
+At P050R020::{P50+39139/70/J8/P50+39140} called from calls J8 correctly (although
+it doesn't tell us that it's doing it, but tracing J8 tells us tht it
+does). But and then returns -- I guess correctly to X1-9-2
+
+Here's the seq:
+
+!![RUN]::>>>>>>>>>> Executing: {P050R010::P50+43534//P15/P50+43535 [INTERNAL (TREE) FORM IF IN/]} (9736)
+!![RUN]::>>>>>>>>>> Executing: {P015R000::P15//Q15/P15+43382 [P15 TEST IF (V) IS IN /]} (9736)
+!![RUN]::>>>>>>>>>> Executing: {Q015R000::Q15/10/Q15/J10 [Q15 ATTRIBUTE INTERNAL FORM./]} (9736)
+!![RUN]::>>>>>>>>>> Calling Q15 [NIL] (ARG0 ARG1) = ("Q15" "*101")
+!![JFNS]::In J10 trying to find the value of "Q15" in "*101"!
+!![JFNS]::J10 failed to find "Q15".
+!![RUN]::>>>>>>>>>> Executing: {P015R010::P15+43382/70/0/J8 [   INTERNAL (TREE) FORM./]} (9734)
+!![RUN]::>>>>>>>>>> Executing: {P050R020::P50+43535/70/J8/P50+43536 [EXTERNAL (LIST) FORM. ENTIRE/]} (9733)
+"[Invisible J8 call]"
+!![RUN]::>>>>>>>>>> Executing: {X001R140::X1+44155/70/X1-9-2/X1+44156} (9732)
+!![RUN]::>>>>>>>>>> Executing: {X001R160::X1-9-2//X1-9-100/X1-9-1 [TAKE ACTION, TRY FOR ANOTHER/]} (9732)
+!![RUN]::>>>>>>>>>> Executing: {X001R300::X1-9-100/40/H0/X1+44168 [BAD INPUT ACTION./]} (9732)
+
+(Note the J8 error popping stack motif!)
+
+
 PQ Meaning for all PQ used in LT:
 ---------------------------------
 00 (blank) Execute fn named by symb name per se (*)
@@ -772,7 +796,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
 	(PopH0 2) ;; WWW ???
-	(!! :jfns "J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg0 arg1)
+	(!! :jfns "J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg1 arg0)
 	(loop with cell-name = (cell-link (<== arg1))
 	      with cell
 	      with exec-cell = (make-cell! :symb arg0 :link "0")
@@ -1335,7 +1359,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   )
 
 (defun ipl-eval (start-cell)
-  (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-cell)
+  (!! :run "vvvvvvvvvvvvvvv Entering IPL-EVAL at ~s~%" start-cell)
   (prog (cell pq q p symb link)
      (setf (h1) (make-cell! :name (gensym) :symb "exit"))
      (vv "H1" start-cell) ;; Where we're headed this time in.
@@ -1356,7 +1380,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 				    as val in (h0+)
 				    collect val)))))
 	 (when *fname-hint* 
-	   (!! :run ">>>>>>>>>> Calling ~a [~a]~%           ~s = ~s~%"
+	   (!! :run (if arglist ">>>>>>>>>> Calling ~a [~a] w/~s=~s~%" ">>>>>>>>>> Calling ~a [~a] (No Args)~*~*~%")
 	       *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args)
 	   (maybe-break? *fname-hint*)
 	   (setf *fname-hint* nil)
@@ -1429,6 +1453,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
      ;; to INTERPRET-Q.
      (setf link (cell-link (H1)))
    ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK (link=~s)~%" link)
+     (setf *fname-hint* link)
      (clean-stacks)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
      (if (zero? link) (go ASCEND))
@@ -1530,5 +1555,3 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 (trace add-to-dlist dlist-of)
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
-
-
