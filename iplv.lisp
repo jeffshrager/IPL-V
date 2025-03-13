@@ -261,7 +261,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (define-symbol-macro rsc* (report-system-cells t))
 (define-symbol-macro rcs (report-system-cells))
 (define-symbol-macro rcs* (report-system-cells t))
-
+(define-symbol-macro lb *W24-Line-Buffer*)
 (defun illegal-value? (val) ;; Might be other conditions.
   (or (null val) (and (stringp val) (string-equal val ""))))
 
@@ -1428,7 +1428,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; it.)
 	(setf (H0) (<== (s)))
 	)
-       (6 (setf (s) (cell-symb (H0))))      ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
+       (6 (setf (s) (cell-symb (<== (H0)))))      ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)

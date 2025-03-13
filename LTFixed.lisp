@@ -1818,7 +1818,7 @@
 ("" "1" "" "" "" "" "" "" "    R")
 ("P50 CONVERT LOGIC EXPRESSION (0) TO" "" "P50" "" "40" "H0" "" "" "P050R000")
 ("INTERNAL (TREE) FORM IF IN" "" "" "" "" "P15" "" "" "P050R010")
-("EXTERNAL (LIST) FORM. ENTIRE" "" "" "" "70" "J8" "" "" "P050R020")
+("EXTERNAL (LIST) FORM. ENTIRE" "" "" "" "70" "" "J8" "" "P050R020") ;; Err!
 ("EXPRESSION MUST BE ENCLOSED" "" "" "" "" "J41" "" "" "P050R030")
 ("IN PARENTHESES. NO OUTPUT." "" "" "" "60" "W0" "" "" "P050R040")
 ("H5- MEANS FAILURE." "" "" "" "" "P51" "" "" "P050R050")
