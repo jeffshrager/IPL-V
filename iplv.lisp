@@ -517,6 +517,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun setup-j-fns ()
 
+  (defj J0 () "No operation")
   (defj J2 (arg0 arg1) "TEST (0) = (1)?"
 	;; Pop?
 	(setf (h5) (if (equal arg0 arg1) "+" "-")))
@@ -650,6 +651,35 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (setf (h5) "-")
 	      (setf (H0) (cell link)) ;; (h5) is already + from above
 	      )))
+
+  (defj J62 (target list-head-cell-or-its-name) "LOCATE (O) ONLIST (1)"
+	;; LOCATE (0) ON LIST (1). A search of list with name (1) is made,
+	;; testing each symbol against (0) (starting with cell after cell
+	;; (1)). If (0) is found, the output (0) is the name of the cell
+	;; containing it and H5 is set + . Hence, J62 locates the first
+	;; occurrence of (0) if there are several. If (0) is not found,
+	;; the output (0) is the name of the last cell on the list, and H5
+	;; set - .  This is a bit of a problem, because the target could
+	;; be a cell name or a string, which is ambiguous if we're handed
+	;; a string. We heuristically see if the string can be a cell, in
+	;; which case we use that cell's symb.
+	(poph0 1)
+	(let* ((inlink (if (cell? list-head-cell-or-its-name)
+			   (cell-name list-head-cell-or-its-name)
+			   (if (stringp list-head-cell-or-its-name)
+			       list-head-cell-or-its-name
+			       (break "J62 wants a cell name as the list entry to start at but got ~s"
+				      list-head-cell-or-its-name))))
+	       (incell (cell inlink))
+	       (target (if (cell? target) (cell-symb target)
+			   (if (stringp target)
+			       (if (gethash target *symtab*) (cell target) 
+				   target)
+			       (break "J62 wants a string target but got ~s" target))))
+	       )
+	  (!! :jfns "J62 trying to locate target:~s in linear list starting with cell ~s~%" target incell)
+	  (setf (H0) ;; The H5 has to be set in the subfn
+		(j62-helper-search-list-for-symb target incell inlink))))
 
   ;; WWW If this tries to work with numeric data there's gonna be a
   ;; problem bcs PQ will be wrong.
@@ -1092,11 +1122,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J15 () "Unimplemented!" (break "J15 is unimplemented!"))
   (defj J166 () "Unimplemented!" (break "J166 is unimplemented!"))
-  (defj J0 () "Unimplemented!" (break "J0 is unimplemented!"))
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
   (defj J156 () "Unimplemented!" (break "J156 is unimplemented!"))
-  (defj J62 () "Unimplemented!" (break "J62 is unimplemented!"))
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
 
@@ -1167,6 +1195,35 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (setf (cell-symb listhead) dlname)
 	      dlhead)))))
 	      
+;;; This'd be a LOT simpler on a linear list! In fact, let's just
+;;; assume that it's a linear list for now until proved
+;;; otherwise. It'd be hard to tell what the meaning of "search" is on
+;;; a non-linear list.
+
+(defun j62-helper-search-list-for-symb (target-symb incell inlink)
+  (loop until (zero? inlink)
+	do 
+	(when (string-equal (cell-symb incell) target-symb)
+	  (setf (H5) "+")
+	  (return inlink))
+	(setf inlink (cell-link incell) incell (cell inlink))
+	finally (progn (setf (H5) "-") (return incell))))
+
+  #|
+
+  This was an attempt to do this on a tree:
+
+  (if (zero? inlink) (progn (setf (H5) "-") inlink)
+      (let* ((incell (cell inlink)))
+	(if (string-equal (cell-symb incell) target-symb)
+	    (cell-name incell)
+	    ;; Here's where it'd be useful to know when something is a data cell!
+	    (or (let ((r (j62-helper-search-list-for-symb target-symb (cell-symb incell))))
+		  (when r (setf (H5) "+") r))
+		(let ((r (j62-helper-search-list-for-symb target-symb (cell-link incell))))
+		  (j62-helper-search-list-for-symb target-symb (cell-symb incell)))))))
+|#
+
 (defun j181-helper-remove-non-numeric-except-first (s)
   (let* ((r (copy-seq " ")))
     (setf (aref r 0) (aref s 0))
