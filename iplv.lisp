@@ -178,7 +178,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun store (cell &optional (name (cell-name cell)))
   (!! :deep-memory "== Store ==> ~s [mem]~%" cell)
-  ;;(trace-cell-or-name? name)
   (setf (gethash name *symtab*) cell)
   cell)
   
@@ -203,6 +202,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (pprint (gethash (car names) *systacks*))
 	  (format t "============================~%"))
 	))))
+
+;;; This is used in the internals of the interpreter so it has to be efficient.
+
+(defun trace-cells ()
+  (when *trace-cell-names* (format t "========= CELL TRACE:~%"))
+  (loop for name in *trace-cell-names* do (format t "   ~a=~s |" name (cell name)))
+  (when *trace-cell-names* (format t "~%"))
+  (loop for name in *trace-cell-names* do (format t "      ~a+=~s~%" name (first-n 5 (gethash name *systacks*)))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -549,15 +556,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; by a search and test of all attributes on the description list.)
 	(PopH0 2)
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
-	(let* ((l (<== arg1))
-	       (dls (cell-symb l))
+	(let* ((list-head (<== arg1))
+	       (dlist-name (cell-symb list-head))
 	       (att-name (if (stringp arg0) arg0 (cell-symb arg0))))
-	  (if (zero? dls)
+	  (!! :jfns "In J10 list-head = ~s, dlist-name = ~s, att-name = ~s~%" list-head dlist-name att-name)
+	  (if (zero? dlist-name)
 	      (progn
 		(!! :jfns "In J10 -- no dl, so we're done with H5-~%")
 		(setf (H5) "-"))
-	      (loop with dl-attribute-cell = (cell (cell-link (<== dls))) ;; Note we're skipping the dl of the dl if any
-		    do
+	      (loop with dl-attribute-cell = (cell (cell-link (<== dlist-name)))
+		    do ;; Note we're skipping the dl of the dl if any
+		    (!! :jfns "In J10 dl-attribute-cell = ~s~%" dl-attribute-cell)
 		    (if (string-equal att-name (cell-symb dl-attribute-cell))
 			(let* ((val (cell (cell-link dl-attribute-cell))))
 			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" att-name dl-attribute-cell val) 
@@ -568,8 +577,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 				(!! :jfns "J10 failed to find ~s.~%" att-name)
 				(setf (H5) "-") (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
-				
-
 
   (defj J11 (a0 a1 a2) "ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)"
 	;; After J11, the symbol (1) is on the description list of
@@ -585,7 +592,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(add-to-dlist (dlist-of (<== a2 :create-if-does-not-exist? t) :create-if-does-not-exist? t)
 		      (<== a0)
 		      ;; FFF ??? Maybe unrestrict this by auto-creating the cell?
-		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1))))
+		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1)))
+	)
 
   ;; It's sort of unclear, but (p. 179) seems to imply that these
   ;; remove the Hns: "Ten routines, J2 through J29, that provide block
@@ -1455,7 +1463,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 				    as val in (h0+)
 				    collect val)))))
 	 (when *fname-hint* 
-	   (!! :run (if arglist ">>>>>>>>>> Calling ~a [~a] w/~s=~s~%" ">>>>>>>>>> Calling ~a [~a] (No Args)~*~*~%")
+	   (!! :run (if arglist ">>>>>>>>>> Calling ~a [~a]~%   ~s=~s~%"
+			">>>>>>>>>> Calling ~a [~a] (No Args)~*~*~%")
 	       *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args)
 	   (maybe-break? *fname-hint*)
 	   (setf *fname-hint* nil)
@@ -1516,8 +1525,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        (5 (setf link (s)) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (!! :run-full "-----> At ADVANCE")
-     (loop for name in *trace-cell-names*
-	   do (format t "** Tracing ~s = ~s~%**   :: ~s~%" name (cell name) (first-n 5 (gethash name *systacks*))))
+     (trace-cells)
      (if (and *adv-limit* (zerop (decf *adv-limit*)))
 	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!~%"))
      (incf (cell-link (cell "H3")))
@@ -1555,8 +1563,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (setf *fname-hint* (s))
      (vv "H1" (cell (s)))
-     (loop for name in *trace-cell-names*
-	   do (format t "** Tracing ~s = ~s~%**   :: ~s~%" name (cell name) (first-n 5 (gethash name *systacks*))))
+     (trace-cells)
      (go INTERPRET-Q)
    BRANCH 
      (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (h5) (s))
@@ -1631,5 +1638,5 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 ;(trace add-to-dlist dlist-of)
-;(setf *trace-cell-names* '("W0" "W1" "H0"))
+(setf *trace-cell-names* '("W0" "W1" "H0"))
 (load-ipl "LTFixed.lisp" :adv-limit 10000)

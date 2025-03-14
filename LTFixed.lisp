@@ -2686,7 +2686,7 @@
 ("" "" "" "" "10" "X22" "" "" "X001R070")
 ("" "" "" "" "10" "J148" "" "" "X001R080")
 ("MARK TO PROPAGATE TRACE." "" "" "" "" "J100" "" "" "X001R090")
-("GET NEXT TRUE TEX FROM" "" "" "" "" "M89" "" "" "X001R100")
+("GET NEXT TRUE TEX FROM" "" "9-1" "" "" "M89" "" "" "X001R100")
 ("INPUT UNIT IF ANY LEFT." "" "" "" "70" "9-10" "" "" "X001R110")
 ("" "" "" "" "40" "H0" "" "" "X001R120")
 ("CONVERT TO TREE FORM." "" "" "" "" "P50" "" "" "X001R130")
