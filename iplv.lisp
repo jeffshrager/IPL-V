@@ -128,8 +128,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; push/pop things that aren't stacks!
 
 (defmacro cell (symb) `(gethash ,symb *symtab*))
-(defmacro stack (symb) `(gethash ,symb *systacks*)) ;; Only system cells have stacks
 (defun cell? (cell?) (eq 'cell (type-of cell?)))
+(defmacro stack (symb) `(gethash ,symb *systacks*)) ;; Only system cells have stacks
+
 
 ;;; Important values it have special macros (these are like (H0) = (0)
 ;;; in the IPL-V manual). The ...+ fns return the whole stack. (Note
@@ -681,6 +682,25 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (setf (H0) ;; The H5 has to be set in the subfn
 		(j62-helper-search-list-for-symb target incell inlink))))
 
+  (defj J63 (symbol-or-cell list-cell-or-name) "INSERT (0) BEFORE SYMBOL IN (1)"
+	;; (1) is assumed to name a cell in a list. A new cell is
+	;; inserted in the list behind (1). The symbol in (1) is
+	;; moved into the new cell, and (0) is put into (1). The end
+	;; result is that (0) occurs in the list before the symbol
+	;; that was originally in cell (1).
+	(let* ((list-cell (<== list-cell-or-name))
+	       (new-cell-name (new-local-symbol))
+	       (list-cell-symbol (cell-symb list-cell))
+	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell)))
+	       )
+	  (if (cell? symbol-or-cell) (setf symbol-or-cell (cell-symb symbol-or-cell)))
+	  (setf (cell-symb list-cell) symbol-or-cell
+		(cell-link list-cell) new-cell-name))
+	(poph0 2))
+
+;;;	INSERT (0) AFTER SYMBOL IN (1). Identical with J63, except the symbol in (1) is left in (1), and (0) is put into the new cell, thus occurring after the symbol in (1). (If (1) is a private termination symbol, (0) is put in cell (1), which agrees with the definition of insert after.) 
+
+
   ;; WWW If this tries to work with numeric data there's gonna be a
   ;; problem bcs PQ will be wrong.
   (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
@@ -1102,9 +1122,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
-  (defj J2 () "Unimplemented!" (break "J2 is unimplemented!"))
   (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
-  (defj J64 () "Unimplemented!" (break "J64 is unimplemented!"))
   (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
   (defj J7 () "Unimplemented!" (break "J7 is unimplemented!"))
   (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
@@ -1485,7 +1503,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; it.)
 	(setf (H0) (<== (s)))
 	)
-       (6 (setf (s) (cell-symb (<== (H0)))))      ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
+       (6 ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
+	(setf (cell (s)) (cell-symb (<== (H0)))))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
@@ -1536,6 +1555,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (setf *fname-hint* (s))
      (vv "H1" (cell (s)))
+     (loop for name in *trace-cell-names*
+	   do (format t "** Tracing ~s = ~s~%**   :: ~s~%" name (cell name) (first-n 5 (gethash name *systacks*))))
      (go INTERPRET-Q)
    BRANCH 
      (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (h5) (s))
@@ -1605,10 +1626,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   )
 
 (untrace)
-;(setf *trace-cell-names* '("H1"))
 (setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
-(trace add-to-dlist dlist-of)
+;(trace add-to-dlist dlist-of)
+;(setf *trace-cell-names* '("W0" "W1" "H0"))
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
