@@ -1513,7 +1513,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(setf (H0) (<== (s)))
 	)
        (6 ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
-	(setf (cell (s)) (cell-symb (<== (H0)))))
+	(setf (cell (s)) (<== (H0))))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
