@@ -531,7 +531,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; line: "(000D000" with a paren at the f'ing head!) In that case we
 ;;; special-case this to NOT drill down through single charater names,
 ;;; but who know H(ow)TF that's gonna some back to byte us
-;;; later. Esp. where used in J2 equals tests all over the place!
+;;; later. Esp. where used in J2 equals tests all over the place! (The
+;;; WHY THE F do the comments have a (0 like the symbol in the list,
+;;; but the name and symb doesn't!?! WTFingF?!)
 
 (defparameter *alphachars* "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[]{};':\" ,./?><")
 
