@@ -523,12 +523,37 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	   (lambda ,args
 	     ,@forms))))
 
+;;; This is, alas, a bit heuristic because our strings can be
+;;; addresses as well. This results in a horrible screw case where LT
+;;; uses individual characters, like left parens "(" for the address
+;;; of working lists that are activated when a ( is encountered (see
+;;; card: "(000D000" (p. 181) ... Yes, that's really the id of the
+;;; line: "(000D000" with a paren at the f'ing head!) In that case we
+;;; special-case this to NOT drill down through single charater names,
+;;; but who know H(ow)TF that's gonna some back to byte us
+;;; later. Esp. where used in J2 equals tests all over the place!
+
+(defparameter *alphachars* "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[]{};':\" ,./?><")
+
+(defun symbolify (arg jfn) ;; ?? FFF Might be able to use *fname-hint* here?
+  (if (cell? arg) (cell-symb arg)
+      (if (and (stringp arg) (= 1 (length arg)) (find (aref arg 0) *alphachars* :test #'char-equal)) arg
+	  (if (gethash arg *symtab*) (cell-symb arg)
+	      (if (stringp arg) arg
+		  (break "In ~a trying to interpret ~s as a string symbol." jfn arg))))))
+
 (defun setup-j-fns ()
 
   (defj J0 () "No operation")
-  (defj J2 (arg0 arg1) "TEST (0) = (1)?"
-	;; Pop?
-	(setf (h5) (if (equal arg0 arg1) "+" "-")))
+
+  (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; Pop??
+	;; The identity test is on the SYMBpart only; P and Q are
+	;; ignored. [Also, in the case of alphabetics, trailing blanks
+	;; or zeros are ignored.]
+	(let ((a (symbolify arg0 "J2"))
+	      (b (symbolify arg1 "J2")))
+	  (setf (h5) (if (ipl-string-equal a b) "+" "-"))))
+
   (defj J3 () "SET H5 -" (setf (H5) "-"))
   (defj J4 () "SET H5 +" (setf (H5) "+"))
   (defj J5 () "REVERSE H5"
@@ -680,12 +705,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 			       (break "J62 wants a cell name as the list entry to start at but got ~s"
 				      list-head-cell-or-its-name))))
 	       (incell (cell inlink))
-	       (target (if (cell? target) (cell-symb target)
-			   (if (stringp target)
-			       (if (gethash target *symtab*) (cell target) 
-				   target)
-			       (break "J62 wants a string target but got ~s" target))))
-	       )
+	       (target (symbolify target "J62")))
 	  (!! :jfns "J62 trying to locate target:~s in linear list starting with cell ~s~%" target incell)
 	  (setf (H0) ;; The H5 has to be set in the subfn
 		(j62-helper-search-list-for-symb target incell inlink))))
@@ -957,9 +977,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))
 	  (setf (H0) cell)))
 
-  (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE."
+  (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE." 	;; Pop????
 	;; Identical to J147, except uses Q = 4.
-	;; Pop????
 	(!! :jfns "J148 (MARK ROUTINE (0) TO PROPAGATE TRACE.) is a noop."))
 
   ;; Input and output are completely kludged, and unlike in original IPL. Partly
@@ -1060,8 +1079,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		(!! :jfns "J181 decided that ~s is NOT a regional symbol.~%" string)
 		(setf (H5) "-")))))
 
-  (defj J182 (arg0) "INPUT LINE DATATERM (0)"
-	;; Pop???
+  (defj J182 (arg0) "INPUT LINE DATATERM (0)" 	;; Pop???
 	;; J182 INPUT LINE DATA TERM (0). The field specified as J181
 	;; is taken as the value of a data term. Input data term (0)
 	;; is set to that value and left as output (0). H5 is set +.
@@ -1156,9 +1174,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   )
 
-
-
-
 ;;; ===================================================================
 ;;; JFn Utilities
 
@@ -1170,6 +1185,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun PopH0 (n) (dotimes (i n) (^^ "H0")))
 
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
+
+;;; This version of equal understands various special features of
+;;; strings and numbers that are specific to IPL-V, esp. that right
+;;; blanks (and zeros!) are irrelevant in string equality. (Per Manual
+;;; pg. 215)
+
+(defun ipl-string-equal (a b)
+  (string-equal (right-string-trim "0 " a) (right-string-trim "0 " b)))
+
+(defun right-string-trim (cs s)
+  (subseq s 0 (loop for p from (1- (length s)) downto 0
+		    until (not (find (aref s p) cs :test #'char-equal))
+		    finally (return (1+ p)))))
 
 (defun add-to-dlist (dlisthead att valcell &key (if-aleady-exists :replace)) ;; :error :allow-multiple
  (!! :jfns "ADD-TO-DLIST entry: dlisthead = ~s, att=~s, valcell = valcell=~s~%" dlisthead att valcell)
@@ -1638,5 +1666,5 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 ;(trace add-to-dlist dlist-of)
-(setf *trace-cell-names* '("W0" "W1" "H0"))
+;(setf *trace-cell-names* '("W0" "W1" "H0"))
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
