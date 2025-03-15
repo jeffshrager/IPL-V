@@ -118,8 +118,12 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
-
+(defvar *cell-tracing-on?* nil)
+(defvar *trace-cell-start.stop* nil)
 (defvar *symtab* (make-hash-table :test #'equal))
+(defvar *trace-cell-names* nil) 
+(defvar *!!list* nil) ;; t for all, or: :load :run :run-full
+(defvar *breaks* nil) ;; If this is set to * it break on every call
 
 ;;; *cell is symbol value for stacked symbols, like H0 and W0, used where there
 ;;; isn't a special macro for common ones.  WWW Note the convention of adding +
@@ -206,10 +210,16 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; This is used in the internals of the interpreter so it has to be efficient.
 
 (defun trace-cells ()
-  (when *trace-cell-names* (format t "========= CELL TRACE:~%"))
-  (loop for name in *trace-cell-names* do (format t "   ~a=~s |" name (cell name)))
-  (when *trace-cell-names* (format t "~%"))
-  (loop for name in *trace-cell-names* do (format t "      ~a+=~s~%" name (first-n 5 (gethash name *systacks*)))))
+  (if (member (cell-id *trace-instruction*) (mapcar #'car *trace-cell-start.stop*) :test #'string-equal)
+      (setf *cell-tracing-on?* t)
+      (if 
+       (member (cell-id *trace-instruction*) (mapcar #'cdr *trace-cell-start.stop*) :test #'string-equal)
+       (setf *cell-tracing-on?* nil)))
+  (when *cell-tracing-on?*
+    (when *trace-cell-names* (format t "========= CELL TRACE:~%"))
+    (loop for name in *trace-cell-names* do (format t "   ~a=~s |" name (cell name)))
+    (when *trace-cell-names* (format t "~%"))
+    (loop for name in *trace-cell-names* do (format t "      ~a+=~s~%" name						    (first-n 5 (gethash name *systacks*))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -227,10 +237,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;;; ===================================================================
 ;;; Debugging Utils
-
-(defvar *trace-cell-names* nil) 
-(defvar *!!list* nil) ;; t for all, or: :load :run :run-full
-(defvar *breaks* nil) ;; If this is set to * it break on every call
 
 ;;; FFF Maybe make this a optional progn so that we don't have to put progns all
 ;;; over the place in order to trace.
@@ -1459,11 +1465,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (setf *adv-limit* adv-limit)
   (setf *running?* t)
   (ipl-eval (cell start-symb))
-  (setf *running?* nil)
   (if (member :end-dump *!!list*) (report-system-cells))
   )
 
 (defun initialize-machine ()
+  (setf *running?* nil *cell-tracing-on?* nil)
   (create-system-cells) ;; See above in storage section
   (setf (h5+) (list "+")) ;; Init H5 +
   (setf (cell-link (cell "H3")) 0) ;; Init H3 Cycle-Counter
@@ -1668,5 +1674,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 ;(trace add-to-dlist dlist-of)
-;(setf *trace-cell-names* '("W0" "W1" "H0"))
+(setf *trace-cell-names* '("W0" "W1" "H0"))
+(setf *trace-cell-start.stop* '(("P052R070" . "")))
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
