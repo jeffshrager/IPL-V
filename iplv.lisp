@@ -2,26 +2,12 @@
 
 #|
 
-Current issue:
-
-At P050R020::{P50+39139/70/J8/P50+39140} called from calls J8 correctly (although
-it doesn't tell us that it's doing it, but tracing J8 tells us tht it
-does). But and then returns -- I guess correctly to X1-9-2
-
-Here's the seq:
-
-!![RUN]::>>>>>>>>>> Executing: {P050R010::P50+43534//P15/P50+43535 [INTERNAL (TREE) FORM IF IN/]} (9736)
-!![RUN]::>>>>>>>>>> Executing: {P015R000::P15//Q15/P15+43382 [P15 TEST IF (V) IS IN /]} (9736)
-!![RUN]::>>>>>>>>>> Executing: {Q015R000::Q15/10/Q15/J10 [Q15 ATTRIBUTE INTERNAL FORM./]} (9736)
-!![RUN]::>>>>>>>>>> Calling Q15 [NIL] (ARG0 ARG1) = ("Q15" "*101")
-!![JFNS]::In J10 trying to find the value of "Q15" in "*101"!
-!![JFNS]::J10 failed to find "Q15".
-!![RUN]::>>>>>>>>>> Executing: {P015R010::P15+43382/70/0/J8 [   INTERNAL (TREE) FORM./]} (9734)
-!![RUN]::>>>>>>>>>> Executing: {P050R020::P50+43535/70/J8/P50+43536 [EXTERNAL (LIST) FORM. ENTIRE/]} (9733)
-"[Invisible J8 call]"
-!![RUN]::>>>>>>>>>> Executing: {X001R140::X1+44155/70/X1-9-2/X1+44156} (9732)
-!![RUN]::>>>>>>>>>> Executing: {X001R160::X1-9-2//X1-9-100/X1-9-1 [TAKE ACTION, TRY FOR ANOTHER/]} (9732)
-!![RUN]::>>>>>>>>>> Executing: {X001R300::X1-9-100/40/H0/X1+44168 [BAD INPUT ACTION./]} (9732)
+WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
+The weirdest example (so far) is that the symbol "P" is actually the
+0th cell in the P zone, so is really "P0", so that all the code that
+handles things like finding the list P needs to be able to understand
+that P0 is really referring to "P". Ugh. (See manual p. 13 (prob. 4)
+and p. 237 (J186). UGH UGH UGH.
 
 (Note the J8 error popping stack motif!)
 
@@ -125,6 +111,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
 (defvar *breaks* nil) ;; If this is set to * it break on every call
 
+(defparameter *alphachars* "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[]{};':\" ,./?><")
+
 ;;; *cell is symbol value for stacked symbols, like H0 and W0, used where there
 ;;; isn't a special macro for common ones.  WWW Note the convention of adding +
 ;;; when the var has the whole stack. System symbols (machine stacks) are
@@ -166,14 +154,33 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun cell-name% (cell-or-name)
   (cell-name (<== cell-or-name)))
 
-(defun <== (cell-or-name &key create-if-does-not-exist?) ;; de-ref-or-die
-  (let ((cell (if (cell? cell-or-name) cell-or-name
-		  (if (stringp cell-or-name) (cell cell-or-name)))))
-    (!! :deep-memory "<== Retreive == ~s = ~s [mem]~%" cell-or-name cell)
-    (if (cell? cell) cell
-	(if create-if-does-not-exist?
-	    (make-cell! :name cell-or-name)
-	    (error "Trying to deref ~s, which isn't a cell, while executing ~s!" cell-or-name *trace-instruction*)))))
+;;; This has a horrible hack for a special case where the symbol in
+;;; the cell is a single character followed by 0. In this case we
+;;; magically redirect to the cell under the letter without the 0
+;;; because ... see "random potholes" comment above.
+
+(defun <== (cell-or-name &key create-if-does-not-exist?) ;; cell-or-name can be a cell or a name
+  (!! :deep-memory "<== Retreive: ~s~%" cell-or-name)
+  (if (cell? cell-or-name)
+      (or (maybe-magically-deref-<letter>0-case (cell-symb cell-or-name))
+	  cell-or-name)
+      (if (stringp cell-or-name)
+	  (let ((maybe-cell (cell cell-or-name)))
+	    (if maybe-cell 
+		(or (maybe-magically-deref-<letter>0-case cell-or-name)
+		    maybe-cell)
+		(or (maybe-magically-deref-<letter>0-case cell-or-name)
+		    (if create-if-does-not-exist?
+			(make-cell! :name cell-or-name)
+			 (error "In ~s, ~s isn't a cell and you didn't ask to create it!"
+				cell-or-name *trace-instruction*))))))))
+
+(defun maybe-magically-deref-<letter>0-case (name)
+  (if (is-a-horrible-<letter>0-thing? name) (cell (subseq name 0 1))))
+
+(defun is-a-horrible-<letter>0-thing? (arg)
+  (and (stringp arg) (= 2 (length arg)) (char-equal #\0 (aref arg 1))
+       (find (aref arg 0) *alphachars* :test #'char-equal)))
 
 (defun new-local-symbol (&optional (prefix "9")) (format nil "~a~a" prefix (gensym "+")))
 
@@ -540,8 +547,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; later. Esp. where used in J2 equals tests all over the place! (The
 ;;; WHY THE F do the comments have a (0 like the symbol in the list,
 ;;; but the name and symb doesn't!?! WTFingF?!)
-
-(defparameter *alphachars* "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[]{};':\" ,./?><")
 
 (defun symbolify (arg jfn) ;; ?? FFF Might be able to use *fname-hint* here?
   (if (cell? arg) (cell-symb arg)
@@ -1675,5 +1680,5 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 ;(trace add-to-dlist dlist-of)
 (setf *trace-cell-names* '("W0" "W1" "H0"))
-(setf *trace-cell-start.stop* '(("P052R070" . "")))
+(setf *trace-cell-start.stop* nil)
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
