@@ -6,8 +6,8 @@ WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
 The weirdest example (so far) is that the symbol "P" is actually the
 0th cell in the P zone, so is really "P0", so that all the code that
 handles things like finding the list P needs to be able to understand
-that P0 is really referring to "P". Ugh. (See manual p. 13 (prob. 4)
-and p. 237 (J186). UGH UGH UGH.
+that P0 is really referring to "P". Ugh. (See manual p. 13 (prob. 4),
+215, and 237 (J186). UGH UGH UGH.
 
 (Note the J8 error popping stack motif!)
 
@@ -633,6 +633,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1)))
 	)
 
+  (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
+	;; The description list of list (0) is erased as a list
+	;; structure (J72), and the head of (0) is set empty.
+	(let ((lhead (<== arg0)))
+	  (!! :jfns "J15 clearing the dl of ~s (~s)~%" arg0 lhead)
+	  (setf (cell-symb lhead) "0")))
+
   ;; It's sort of unclear, but (p. 179) seems to imply that these
   ;; remove the Hns: "Ten routines, J2 through J29, that provide block
   ;; transfers out of HO into working storage." Note: "out of H0"
@@ -1021,6 +1028,27 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(!! :io "J155 Print Line ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^~%")
 	)
 
+  (defj J156 (arg0) "ENTER SYMBOL (0) LEFT-JUSTIFIED"
+	;; Symbol (0) is entered in the current print line with its
+	;; leftmost character in print position 1W25, 1W25 is advanced
+	;; to the next column after those in which (0) is entered, and
+	;; H5 is set + . If (0) exceeds the remaining space, no entry
+	;; is made and H5 is set - .
+	(PopH0 1)
+	(let* ((s (cell-symb (<== arg0)))
+	       (l (length s))
+	       (p (cell-link (cell "W25"))))
+	  (!! :jfns "J156 trying to add ~s at pos ~a in print butter.~%" s p)
+	  (if (<= (+ p l) 80)
+	      (loop for m from p by 1
+		    as c across s
+		    do (setf (aref *W24-Line-Buffer* m) c)
+		    finally (setf (cell-link (cell "W25")) (+ l p)
+				  (H5) "+"))
+	      (setf (H5) "-")))
+	(!! :jfns "Print buffer is now:~%~s~%" *W24-Line-Buffer*)
+	)
+
   (defj J157 (a0) "ENTER DATA TERM (0) LEFT-JUSTIFIED"
 	;; Data term (0) is entered in the current print line with its
 	;; leftmost character in print position 1W25, 1W25 is
@@ -1036,7 +1064,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		as i from p by 1
 		do (setf (aref *W24-Line-Buffer* i) c))
 	  (setf (cell-link (cell "W25")) (+ l p) ;; !!!!!!! WWWWWW OBIWAN !!!!!!!!
-		(H5) "+")))
+		(H5) "+"))
+	(!! :jfns "Print buffer is now:~%~s~%" *W24-Line-Buffer*)
+	)
 
   (defj J161 (a0) "INCREMENT COLUMN BY (0)"
 	;; (0) is taken as the name of an integer data term. Current
@@ -1177,11 +1207,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
-  (defj J15 () "Unimplemented!" (break "J15 is unimplemented!"))
   (defj J166 () "Unimplemented!" (break "J166 is unimplemented!"))
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
-  (defj J156 () "Unimplemented!" (break "J156 is unimplemented!"))
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
 
