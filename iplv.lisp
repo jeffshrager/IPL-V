@@ -805,6 +805,20 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      ;; Move to next cell if nothnig above returned out
 	      (setf list-cell (cell (cell-link list-cell)))))
 
+  (defj J72 (arg0) "ERASE LIST STRUCTURE (0)"
+	;; (0) is assumed to name a list structure or a sublist
+	;; structure. List (0) is erased, as are all lists with local
+	;; names on list (0), and all lists with local names on them,
+	;; and so on. Thus, description lists get erased, if they have
+	;; local names. If the list is on auxiliary storage (Q of (0)
+	;; = 6 or 7), then the list structure is erased from
+	;; auxiliary, and the head, (0), is also erased. [Mostly this
+	;; is a noop since we use lisp GC and aren't really worried
+	;; about memory. Some day FFF this should remhash the cells in
+	;; the list from the symtab.]
+	(PopH0 1)
+	)
+
   (defj J73 (arg0) "Copy list"
 	;; COPYLIST (O). The output (0) names a new list, with the identical
 	;; symbols in the cells as are in the corresponding cells of list (0),
@@ -1202,7 +1216,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    (H5) "+"))))
 
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
-  (defj J72 () "Unimplemented!" (break "J72 is unimplemented!"))
   (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
   (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
   (defj J7 () "Unimplemented!" (break "J7 is unimplemented!"))
