@@ -579,6 +579,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (setf (H0) (first (H0+)))
 	  (setf (first (H0+)) z)))
 
+  (defj J7 "HALT, PROCEED ON GO"
+    ;; The computer stops; if started again, it interprets the next
+    ;; instruction in sequence. Aka....
+    (break "J7: Processor halted ... use :C to continue."))
+
   (defj J8 () "RESTORE H0" (^^ "H0"))
 
   ;; I don't think that this is necessary as we don't need to do our own GC.
@@ -889,9 +894,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(let* ((cell (<== arg0)))
 	  (setf (H0) (cell-symb cell))
 	  (if (zero? (cell-link cell)) (setf (H5) "-"))))
-	
-  (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
-  (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
 
   ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0 <= n <=
   ;; 9. The order is (n-1) first, (n-2) second, ..., (0) last. The output (0) is
@@ -908,10 +910,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (!! :jfns "J90 creating blank list cell: ~s~%" cell)
 	  (store cell)
 	  (vv "H0" cell)))
-
-  (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
-  (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
-  (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
 
   (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)"
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
@@ -1101,6 +1099,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(let ((w25 (cell "W25")))
 	  (setf (cell-link w25) (+ (cell-link (<== a0)) (cell-link w25)))))
   
+  (defj J166 () "SAVE ON UNIT (O) FOR RESTART"
+	(PopH0)
+	(!! :jfns "Yeah, I'm gonna pass on implementing J166 (Save for restart)!~%")
+	)
+
   (defj J180 () "READ LINE J180 READLINE"
 	;; The next record on unit 1W18 is read to line 1W24. (The record is
 	;; assumed to be BCD, 80 cols.) Column 1 of the record is read into
@@ -1215,28 +1218,32 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 				     :symb (format nil (if (numchar? c) "~c" "~c0") c))
 		    (H5) "+"))))
 
-  (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
-  (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
-  (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
-  (defj J7 () "Unimplemented!" (break "J7 is unimplemented!"))
-  (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
-  (defj J133 () "Unimplemented!" (break "J133 is unimplemented!"))
-  (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
-  (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
-  (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
-  (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
-  (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
-  (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
-  (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
-  (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
-  (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
-  (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
-  (defj J166 () "Unimplemented!" (break "J166 is unimplemented!"))
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
+  (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
+  (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
+  (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
+  (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
+  (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
+  (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
+  (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
+  (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
+  (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
+  (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
+  (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
+  (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
+  (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
+  (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
+  (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
+  (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
+  (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
+  (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
+  (defj J133 () "Unimplemented!" (break "J133 is unimplemented!"))
+  (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
+  (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
-
+  (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
   )
 
 ;;; ===================================================================
