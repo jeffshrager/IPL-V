@@ -830,6 +830,18 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(setf (H0) (copy-list-structure arg0))
 	)
 
+  (defj J75 (arg0) "DIVIDE LIST AFTER LOCATION (0)"
+	;; (0) is assumed to be the name of a cell on a list. A
+	;; termination symbol is put for LINK of (0), thus making (0)
+	;; the last cell on the list. The output (0) names the
+	;; remainder list: a new blank head followed by the string of
+	;; list cells that occurred after cell (0).
+	(let* ((split-cell (<== arg0))
+	       (new-head (make-cell! :name (new-local-symbol) :link (cell-link split-cell))))
+	  (setf (cell-link split-cell) "0")
+	  (!! :jfns "J75 splitting a list: New tail: ~s, New head (H0): ~s~%" split-cell new-head)
+	  (setf (H0) new-head)))
+
   (defj J76 (arg0 arg1) "INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL"
 	;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
 	;; assume to desescribable. Its head is erased (if local, the symbol in
@@ -1200,7 +1212,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
   (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
   (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
-  (defj J75 () "Unimplemented!" (break "J75 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
