@@ -214,14 +214,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (format t "============================~%"))
 	))))
 
-;;; This is used in the internals of the interpreter so it has to be efficient.
+;; Elts of *trace-cell-start.stop* are e.g., ("P052R123" . "P052R333")
+;; starts in car, stop in cdr to trace segments of code.
 
 (defun trace-cells ()
   (if (member (cell-id *trace-instruction*) (mapcar #'car *trace-cell-start.stop*) :test #'string-equal)
-      (setf *cell-tracing-on?* t)
+      (setf *cell-tracing-on?* t *!!list* (union *!!list* '(:run :run-full :jfns)))
       (if 
        (member (cell-id *trace-instruction*) (mapcar #'cdr *trace-cell-start.stop*) :test #'string-equal)
-       (setf *cell-tracing-on?* nil)))
+       (setf *cell-tracing-on?* nil *!!list* '(:run :jfns)))) ;; FFF Improve!!!
   (when *cell-tracing-on?*
     (when *trace-cell-names* (format t "========= CELL TRACE:~%"))
     (loop for name in *trace-cell-names* do (format t "   ~a=~s |" name (cell name)))
@@ -245,20 +246,27 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; ===================================================================
 ;;; Debugging Utils
 
-;;; FFF Maybe make this a optional progn so that we don't have to put progns all
-;;; over the place in order to trace.
+;;; FFF Maybe make this a optional progn so that we don't have to put
+;;; progns all over the place in order to trace. Args can be a fmt
+;;; string and args, or a sequence of exprs that get eval'ed
 
-(defun !! (key fmt &rest args)
-  ;; WWW if the arg is actually nil, apply gets confused so we pre-fix this case.
-  (unless args (setf args '(())))
-  (when (or (equal *!!list* t)
-	    (equal key t)
-	    (member key *!!list*))
-    (format t "!![~a]::" key)
-    (apply #'format t fmt args)
-    (when (and (member key '(:run :run-full)) (member :run-full *!!list*))
-      (report-system-cells)))
-  )
+(defun !! (key &rest args) 
+  (if (stringp (car args))
+      ;; Simple style is a format string and args:
+      (let ((fmt (car args))
+	    (args (cdr args)))
+	;; WWW if the arg is actually nil, apply gets confused so we pre-fix this case.
+	(unless args (setf args '(())))
+	(when (or (equal *!!list* t)
+		  (equal key t)
+		  (member key *!!list*))
+	  (format t "!![~a]::" key)
+	  (apply #'format t fmt args)))
+      ;; Otherwise, each arg is treated as an evalable expression.
+      (loop for seg in args do (eval seg)))
+  ;; This is a separate special tracking thing when you have :run-full
+  (when (and (member key '(:run :run-full)) (member :run-full *!!list*)) ;; ?? Is this AND redundant ??
+    (report-system-cells t)))
 
 ;;; This also checks to make sure that there isn't crap left on the
 ;;; stacks or in the cells and breaks if ther is. 
@@ -559,13 +567,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J0 () "No operation")
 
-  (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; Pop??
-	;; The identity test is on the SYMBpart only; P and Q are
-	;; ignored. [Also, in the case of alphabetics, trailing blanks
-	;; or zeros are ignored.]
-	(let ((a (symbolify arg0 "J2"))
-	      (b (symbolify arg1 "J2")))
-	  (setf (h5) (if (ipl-string-equal a b) "+" "-"))))
+  (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; Pop??  The identity test
+	;; is on the SYMBpart only; P and Q are ignored. [Also, in the
+	;; case of alphabetics, trailing blanks or zeros are ignored.]
+	;; Before we go anywhere else, the names could be equal or the
+	;; name of one could be equal to the symbol of the other, in
+	;; either direction. This is sooooooooo horrible!
+	(if (intersection (gather-all-possible-related-symbols arg0)
+			  (gather-all-possible-related-symbols arg1)
+			  :test #'ipl-string-equal)
+	    (setf (H5) "+")
+	    (let ((a (symbolify arg0 "J2"))
+		  (b (symbolify arg1 "J2")))
+	      (setf (h5) (if (ipl-string-equal a b) "+" "-")))))
 
   (defj J3 () "SET H5 -" (setf (H5) "-"))
   (defj J4 () "SET H5 +" (setf (H5) "+"))
@@ -579,7 +593,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (setf (H0) (first (H0+)))
 	  (setf (first (H0+)) z)))
 
-  (defj J7 "HALT, PROCEED ON GO"
+  (defj J7 () "HALT, PROCEED ON GO"
     ;; The computer stops; if started again, it interprets the next
     ;; instruction in sequence. Aka....
     (break "J7: Processor halted ... use :C to continue."))
@@ -636,6 +650,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		      (<== a0)
 		      ;; FFF ??? Maybe unrestrict this by auto-creating the cell?
 		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1)))
+	(!! :jfns (lpll a2))
 	)
 
   (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
@@ -1258,6 +1273,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
+;;; There's this ridiculous mess with characters that are, like, equal
+;;; on their symbols, or their names, or both or neither or WTF?! This
+;;; gets all the possible strings from a cell or symbol, and returns
+;;; them so that the upper level WTF machinery can see if any of them
+;;; are the same (usually via intersection and ipl-string-equal).
+
+(defun gather-all-possible-related-symbols (thing)
+  (if (cell? thing) (list (cell-name thing) (cell-symb thing) (cell-link thing))
+      (if (stringp thing) (gather-all-possible-related-symbols (<== thing))
+	  (break "GATHER-ALL-POSSIBLE-RELATED-SYMBOLS got ~a" thing))))
+
 ;;; This version of equal understands various special features of
 ;;; strings and numbers that are specific to IPL-V, esp. that right
 ;;; blanks (and zeros!) are irrelevant in string equality. (Per Manual
@@ -1491,12 +1517,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun line-print-linear-list (cell)
   (setf cell (<== cell))
-  (format t "~%+--------------------- ~s ---------------------+~%" cell)
+  (format t "~%+------------------------- ~s -------------------------+~%" cell)
   ;; FFF Maintain depth and indent.
   (when (not (zero? (cell-symb cell)))
       (format t "| Description list:~%")
-      (line-print-linear-list (cell-symb cell))
-      (format t "| End of description list~%| ---------------------~%"))
+      (line-print-linear-list (cell-symb cell)))
   (loop do (format t "| ~s~70T|~%" cell)
 	(let ((link (cell-link cell)))
 	  (if (zero? link) (return :end-of-list))
@@ -1529,7 +1554,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (setf *adv-limit* adv-limit)
   (setf *running?* t)
   (ipl-eval (cell start-symb))
-  (if (member :end-dump *!!list*) (report-system-cells))
+  (if (member :end-dump *!!list*) (report-system-cells t))
   )
 
 (defun initialize-machine ()
@@ -1709,7 +1734,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	    (member t *breaks*)
 	    (member s *breaks* :test #'string-equal))
     (break "************************** Break called by user at ~s (BEFORE execution!)" s)
-    (report-system-cells)))
+    (report-system-cells t)))
 
 ;;; =========================================================================
 ;;; Test calls
@@ -1737,7 +1762,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
-;(trace add-to-dlist dlist-of)
-(setf *trace-cell-names* '("W0" "W1" "H0"))
-(setf *trace-cell-start.stop* nil)
+;(trace ipl-string-equal)
+(setf *trace-cell-names* '("W0" "W1" "H0" "H5"))
+(setf *trace-cell-start.stop* '()) ;; elts are e.g., ("P052R123" . "P052R333") starts in car, stop in cdr
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
