@@ -1,5 +1,13 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+!![RUN]::>>>>>>>>>> Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]                                                  
+   (ARG0)=({9+39452/21/(0/9+39454})                                                                                  
+!![JFNS]::In J60, this-cell = {(000D000::(//(+39377/0 [(0 SYMBOL FOR LEFT PAREN./]}, link = "0"                      
+!![RUN]::>>>>>>>>>> Executing: {P052R070::P52+38835/20/W1/P52+38836} (9704)                                          
+!![RUN]::>>>>>>>>>> Executing: {P052R080::P52+38836/70/P52-9-101/P52+38837 [IF NONE, QUIT./]} (9703)                 
+!![RUN]::>>>>>>>>>> Executing: {P052R205::P52-9-101/11/W1/P52+38849} (9703)                                          
+!![RUN]::>>>>>>>>>> Executing: {P052R210::P52+38849/10//14/J63} (9702)  
+
 #|
 
 WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
