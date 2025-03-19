@@ -631,6 +631,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (loop with dl-attribute-cell = (cell (cell-link (cell< dlist-name))) ;; was <== 
 		    do ;; Note we're skipping the dl of the dl if any
 		    ;; The first could be the last. This is sort of messy. FFF Unduplicate code %%%
+		    (if (null dl-attribute-cell)
+			(progn
+			  (!! :jfns "J10 failed (a) to find ~s.~%" att-name)
+			  (setf (H5) "-") (return nil)))
 		    (!! :jfns "In J10 dl-attribute-cell = ~s~%" dl-attribute-cell)
 		    (if (string-equal att-name (cell-symb dl-attribute-cell))
 			(let* ((val (cell (cell-link dl-attribute-cell))))
@@ -639,7 +643,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
 			      (progn
-				(!! :jfns "J10 failed to find ~s.~%" att-name)
+				(!! :jfns "J10 failed (b) to find ~s.~%" att-name)
 				(setf (H5) "-") (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 
@@ -1800,7 +1804,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
-(trace cell<)
+;(trace cell<)
 (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* nil)
 ;;; elts are as: ("P052R123" . "P052R333") starts in car, stop in cdr
 (setf *trace-cell-start.stop* nil)
