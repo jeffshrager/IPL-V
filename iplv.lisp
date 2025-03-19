@@ -120,6 +120,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; push/pop things that aren't stacks!
 
 (defmacro cell (symb) `(gethash ,symb *symtab*))
+;;; This is un-settable but has to be used sometimes instead of <==
+;;; because of the character screw.
+(defun cell< (symb) (if (cell? symb) symb (gethash symb *symtab*)))
 (defun cell? (cell?) (eq 'cell (type-of cell?)))
 (defmacro stack (symb) `(gethash ,symb *systacks*)) ;; Only system cells have stacks
 
@@ -576,9 +579,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; Before we go anywhere else, the names could be equal or the
 	;; name of one could be equal to the symbol of the other, in
 	;; either direction. This is sooooooooo horrible!
-	(if (intersection (gather-all-possible-related-symbols arg0)
-			  (gather-all-possible-related-symbols arg1)
-			  :test #'ipl-string-equal)
+	(poph0 2)
+	;; "p.10: "...it is understood from the definition of TEST
+	;; that J2 will remove both (0) and (1) from HO."
+	(if (ipl-meta-string-equal arg0 arg1)
 	    (setf (H5) "+")
 	    (let ((a (symbolify arg0 "J2"))
 		  (b (symbolify arg1 "J2")))
@@ -604,7 +608,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J8 () "RESTORE H0" (^^ "H0"))
 
   ;; I don't think that this is necessary as we don't need to do our own GC.
-  (defj J9 (a0) "ERASE CELL (0)"
+  (defj J9 () "ERASE CELL (0)"
 	(!! :jfns "J9 is a noop as we don't need to do our own GC.~%")
 	(poph0 1))
 
@@ -624,8 +628,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (progn
 		(!! :jfns "In J10 -- no dl, so we're done with H5-~%")
 		(setf (H5) "-"))
-	      (loop with dl-attribute-cell = (cell (cell-link (<== dlist-name)))
+	      (loop with dl-attribute-cell = (cell (cell-link (cell< dlist-name))) ;; was <== 
 		    do ;; Note we're skipping the dl of the dl if any
+		    ;; The first could be the last. This is sort of messy. FFF Unduplicate code %%%
 		    (!! :jfns "In J10 dl-attribute-cell = ~s~%" dl-attribute-cell)
 		    (if (string-equal att-name (cell-symb dl-attribute-cell))
 			(let* ((val (cell (cell-link dl-attribute-cell))))
@@ -830,6 +835,30 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		       (return t))))
 	      ;; Move to next cell if nothnig above returned out
 	      (setf list-cell (cell (cell-link list-cell)))))
+
+  (defj J68 (arg0) "DELETE SYMBOL IN CELL (0)"
+	;; (0) names a cell in a list. The symbol in it is deleted by
+	;; replacing it with the next symbol down the list (the next
+	;; cell is removed from the list and returned to available
+	;; space, so that the list is now one cell shorter). H5 is set
+	;; + unless (0) is the last cell in the list or a termination
+	;; cell. Then H5 is set - . Thus, H5- means that after J68,
+	;; the input (0) (which is no longer in HO) is a termination
+	;; cell (see discussion in § 9.4, DELETE). [This is weird! It
+	;; moves the next symbol up and then deletes the NEXT
+	;; cell....?]
+	(poph0 1) ;; Note the explicit side-mention of popping H0!
+	(let* ((this-cell (cell< arg0)) ;; was <==
+	       (next-cell-name (cell-link this-cell)))
+	  (if (zero? next-cell-name)
+	      (progn (!! "J68 hit the end of the list.~%") (setf (H5) "-"))
+	      ;; Here's the complex work. Ugh!
+	      (let* ((next-cell (cell next-cell-name))
+		     (next-cell-link))
+		(!! "J68 Moving symbol in ~s to ~s and deleting ~s.~%"
+		    next-cell this-cell next-cell)
+		(setf (cell-symb this-cell) (cell-symb next-cell)
+		      (cell-link this-cell) (cell-link next-cell))))))
 
   (defj J72 (arg0) "ERASE LIST STRUCTURE (0)"
 	;; (0) is assumed to name a list structure or a sublist
@@ -1244,9 +1273,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
   (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
   (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
-  (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
-  (defj J68 () "Unimplemented!" (break "J68 is unimplemented!"))
   (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
@@ -1284,6 +1311,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; gets all the possible strings from a cell or symbol, and returns
 ;;; them so that the upper level WTF machinery can see if any of them
 ;;; are the same (usually via intersection and ipl-string-equal).
+
+(defun ipl-meta-string-equal (arg0 arg1)
+  (intersection (gather-all-possible-related-symbols arg0)
+		(gather-all-possible-related-symbols arg1)
+		:test #'ipl-string-equal))
 
 (defun gather-all-possible-related-symbols (thing)
   (if (cell? thing) (list (cell-name thing) (cell-symb thing) (cell-link thing))
@@ -1361,7 +1393,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun j62-helper-search-list-for-symb (target-symb incell inlink)
   (loop until (zero? inlink)
 	do 
-	(when (string-equal (cell-symb incell) target-symb)
+	(when (ipl-meta-string-equal incell target-symb)
 	  (setf (H5) "+")
 	  (return inlink))
 	(setf inlink (cell-link incell) incell (cell inlink))
@@ -1605,7 +1637,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        (go ADVANCE)
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
-     (!! :run ">>>>>>>>>> Executing: ~s (~a)~%" cell *adv-limit*)
+     (!! :run "@~a: >>>>>>>>>> ~s~%" (cell-link (cell "H3")) cell)
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
@@ -1768,9 +1800,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
-;(trace ipl-string-equal)
+(trace cell<)
 (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* nil)
 ;;; elts are as: ("P052R123" . "P052R333") starts in car, stop in cdr
-;(setf *trace-cell-start.stop* '(("P052R000")))
 (setf *trace-cell-start.stop* nil)
+;(setf *trace-cell-start.stop* '(("P051R050")))
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
