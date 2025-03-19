@@ -109,7 +109,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
-(defvar *cell-tracing-on?* nil)
+(defvar *cell-tracing-on* nil)
 ;;; These will get eval'ed at the given id, for example:
 ;;;   ("P051R050" (print "hello"))
 ;;; or, more reasonably:
@@ -231,7 +231,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun trace-cells ()
   (mapcar #'eval (cdr (assoc (cell-id *trace-instruction*) *trace-line-id-exprs* :test #'string-equal)))
-  (when *cell-tracing-on?*
+  (when *cell-tracing-on*
     (when *trace-cell-names* (format t "========= CELL TRACE:~%"))
     (loop for name in *trace-cell-names* do (format t "   ~a=~s |" name (cell name)))
     (when *trace-cell-names* (format t "~%"))
@@ -664,13 +664,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		      (<== a0)
 		      ;; FFF ??? Maybe unrestrict this by auto-creating the cell?
 		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1)))
-	(!! :jfns (lpll a2))
+	;(!! :jfns (lpll a2))
 	)
 
   (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
 	;; The description list of list (0) is erased as a list
 	;; structure (J72), and the head of (0) is set empty.
-	(let ((lhead (<== arg0)))
+        (poph0 1) ;; ??
+	(let ((lhead (cell< arg0)))
 	  (!! :jfns "J15 clearing the dl of ~s (~s)~%" arg0 lhead)
 	  (setf (cell-symb lhead) "0")))
 
@@ -1136,17 +1137,18 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; space, no entry is made and H5 is set - .
 	(poph0 1)
 	(!! :jfns "J157 called on ~s~%" a0)
-	(let* ((s (cell-symb (<== a0)))
-	       (l (length s))
-	       (p (cell-link (cell "W25"))))
-	  (when (> (+ l p) 80) (setf (H5) "-") (return nil))
-	  (loop for c across s
-		as i from p by 1
-		do (setf (aref *W24-Line-Buffer* i) c))
-	  (setf (cell-link (cell "W25")) (+ l p) ;; !!!!!!! WWWWWW OBIWAN !!!!!!!!
-		(H5) "+"))
-	(!! :jfns "Print buffer is now:~%~s~%" *W24-Line-Buffer*)
-	)
+	(block J157A
+	  (let* ((s (cell-symb (cell< a0))) ;; <== !!!
+		 (l (length s))
+		 (p (cell-link (cell "W25"))))
+	    (when (> (+ l p) 80) (setf (H5) "-") (return-from J157A nil))
+	    (loop for c across s
+		  as i from p by 1
+		  do (setf (aref *W24-Line-Buffer* i) c))
+	    (setf (cell-link (cell "W25")) (+ l p) ;; !!!!!!! WWWWWW OBIWAN !!!!!!!!
+		  (H5) "+"))
+	  (!! :jfns "Print buffer is now:~%~s~%" *W24-Line-Buffer*)
+	  ))
 
   (defj J161 (a0) "INCREMENT COLUMN BY (0)"
 	;; (0) is taken as the name of an integer data term. Current
@@ -1319,12 +1321,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; are the same (usually via intersection and ipl-string-equal).
 
 (defun ipl-meta-string-equal (arg0 arg1)
+  ;; This doesn't test the links, which I'm afraid is gonna come back to bite me!
   (intersection (gather-all-possible-related-symbols arg0)
 		(gather-all-possible-related-symbols arg1)
 		:test #'ipl-string-equal))
 
+;; This doesn't test the links, which I'm afraid is gonna come back to bite me!
 (defun gather-all-possible-related-symbols (thing)
-  (if (cell? thing) (list (cell-name thing) (cell-symb thing) (cell-link thing))
+  (if (cell? thing) (list (cell-name thing) (cell-symb thing)) ;;  (cell-link thing)) ???
       (if (stringp thing) (gather-all-possible-related-symbols (<== thing))
 	  (break "GATHER-ALL-POSSIBLE-RELATED-SYMBOLS got ~a" thing))))
 
@@ -1602,7 +1606,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   )
 
 (defun initialize-machine ()
-  (setf *running?* nil *cell-tracing-on?* nil)
+  (setf *running?* nil)
   (create-system-cells) ;; See above in storage section
   (setf (h5+) (list "+")) ;; Init H5 +
   (setf (cell-link (cell "H3")) 0) ;; Init H3 Cycle-Counter
@@ -1790,7 +1794,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
 (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
-(progn ;; Just quote this line to suppress these tests
+`(progn ;; Just quote this line to suppress these tests
   (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
   (load-ipl "F1.lisp")
   (trace ipl-eval)
@@ -1802,7 +1806,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   )
 
 (untrace)
-(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(defparameter *default-!!list* '(:run :jfns))
+(setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
@@ -1811,10 +1816,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *trace-line-id-exprs* nil)
 ;Example: ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
 ;or:      ("P051R050" (setf *!!list* '(:run :run-full :jfns)))
-(setf *trace-line-id-exprs*
-   '(("P051R050"
-     (print "********************** Turning tracing on!")
-     (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t)
-     (setf *!!list* '(:run :run-full :jfns))
-     )))
+;; (setf *trace-line-id-exprs*
+;;    '(("P052R040"
+;;       (setf *trace-cell-names* '("W0" "W1" "H0") *cell-tracing-on* t)
+;;       (setf *!!list* '(:run :jfns))
+;;       (trace symbolify ipl-meta-string-equal ipl-string-equal)
+;;       )
+;;      ("P052R200" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+;;      ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+;;      ("P052R490" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+;;      ))
+(setf *trace-cell-names* '("H0") *cell-tracing-on* t)
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
