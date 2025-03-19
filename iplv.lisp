@@ -1,5 +1,10 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+;;Why did this test succeed?!
+;;!![RUN]::>>>>>>>>>> Calling J2 [TEST (0) == (1)?]
+;;   (ARG0 ARG1)=("(" {)000D000::)//)+80693/0 [)0 SYMBOL FOR RIGHT PAREN./]})
+;;!![RUN]::@457+ >>>>>>>>>> {P052R120::P52+80149/70/P52+80150/P52-9-110 [IF YES, BUILD SEGMENT./]}
+
 #|
 
 WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
@@ -105,7 +110,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 (defvar *cell-tracing-on?* nil)
-(defvar *trace-cell-start.stop* nil)
+;;; These will get eval'ed at the given id, for example:
+;;;   ("P051R050" (print "hello"))
+;;; or, more reasonably:
+;;; ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
+(defvar *trace-line-id-exprs* nil) 
 (defvar *symtab* (make-hash-table :test #'equal))
 (defvar *trace-cell-names* nil) 
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
@@ -220,15 +229,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (format t "============================~%"))
 	))))
 
-;; Elts of *trace-cell-start.stop* are e.g., ("P052R123" . "P052R333")
-;; starts in car, stop in cdr to trace segments of code.
-
 (defun trace-cells ()
-  (if (member (cell-id *trace-instruction*) (mapcar #'car *trace-cell-start.stop*) :test #'string-equal)
-      (setf *cell-tracing-on?* t *!!list* (union *!!list* '(:run :run-full :jfns)))
-      (if 
-       (member (cell-id *trace-instruction*) (mapcar #'cdr *trace-cell-start.stop*) :test #'string-equal)
-       (setf *cell-tracing-on?* nil *!!list* '(:run :jfns)))) ;; FFF Improve!!!
+  (mapcar #'eval (cdr (assoc (cell-id *trace-instruction*) *trace-line-id-exprs* :test #'string-equal)))
   (when *cell-tracing-on?*
     (when *trace-cell-names* (format t "========= CELL TRACE:~%"))
     (loop for name in *trace-cell-names* do (format t "   ~a=~s |" name (cell name)))
@@ -1800,13 +1802,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   )
 
 (untrace)
-(setf *!!list* '(:run :jfns)) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 ;(trace cell<)
 (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* nil)
-;;; elts are as: ("P052R123" . "P052R333") starts in car, stop in cdr
-(setf *trace-cell-start.stop* nil)
-;(setf *trace-cell-start.stop* '(("P051R050")))
+(setf *trace-line-id-exprs* nil)
+;Example: ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
+;or:      ("P051R050" (setf *!!list* '(:run :run-full :jfns)))
+(setf *trace-line-id-exprs*
+   '(("P051R050"
+     (print "********************** Turning tracing on!")
+     (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t)
+     (setf *!!list* '(:run :run-full :jfns))
+     )))
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
