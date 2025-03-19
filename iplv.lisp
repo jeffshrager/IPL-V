@@ -1641,7 +1641,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        (go ADVANCE)
        )
      (setq cell (H1)) ;; This shouldn't be needed since we're operating all in cell now.
-     (!! :run "@~a: >>>>>>>>>> ~s~%" (cell-link (cell "H3")) cell)
+     (!! :run "@~a~a >>>>>>>>>> ~s~%" (cell-link (cell "H3")) (H5) cell)
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
@@ -1809,4 +1809,4 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; elts are as: ("P052R123" . "P052R333") starts in car, stop in cdr
 (setf *trace-cell-start.stop* nil)
 ;(setf *trace-cell-start.stop* '(("P051R050")))
-(load-ipl "LTFixed.lisp" :adv-limit 10000)
+(load-ipl "LTFixed.lisp" :adv-limit 20000)
