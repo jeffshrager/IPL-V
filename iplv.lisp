@@ -159,6 +159,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; magically redirect to the cell under the letter without the 0
 ;;; because ... see "random potholes" comment above.
 
+;;; The magical dereffing maybe ought to be an option bcs it's fucking
+;;; up, e.g., J60 and has to be suppressed.
+
 (defun <== (cell-or-name &key create-if-does-not-exist?) ;; cell-or-name can be a cell or a name
   (!! :deep-memory "<== Retreive: ~s~%" cell-or-name)
   (if (cell? cell-or-name)
@@ -716,7 +719,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; data term, and J60 will attempt to interpret a data term as a
 	;; standard IPL cell.
 	;; De-ref symbol to list if necessary
-	(setf arg0 (<== arg0)) 
+	(setf arg0 (if (cell? arg0) arg0 ;; This is a mess -- the magical dereffing thing is fucking us!
+		       (<== arg0)))
 	(let* ((this-cell arg0)
 	       (link (cell-link this-cell)))
 	  (!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
