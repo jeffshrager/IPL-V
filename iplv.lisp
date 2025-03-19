@@ -1,13 +1,5 @@
 ;;; (load (compile-file "iplv.lisp"))
 
-!![RUN]::>>>>>>>>>> Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]                                                  
-   (ARG0)=({9+39452/21/(0/9+39454})                                                                                  
-!![JFNS]::In J60, this-cell = {(000D000::(//(+39377/0 [(0 SYMBOL FOR LEFT PAREN./]}, link = "0"                      
-!![RUN]::>>>>>>>>>> Executing: {P052R070::P52+38835/20/W1/P52+38836} (9704)                                          
-!![RUN]::>>>>>>>>>> Executing: {P052R080::P52+38836/70/P52-9-101/P52+38837 [IF NONE, QUIT./]} (9703)                 
-!![RUN]::>>>>>>>>>> Executing: {P052R205::P52-9-101/11/W1/P52+38849} (9703)                                          
-!![RUN]::>>>>>>>>>> Executing: {P052R210::P52+38849/10//14/J63} (9702)  
-
 #|
 
 WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
@@ -713,7 +705,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
 	;; cell. If a next cell exists (LINK of (0) not a termination
 	;; symbol), then the output (0) is the name of the next cell, and
-	;; H5 is set +.  (!!! This whole "name" thing is an f'ing lie!
+	;; H5 is set +.  (!!! This whole "name" thing is a f'ing lie!
 	;; It's the actual cell !!!)  If LINK is a termination symbol,
 	;; then the output (0) is the input (0), which is the name of the
 	;; last cell on the list, and H5 is set -. If the next cell is a
@@ -723,16 +715,18 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; changed to hold 0. No test is made to see that (0) is not a
 	;; data term, and J60 will attempt to interpret a data term as a
 	;; standard IPL cell.
-	(setf (h5) "+")
 	;; De-ref symbol to list if necessary
 	(setf arg0 (<== arg0)) 
 	(let* ((this-cell arg0)
 	       (link (cell-link this-cell)))
 	  (!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
 	  (if (zero? link)
-	      (setf (h5) "-")
-	      (setf (H0) (cell link)) ;; (h5) is already + from above
-	      )))
+	      (progn (!! :jfns "In J60 no next cell!~%")
+		     (setf (h5) "-"))
+	      (let ((next-cell (cell link)))
+		(!! :jfns "In J60 next cell is ~s!~%" next-cell)
+		(setf (h5) "+")
+		(setf (H0) next-cell)))))
 
   (defj J62 (target list-head-cell-or-its-name) "LOCATE (O) ONLIST (1)"
 	;; LOCATE (0) ON LIST (1). A search of list with name (1) is made,
@@ -1771,6 +1765,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
 (setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 ;(trace ipl-string-equal)
-(setf *trace-cell-names* '("W0" "W1" "H0" "H5"))
-(setf *trace-cell-start.stop* '()) ;; elts are e.g., ("P052R123" . "P052R333") starts in car, stop in cdr
+(setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* nil)
+;;; elts are as: ("P052R123" . "P052R333") starts in car, stop in cdr
+;(setf *trace-cell-start.stop* '(("P052R000")))
+(setf *trace-cell-start.stop* nil)
 (load-ipl "LTFixed.lisp" :adv-limit 10000)
