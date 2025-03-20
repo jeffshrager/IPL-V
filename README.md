@@ -1,5 +1,7 @@
 # Reanimation of LT, The Logic Theorist
 
+---
+
 # Quick start (i.e., what I do):
 
 - Get iplv.lisp into an emacs buffer. (The whole emulator is one file at the moment.)
@@ -15,6 +17,8 @@ immediately.
 
 If F1 and Acker pass, then it loads LTFixed.lisp, which is
 self-executing. Eventually it'll break, or at least do the wrong thing.
+
+---
 
 # Docs:
 
@@ -78,11 +82,22 @@ tracer and breaking and stepping facilities.
 
 (lpll a-list-cell-head) will print out the list that that cell is the head of.
 
+---
+
 # Current top issues:
 
-(Notes about what we're working through at the moment.)
+(What we're working through at the moment, to remind ourselves.)
 
-There is a running issue about Jfns 
+## The H0 cleanup problem
+
+There is a running issue about Jfns popping off things from H0, or
+not. Some do, some don't, it's sort of assumed tha they do unless
+stated otherwise ... or something. It seems that all JFns are supposed
+to remove their inputs, e.g., p.10: "...it is understood from the
+definition of TEST that J2 will remove both (0) and (1) from HO."
+
+We get to situations like this where there's nothing left on the H0
+stack!
 
 ```
 !![RUN]::>>>>>>>>>> Calling J155 [Print line] (No Args)
@@ -124,14 +139,7 @@ Something weird is going on with the restores (J8). If you look at the
 M79 code it pushes and pops H0 itself, so the J8 restore seems like
 over-popping, but someone ahead of all this might have over-popped.
 
-# On IPL-V
-
-There's a lot to say about this, but in many ways this is the most
-interesting part of all this. I'm just collecting random notes here
-for the moment. Many additional notes (grumblings) are dispersed
-throughout the lisp code.
-
-## General problems
+## The character/string/symbol/name mess.
 
 There are a lot of issues around string handling, esp. in the single
 character case (which the translator uses a lot!) Like, "A" is
@@ -141,11 +149,14 @@ heuristic bending over backwards, as does the cell "getter" (<== ...)
 and (cell< ...) which take either a string (cell name) or cell and
 return a cell.
 
-## The H0 cleanup problem
+---
 
-It seems that all JFns will remove their inputs, e.g., p.10: "...it is
-understood from the definition of TEST that J2 will remove both (0)
-and (1) from HO."
+# On IPL-V
+
+There's a lot to say about this, but in many ways this is the most
+interesting part of all this. I'm just collecting random notes here
+for the moment. Many additional notes (grumblings) are dispersed
+throughout the lisp code.
 
 ## PQ Meaning for all PQ used in LT:
 
