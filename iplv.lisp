@@ -1,9 +1,21 @@
 ;;; (load (compile-file "iplv.lisp"))
 
-;;Why did this test succeed?!
-;;!![RUN]::>>>>>>>>>> Calling J2 [TEST (0) == (1)?]
-;;   (ARG0 ARG1)=("(" {)000D000::)//)+80693/0 [)0 SYMBOL FOR RIGHT PAREN./]})
-;;!![RUN]::@457+ >>>>>>>>>> {P052R120::P52+80149/70/P52+80150/P52-9-110 [IF YES, BUILD SEGMENT./]}
+!![RUN]::@364+ >>>>>>>>>> {M088R060::M88+20472//J100/J155 [GEN SYMBOLS FOR ENTRY, PRINT./]}
+   H0="M79" ++ ("*101" "*101")
+   W0={W0///} ++ ("W0-empty")
+   W1={W1///} ++ ("W1-empty")
+   W2={W2///} ++ ("W2-empty")
+!![RUN]::>>>>>>>>>> Calling J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]
+   (ARG0 ARG1)=("M79" "*101")
+!![JFNS]::J100 GENERATE SYMBOLS FROM LIST "*101" FOR SUBPROCESS "M79"
+!![JFNS]::J100 is applying "M79" to "(0"
+!![RUN]::vvvvvvvvvvvvvvv Entering IPL-EVAL at {//M79/0}
+!![RUN]::@364+ >>>>>>>>>> {//M79/0}
+   H0="(0" ++ ("*101")
+   W0={W0///} ++ ("W0-empty")
+   W1={W1///} ++ ("W1-empty")
+   W2={W2///} ++ ("W2-empty")
+!![RUN]::@364+ >>>>>>>>>> {M079R000::M79/40/H0/M79+20412 [M79 ENTER NAME OF (0)./PSV (0)]}
 
 #|
 
@@ -232,10 +244,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun trace-cells ()
   (mapcar #'eval (cdr (assoc (cell-id *trace-instruction*) *trace-line-id-exprs* :test #'string-equal)))
   (when *cell-tracing-on*
-    (when *trace-cell-names* (format t "========= CELL TRACE:~%"))
-    (loop for name in *trace-cell-names* do (format t "   ~a=~s |" name (cell name)))
-    (when *trace-cell-names* (format t "~%"))
-    (loop for name in *trace-cell-names* do (format t "      ~a+=~s~%" name						    (first-n 5 (gethash name *systacks*))))))
+    (loop for name in *trace-cell-names* do
+	  (format t "   ~a=~s ++ ~s~%" name (cell name) (first-n 4 (gethash name *systacks*))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -1827,7 +1837,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;      ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ("P052R490" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ))
-;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 (setf *breaks* nil)
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
