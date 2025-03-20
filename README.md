@@ -51,7 +51,7 @@ have been documented via lisp-style comments in LTFixed.lisp
 
 ## Interpretation Cycle
 
-The code of the emulator is IPL-EVAL (which is re-entrant, see J100).
+The core of the emulator is IPL-EVAL (which is re-entrant, see J100).
 
 ## J-Functions
 
