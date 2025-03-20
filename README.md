@@ -183,3 +183,23 @@ throughout the lisp code.
 64 Set the symb name per se to H0 (or cell named by H0 if string) (Same as 60 (no tracing)) (*)
 70 Branch to symb name (per se) if H5- (*)
 ```
+## Changes from standard (by the manual) IPL-V
+
+### I/O is *highly* simplified
+
+The whole messy I/O system has been replaced by a single 80-char
+buffer called ```*W24-Line-Buffer*``` which gets loaded with stuff to
+print, or with the things that get read on the input side. I don't
+think that LT will require more than this.
+
+### Only integer arthimetic is implemented
+
+### H5 constains a string: "+" or "-" (as opposed to holding a cell
+name: p...something-or-other, as descirbed in the manual).
+
+### In most locations, a string for the name of a cell is
+automatically de-refed to the cell (by cell< or <==). The reason there
+are two of these is that <== got hypercomplexified by the character
+thing, and started dereferencing in weird situations. Sometimes you
+need to use (cell ...) instead of (cell< ...) because (cell ...) is a
+setf'able macro, whereas cell< is not.
