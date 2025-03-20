@@ -1821,7 +1821,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;      ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ("P052R490" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ))
-;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 (setf *breaks* nil)
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
 (load-ipl "LTFixed.lisp" :adv-limit 20000)

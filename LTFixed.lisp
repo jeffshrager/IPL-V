@@ -1243,6 +1243,9 @@
 ("" "" "" "" "40" "H0" "" "" "M089R190")
 ("TEST IF REGIONAL." "" "" "" "" "J130" "" "" "M089R200")
 ("   IF NOT, RESET, GET NEXT." "" "" "" "70" "9-4" "" "" "M089R210")
+;;; These were commented out in order to get around an apparent bug during
+;;; early reading. They appear to be a user error trap ... but I don't think
+;;; we need it (let's just not make that error!)
 ;("" "" "" "" "40" "H0" "" "" "M089R213")
 ;("TEST IF NAME IS A CHARACTER SYMBOL." "" "" "" "" "P18" "" "" "M089R215")
 ;("     IF YES, RESET, GET NEXT." "" "" "" "70" "9-4" "" "" "M089R217")
@@ -1817,8 +1820,13 @@
 ("QUIT, H5+ FOR GEN." "" "" "" "" "J66" "J4" "" "P031R100")
 ("" "1" "" "" "" "" "" "" "    R")
 ("P50 CONVERT LOGIC EXPRESSION (0) TO" "" "P50" "" "40" "H0" "" "" "P050R000")
-;;; Stash the name of the current expr's list in case we lose it later (see LOSTEXPNAME comments below)
-("Stash the name in W4"                "" ""    "" "60" "W4" "" "LOSTEXPNAME" "P050R001Jeff")
+;;; Stash the name of the current expr's list in case we lose it later
+;;; (see LOSTEXPNAME comments below) [This is a hack that tried to
+;;; restore the external name of an expr bcs it appears to get lost
+;;; someplace in M88, but adding patches like this is probably just
+;;; revealing a problem with the emulator, so for the moment it's
+;;; out. Along with the latter stash recovery code.]
+; ("Stash the name in W4"                "" ""    "" "60" "W4" "" "LOSTEXPNAME" "P050R001Jeff")
 ("INTERNAL (TREE) FORM IF IN" "" "" "" "" "P15" "" "" "P050R010")
 ("EXTERNAL (LIST) FORM. ENTIRE" "" "" "" "70" "" "J8" "" "P050R020") ;; Err!
 ("EXPRESSION MUST BE ENCLOSED" "" "" "" "" "J41" "" "" "P050R030")
@@ -2713,7 +2721,7 @@
 ("" "" "" "" "" "M88" "" "" "X001R310")
 ("" "" "" "" "40" "H0" "" "" "X001R320")
 ;;; Pull the name of the current expr's list from the stash 
-("Pull the name from W4"                "" ""    "" "11" "W4" "" "LOSTEXPNAME" "X001R325Jeff")
+; ("Pull the name from W4"                "" ""    "" "11" "W4" "" "LOSTEXPNAME" "X001R325Jeff")
 ("" "" "" "" "" "J15" "" "" "X001R330")
 ("" "" "" "" "" "J75" "J72" "" "X001R340")
 ("" "1" "" "" "" "" "" "" "R")

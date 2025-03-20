@@ -16,10 +16,6 @@ immediately.
 If F1 and Acker pass, then it loads LTFixed.lisp, which is
 self-executing. Eventually it'll break, or at least do the wrong thing.
 
-## Current top issue:
-
-(Notes about what we're working through at the moment.)
-
 ## Docs:
 
 The IPL-V manual
@@ -64,13 +60,84 @@ when I get a J-function unimplemented break, because that mean's it go
 to a j-function I haven't implemented yet.) In the original IPL-V,
 many (perhaps all) of the JFns were actually written in IPL itself. In
 fact, we could even probably get them if we wanted to...and maybe we
-should, see: [Simon's J Functions](https://computerhistory.org/blog/simons-js/)
+should, see: [Simon's J
+Functions](https://computerhistory.org/blog/simons-js/). But for the
+moment I just hack them in Lisp as I get to them. 
 
 # Debugging tools
 
+See examples at the end of iplv.lisp for the moment. You probably at
+least want to be running with:
+```
+(setf *!!list* '(:run :jfns)) 
+```
+Other options include: :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
+There's are other probably overly-complex debugging tools like a cell
+tracer and breaking and stepping facilities.
+
+(lpll a-list-cell-head) will print out the list that that cell is the head of.
+
+## Current top issues:
+
+(Notes about what we're working through at the moment.)
+
+There is a running issue about Jfns 
+
+```
+!![RUN]::>>>>>>>>>> Calling J155 [Print line] (No Args)
+BAD EXPRESSION   K51K51/14I+27707Q+27792K52=+27927K51-+27915/14V+27897Q+27792K52
+!![RUN]::@466- >>>>>>>>>> {X001R320::X1+28068/40/H0/X1+28069}
+!![RUN]::@467- >>>>>>>>>> {X001R330::X1+28069//J15/X1+28070}
+!![RUN]::>>>>>>>>>> Calling J15 [ERASE ALL ATTRIBUTES OF (0)]
+   (ARG0)=(NIL)
+!![JFNS]::J15 clearing the dl of NIL (NIL)
+```
+
+Someplace around @368 H0 seems to get over-popped. I think this expects
+the name of the list ("*101") but I'm not sure. The last time we see
+that in H0+ is @368:
+
+```
+!![RUN]::@368+ >>>>>>>>>> {M079R030::M79+29137//J157/J8 [        ENTER IT, DISCARD (0)./]}
+   H0={(000D030::(+30229//K51/0} ++ ("*101")
+   W0={W0///} ++ ("W0-empty")
+   W1={W1///} ++ ("W1-empty")
+   W2={W2///} ++ ("W2-empty")
+!![RUN]::>>>>>>>>>> Calling J157 [ENTER DATA TERM (0) LEFT-JUSTIFIED]
+   (A0)=({(000D030::(+30229//K51/0})
+!![JFNS]::J157 called on {(000D030::(+30229//K51/0}
+!![JFNS]::Print buffer is now:
+"BAD EXPRESSION   K51                                                            "
+   H0="*101" ++ NIL
+   W0={W0///} ++ ("W0-empty")
+   W1={W1///} ++ ("W1-empty")
+   W2={W2///} ++ ("W2-empty")
+!![RUN]::>>>>>>>>>> Calling J8 [RESTORE H0] (No Args)
+   H0=NIL ++ NIL
+   W0={W0///} ++ ("W0-empty")
+   W1={W1///} ++ ("W1-empty")
+   W2={W2///} ++ ("W2-empty")
+```
+
+Something weird is going on with the restores (J8). If you look at the
+M79 code it pushes and pops H0 itself, so the J8 restore seems like
+over-popping, but someone ahead of all this might have over-popped.
 
 ## On IPL-V
 
-There's a lot to say about this. We can just collect random notes here
-for the moment.
+There's a lot to say about this, but in many ways this is the most
+interesting part of all this. I'm just collecting random notes here
+for the moment. Many additional notes (grumblings) are dispersed
+throughout the lisp code.
+
+# General problems
+
+There are a lot of issues around string handling, esp. in the single
+character case (which the translator uses a lot!) Like, "A" is
+represented as the name/symbol "A0", so the equiv. of IPL string-equal
+(called, oddly enough: ipl-string-equal) has to do all sorts of
+heuristic bending over backwards, as does the cell "getter" (<== ...)
+and (cell< ...) which take either a string (cell name) or cell and
+return a cell.
+
