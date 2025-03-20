@@ -47,7 +47,7 @@ LTFixed.lisp is NOT just the latest output from tsv2lisp.py! There
 have been lots of little fixes applied (thus the name "LTFixed"). Most
 have been documented via lisp-style comments in LTFixed.lisp
 
-# How the empulator works
+# How the emulator works
 
 ## Interpretation Cycle
 
