@@ -1,22 +1,5 @@
 ;;; (load (compile-file "iplv.lisp"))
 
-!![RUN]::@364+ >>>>>>>>>> {M088R060::M88+20472//J100/J155 [GEN SYMBOLS FOR ENTRY, PRINT./]}
-   H0="M79" ++ ("*101" "*101")
-   W0={W0///} ++ ("W0-empty")
-   W1={W1///} ++ ("W1-empty")
-   W2={W2///} ++ ("W2-empty")
-!![RUN]::>>>>>>>>>> Calling J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]
-   (ARG0 ARG1)=("M79" "*101")
-!![JFNS]::J100 GENERATE SYMBOLS FROM LIST "*101" FOR SUBPROCESS "M79"
-!![JFNS]::J100 is applying "M79" to "(0"
-!![RUN]::vvvvvvvvvvvvvvv Entering IPL-EVAL at {//M79/0}
-!![RUN]::@364+ >>>>>>>>>> {//M79/0}
-   H0="(0" ++ ("*101")
-   W0={W0///} ++ ("W0-empty")
-   W1={W1///} ++ ("W1-empty")
-   W2={W2///} ++ ("W2-empty")
-!![RUN]::@364+ >>>>>>>>>> {M079R000::M79/40/H0/M79+20412 [M79 ENTER NAME OF (0)./PSV (0)]}
-
 #|
 
 WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
@@ -1806,7 +1789,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
 (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
-`(progn ;; Just quote this line to suppress these tests
+;; Comment (or just ') this out to avoid running the F1 and Ackermann tests)
+(progn ;; Just quote this line to suppress these tests
   (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
   (load-ipl "F1.lisp")
   (trace ipl-eval)
@@ -1837,7 +1821,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;      ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ("P052R490" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ))
-(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 (setf *breaks* nil)
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
