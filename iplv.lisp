@@ -731,6 +731,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; data term, and J60 will attempt to interpret a data term as a
 	;; standard IPL cell.
 	;; De-ref symbol to list if necessary
+	(PopH0 1)
 	(setf arg0 (if (cell? arg0) arg0 ;; This is a mess -- the magical dereffing thing is fucking us!
 		       (<== arg0)))
 	(let* ((this-cell arg0)
@@ -976,7 +977,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
 	(PopH0 2) ;; WWW ???
 	(!! :jfns "J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg1 arg0)
-	(loop with cell-name = (cell-link (<== arg1))
+	(loop with cell-name = (cell-link (cell< arg1))
 	      with cell
 	      with exec-cell = (make-cell! :symb arg0 :link "0")
 	      until (zero? cell-name)
@@ -994,8 +995,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      ;; given a symbol here, we need to wrap it in a dummy
 	      ;; execution cell with an immediate pop.
 	      (ipl-eval exec-cell)
-	      ;; Pop the arg
-	      (^^ "H0") 
+	      ;; Pop the arg (I think that this gets done by the fn itself)
+	      ;;(^^ "H0") 
 	      ;; Move to next cell (name)
 	      (setf cell-name (cell-link cell))
 	      ))
@@ -1009,7 +1010,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	       (n2 (num?get arg2))
 	       (r (- n1 n2)))
 	  (!! :jfns "J111: ~a - ~a = ~a~%" n1 n2 r)
-	  (let ((H0 (<== (H0))))
+	  (let ((H0 (cell< (H0))))
 	    (setf (cell-link H0) r))))
 
   (defj J117 (arg0) "TEST IF (O) = 0."
@@ -1781,7 +1782,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (when (or (equal t *breaks*)
 	    (member t *breaks*)
 	    (member s *breaks* :test #'string-equal))
-    (break "************************** Break called by user at ~s (BEFORE execution!)" s)
+    (break "************************** Break called by user at ~s (BEFORE execution!)~%[Switching to STEP! mode -- use :C to step or (free!)+:C to run free." s)
+    (step!)
     (report-system-cells t)))
 
 ;;; =========================================================================
@@ -1810,9 +1812,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! () (setf *breaks* nil) "Use :c to run free.")
-(setf *breaks* '()) ;; If this is set to t (or '(t)) it break on every call
 ;(trace cell<)
-(setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* nil)
+(setf *trace-cell-names* nil *cell-tracing-on* nil)
 (setf *trace-line-id-exprs* nil)
 ;Example: ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
 ;or:      ("P051R050" (setf *!!list* '(:run :run-full :jfns)))
@@ -1826,5 +1827,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;      ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ("P052R490" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ))
-(setf *trace-cell-names* '("H0") *cell-tracing-on* t)
+;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+(setf *breaks* nil)
+;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
