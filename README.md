@@ -18,7 +18,7 @@ self-executing. Eventually it'll break, or at least do the wrong thing.
 
 ## Current top issue:
 
-## 
+(Notes about what we're working through at the moment.)
 
 ## Docs:
 
@@ -37,8 +37,40 @@ A transcription of the original code, from the Stefferud paper, is here:
 This gets pulled down in TSV and run through tsv2lisp.py, basically
 just to wrap parens around it, and strip out randomness.
 
-# IMPORTANT
+The first column refers to the page in the Stefferud paper from which
+this code came. There's a lot of other augmented unreality in the
+gsheets that is the mostly to help understand what's going on.
+
+# *IMPORTANT*
 
 LTFixed.lisp is NOT just the latest output from tsv2lisp.py! There
 have been lots of little fixes applied (thus the name "LTFixed"). Most
 have been documented via lisp-style comments in LTFixed.lisp
+
+## How the empulator works.
+
+# Interpretation Cycle
+
+The code of the emulator is IPL-EVAL (which is re-entrant, see J100).
+
+# J-Functions
+
+The built-ins (although they aren't actually built-in, but that's
+another story) are called Jfns ... because, you guessed it, they all
+start with "J", as "J100", etc. There are many dozens -- probably near
+100 -- of these that are used by LT. (I've only bothered implementing
+the ones that LT actually uses. In fact, what I call "progress" is
+when I get a J-function unimplemented break, because that mean's it go
+to a j-function I haven't implemented yet.) In the original IPL-V,
+many (perhaps all) of the JFns were actually written in IPL itself. In
+fact, we could even probably get them if we wanted to...and maybe we
+should, see: [Simon's J Functions](https://computerhistory.org/blog/simons-js/)
+
+# Debugging tools
+
+
+
+## On IPL-V
+
+There's a lot to say about this. We can just collect random notes here
+for the moment.
