@@ -1,6 +1,6 @@
 # Reanimation of LT, The Logic Theorist
 
-## Quick start (i.e., what I do):
+# Quick start (i.e., what I do):
 
 - Get iplv.lisp into an emacs buffer. (The whole emulator is one file at the moment.)
 - Open an emacs shell.
@@ -16,7 +16,7 @@ immediately.
 If F1 and Acker pass, then it loads LTFixed.lisp, which is
 self-executing. Eventually it'll break, or at least do the wrong thing.
 
-## Docs:
+# Docs:
 
 The IPL-V manual
 (1964-Newell-Information_Processing_Language-V_Second_Edition_1964_OCRED)
@@ -24,7 +24,7 @@ and the LT paper (1963_Stefferud_LT_RM-3731_OCRed) are both in here in
 PDF, as well as an abbreviate version of the manual called a
 "CheatSheet".
 
-## LT Code:
+# LT Code:
 
 A transcription of the original code, from the Stefferud paper, is here:
 
@@ -43,13 +43,13 @@ LTFixed.lisp is NOT just the latest output from tsv2lisp.py! There
 have been lots of little fixes applied (thus the name "LTFixed"). Most
 have been documented via lisp-style comments in LTFixed.lisp
 
-## How the empulator works.
+# How the empulator works
 
-# Interpretation Cycle
+## Interpretation Cycle
 
 The code of the emulator is IPL-EVAL (which is re-entrant, see J100).
 
-# J-Functions
+## J-Functions
 
 The built-ins (although they aren't actually built-in, but that's
 another story) are called Jfns ... because, you guessed it, they all
@@ -78,7 +78,7 @@ tracer and breaking and stepping facilities.
 
 (lpll a-list-cell-head) will print out the list that that cell is the head of.
 
-## Current top issues:
+# Current top issues:
 
 (Notes about what we're working through at the moment.)
 
@@ -124,14 +124,14 @@ Something weird is going on with the restores (J8). If you look at the
 M79 code it pushes and pops H0 itself, so the J8 restore seems like
 over-popping, but someone ahead of all this might have over-popped.
 
-## On IPL-V
+# On IPL-V
 
 There's a lot to say about this, but in many ways this is the most
 interesting part of all this. I'm just collecting random notes here
 for the moment. Many additional notes (grumblings) are dispersed
 throughout the lisp code.
 
-# General problems
+## General problems
 
 There are a lot of issues around string handling, esp. in the single
 character case (which the translator uses a lot!) Like, "A" is
@@ -141,3 +141,34 @@ heuristic bending over backwards, as does the cell "getter" (<== ...)
 and (cell< ...) which take either a string (cell name) or cell and
 return a cell.
 
+## The H0 cleanup problem
+
+It seems that all JFns will remove their inputs, e.g., p.10: "...it is
+understood from the definition of TEST that J2 will remove both (0)
+and (1) from HO."
+
+## PQ Meaning for all PQ used in LT:
+
+```
+00 (blank) Execute fn named by symb name per se (*)
+01 Execute fn contained in cell named by symb (*>)
+04 (blank) Execute fn named by symb name per se (same as 00 bcs no tracing) (>)
+10 Push the symb (name) itself on H0 (*>)
+11 Push content of the cell named by symb, onto H0 (*>)
+12 Push 2nd deref on H0 (*>>)
+14 Push the symb (name) itself on H0 (same as 10 bcs no tracining) (*)
+20 Move H0 to the named symbol (per se) and pop (restore) H0. (*)
+   (? This is a little weird bcs it seems like you should be moving
+      the value to the command itself!)   
+21 Move H0 to the cell named by symb, and pop (restore) H0. (*>)
+30 Pop the named stack (per se) (*)
+31 Pop the stack of the sym in the named cell (1st ref) (*>)
+32 Pop the stack of the 2nd derefed cell (*>>)
+40 Push down (preserve) the named symb (per se)
+50 Replace H0 by the named symb (per se) (*)
+51 Replace H0 by the cell named in the H0 symb (*>)
+52 Replace H0 2nd deref (*>>)
+60 Set the symb name per se to H0 (or cell named by H0 if string) (*)
+64 Set the symb name per se to H0 (or cell named by H0 if string) (Same as 60 (no tracing)) (*)
+70 Branch to symb name (per se) if H5- (*)
+```
