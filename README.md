@@ -255,6 +255,26 @@ throughout the lisp code.
 64 Set the symb name per se to H0 (or cell named by H0 if string) (Same as 60 (no tracing)) (*)
 70 Branch to symb name (per se) if H5- (*)
 ```
+
+## Common motifs
+
+```
+60	W0            ;; Save H0 someplace (in this case to W0)
+	P51           ;; Call something -- (P51 is whatever)
+11	W0            ;; Recover what was in H0
+```
+
+```
+40	H0	      ;; Push a copy of H0 onto its stack
+	P15	      ;; Call a "test" fn that returns a +- in H5 (P15 is whatever -- usually a test)
+70		J8    ;; If - continue, else J8 which is the same as popping H0 and returning from the current fn
+	J41	      ;; Continue (in this case call J41 ... but whatever)
+```
+The converse would be:
+```
+70	J8	      ;;; This would return on + and continue on -
+```
+
 ## Changes from standard (by the manual) IPL-V
 
 ### I/O is *highly* simplified
