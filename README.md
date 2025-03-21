@@ -191,6 +191,13 @@ Something weird is going on with the restores (J8). If you look at the
 M79 code it pushes and pops H0 itself, so the J8 restore seems like
 over-popping, but someone ahead of all this might have over-popped.
 
+But there's a proir problem of why where in this error reporting code
+to begin with, because the expression that it's trying to P50
+translate to a tree representation is perfectly fine, so, even tough
+the error reporting is somehow broken, there's a high-up problem
+(which might also be due to an over-agreesive stack pop higher up, but
+the problem isn't showing up until deep in the error reporting.)
+
 ## The character/string/symbol/name mess.
 
 There are a lot of issues around string handling, esp. in the single
@@ -199,7 +206,9 @@ represented as the name/symbol "A0", so the equiv. of IPL string-equal
 (called, oddly enough: ipl-string-equal) has to do all sorts of
 heuristic bending over backwards, as does the cell "getter" (<== ...)
 and (cell< ...) which take either a string (cell name) or cell and
-return a cell.
+return a cell. There are numerous horrific hacks caused by this
+problem, esp.  MAYBE-MAGICALLY-DEREF-<LETTER>0-CASE and
+IPL-META-STRING-EQUAL.
 
 ---
 
