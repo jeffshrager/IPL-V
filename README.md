@@ -92,6 +92,17 @@ least want to be running with:
 ```
 Other options include: :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
+:run output looks like this:
+```
+!![RUN]::@9- >>>>>>>>>> {X001R090::X1+34663||J100|X1-9-1 [MARK TO PROPAGATE TRACE.;]}
+```
+
+The @9 is the value of H3, the interpreter cycle counter, and the -
+(or +) immediately after H3 (9, in this case) is the value of H5 (the
+test result register). The >>> is just so you can find these lines,
+and the {...} is the print of the cell. (The cell printout can get
+confusing.
+
 There's are other probably overly-complex debugging tools like a cell
 tracer and breaking and stepping facilities.
 
@@ -153,9 +164,9 @@ stack!
 
 ```
 !![RUN]::>>>>>>>>>> Calling J155 [Print line] (No Args)
-BAD EXPRESSION   K51K51/14I+27707Q+27792K52=+27927K51-+27915/14V+27897Q+27792K52
-!![RUN]::@466- >>>>>>>>>> {X001R320::X1+28068/40/H0/X1+28069}
-!![RUN]::@467- >>>>>>>>>> {X001R330::X1+28069//J15/X1+28070}
+BAD EXPRESSION   K51K51|14I+27707Q+27792K52=+27927K51-+27915|14V+27897Q+27792K52
+!![RUN]::@466- >>>>>>>>>> {X001R320::X1+28068|40|H0|X1+28069}
+!![RUN]::@467- >>>>>>>>>> {X001R330::X1+28069||J15|X1+28070}
 !![RUN]::>>>>>>>>>> Calling J15 [ERASE ALL ATTRIBUTES OF (0)]
    (ARG0)=(NIL)
 !![JFNS]::J15 clearing the dl of NIL (NIL)
@@ -166,25 +177,25 @@ the name of the list ("*101") but I'm not sure. The last time we see
 that in H0+ is @368:
 
 ```
-!![RUN]::@368+ >>>>>>>>>> {M079R030::M79+29137//J157/J8 [        ENTER IT, DISCARD (0)./]}
-   H0={(000D030::(+30229//K51/0} ++ ("*101")
-   W0={W0///} ++ ("W0-empty")
-   W1={W1///} ++ ("W1-empty")
-   W2={W2///} ++ ("W2-empty")
+!![RUN]::@368+ >>>>>>>>>> {M079R030::M79+29137||J157|J8 [        ENTER IT, DISCARD (0).|]}
+   H0={(000D030::(+30229||K51|0} ++ ("*101")
+   W0={W0|||} ++ ("W0-empty")
+   W1={W1|||} ++ ("W1-empty")
+   W2={W2|||} ++ ("W2-empty")
 !![RUN]::>>>>>>>>>> Calling J157 [ENTER DATA TERM (0) LEFT-JUSTIFIED]
-   (A0)=({(000D030::(+30229//K51/0})
-!![JFNS]::J157 called on {(000D030::(+30229//K51/0}
+   (A0)=({(000D030::(+30229||K51|0})
+!![JFNS]::J157 called on {(000D030::(+30229||K51|0}
 !![JFNS]::Print buffer is now:
 "BAD EXPRESSION   K51                                                            "
    H0="*101" ++ NIL
-   W0={W0///} ++ ("W0-empty")
-   W1={W1///} ++ ("W1-empty")
-   W2={W2///} ++ ("W2-empty")
+   W0={W0|||} ++ ("W0-empty")
+   W1={W1|||} ++ ("W1-empty")
+   W2={W2|||} ++ ("W2-empty")
 !![RUN]::>>>>>>>>>> Calling J8 [RESTORE H0] (No Args)
    H0=NIL ++ NIL
-   W0={W0///} ++ ("W0-empty")
-   W1={W1///} ++ ("W1-empty")
-   W2={W2///} ++ ("W2-empty")
+   W0={W0|||} ++ ("W0-empty")
+   W1={W1|||} ++ ("W1-empty")
+   W2={W2|||} ++ ("W2-empty")
 ```
 
 Something weird is going on with the restores (J8). If you look at the

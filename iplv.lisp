@@ -92,7 +92,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun print-cell (cell s d)
   (declare (ignore d))
-  (format s "{~a~a/~a/~a/~a~a}"
+  (format s "{~a~a|~a|~a|~a~a}"
 	  (if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
 	  (cell-name cell)
 	  (cell-pq cell)
@@ -100,7 +100,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (cell-link cell)
 	  (if (and (zero? (cell-comments cell)) (zero? (cell-comments.1 cell))) 
 	      ""
-	      (format nil " [~a/~a]" (cell-comments cell) (cell-comments.1 cell)))))
+	      (format nil " [~a;~a]" (cell-comments cell) (cell-comments.1 cell)))))
 
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
@@ -602,9 +602,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J8 () "RESTORE H0" (^^ "H0"))
 
-  ;; I don't think that this is necessary as we don't need to do our own GC.
   (defj J9 () "ERASE CELL (0)"
-	(!! :jfns "J9 is a noop as we don't need to do our own GC.~%")
+	;; Maybe remhash the name from the symtab? FFF
+	(!! :jfns "J9 just pops H0; We don't need to do our own GC.~%")
 	(poph0 1))
 
   (defj J10 (arg0 arg1) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)"
