@@ -70,13 +70,18 @@ moment I just hack them in Lisp as I get to them.
 
 # (nearly) Universal stringyness
 
-Instead of numerical addresses the emulator uses strings. (You'd think
-that this would be atoms, but it's strings, for a reason I might
-remember if I try really hard....hmmm....) Even "0" (as in the end of
-a list) is represented as a string, and so all these need to be tested
-with string-equal, which is sort of annoying. The only exception is
-that actual data numbers, which are stored in the links of cells, are
-actual numbers.
+Instead of numerical addresses the emulator uses strings. Even "0" (as
+in the end of a list) is represented as a string, and so all these
+need to be tested with string-equal, which is sort of annoying. The
+only exception is that actual data numbers, which are stored in the
+links of cells, are actual numbers.
+
+You'd think that this would be atoms, but it's strings, for a reason I
+might remember if I try really hard....hmmm....Oh, right, it's because
+a LOT of the symbols used LT would be illegal as atoms, like |(0| or
+|./|. The original IPL-V compilers turned everything into addresses,
+so this wasn't an issue. (Maybe I should have actually gone down that
+path...?)
 
 # Debugging tools
 
