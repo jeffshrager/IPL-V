@@ -68,6 +68,16 @@ should, see: [Simon's J
 Functions](https://computerhistory.org/blog/simons-js/). But for the
 moment I just hack them in Lisp as I get to them. 
 
+# (nearly) Universal stringyness
+
+Instead of numerical addresses the emulator uses strings. (You'd think
+that this would be atoms, but it's strings, for a reason I might
+remember if I try really hard....hmmm....) Even "0" (as in the end of
+a list) is represented as a string, and so all these need to be tested
+with string-equal, which is sort of annoying. The only exception is
+that actual data numbers, which are stored in the links of cells, are
+actual numbers.
+
 # Debugging tools
 
 See examples at the end of iplv.lisp for the moment. You probably at
@@ -80,7 +90,44 @@ Other options include: :deep-memory :load :run :jfns :run-full :io :end-dump (t 
 There's are other probably overly-complex debugging tools like a cell
 tracer and breaking and stepping facilities.
 
-(lpll a-list-cell-head) will print out the list that that cell is the head of.
+The *breaks* global var fns let you break at a particular card
+ID. Once you've hit a breakpoint *breaks* gets set to t and the thing
+is in step mode, where it'll break on every instruction and you use
+lisp's :c to step. To continue you set (free!) you can add an arg to
+free! that says where to break next (that is, this is setf back to
+*breaks*, which, with no arg, gets nil which is just free running.
+
+You can tell the emulator to dump specific registers (and their
+stacks) on every step by, e.g.,
+
+```
+(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+```
+
+The most useful (and overly complex) facility lets you eval any expr
+at a given card ID, for example:
+
+```
+(setf *trace-line-id-exprs*
+   '(("P052R040"
+      (setf *trace-cell-names* '("W0" "W1" "H0") *cell-tracing-on* t)
+      (setf *!!list* '(:run :jfns))
+      (trace symbolify ipl-meta-string-equal ipl-string-equal)
+      )
+     ("P052R200" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+     ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+     ("P052R490" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+     ))
+```
+
+There are several shorthand convenience fuctions and symbol macros
+that dump various info:
+
+rsc, rsc (because I can't remember which order it is!) and rsc* (rsc*)
+dump the main registers.
+
+(lpll <a-list-cell-head>) prints out a linear list and its dlist that
+that cell is the head of in a faux line-printer format.
 
 ---
 

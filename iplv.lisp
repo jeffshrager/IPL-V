@@ -1805,7 +1805,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defparameter *default-!!list* '(:run :jfns))
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
-(defun free! () (setf *breaks* nil) "Use :c to run free.")
+(defun free! (&optional next-breaks) (setf *breaks* next-break) "Use :c to run free.")
 ;(trace cell<)
 (setf *trace-cell-names* nil *cell-tracing-on* nil)
 (setf *trace-line-id-exprs* nil)
