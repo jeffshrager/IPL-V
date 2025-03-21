@@ -219,7 +219,9 @@ heuristic bending over backwards, as does the cell "getter" (<== ...)
 and (cell< ...) which take either a string (cell name) or cell and
 return a cell. There are numerous horrific hacks caused by this
 problem, esp.  MAYBE-MAGICALLY-DEREF-<LETTER>0-CASE and
-IPL-META-STRING-EQUAL.
+IPL-META-STRING-EQUAL. (This problem infuses the whole
+interpreter. See notes about strings in the section on "Changes from
+standard (by the manual) IPL-V", below.)
 
 ---
 
@@ -294,4 +296,12 @@ automatically de-refed to the cell (by cell< or <==). The reason there
 are two of these is that <== got hypercomplexified by the character
 thing, and started dereferencing in weird situations. Sometimes you
 need to use (cell ...) instead of (cell< ...) because (cell ...) is a
-setf'able macro, whereas cell< is not.
+setf'able macro, whereas cell< is not. (See "The
+character/string/symbol/name mess." above.) Another reason I didn't
+just use the Lisp symbol table, but created my own memory system using
+strings instead of atoms, is that this way I have complete control of
+what's going on. I've run into issues before when using the Lisp
+symbol table with reserved atoms and such-like. I can usually get
+around most of those, sometimes by disintering them, and other radical
+hacks, but, like, I really didn't want to have to break the Lisp
+system, and at the same time make it non-transportable.
