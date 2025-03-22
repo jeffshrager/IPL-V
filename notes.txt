@@ -1,0 +1,11 @@
+   W2={=000D000::=||=+2099|0 [PROVEN EQUIVALENCE;]} ++ ({W2|||} "W2-empty")
+!![RUN]::@309- >>>>>>>>>> {P051R060::P51+1635|70|P51-9-0|P51+1636}
+!![RUN]::@309- >>>>>>>>>> {P051R250::P51-9-0|30|H0|J32}
+   H0=NIL ++ NIL
+   W0={*101||*101+2270|9+2274} ++ ({*101||*101+2270|9+2274} {W0|||} "W0-empty")
+   W1={.000D000::.||.+2212|0 [.0 SYMBOL FOR PERIOD.;]} ++ ({W1|||} {W1|||}
+                                                           "W1-empty")
+   W2={=000D000::=||=+2099|0 [PROVEN EQUIVALENCE;]} ++ ({W2|||} "W2-empty")
+!![RUN]::>>>>>>>>>> Calling J32 [RESTORE W0-W2] (No Args)
+
+Why did this f'ing pop H0, and/or what was supposed to be in H0 that somehow got lost?
