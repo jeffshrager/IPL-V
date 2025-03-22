@@ -1,0 +1,35 @@
+Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments.1	ID
+	This program tests the interpreter's basic	5			00				
+	call stack management. When it's run, the		T123		11	L1		1	1
+	lines should execute in ID-number order,					J151		2	2
+	execept that those called "n->" should be 					9-1		3->	3->
+	followed by calling n, so, for example,					J0		12	12
+	this line (13->) should be called after 					9-2		13->	13->
+	12, and should be followed by 13. The					J0	0	15	15
+	last line is 15, after which the thing		9-1		11	L2		3	3
+	should end normally. Note that the line					J151		4	4
+	with ID 6&9 should execute TWICE, first					9-3		5->	5->
+	as th 6th instructions, and again as the 9th				11	L5		10	10
+	one (that is, first after 5 and before 7,					J151	0	11	11
+	and then again after 8 and before 10).		9-2		11	L3		13	13
+	After completes, the stacks should be:					J151	0	14	14
+	* (H1+)		9-3			9-4		5	5
+	(H1)				11	L4		7	7
+	{G146||exit|}					J151		8	8
+	T		9-4			J0	0	6&9	6&9
+	* (H0+)		L1			0			
+	(H0)					A1			
+	{H0|||}					B1	0		
+	T		L2			0			
+	* (H1+)					C1			
+	(H1+)					D1	0		
+	(:EMPTY)		L3			0			
+	T					E1			
+	* (H0+)					F1	0		
+	(H0+)		L4			0			
+	(:EMPTY)					G1			
+	T					H1	0		
+	*		L5			0			
+						I1			
+						J1	0		
+		5				T123			

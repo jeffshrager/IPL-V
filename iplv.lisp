@@ -1792,10 +1792,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
 ;; Comment (or just ') this out to avoid running the F1 and Ackermann tests)
-(progn ;; Just quote this line to suppress these tests
-  (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+'(progn ;; Just quote this line to suppress these tests
+  ;; F1 test
+  (setf *cell-tracing-on* nil)
+  ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
   (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
   (load-ipl "F1.lisp")
+  ;; Ackermann test
   (setf *!!list* '() *cell-tracing-on* nil)
   (trace ipl-eval)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
@@ -1804,6 +1807,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
       (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
+
+;;; Test of call stack state machine.
+;(setf *trace-cell-names* '("H0" "H1") *cell-tracing-on* t)
+;(setf *!!list* '(:run :jfns))
+;(load-ipl "T123.lisp" :adv-limit 100)
 
 (untrace)
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
@@ -1825,4 +1833,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *breaks* nil)
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
 ;(trace j62-helper-search-list-for-symb)
+
+'(setf *trace-line-id-exprs*
+  '(("P052R350"
+     (setf *trace-cell-names* '("H0" "H1") *cell-tracing-on* t)
+     (setf *!!list* '(:run :jfns :run-full))
+     )))
+
 (load-ipl "LTFixed.lisp" :adv-limit 20000)

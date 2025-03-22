@@ -1243,12 +1243,15 @@
 ("" "" "" "" "40" "H0" "" "" "M089R190")
 ("TEST IF REGIONAL." "" "" "" "" "J130" "" "" "M089R200")
 ("   IF NOT, RESET, GET NEXT." "" "" "" "70" "9-4" "" "" "M089R210")
-;;; These were commented out in order to get around an apparent bug during
-;;; early reading. They appear to be a user error trap ... but I don't think
-;;; we need it (let's just not make that error!)
-;("" "" "" "" "40" "H0" "" "" "M089R213")
-;("TEST IF NAME IS A CHARACTER SYMBOL." "" "" "" "" "P18" "" "" "M089R215")
-;("     IF YES, RESET, GET NEXT." "" "" "" "70" "9-4" "" "" "M089R217")
+;;; The next three (seemingly out of sequence) lines were commented
+;;; out at one point in order to get around an apparent bug during
+;;; early reading. They appear to be a user error trap ... but I don't
+;;; think we need it (we just don't make that error!) But later, as
+;;; other things got fixed, these could be returned to the code and it
+;;; worked, so the problem was in the interpreter, not these lines.
+("" "" "" "" "40" "H0" "" "" "M089R213")
+("TEST IF NAME IS A CHARACTER SYMBOL." "" "" "" "" "P18" "" "" "M089R215")
+("     IF YES, RESET, GET NEXT." "" "" "" "70" "9-4" "" "" "M089R217")
 ("" "" "" "" "20" "W0" "" "1W0=EXPR." "M089R220")
 ("   IF OK, GET EXTERNAL NAME." "" "" "" "11" "W30" "" "" "M089R230")
 ("" "" "" "" "11" "W25" "" "" "M089R240")
@@ -2766,12 +2769,13 @@
 ("" "" "X21" "" "" "0" "" "" "X021D000")
 ("" "" "X22" "" "" "0" "" "" "X022D000")
 ("DESCRIPTION LIST OF TRAP ACTIONS." "" "X23" "" "" "0" "" "" "X023D000")
+;;; NB I've moved 1.2 to the top just to test the tree transformer with the simplest case.
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
+*1.2    ((AVA)IA)
 *1.01   ((PIQ).=.(-PVQ))  DEF.
 *2.33   ((PVQVR).=.((PVQ)QR)) DEF.
 *3.01   ((P*Q).=.-(-(PV-Q)) DEF.
 *4.01   ((P=Q).=.((PIQ)*(QIP))) DEF.
-*1.2    ((AVA)IA)
 *1.3    (BI(AVB))
 *1.4    ((AVB)I(BVA))
 *1.5    ((AV(BVC))I(BV(AVC)))
