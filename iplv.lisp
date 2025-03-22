@@ -1397,28 +1397,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; a non-linear list.
 
 (defun j62-helper-search-list-for-symb (target-symb incell inlink)
-  (loop until (zero? inlink)
-	do 
-	(when (ipl-meta-string-equal incell target-symb)
-	  (setf (H5) "+")
-	  (return inlink))
-	(setf inlink (cell-link incell) incell (cell inlink))
-	finally (progn (setf (H5) "-") (return incell))))
-
-  #|
-
-  This was an attempt to do this on a tree:
-
-  (if (zero? inlink) (progn (setf (H5) "-") inlink)
-      (let* ((incell (cell inlink)))
-	(if (string-equal (cell-symb incell) target-symb)
-	    (cell-name incell)
-	    ;; Here's where it'd be useful to know when something is a data cell!
-	    (or (let ((r (j62-helper-search-list-for-symb target-symb (cell-symb incell))))
-		  (when r (setf (H5) "+") r))
-		(let ((r (j62-helper-search-list-for-symb target-symb (cell-link incell))))
-		  (j62-helper-search-list-for-symb target-symb (cell-symb incell)))))))
-|#
+  (cond ((zero? inlink)
+	 (setf (H5) "-")
+	 incell)
+	((ipl-meta-string-equal incell target-symb)
+	 (setf (H5) "+")
+	 incell)
+	(t (j62-helper-search-list-for-symb target-symb (cell< inlink) (cell-link incell)))
+	))
 
 (defun j181-helper-remove-non-numeric-except-first (s)
   (let* ((r (copy-seq " ")))
@@ -1825,5 +1811,5 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 (setf *breaks* nil)
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
-(trace ipl-meta-string-equal)
+(trace j62-helper-search-list-for-symb)
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
