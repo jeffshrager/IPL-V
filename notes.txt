@@ -1,36 +1,49 @@
 *1.2 failed someplace in here:
 
-!![RUN]::@235+ >>>>>>>>>> {P052R350::P52+1681||P7|P52+1682 [TEST IF CONNECTIVE.;]}
-!![RUN]::@235+ >>>>>>>>>> {P007R000::P7||Q14|P7+1454 [P7-TEST IF (0) IS CONNECTIVE;]}
-!![RUN]::@235+ >>>>>>>>>> {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
+   (ARG0)=({9+6585|21|A0|9+6587})
+!![JFNS]::In J60, this-cell = {9+6585|21|A0|9+6587}, link = "9+6587"
+!![JFNS]::In J60 next cell is {9+6587|21|V0|9+6589}!
+!![RUN]::@245+ >>>>>>>>>> {P052R330::P52+5986|60|W1|P52+5987}
+!![RUN]::@246+ >>>>>>>>>> {P052R340::P52+5987|52|W1|P52+5988}
+!![RUN]::@247+ >>>>>>>>>> {P052R350::P52+5988||P7|P52+5989 [TEST IF CONNECTIVE.;]}
+!![RUN]::@247+ >>>>>>>>>> {P007R000::P7||Q14|P7+5761 [P7-TEST IF (0) IS CONNECTIVE;]}
+!![RUN]::@247+ >>>>>>>>>> {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
 !![RUN]::>>>>>>>>>> Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]
-   (ARG0 ARG1)=("Q14" {V000D000::V||V+2069|0 [OR;]})
-!![JFNS]::In J10 trying to find the value of "Q14" in {V000D000::V||V+2069|0 [OR;]}!
-!![JFNS]::In J10 list-head = {V000D000::V||V+2069|0 [OR;]}, dlist-name = "V+2069", arg0 = "Q14"
-!![JFNS]::In J10 dl-attribute-cell = {V000D010::V+2070||Q14|V+2071}
-!![JFNS]::J10 found "Q14" at {V000D010::V+2070||Q14|V+2071}, returning {V000D020::V+2071||J4|V+2072}
-!![RUN]::@237+ >>>>>>>>>> {P007R010::P7+1454|70|0|J8}
+   (ARG0 ARG1)=("Q14" {V000D000::V||V+6376|0 [OR;]})
+!![JFNS]::In J10 trying to find the value of "Q14" in {V000D000::V||V+6376|0 [OR;]}!
+!![JFNS]::In J10 list-head = {V000D000::V||V+6376|0 [OR;]}, dlist-name = "V+6376", arg0 = "Q14"
+!![JFNS]::In J10 dl-attribute-cell = {V000D010::V+6377||Q14|V+6378}
+!![JFNS]::J10 found "Q14" at {V000D010::V+6377||Q14|V+6378}, returning {V000D020::V+6378||J4|V+6379}
+!![RUN]::@249+ >>>>>>>>>> {P007R010::P7+5761|70|0|J8}
 !![RUN]::>>>>>>>>>> Calling J8 [RESTORE H0] (No Args)
-!![RUN]::@239+ >>>>>>>>>> {P052R360::P52+1682|70|P52-9-103|P52+1683 [IF NOT CLEAN UP, QUIT.;]}
-!![RUN]::@240+ >>>>>>>>>> {P052R370::P52+1683|12|W1|P52+1684}
-!![RUN]::@241+ >>>>>>>>>> {P052R380::P52+1684|21|W0|P52+1685 [INSERT CONNECTIVE.;]}
-!![RUN]::@242+ >>>>>>>>>> {P052R390::P52+1685||P52-9-100|P52+1686 [CREATE 2ND SUBSEGMENT.;]}
-!![RUN]::@242+ >>>>>>>>>> {P052R040::P52-9-100|04|J0|P52+1655 [9-100 SUBPROCESS CREATE NEXT SGMNT.;]}
-!![RUN]::(Unimplemented monitor action in {P052R040::P52-9-100|04|J0|P52+1655 [9-100 SUBPROCESS CREATE NEXT SGMNT.;]}; Executing w/o monitor!)
-!![RUN]::>>>>>>>>>> Calling J0 [No operation] (No Args)
-!![RUN]::@243+ >>>>>>>>>> {P052R050::P52+1655|11|W1|P52+1656 [H5- MEANS NO OUTPUT.;1W1=CURLOC]}
-!![RUN]::@244+ >>>>>>>>>> {P052R060::P52+1656||J60|P52+1657 [LOCATE FIRST OF EXPRESSION;]}
-!![RUN]::>>>>>>>>>> Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]
-   (ARG0)=({V000D000::V||V+2069|0 [OR;]})
-!![JFNS]::In J60, this-cell = {V000D000::V||V+2069|0 [OR;]}, link = "0"
-!![JFNS]::In J60 no next cell!
-!![RUN]::@245- >>>>>>>>>> {P052R070::P52+1657|20|W1|P52+1658}
-!![RUN]::@246- >>>>>>>>>> {P052R080::P52+1658|70|P52-9-101|P52+1659 [IF NONE, QUIT.;]}
-!![RUN]::@246- >>>>>>>>>> {P052R205::P52-9-101|11|W1|P52+1671}
-!![RUN]::@247- >>>>>>>>>> {P052R210::P52+1671|10|/14|J63}
-!![RUN]::>>>>>>>>>> Calling J63 [INSERT (0) BEFORE SYMBOL IN (1)]
-   (SYMBOL-OR-CELL LIST-CELL-OR-NAME)=("/14" {L+2292||0|9+2293})
-!![RUN]::@249- >>>>>>>>>> {P052R400::P52+1686|70|P52-9-102|P52+1687 [IF NONE, CLEAN UP, QUIT.;]}
-!![RUN]::@249- >>>>>>>>>> {P052R230::P52-9-102|11|W0|P52+1672 [ERASE USELESS SEGMENT.;]}
-!![RUN]::@250- >>>>>>>>>> {P052R240::P52+1672||J72|J30}
+!![RUN]::@251+ >>>>>>>>>> {P052R360::P52+5989|70|P52-9-103|P52+5990 [IF NOT CLEAN UP, QUIT.;]}
+!![RUN]::@252+ >>>>>>>>>> {P052R370::P52+5990|12|W1|P52+5991}
+!![RUN]::@253+ >>>>>>>>>> {P052R380::P52+5991|21|W0|P52+5992 [INSERT CONNECTIVE.;]}
+!![RUN]::@254+ >>>>>>>>>> {P052R390::P52+5992||P52-9-100|P52+5993 [CREATE 2ND SUBSEGMENT.;]}
 
+Here's where it should have gone back for the next A (after the V) but
+... it somehow lost track of where it was.
+
+!![RUN]::@254+ >>>>>>>>>> {P052R040::P52-9-100|04|J0|P52+5962 [9-100 SUBPROCESS CREATE NEXT SGMNT.;]}
+!![RUN]::(Unimplemented monitor action in {P052R040::P52-9-100|04|J0|P52+5962 [9-100 SUBPROCESS CREATE NEXT SGMNT.;]}; Executing w/o monitor!)
+!![RUN]::>>>>>>>>>> Calling J0 [No operation] (No Args)
+!![RUN]::@255+ >>>>>>>>>> {P052R050::P52+5962|11|W1|P52+5963 [H5- MEANS NO OUTPUT.;1W1=CURLOC]}
+!![RUN]::@256+ >>>>>>>>>> {P052R060::P52+5963||J60|P52+5964 [LOCATE FIRST OF EXPRESSION;]}
+!![RUN]::>>>>>>>>>> Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]
+   (ARG0)=({V000D000::V||V+6376|0 [OR;]})
+
+The above is the wrong argument -- it should be pointing to the V in
+the input stream, NOT the one in the V data list.
+
+!![JFNS]::In J60, this-cell = {V000D000::V||V+6376|0 [OR;]}, link = "0"
+!![JFNS]::In J60 no next cell!
+!![RUN]::@257- >>>>>>>>>> {P052R070::P52+5964|20|W1|P52+5965}
+!![RUN]::@258- >>>>>>>>>> {P052R080::P52+5965|70|P52-9-101|P52+5966 [IF NONE, QUIT.;]}
+!![RUN]::@258- >>>>>>>>>> {P052R205::P52-9-101|11|W1|P52+5978}
+!![RUN]::@259- >>>>>>>>>> {P052R210::P52+5978|10|/14|J63}
+!![RUN]::>>>>>>>>>> Calling J63 [INSERT (0) BEFORE SYMBOL IN (1)]
+   (SYMBOL-OR-CELL LIST-CELL-OR-NAME)=("/14" {L+6599||0|9+6600})
+
+Why is there no next symbol after the V (or) -- should be another A --
+bcs we somehow lost track of the *12 list and are in the connectives
+list, or the V list, or someplace we shouldn't be!

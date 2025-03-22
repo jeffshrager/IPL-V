@@ -1682,7 +1682,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(setf (H0) (<== (s)))
 	)
        (6 ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
-	(setf (cell (s)) (<== (H0))))
+	(setf (cell (s)) (cell< (H0))))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
@@ -1834,10 +1834,12 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
 ;(trace j62-helper-search-list-for-symb)
 
-'(setf *trace-line-id-exprs*
-  '(("P052R350"
-     (setf *trace-cell-names* '("H0" "H1") *cell-tracing-on* t)
-     (setf *!!list* '(:run :jfns :run-full))
-     )))
+(setf *trace-line-id-exprs*
+  '(("P052R320"
+     (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
+     (setf *!!list* '(:run :jfns))
+     )
+    ("P052R210" (break))
+    ))
 
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
