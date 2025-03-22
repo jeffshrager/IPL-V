@@ -501,12 +501,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (setf (cell "S") "S-is-null")
   )
 
-;;; If any var becomes :empty, there's something wrong!
+;;; If any var becomes nil, there's something wrong!  (:EMPTY is okay
+;;; at the very end of the process.)
 
 (defun check-for-overpopping ()
   (loop for name in *all-system-cells*
 	as val = (gethash name *symtab*)
-	if (and (atom val) (or (eq :empty val) (null val)))
+	if (null val)
+	;; if (and (atom val) (or (eq :empty val) (null val)))
 	do (break "**** Oops! ~s is ~s, which is oughtn't be!" name val)))
 
 ;;; This is needed because of H0 memory leaks, probably from JFNS.
@@ -724,31 +726,31 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)"
 	;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
 	;; cell. If a next cell exists (LINK of (0) not a termination
-	;; symbol), then the output (0) is the name of the next cell, and
-	;; H5 is set +.  (!!! This whole "name" thing is a f'ing lie!
-	;; It's the actual cell !!!)  If LINK is a termination symbol,
-	;; then the output (0) is the input (0), which is the name of the
-	;; last cell on the list, and H5 is set -. If the next cell is a
-	;; private termination cell, J60 will work as specified above, but
-	;; in addition, the private termination cell will be returned to
-	;; available space and the LINK of the input cell (0) will be
-	;; changed to hold 0. No test is made to see that (0) is not a
-	;; data term, and J60 will attempt to interpret a data term as a
+	;; symbol), then the output (0) is the name of the next cell,
+	;; and H5 is set +.  (!!! This whole "name" thing is a f'ing
+	;; lie!  It's the actual cell !!!)  If LINK is a termination
+	;; symbol, then the output (0) is the input (0), which is the
+	;; name of the last cell on the list, and H5 is set
+	;; -. WTF?!>>>If the next cell is a private termination cell,
+	;; J60 will work as specified above, but in addition, the
+	;; private termination cell will be returned to available
+	;; space and the LINK of the input cell (0) will be changed to
+	;; hold 0.<<< No test is made to see that (0) is not a data
+	;; term, and J60 will attempt to interpret a data term as a
 	;; standard IPL cell.
-	;; De-ref symbol to list if necessary
 	(PopH0 1)
-	(setf arg0 (if (cell? arg0) arg0 ;; This is a mess -- the magical dereffing thing is fucking us!
-		       (<== arg0)))
-	(let* ((this-cell arg0)
+	;; FFF Doesn't do the complex "If the next cell is a private termination cell..." nonsense!
+	(let* ((this-cell (cell< arg0))
 	       (link (cell-link this-cell)))
 	  (!! :jfns "In J60, this-cell = ~s, link = ~s~%" this-cell link)
-	  (if (zero? link)
-	      (progn (!! :jfns "In J60 no next cell!~%")
-		     (setf (h5) "-"))
+	  (if (not (zero? link))
 	      (let ((next-cell (cell link)))
 		(!! :jfns "In J60 next cell is ~s!~%" next-cell)
 		(setf (h5) "+")
-		(setf (H0) next-cell)))))
+		(vv "H0" next-cell))
+	      (progn (!! :jfns "In J60 no next cell!~%")
+		     (setf (h5) "-"))
+	      )))
 
   (defj J62 (target list-head-cell-or-its-name) "LOCATE (O) ONLIST (1)"
 	;; LOCATE (0) ON LIST (1). A search of list with name (1) is
@@ -764,7 +766,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; case we use that cell's symb. ... Is this complexity needed
 	;; anylonger with CELL< and <==?]
 	(poph0 1) ;; Why does this pop only 1?? FFF
-	(let* ((inlink (if (cell? list-head-cell-or-its-name)
+	(let* ((inlink (if (cell? list-head-cell-or-its-name) ;; Is all this needed w/<== and cell< ??
 			   (cell-name list-head-cell-or-its-name)
 			   (if (stringp list-head-cell-or-its-name)
 			       list-head-cell-or-its-name
@@ -1788,14 +1790,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *trace-cell-names* nil)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-;(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
 ;; Comment (or just ') this out to avoid running the F1 and Ackermann tests)
 (progn ;; Just quote this line to suppress these tests
   (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
   (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-  ;(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
   (load-ipl "F1.lisp")
+  (setf *!!list* '() *cell-tracing-on* nil)
   (trace ipl-eval)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
   (print (cell "N0"))
@@ -1820,8 +1821,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;      ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ("P052R490" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
 ;;      ))
-(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 (setf *breaks* nil)
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
-(trace j62-helper-search-list-for-symb)
+;(trace j62-helper-search-list-for-symb)
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
