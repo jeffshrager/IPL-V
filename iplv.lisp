@@ -616,9 +616,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(PopH0 2)
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
 	(let* ((list-head (<== arg1))
-	       (dlist-name (cell-symb list-head))
-	       (att-name (if (stringp arg0) arg0 (cell-symb arg0))))
-	  (!! :jfns "In J10 list-head = ~s, dlist-name = ~s, att-name = ~s~%" list-head dlist-name att-name)
+	       (dlist-name (cell-symb list-head)))
+	  (!! :jfns "In J10 list-head = ~s, dlist-name = ~s, arg0 = ~s~%" list-head dlist-name arg0)
 	  (if (zero? dlist-name)
 	      (progn
 		(!! :jfns "In J10 -- no dl, so we're done with H5-~%")
@@ -628,17 +627,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    ;; The first could be the last. This is sort of messy. FFF Unduplicate code %%%
 		    (if (null dl-attribute-cell)
 			(progn
-			  (!! :jfns "J10 failed (a) to find ~s.~%" att-name)
+			  (!! :jfns "J10 failed (a) to find ~s.~%" arg0)
 			  (setf (H5) "-") (return nil)))
 		    (!! :jfns "In J10 dl-attribute-cell = ~s~%" dl-attribute-cell)
-		    (if (string-equal att-name (cell-symb dl-attribute-cell))
+		    (if (ipl-meta-string-equal arg0 (cell-symb dl-attribute-cell)) ;; Maybe don't need cell-symb?
 			(let* ((val (cell (cell-link dl-attribute-cell))))
-			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" att-name dl-attribute-cell val) 
+			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" arg0 dl-attribute-cell val) 
 			  (setf (H5) "+") (setf (H0) val) (return t))
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
 			      (progn
-				(!! :jfns "J10 failed (b) to find ~s.~%" att-name)
+				(!! :jfns "J10 failed (b) to find ~s.~%" arg0)
 				(setf (H5) "-") (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 
@@ -1323,7 +1322,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;; This doesn't test the links, which I'm afraid is gonna come back to bite me!
 (defun gather-all-possible-related-symbols (thing)
   (if (cell? thing) (list (cell-name thing) (cell-symb thing)) ;;  (cell-link thing)) ???
-      (if (stringp thing) (gather-all-possible-related-symbols (<== thing))
+      (if (stringp thing)
+	  (if (cell? thing)
+	      (cons thing (gather-all-possible-related-symbols (cell< thing)))
+	      (list thing))
 	  (break "GATHER-ALL-POSSIBLE-RELATED-SYMBOLS got ~a" thing))))
 
 ;;; This version of equal understands various special features of
@@ -1806,7 +1808,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! (&optional next-breaks) (setf *breaks* next-break) "Use :c to run free.")
-;(trace cell<)
 (setf *trace-cell-names* nil *cell-tracing-on* nil)
 (setf *trace-line-id-exprs* nil)
 ;Example: ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
@@ -1824,4 +1825,5 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 (setf *breaks* nil)
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
+(trace ipl-meta-string-equal)
 (load-ipl "LTFixed.lisp" :adv-limit 20000)

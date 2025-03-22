@@ -2,8 +2,12 @@
 # python3 tsv2lisp.py LT_IPL-V-CODE_129-170.tsv LT_IPL-V-DATA_171-182.tsv LT_IPL-V-CODE_183-184.tsv LT_IPL-V-Exec_Code_71-73.tsv LT.lisp
 # python3 tsv2lisp.py F1.tsv F1.lisp
 
-# WWW FFF Note that this creates multiple column headers that need to
-# be hand-edited out. Easy to fix.
+# WWW FFF Need to also delete double quotes (") [Although I think that
+# through magical thinking, these worked correctly -- see, e.g.,
+# K1-K7)
+
+# WWW FFF Note that this creates multiple column headers (one per
+# file) that need to be hand-edited out. Easy to fix.
 
 import pandas as pd
 import argparse
@@ -22,7 +26,7 @@ lisp_data = []
 for file_path in args.input_files:
     print(f"Opening file: {file_path}")
     df = pd.read_csv(file_path, sep="\t", dtype=str, keep_default_na=False)
-    df = df.astype(str).map(lambda x: x.replace('_', ''))  # Ensure strings and remove underbars
+    df = df.astype(str).map(lambda x: (x.replace('_', '')).replace('\"', ''))  # Ensure strings and remove underbars and double quotes
     
     # Create header row with field names
     header_expr = "(" + " ".join(f":{col.lower().replace(' ', '_')}" for col in relevant_columns) + ")"
