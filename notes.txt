@@ -1,17 +1,4 @@
-   W1={W1|||} ++ (:EMPTY)
-   W2={W2|||} ++ (:EMPTY)
-!![RUN]::@10+ >>>>>>>>>> {F1-9-1||J60|F1+2427}
-   H0={K1+2433||B1|K1+2434} ++ (:EMPTY)
-   W0={L+2440||0|L+2440+2441} ++ ({W0|||} :EMPTY)
-   W1={W1|||} ++ (:EMPTY)
-   W2={W2|||} ++ (:EMPTY)
-!![RUN]::>>>>>>>>>> Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]
-   (ARG0)=({K1+2433||B1|K1+2434})
-!![JFNS]::In J60, this-cell = {K1+2433||B1|K1+2434}, link = "K1+2434"
-!![JFNS]::In J60 next cell is {K1+2434||C1|K1+2435}!
-   H0={K1+2434||C1|K1+2435} ++ NIL
-   W0={L+2440||0|L+2440+2441} ++ ({W0|||} :EMPTY)
-   W1={W1|||} ++ (:EMPTY)
-   W2={W2|||} ++ (:EMPTY)
-
-J60 is overpopping horrobly but I can't figure out why!!!
+WWW Warning! Beware of Jfns that pop their args and then instead of
+PUSHING (vv "H0" ...) the result, they just setf (H0) to the
+result. THIS IS VERY LIKELY TO LOSE A STACK ENTRY BY ACCIDENTALLY
+OVERWRITING!
