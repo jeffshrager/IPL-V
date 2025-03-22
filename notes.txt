@@ -1,11 +1,17 @@
-   W2={=000D000::=||=+2099|0 [PROVEN EQUIVALENCE;]} ++ ({W2|||} "W2-empty")
-!![RUN]::@309- >>>>>>>>>> {P051R060::P51+1635|70|P51-9-0|P51+1636}
-!![RUN]::@309- >>>>>>>>>> {P051R250::P51-9-0|30|H0|J32}
-   H0=NIL ++ NIL
-   W0={*101||*101+2270|9+2274} ++ ({*101||*101+2270|9+2274} {W0|||} "W0-empty")
-   W1={.000D000::.||.+2212|0 [.0 SYMBOL FOR PERIOD.;]} ++ ({W1|||} {W1|||}
-                                                           "W1-empty")
-   W2={=000D000::=||=+2099|0 [PROVEN EQUIVALENCE;]} ++ ({W2|||} "W2-empty")
-!![RUN]::>>>>>>>>>> Calling J32 [RESTORE W0-W2] (No Args)
+   W1={W1|||} ++ (:EMPTY)
+   W2={W2|||} ++ (:EMPTY)
+!![RUN]::@10+ >>>>>>>>>> {F1-9-1||J60|F1+2427}
+   H0={K1+2433||B1|K1+2434} ++ (:EMPTY)
+   W0={L+2440||0|L+2440+2441} ++ ({W0|||} :EMPTY)
+   W1={W1|||} ++ (:EMPTY)
+   W2={W2|||} ++ (:EMPTY)
+!![RUN]::>>>>>>>>>> Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]
+   (ARG0)=({K1+2433||B1|K1+2434})
+!![JFNS]::In J60, this-cell = {K1+2433||B1|K1+2434}, link = "K1+2434"
+!![JFNS]::In J60 next cell is {K1+2434||C1|K1+2435}!
+   H0={K1+2434||C1|K1+2435} ++ NIL
+   W0={L+2440||0|L+2440+2441} ++ ({W0|||} :EMPTY)
+   W1={W1|||} ++ (:EMPTY)
+   W2={W2|||} ++ (:EMPTY)
 
-Why did this f'ing pop H0, and/or what was supposed to be in H0 that somehow got lost?
+J60 is overpopping horrobly but I can't figure out why!!!

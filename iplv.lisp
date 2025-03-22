@@ -114,6 +114,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defvar *trace-cell-names* nil) 
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
 (defvar *breaks* nil) ;; If this is set to * it break on every call
+(defparameter *default-!!list* '(:run :jfns))
+
+(defun step! () (setf *breaks* t) "Use :c to step.")
+(defun free! (&optional next-breaks) (setf *breaks* next-break) "Use :c to run free.")
 
 (defparameter *alphachars* "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[]{};':\" ,./?><")
 
@@ -492,15 +496,24 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (loop for name in *all-system-cells*
 	do
 	(make-cell! :name name)
-	(setf (gethash name *systacks*) (list (format nil "~a-empty" name)))
+	(setf (gethash name *systacks*) (list :empty))
 	(!! :deep-memory "Created system cell: ~s and its stack.~%" name))
   (setf (cell "S") "S-is-null")
   )
+
+;;; If any var becomes :empty, there's something wrong!
+
+(defun check-for-overpopping ()
+  (loop for name in *all-system-cells*
+	as val = (gethash name *symtab*)
+	if (and (atom val) (or (eq :empty val) (null val)))
+	do (break "**** Oops! ~s is ~s, which is oughtn't be!" name val)))
 
 ;;; This is needed because of H0 memory leaks, probably from JFNS.
 (defvar *stack-depth-limit* 100)
 
 (defun clean-stacks ()
+  (check-for-overpopping)
   (when *stack-depth-limit*
     (loop for key being the hash-keys of *systacks*
 	  using (hash-value stack)
@@ -738,17 +751,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		(setf (H0) next-cell)))))
 
   (defj J62 (target list-head-cell-or-its-name) "LOCATE (O) ONLIST (1)"
-	;; LOCATE (0) ON LIST (1). A search of list with name (1) is made,
-	;; testing each symbol against (0) (starting with cell after cell
-	;; (1)). If (0) is found, the output (0) is the name of the cell
-	;; containing it and H5 is set + . Hence, J62 locates the first
-	;; occurrence of (0) if there are several. If (0) is not found,
-	;; the output (0) is the name of the last cell on the list, and H5
-	;; set - .  This is a bit of a problem, because the target could
-	;; be a cell name or a string, which is ambiguous if we're handed
-	;; a string. We heuristically see if the string can be a cell, in
-	;; which case we use that cell's symb.
-	(poph0 1)
+	;; LOCATE (0) ON LIST (1). A search of list with name (1) is
+	;; made, testing each symbol against (0) (starting with cell
+	;; after cell (1)). If (0) is found, the output (0) is the
+	;; name of the cell containing it and H5 is set + . Hence, J62
+	;; locates the first occurrence of (0) if there are
+	;; several. If (0) is not found, the output (0) is the name of
+	;; the last cell on the list, and H5 set - . [This is a bit of
+	;; a problem, because the target could be a cell name or a
+	;; string, which is ambiguous if we're handed a string. We
+	;; heuristically see if the string can be a cell, in which
+	;; case we use that cell's symb. ... Is this complexity needed
+	;; anylonger with CELL< and <==?]
+	(poph0 1) ;; Why does this pop only 1?? FFF
 	(let* ((inlink (if (cell? list-head-cell-or-its-name)
 			   (cell-name list-head-cell-or-its-name)
 			   (if (stringp list-head-cell-or-its-name)
@@ -758,8 +773,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	       (incell (cell inlink))
 	       (target (symbolify target "J62")))
 	  (!! :jfns "J62 trying to locate target:~s in linear list starting with cell ~s~%" target incell)
-	  (setf (H0) ;; The H5 has to be set in the subfn
-		(j62-helper-search-list-for-symb target incell inlink))))
+	  ;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
+	  (setf (H0) (j62-helper-search-list-for-symb target incell inlink))))
 
   (defj J63 (symbol-or-cell list-cell-or-name) "INSERT (0) BEFORE SYMBOL IN (1)"
 	;; (1) is assumed to name a cell in a list. A new cell is
@@ -1391,10 +1406,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (setf (cell-symb listhead) dlname)
 	      dlhead)))))
 	      
-;;; This'd be a LOT simpler on a linear list! In fact, let's just
-;;; assume that it's a linear list for now until proved
-;;; otherwise. It'd be hard to tell what the meaning of "search" is on
-;;; a non-linear list.
+;;; Assumes a linear list.
 
 (defun j62-helper-search-list-for-symb (target-symb incell inlink)
   (cond ((zero? inlink)
@@ -1775,11 +1787,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (untrace)
 (setf *trace-cell-names* nil)
 (setf *stack-depth-limit* 100) ;; FFF ? Localize ?
-(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+;(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
 ;; Comment (or just ') this out to avoid running the F1 and Ackermann tests)
 (progn ;; Just quote this line to suppress these tests
-  (setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+  (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+  (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+  ;(setf *!!list* '()) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
   (load-ipl "F1.lisp")
   (trace ipl-eval)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
@@ -1790,10 +1805,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   )
 
 (untrace)
-(defparameter *default-!!list* '(:run :jfns))
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
-(defun step! () (setf *breaks* t) "Use :c to step.")
-(defun free! (&optional next-breaks) (setf *breaks* next-break) "Use :c to run free.")
 (setf *trace-cell-names* nil *cell-tracing-on* nil)
 (setf *trace-line-id-exprs* nil)
 ;Example: ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
