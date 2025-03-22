@@ -306,3 +306,14 @@ when using the Lisp symbol table with reserved atoms and such-like. I
 can usually get around most of those, sometimes by disintering them,
 and other radical hacks, but, like, I really didn't want to have to
 break the Lisp system, and at the same time make it non-transportable.
+
+--
+
+# Notes and Warnings
+
+WWW Warning! Beware of Jfns that pop their args and then instead of
+PUSHING (vv "H0" ...) the result, they just setf (H0) to the
+result. THIS IS VERY LIKELY TO LOSE A STACK ENTRY BY ACCIDENTALLY
+OVERWRITING! (As soon as I wrote the above, I went back and looked at
+my early Jfns and immeditely found a case of this that was f'ing the
+whole thing!)

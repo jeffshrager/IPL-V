@@ -1,4 +1,0 @@
-WWW Warning! Beware of Jfns that pop their args and then instead of
-PUSHING (vv "H0" ...) the result, they just setf (H0) to the
-result. THIS IS VERY LIKELY TO LOSE A STACK ENTRY BY ACCIDENTALLY
-OVERWRITING!

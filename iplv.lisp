@@ -648,7 +648,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    (if (ipl-meta-string-equal arg0 (cell-symb dl-attribute-cell)) ;; Maybe don't need cell-symb?
 			(let* ((val (cell (cell-link dl-attribute-cell))))
 			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" arg0 dl-attribute-cell val) 
-			  (setf (H5) "+") (setf (H0) val) (return t))
+			  (setf (H5) "+") (vv "H0" val) (return t))
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
 			      (progn
