@@ -132,9 +132,13 @@ at a given card ID, for example:
       )
      ("P052R200" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
      ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
-     ("P052R490" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+     (123 (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
      ))
 ```
+
+In the above, the string "ID" (as "P052R270") can be a numberp
+instead, in which case it takes place when the (H3) cycle counter hits
+the indicated value (as the 123 example, above).
 
 There are several shorthand convenience fuctions and symbol macros
 that dump various info:
