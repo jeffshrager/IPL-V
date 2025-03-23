@@ -221,11 +221,12 @@ represented as the name/symbol "A0", so the equiv. of IPL string-equal
 (called, oddly enough: ipl-string-equal) has to do all sorts of
 heuristic bending over backwards, as does the cell "getter" (<== ...)
 and (cell< ...) which take either a string (cell name) or cell and
-return a cell. There are numerous horrific hacks caused by this
-problem, esp.  MAYBE-MAGICALLY-DEREF-<LETTER>0-CASE and
-IPL-META-STRING-EQUAL. (This problem infuses the whole
-interpreter. See notes about strings in the section on "Changes from
-standard (by the manual) IPL-V", below.)
+return a cell. This problem infuses the whole interpreter. See notes
+about strings in the section on "Changes from standard (by the manual)
+IPL-V", below. The way I've dealt with this is, in part, to explicitly
+name the A, B, ... * . , ' etc in the code as A0 ... *0 ... '0 ... and
+this seems to handle more cases, but there are places where it's
+trying to do an equal test and it's not clear what's being equated.
 
 ---
 

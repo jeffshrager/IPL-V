@@ -7,7 +7,9 @@ The weirdest example (so far) is that the symbol "P" is actually the
 0th cell in the P zone, so is really "P0", so that all the code that
 handles things like finding the list P needs to be able to understand
 that P0 is really referring to "P". Ugh. (See manual p. 13 (prob. 4),
-215, and 237 (J186). UGH UGH UGH.
+215, and 237 (J186). UGH UGH UGH. (The way I get around this is
+to "fix" the singlton letters in the original code, so that the name,
+for example, A goes to A0.
 
 (Note the J8 error popping stack motif!)
 
@@ -82,10 +84,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (id "")
   )
 
-(defun zero? (what)
-  (member (if (stringp what) what
-	      (break "ZERO? sent ~s which should be a string or nil." what))
-	  '("" "0") :test #'string-equal))
+(defun zero? (what) (if (stringp what) (member what '("" "0") :test #'string-equal)))
 
 (defun blank? (what)
   (string-equal "" what))
@@ -167,9 +166,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (cell-name (<== cell-or-name)))
 
 ;;; This has a horrible hack for a special case where the symbol in
-;;; the cell is a single character followed by 0. In this case we
-;;; magically redirect to the cell under the letter without the 0
-;;; because ... see "random potholes" comment above.
+;;; the cell is a single character followed by 0. 
 
 ;;; The magical dereffing maybe ought to be an option bcs it's fucking
 ;;; up, e.g., J60 and has to be suppressed.
@@ -177,25 +174,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun <== (cell-or-name &key create-if-does-not-exist?) ;; cell-or-name can be a cell or a name
   (!! :deep-memory "<== Retreive: ~s~%" cell-or-name)
   (if (cell? cell-or-name)
-      (or (maybe-magically-deref-<letter>0-case (cell-symb cell-or-name))
-	  cell-or-name)
+      cell-or-name
       (if (stringp cell-or-name)
-	  (let ((maybe-cell (cell cell-or-name)))
-	    (if maybe-cell 
-		(or (maybe-magically-deref-<letter>0-case cell-or-name)
-		    maybe-cell)
-		(or (maybe-magically-deref-<letter>0-case cell-or-name)
-		    (if create-if-does-not-exist?
-			(make-cell! :name cell-or-name)
-			 (error "In ~s, ~s isn't a cell and you didn't ask to create it!"
-				cell-or-name *trace-instruction*))))))))
-
-(defun maybe-magically-deref-<letter>0-case (name)
-  (if (is-a-horrible-<letter>0-thing? name) (cell (subseq name 0 1))))
-
-(defun is-a-horrible-<letter>0-thing? (arg)
-  (and (stringp arg) (= 2 (length arg)) (char-equal #\0 (aref arg 1))
-       (find (aref arg 0) *alphachars* :test #'char-equal)))
+	  (let ((maybe-cell (cell< cell-or-name)))
+	    (if maybe-cell
+		maybe-cell
+		(if create-if-does-not-exist?
+		    (make-cell! :name cell-or-name)
+		    (error "In ~s, ~s isn't a cell and you didn't ask to create it!"
+			   cell-or-name *trace-instruction*)))))))
 
 (defun new-local-symbol (&optional (prefix "9")) (format nil "~a~a" prefix (gensym "+")))
 
@@ -581,10 +568,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun symbolify (arg jfn) ;; ?? FFF Might be able to use *fname-hint* here?
   (if (cell? arg) (cell-symb arg)
-      (if (and (stringp arg) (= 1 (length arg)) (find (aref arg 0) *alphachars* :test #'char-equal)) arg
-	  (if (gethash arg *symtab*) (cell-symb arg)
-	      (if (stringp arg) arg
-		  (break "In ~a trying to interpret ~s as a string symbol." jfn arg))))))
+      (let* ((cell (cell< arg)))
+	(if cell (cell-symb cell)
+	    (if (stringp arg) arg
+	      (break "In ~a trying to interpret ~s as a string symbol." jfn arg))))))
 
 (defun setup-j-fns ()
 
@@ -603,7 +590,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	    (setf (H5) "+")
 	    (let ((a (symbolify arg0 "J2"))
 		  (b (symbolify arg1 "J2")))
-	      (setf (h5) (if (ipl-string-equal a b) "+" "-")))))
+	      (setf (h5) (if (ipl-meta-string-equal a b) "+" "-")))))
 
   (defj J3 () "SET H5 -" (setf (H5) "-"))
   (defj J4 () "SET H5 +" (setf (H5) "+"))
@@ -762,6 +749,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		     (setf (h5) "-"))
 	      )))
 
+  ;; WWW Many of these list operations are unclear on whether they are
+  ;; matching/inserting the SYMB of the intended cell, for example
+  ;; into a new cell, or the cell itself. In most cases it can't be
+  ;; the cell itself because then linking it (or otherwise moving it
+  ;; around) will unlike the cell from where it was, or otherwise mess
+  ;; up the original cell, so I've taken these as usually creating new
+  ;; cells, and testing for SYMB equivalence.
+
   (defj J62 (target list-head-cell-or-its-name) "LOCATE (O) ONLIST (1)"
 	;; LOCATE (0) ON LIST (1). A search of list with name (1) is
 	;; made, testing each symbol against (0) (starting with cell
@@ -790,19 +785,23 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J63 (symbol-or-cell list-cell-or-name) "INSERT (0) BEFORE SYMBOL IN (1)"
 	;; (1) is assumed to name a cell in a list. A new cell is
-	;; inserted in the list behind (1). The symbol in (1) is
-	;; moved into the new cell, and (0) is put into (1). The end
-	;; result is that (0) occurs in the list before the symbol
-	;; that was originally in cell (1).
+	;; inserted in the list behind (1). The symbol in (1) is moved
+	;; into the new cell, and (0) is put into (1). The end result
+	;; is that (0) occurs in the list before the symbol that was
+	;; originally in cell (1). [By "(0) is put into (1) does it
+	;; mean that ... What the fuck does this mean?]
 	(let* ((list-cell (cell< list-cell-or-name))
 	       (new-cell-name (new-local-symbol))
-	       (list-cell-symbol (cell-symb list-cell))
-	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell)))
+	       (list-cell-name (cell-name list-cell))
+	       (new-cell (make-cell! :name new-cell-name :symb list-cell-name :link (cell-link list-cell)))
 	       )
 	  (if (cell? symbol-or-cell) (setf symbol-or-cell (cell-symb symbol-or-cell)))
 	  (setf (cell-symb list-cell) symbol-or-cell
-		(cell-link list-cell) new-cell-name))
-	(poph0 2))
+		(cell-link list-cell) new-cell-name)
+	  (!! :jfns "In J63: list-cell=~s, new-cell = ~s~%" list-cell new-cell)
+	  )
+	(poph0 2)
+	)
 
   (defj J64 (symbol-or-cell list-cell-or-name) "INSERT (0) AFTER SYMBOL IN (1)"
 	;; Identical with J63, except the symbol in (1) is left in
@@ -812,37 +811,37 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; insert after.) [WWW???!!! I dunno WTF this is talking
 	;; about! And it's prob. gonna break at list ends because
 	;; ... see above!]
-	(let* ((symbol (if (cell? symbol-or-cell) (cell-symb symbol-or-cell) symbol-or-cell))
+	(let* ((name-0 (if (cell? symbol-or-cell) (cell-name symbol-or-cell) symbol-or-cell))
 	       (list-cell (cell< list-cell-or-name))
 	       (new-cell-name (new-local-symbol))
 	       (new-cell (make-cell! :name new-cell-name
-				     :symb symbol
+				     :symb name-0
 				     :link (cell-link list-cell)))
 	       )
-	  (setf (cell-link list-cell) new-cell-name))
+	  (setf (cell-link list-cell) new-cell-name)
+	  (!! :jfns "In J64: list-cell=~s, new-cell = ~s~%" list-cell new-cell)
+	  )
 	(poph0 2)
 	)
 
-  ;; WWW If this tries to work with numeric data there's gonna be a
-  ;; problem bcs PQ will be wrong.
   (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
 	(PopH0 2)
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
 	(!! :jfns "J65 trying to append ~s to ~s~%" arg0 arg1)
 	(loop with list-cell = (<== arg1)
-	      with symb = (if (stringp arg0)
+	      with name = (if (stringp arg0)
 			      arg0
 			      (if (cell? arg0)
-				  (cell-symb arg0)
+				  (cell-name arg0)
 				  (break "Error in J66: ~a should be a symbol or cell!" arg0)))
 	      do
 	      (cond
 		    ((zero? (cell-link list-cell))
-		     (!! :jfns "J65 hit end, adding ~s to the list!~%" symb)
+		     (!! :jfns "J65 hit end, adding ~s to the list!~%" name)
 		     (let* ((new-name (new-local-symbol)) ;; (cell-name list-cell)))
 			    ;; WWW If this tries to work with numeric data there's gonna be a problem!
-			    (new-cell (make-cell! :name new-name :pq "21" :symb symb :link "0")))
+			    (new-cell (make-cell! :name new-name :pq "21" :symb name :link "0")))
 		       (setf (cell-link list-cell) new-name)
 		       (setf (cell new-name) new-cell)
 		       (return t))))
@@ -860,19 +859,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(PopH0 2)
 	(!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
 	(loop with list-cell = (<== arg1)
-	      with symb = (if (stringp arg0)
+	      with name = (if (stringp arg0)
 			      arg0
 			      (if (cell? arg0)
-				  (cell-symb arg0)
+				  (cell-name arg0)
 				  (break "Error in J66: ~a should be a symbol or cell!" arg0)))
 	      do
-	      (cond ((string-equal (cell-symb list-cell) symb)
-		     (!! :jfns "J66 found ~s in the list already. No action!~%" symb)
+	      (cond ((string-equal (cell-symb list-cell) name)
+		     (!! :jfns "J66 found ~s in the list already. No action!~%" name)
 		     (return nil))
 		    ((zero? (cell-link list-cell))
-		     (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
+		     (!! :jfns "J66 hit end, adding ~s to the list!~%" name)
 		     (let* ((new-name (new-local-symbol (cell-name list-cell)))
-			    (new-cell (make-cell! :name new-name :symb symb :link "0")))
+			    (new-cell (make-cell! :name new-name :symb name :link "0")))
 		       (setf (cell-link list-cell) new-name)
 		       (setf (cell new-name) new-cell)
 		       (return t))))
@@ -1409,12 +1408,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; This doesn't test the links, which I'm afraid is gonna come back to bite me!
 (defun gather-all-possible-related-symbols (thing)
-  (if (cell? thing) (list (cell-name thing) (cell-symb thing)) ;;  (cell-link thing)) ???
-      (if (stringp thing)
-	  (if (cell? thing)
+  (if (zero? thing) nil
+      (if (cell? thing) (list (cell-name thing) (cell-symb thing)) ;; Nb. drops link -- could be a problem for data! WWW !!!
+	  (if (stringp thing)
 	      (cons thing (gather-all-possible-related-symbols (cell< thing)))
-	      (list thing))
-	  (break "GATHER-ALL-POSSIBLE-RELATED-SYMBOLS got ~a" thing))))
+	      (progn (!! :deep-alerts "GATHER-ALL-POSSIBLE-RELATED-SYMBOLS got ~a~%" thing) nil)))))
 
 ;;; This version of equal understands various special features of
 ;;; strings and numbers that are specific to IPL-V, esp. that right
@@ -1873,7 +1871,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; F1 test
   (setf *cell-tracing-on* nil)
   ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
-  (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+  (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump :deep-alerts (t for all)
   (load-ipl "F1.lisp")
   ;; Ackermann test
   (setf *!!list* '() *cell-tracing-on* nil)
@@ -1891,7 +1889,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;(load-ipl "T123.lisp" :adv-limit 100)
 
 (untrace)
-(setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+(setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump :deep-alerts (t for all)
 (setf *trace-cell-names* nil *cell-tracing-on* nil)
 (setf *trace-@orID-exprs* nil)
 ;Example: ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
@@ -1909,10 +1907,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 (setf *breaks* nil)
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
-;(trace j62-helper-search-list-for-symb)
+;(trace GATHER-ALL-POSSIBLE-RELATED-SYMBOLS symbolify)
 
 '(setf *trace-@orID-exprs*
   '((370 (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))
     ))
 
+(print *!!list*)
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
