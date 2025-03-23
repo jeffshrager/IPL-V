@@ -1121,6 +1121,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(if (zerop (getpq :q (cell-pq (<== H0))))
 	    (setf (H5) "+") (setf (H5) "-")))
 
+  (defj J133 (l) "TEST IF LIST (0) HAS BEEN MARKED PROCESSED"
+	;; Tests if P = 1 (and Q != 1 or 5) in the cell whose name is
+	;; (0). It will only be 1 if list (0) has been preserved and P
+	;; = 1 put in its head by J137. This means list (0) has been
+	;; marked processed. [Does this pop H0??]
+	(let* ((l (cell< l))
+	       (pq (cell-pq l))
+	       (q (getpq :q pq))
+	       (p (getpq :p pq)))
+	  (setf (H5)
+		(if (and (= p 1) (member q '(0 2 3 4 6 7)))
+		    "+" "-"))))
+
   (defj J136 (H0) "MAKE SYMBOL (O) LOCAL."
 	;; The output (0) is the input (0) with Q = 2. Since all
 	;; copies of this symbol carry along the Q value, if a symbol
@@ -1362,7 +1375,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
   (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
-  (defj J133 () "Unimplemented!" (break "J133 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
   (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
