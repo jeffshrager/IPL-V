@@ -644,7 +644,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (progn
 		(!! :jfns "In J10 -- no dl, so we're done with H5-~%")
 		(setf (H5) "-"))
-	      (loop with dl-attribute-cell = (cell (cell-link (cell< dlist-name))) ;; was <== 
+	      (loop with dl-attribute-cell = (cell (cell-symb (cell< dlist-name))) ;; was <== 
 		    do ;; Note we're skipping the dl of the dl if any
 		    ;; The first could be the last. This is sort of messy. FFF Unduplicate code %%%
 		    (if (null dl-attribute-cell)
@@ -1233,6 +1233,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (!! :jfns "Print buffer is now:~%~s~%" *W24-Line-Buffer*)
 	  ))
 
+  (defj J160 (col) "TAB TO COL (0)"
+	(poph0 1)
+	(setf (cell-link (cell "W25")) (cell-link (cell< col))))
+
   (defj J161 (a0) "INCREMENT COLUMN BY (0)"
 	;; (0) is taken as the name of an integer data term. Current
 	;; entry column, 1W25, is set equal to 1W25 + (0).
@@ -1377,7 +1381,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
-  (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
   )
 
 ;;; ===================================================================
@@ -1866,7 +1869,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 
 ;; Comment (or just ') this out to avoid running the F1 and Ackermann tests)
-'(progn ;; Just quote this line to suppress these tests
+(progn ;; Just quote this line to suppress these tests
   ;; F1 test
   (setf *cell-tracing-on* nil)
   ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
@@ -1909,9 +1912,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;(trace j62-helper-search-list-for-symb)
 
 '(setf *trace-@orID-exprs*
-  '((340
-     (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
-     (setf *!!list* '(:run :jfns))
-     )))
+  '((370 (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))
+    ))
 
 (load-ipl "LTFixed.lisp" :adv-limit 20000)
