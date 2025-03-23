@@ -109,11 +109,12 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;;   ("P051R050" (print "hello"))
 ;;; or, more reasonably:
 ;;; ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
-(defvar *trace-line-id-exprs* nil) 
+;;; If the ID is a number rather than a string, it refers to the value in (H3)
+(defvar *trace-@orID-exprs* nil) 
 (defvar *symtab* (make-hash-table :test #'equal))
 (defvar *trace-cell-names* nil) 
 (defvar *!!list* nil) ;; t for all, or: :load :run :run-full
-(defvar *breaks* nil) ;; If this is set to * it break on every call
+(defvar *breaks* nil) ;; If this is set to t it breaks on every call
 (defparameter *default-!!list* '(:run :jfns))
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
@@ -229,7 +230,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	))))
 
 (defun trace-cells ()
-  (mapcar #'eval (cdr (assoc (cell-id *trace-instruction*) *trace-line-id-exprs* :test #'string-equal)))
+  (let* ((cycle (cell-link (cell "H3")))
+	 (id (cell-id *trace-instruction*)))
+    (mapcar #'eval
+	    (loop for (key . exprs) in *trace-@orID-exprs*
+		  if (or (and (numberp key) (= key cycle))
+			 (and (stringp key) (string-equal key id)))
+		  do (return exprs))))
   (when *cell-tracing-on*
     (loop for name in *trace-cell-names* do
 	  (format t "   ~a=~s ++ ~s~%" name (cell name) (first-n 4 (gethash name *systacks*))))))
@@ -665,13 +672,16 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; attribute, it is placed at the front of the description
 	;; list. J11 will create the description list (with a local
 	;; name) if it does not exist (head of (2) empty). There is no
-	;; output in HO.
+	;; output in HO. 
 	(PopH0 3)
 	(add-to-dlist (dlist-of (<== a2 :create-if-does-not-exist? t) :create-if-does-not-exist? t)
-		      (<== a0)
+		      (cell< a0)
 		      ;; FFF ??? Maybe unrestrict this by auto-creating the cell?
-		      (if (cell? a1) a1 (error "In J11, A1 has to be a cell, but it's ~s" a1)))
-	;(!! :jfns (lpll a2))
+		      (if (cell? a1) a1
+			  (let ((a1cell (cell< a1)))
+			    (!! :jfns "In J11, A1 is ~s so we're coercing it to ~s~%" a1 a1cell)
+			    a1cell)))
+	(!! :jfns (lpll a2))
 	)
 
   (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
@@ -799,8 +809,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; (1), and (0) is put into the new cell, thus occurring after
 	;; the symbol in (1). (If (1) is a private termination symbol,
 	;; (0) is put in cell (1), which agrees with the definition of
-	;; insert after.)
-	;; [WWW This is gonna break at list ends.]
+	;; insert after.) [WWW???!!! I dunno WTF this is talking
+	;; about! And it's prob. gonna break at list ends because
+	;; ... see above!]
 	(let* ((symbol (if (cell? symbol-or-cell) (cell-symb symbol-or-cell) symbol-or-cell))
 	       (list-cell (cell< list-cell-or-name))
 	       (new-cell-name (new-local-symbol))
@@ -983,11 +994,24 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; and sets H5- if (0) is a termination symbol. 
 
   (defj J80 (arg0) "FIND THE HEAD SYMBOL OF (0)"
+	(poph0 1)
 	(setf (H5) "+")
-	(let* ((cell (<== arg0)))
+	(let* ((cell (cell< arg0)))
 	  (setf (H0) (cell-symb cell))
 	  (if (zero? (cell-link cell)) (setf (H5) "-"))))
 
+  (defj J81 (arg0) "FIND THE nth SYMBOL OF (0)"
+	(poph0 1)
+	(let* ((head (cell< arg0))
+	       (first-cell-name (cell-symb head)))
+	  (j8n-helper first-cell-name 1)))
+
+  (defj J82 (arg0) "FIND THE nth SYMBOL OF (0)"
+	(poph0 1)
+	(let* ((head (cell< arg0))
+	       (first-cell-name (cell-symb head)))
+	  (j8n-helper first-cell-name 2)))
+	      
   ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0 <= n <=
   ;; 9. The order is (n-1) first, (n-2) second, ..., (0) last. The output (0) is
   ;; the name (internal) of the new list; it is describable. J90 creates an
@@ -1113,6 +1137,16 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    (2 (setf (aref pq 1) #\2) pq)
 		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))
 	  (setf (H0) cell)))
+
+  (defj J137 (l) "MARK LIST (0) PROCESSED"
+	;; List (0) is preserved, its head made empty (Q = 4, SYMB =
+	;; 0), and P set to be 1. Restoring (0) will return (0) to its
+	;; initial state. This will work even with data terms. The
+	;; output (0) is the input (0).
+	(setf (H0) (cell< l))
+	(vv "H0")
+	(setf (cell-pq l) "14" (cell-symb l) "0")
+	)
 
   (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE." 	;; Pop????
 	;; Identical to J147, except uses Q = 4.
@@ -1320,8 +1354,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
-  (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
-  (defj J82 () "Unimplemented!" (break "J82 is unimplemented!"))
   (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
   (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
   (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
@@ -1331,7 +1363,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J133 () "Unimplemented!" (break "J133 is unimplemented!"))
-  (defj J137 () "Unimplemented!" (break "J137 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
   (defj J160 () "Unimplemented!" (break "J160 is unimplemented!"))
@@ -1434,6 +1465,12 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      dlhead)))))
 	      
 ;;; Assumes a linear list.
+
+(defun j8n-helper (cell-name nth)
+  ;; If we hit zero on the cell-name, we're f'ed
+  (cond ((zero? cell-name) (setf (H5) "-"))
+        ((zerop nth) (setf (H5) "+") (vv "H0" (cell< cell-name)))
+	(t (j8n-helper (cell< cell-name) (1- nth)))))
 
 (defun j62-helper-search-list-for-symb (target-symb incell inlink)
   (cond ((zero? inlink)
@@ -1841,10 +1878,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (untrace)
 (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
 (setf *trace-cell-names* nil *cell-tracing-on* nil)
-(setf *trace-line-id-exprs* nil)
+(setf *trace-@orID-exprs* nil)
 ;Example: ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
 ;or:      ("P051R050" (setf *!!list* '(:run :run-full :jfns)))
-;; (setf *trace-line-id-exprs*
+;; (setf *trace-@orID-exprs*
 ;;    '(("P052R040"
 ;;       (setf *trace-cell-names* '("W0" "W1" "H0") *cell-tracing-on* t)
 ;;       (setf *!!list* '(:run :jfns))
@@ -1859,12 +1896,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
 ;(trace j62-helper-search-list-for-symb)
 
-`(setf *trace-line-id-exprs*
-  '(("P052R320"
+'(setf *trace-@orID-exprs*
+  '((340
      (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
      (setf *!!list* '(:run :jfns))
-     )
-    ("P052R210" (break))
-    ))
+     )))
 
 (load-ipl "LTFixed.lisp" :adv-limit 20000)

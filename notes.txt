@@ -11,7 +11,7 @@
 !![RUN]::>>>>>>>>>> Calling J11 [ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)]
    (A0 A1 A2)=("Q15" "Q15" {*12||*12+12907|9+12935})
 
-*** WTF?! Why is Q15 pushed here twice?!?
+*** WTF?! Why is Q15 pushed here twice?!? This can't be right!
 
 debugger invoked on a SIMPLE-ERROR in thread
 #<THREAD "main thread" RUNNING {10016C8003}>:
@@ -41,3 +41,5 @@ restarts (invokable by number or by possibly-abbreviated name):
 | {9+12935||0|0}                                                      |
 +---------------------------------------------------------------------+
 
+()
+()
