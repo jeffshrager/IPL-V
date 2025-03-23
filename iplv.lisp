@@ -784,7 +784,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; moved into the new cell, and (0) is put into (1). The end
 	;; result is that (0) occurs in the list before the symbol
 	;; that was originally in cell (1).
-	(let* ((list-cell (<== list-cell-or-name))
+	(let* ((list-cell (cell< list-cell-or-name))
 	       (new-cell-name (new-local-symbol))
 	       (list-cell-symbol (cell-symb list-cell))
 	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell)))
@@ -794,8 +794,23 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		(cell-link list-cell) new-cell-name))
 	(poph0 2))
 
-;;;	INSERT (0) AFTER SYMBOL IN (1). Identical with J63, except the symbol in (1) is left in (1), and (0) is put into the new cell, thus occurring after the symbol in (1). (If (1) is a private termination symbol, (0) is put in cell (1), which agrees with the definition of insert after.) 
-
+  (defj J64 (symbol-or-cell list-cell-or-name) "INSERT (0) AFTER SYMBOL IN (1)"
+	;; Identical with J63, except the symbol in (1) is left in
+	;; (1), and (0) is put into the new cell, thus occurring after
+	;; the symbol in (1). (If (1) is a private termination symbol,
+	;; (0) is put in cell (1), which agrees with the definition of
+	;; insert after.)
+	;; [WWW This is gonna break at list ends.]
+	(let* ((symbol (if (cell? symbol-or-cell) (cell-symb symbol-or-cell) symbol-or-cell))
+	       (list-cell (cell< list-cell-or-name))
+	       (new-cell-name (new-local-symbol))
+	       (new-cell (make-cell! :name new-cell-name
+				     :symb symbol
+				     :link (cell-link list-cell)))
+	       )
+	  (setf (cell-link list-cell) new-cell-name))
+	(poph0 2)
+	)
 
   ;; WWW If this tries to work with numeric data there's gonna be a
   ;; problem bcs PQ will be wrong.
@@ -876,6 +891,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    next-cell this-cell next-cell)
 		(setf (cell-symb this-cell) (cell-symb next-cell)
 		      (cell-link this-cell) (cell-link next-cell))))))
+
+  (defj J71 (arg0) "ERASE LIST (0)"
+	;; (0) is assumed to name a list. All cells of the list--both
+	;; head and list cells--are returned to available
+	;; space. (Noth-ing else is returned, not even the description
+	;; list of (0), if it exists.) There is no out-put in HO. If
+	;; (0) names a list cell, the cell linking to it will be
+	;; linking to available space after J71, a dangerous but not
+	;; always fatal situation.
+	(poph0 1) ;; Of course, we don't actually do anything with this.
+	)
 
   (defj J72 (arg0) "ERASE LIST STRUCTURE (0)"
 	;; (0) is assumed to name a list structure or a sublist
@@ -1292,7 +1318,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
   (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
-  (defj J71 () "Unimplemented!" (break "J71 is unimplemented!"))
   (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
   (defj J81 () "Unimplemented!" (break "J81 is unimplemented!"))
@@ -1834,7 +1859,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
 ;(trace j62-helper-search-list-for-symb)
 
-(setf *trace-line-id-exprs*
+`(setf *trace-line-id-exprs*
   '(("P052R320"
      (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
      (setf *!!list* '(:run :jfns))
