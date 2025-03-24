@@ -757,7 +757,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; up the original cell, so I've taken these as usually creating new
   ;; cells, and testing for SYMB equivalence.
 
-  (defj J62 (target list-head-cell-or-its-name) "LOCATE (O) ONLIST (1)"
+(defj J62 (target list-head-cell-or-its-name) "LOCATE (O) ONLIST (1)"
 	;; LOCATE (0) ON LIST (1). A search of list with name (1) is
 	;; made, testing each symbol against (0) (starting with cell
 	;; after cell (1)). If (0) is found, the output (0) is the
@@ -785,23 +785,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J63 (symbol-or-cell list-cell-or-name) "INSERT (0) BEFORE SYMBOL IN (1)"
 	;; (1) is assumed to name a cell in a list. A new cell is
-	;; inserted in the list behind (1). The symbol in (1) is moved
-	;; into the new cell, and (0) is put into (1). The end result
-	;; is that (0) occurs in the list before the symbol that was
-	;; originally in cell (1). [By "(0) is put into (1) does it
-	;; mean that ... What the fuck does this mean?]
+	;; inserted in the list behind (1). The symbol in (1) is
+	;; moved into the new cell, and (0) is put into (1). The end
+	;; result is that (0) occurs in the list before the symbol
+	;; that was originally in cell (1).
 	(let* ((list-cell (cell< list-cell-or-name))
 	       (new-cell-name (new-local-symbol))
-	       (list-cell-name (cell-name list-cell))
-	       (new-cell (make-cell! :name new-cell-name :symb list-cell-name :link (cell-link list-cell)))
+	       (list-cell-symbol (cell-symb list-cell))
+	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell)))
 	       )
 	  (if (cell? symbol-or-cell) (setf symbol-or-cell (cell-symb symbol-or-cell)))
 	  (setf (cell-symb list-cell) symbol-or-cell
-		(cell-link list-cell) new-cell-name)
-	  (!! :jfns "In J63: list-cell=~s, new-cell = ~s~%" list-cell new-cell)
-	  )
-	(poph0 2)
-	)
+		(cell-link list-cell) new-cell-name))
+	(poph0 2))
 
   (defj J64 (symbol-or-cell list-cell-or-name) "INSERT (0) AFTER SYMBOL IN (1)"
 	;; Identical with J63, except the symbol in (1) is left in
@@ -811,37 +807,37 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; insert after.) [WWW???!!! I dunno WTF this is talking
 	;; about! And it's prob. gonna break at list ends because
 	;; ... see above!]
-	(let* ((name-0 (if (cell? symbol-or-cell) (cell-name symbol-or-cell) symbol-or-cell))
+	(let* ((symbol (if (cell? symbol-or-cell) (cell-symb symbol-or-cell) symbol-or-cell))
 	       (list-cell (cell< list-cell-or-name))
 	       (new-cell-name (new-local-symbol))
 	       (new-cell (make-cell! :name new-cell-name
-				     :symb name-0
+				     :symb symbol
 				     :link (cell-link list-cell)))
 	       )
-	  (setf (cell-link list-cell) new-cell-name)
-	  (!! :jfns "In J64: list-cell=~s, new-cell = ~s~%" list-cell new-cell)
-	  )
+	  (setf (cell-link list-cell) new-cell-name))
 	(poph0 2)
 	)
 
+  ;; WWW If this tries to work with numeric data there's gonna be a
+  ;; problem bcs PQ will be wrong.
   (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
 	(PopH0 2)
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
 	(!! :jfns "J65 trying to append ~s to ~s~%" arg0 arg1)
 	(loop with list-cell = (<== arg1)
-	      with name = (if (stringp arg0)
+	      with symb = (if (stringp arg0)
 			      arg0
 			      (if (cell? arg0)
-				  (cell-name arg0)
+				  (cell-symb arg0)
 				  (break "Error in J66: ~a should be a symbol or cell!" arg0)))
 	      do
 	      (cond
 		    ((zero? (cell-link list-cell))
-		     (!! :jfns "J65 hit end, adding ~s to the list!~%" name)
+		     (!! :jfns "J65 hit end, adding ~s to the list!~%" symb)
 		     (let* ((new-name (new-local-symbol)) ;; (cell-name list-cell)))
 			    ;; WWW If this tries to work with numeric data there's gonna be a problem!
-			    (new-cell (make-cell! :name new-name :pq "21" :symb name :link "0")))
+			    (new-cell (make-cell! :name new-name :pq "21" :symb symb :link "0")))
 		       (setf (cell-link list-cell) new-name)
 		       (setf (cell new-name) new-cell)
 		       (return t))))
@@ -859,19 +855,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(PopH0 2)
 	(!! :jfns "J66 trying to insert ~s in ~s~%" arg0 arg1)
 	(loop with list-cell = (<== arg1)
-	      with name = (if (stringp arg0)
+	      with symb = (if (stringp arg0)
 			      arg0
 			      (if (cell? arg0)
-				  (cell-name arg0)
+				  (cell-symb arg0)
 				  (break "Error in J66: ~a should be a symbol or cell!" arg0)))
 	      do
-	      (cond ((string-equal (cell-symb list-cell) name)
-		     (!! :jfns "J66 found ~s in the list already. No action!~%" name)
+	      (cond ((string-equal (cell-symb list-cell) symb)
+		     (!! :jfns "J66 found ~s in the list already. No action!~%" symb)
 		     (return nil))
 		    ((zero? (cell-link list-cell))
-		     (!! :jfns "J66 hit end, adding ~s to the list!~%" name)
+		     (!! :jfns "J66 hit end, adding ~s to the list!~%" symb)
 		     (let* ((new-name (new-local-symbol (cell-name list-cell)))
-			    (new-cell (make-cell! :name new-name :symb name :link "0")))
+			    (new-cell (make-cell! :name new-name :symb symb :link "0")))
 		       (setf (cell-link list-cell) new-name)
 		       (setf (cell new-name) new-cell)
 		       (return t))))
