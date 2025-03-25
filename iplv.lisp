@@ -568,16 +568,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	     ,@forms))))
 
 ;;; This is, alas, a bit heuristic because our strings can be
-;;; addresses as well. This results in a horrible screw case where LT
-;;; uses individual characters, like left parens "(" for the address
-;;; of working lists that are activated when a ( is encountered (see
-;;; card: "(000D000" (p. 181) ... Yes, that's really the id of the
-;;; line: "(000D000" with a paren at the f'ing head!) In that case we
-;;; special-case this to NOT drill down through single charater names,
-;;; but who know H(ow)TF that's gonna some back to byte us
-;;; later. Esp. where used in J2 equals tests all over the place! (The
-;;; WHY THE F do the comments have a (0 like the symbol in the list,
-;;; but the name and symb doesn't!?! WTFingF?!)
+;;; addresses as well as simple strings. This results in a horrible
+;;; screw case where LT uses individual characters, like left parens
+;;; "(" for the address of working lists that are activated when a (
+;;; is encountered (see card: "(000D000" (p. 181) ... Yes, that's
+;;; really the id of the line: "(000D000" with a paren at the f'ing
+;;; head!) One change I've made in order to help a bit with this
+;;; confusion is that in LTFixed (and as flagged in the spreadsheet),
+;;; I've changed the names of single-letter cells to be explicitly,
+;;; so, for example: A becomes A0. 
 
 (defun symbolify (arg jfn) ;; ?? FFF Might be able to use *fname-hint* here?
   (if (cell? arg) (cell-symb arg)
@@ -590,15 +589,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J0 () "No operation")
 
-  (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; Pop??  The identity test
+  (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; The identity test
 	;; is on the SYMBpart only; P and Q are ignored. [Also, in the
 	;; case of alphabetics, trailing blanks or zeros are ignored.]
 	;; Before we go anywhere else, the names could be equal or the
 	;; name of one could be equal to the symbol of the other, in
 	;; either direction. This is sooooooooo horrible!
-	(poph0 2)
-	;; "p.10: "...it is understood from the definition of TEST
-	;; that J2 will remove both (0) and (1) from HO."
+	(poph0 2) ;; ("p.10: "...it is understood from the definition
+		  ;; of TEST that J2 will remove both (0) and (1) from
+		  ;; HO.")
 	(if (ipl-meta-string-equal arg0 arg1)
 	    (setf (H5) "+")
 	    (let ((a (symbolify arg0 "J2"))
@@ -1211,7 +1210,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	       (l (length s))
 	       (p (cell-link (cell "W25"))))
 	  (!! :jfns "J156 trying to add ~s at pos ~a in print butter.~%" s p)
-	  (if (<== (+ p l) 80)
+	  (if (<= (+ p l) 80)
 	      (loop for m from p by 1
 		    as c across s
 		    do (setf (aref *W24-Line-Buffer* m) c)
@@ -1913,7 +1912,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (setf *trace-@orID-exprs*
 	'(
 	  (179 (lpll "*12")) ;; Check that the thing is at least read correctly!
-	  (370 (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))
+	  ;(370 (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 20000)
   )
