@@ -83,6 +83,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (comments.1 "")
   (id "")
   )
+(defun cell? (cell?) (eq 'cell (type-of cell?)))
+
+(defvar *symtab* (make-hash-table :test #'equal))
+(defvar *systacks* (make-hash-table :test #'equal))
 
 (defun zero? (what) (if (stringp what) (member what '("" "0") :test #'string-equal)))
 
@@ -110,59 +114,58 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
 ;;; If the ID is a number rather than a string, it refers to the value in (H3)
 (defvar *trace-@orID-exprs* nil) 
-(defvar *symtab* (make-hash-table :test #'equal))
-(defvar *trace-cell-names* nil) 
-(defvar *!!list* nil) ;; t for all, or: :load :run :run-full
 (defvar *breaks* nil) ;; If this is set to t it breaks on every call
+(defvar *trace-cell-names* nil) 
+
+;;; t for all or :dr-memory :load :run :jfns :run-full :io :end-dump
+;;; :deep-alerts
+(defvar *!!list* nil) 
 (defparameter *default-!!list* '(:run :jfns))
+
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! (&optional next-breaks) (setf *breaks* next-breaks) "Use :c to run free.")
 
 (defparameter *alphachars* "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[]{};':\" ,./?><")
 
-;;; *cell is symbol value for stacked symbols, like H0 and W0, used where there
-;;; isn't a special macro for common ones.  WWW Note the convention of adding +
-;;; when the var has the whole stack. System symbols (machine stacks) are
-;;; strings just like user-defined symbols. It's up to the user to ot try to
-;;; push/pop things that aren't stacks!
-
-(defmacro cell (symb) `(gethash ,symb *symtab*))
-;;; This is un-settable but has to be used sometimes instead of <=!
-;;; because of the character screw.
-(defun cell? (cell?) (eq 'cell (type-of cell?)))
-(defmacro stack (symb) `(gethash ,symb *systacks*)) ;; Only system cells have stacks
-
 ;;; Cell dereferencing: Used when you need a cell. <=! is more
 ;;; powerful in that it can create the cell if it's not found, and is
 ;;; slightly heuristic. <== should be used where possible, and only
 ;;; use <=! when you need the heuristication and/or auto-creation.
 
-(defun <== (symb) (if (cell? symb) symb (gethash symb *symtab*)))
+(defun <== (cell-or-symb)
+  (!! :dr-memory "<== retreiving ~s~%" cell-or-symb)
+  (if (cell? cell-or-symb) cell-or-symb (gethash cell-or-symb *symtab*)))
 
-(defun <=! (cell-or-name &key create-if-does-not-exist?) ;; cell-or-name can be a cell or a name
-  (!! :deep-memory "<=! Retreive: ~s~%" cell-or-name)
-  (if (cell? cell-or-name)
-      cell-or-name
-      (if (stringp cell-or-name)
-	  (let ((maybe-cell (<== cell-or-name)))
-	    (if maybe-cell
-		maybe-cell
-		(if create-if-does-not-exist?
-		    (make-cell! :name cell-or-name)
-		    (error "In ~s, ~s isn't a cell and you didn't ask to create it!"
-			   cell-or-name *trace-instruction*)))))))
+(defun <=! (cell-or-symb &key create-if-does-not-exist?) ;; cell-or-symb can be a cell or a name
+  (!! :dr-memory "<=! retreiving ~s~%" cell-or-symb)
+  (or (<== cell-or-symb)
+      (if (stringp cell-or-symb)
+	  (if create-if-does-not-exist?
+	      (let ((new-cell (make-cell! :name cell-or-symb)))
+		(!! :dr-memory "<=! created ~s~%" new-cell)
+		new-cell)
+	      (error "In <=! ~s isn't a cell and you didn't ask to create it!"
+		     cell-or-symb)))))
 
-;;; Dereferencing versions of cell struct accessors
+(defmacro cell-name% (cell-or-symb)
+  `(cell-name (<== ,cell-or-symb)))
+(defmacro cell-symb% (cell-or-symb)
+  `(cell-symb (<== ,cell-or-symb)))
 
-(defmacro cell-name% (cell-or-name)
-  `(cell-name (<== ,cell-or-name)))
-(defmacro cell-symb% (cell-or-name)
-  `(cell-symb (<== ,cell-or-name)))
+;;; Dereferencing versions of cell struct accessors. Cell is macro for
+;;; stacked symbols, like H0 and W0, used where there isn't a special
+;;; macro for common ones.  WWW Note the convention of adding + when
+;;; the var has the whole stack. System symbols (machine stacks) are
+;;; strings just like user-defined symbols. It's up to the user to ot
+;;; try to push/pop things that aren't stacks!
 
-;;; Important values it have special macros (these are like (H0) = (0)
-;;; in the IPL-V manual). The ...+ fns return the whole stack. (Note
-;;; that you'll have to get (1), that is, the second stack entry in H0
+(defmacro cell (symb) `(gethash ,symb *symtab*))
+(defmacro stack (symb) `(gethash ,symb *systacks*)) ;; Only system cells have stacks
+
+;;; Important values have special macros (these are like (H0) = (0) in
+;;; the IPL-V manual). The ...+ fns return the whole stack. (Note that
+;;; you'll have to get (1), that is, the second stack entry in H0
 ;;; manually!)
 
 (defmacro H0 () `(cell "H0"))
@@ -177,11 +180,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defmacro S () `(cell "S"))
 (defmacro S+ () `(stack "S"))
 
+;;; Push and pop utils:
+
 (defun ^^ (ssname)
-  ;;(trace-cell-or-name? ssname)
   (setf (cell ssname) (pop (stack ssname))))
 (defun vv (ssname &optional new-value)
-  ;;(trace-cell-or-name? ssname)
   (push (cell ssname) (stack ssname))
   (when new-value (setf (cell ssname) new-value)))
 
@@ -191,7 +194,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   `(store (make-cell ,@args)))
 
 (defun store (cell &optional (name (cell-name cell)))
-  (!! :deep-memory "== Store ==> ~s [mem]~%" cell)
+  (!! :dr-memory "== Store ==> ~s [mem]~%" cell)
   (setf (gethash name *symtab*) cell)
   cell)
   
@@ -199,23 +202,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; incl. stackables.
 
 (defvar *running?* nil)
-
-;;; This is temporarily deprecated bcs it fails tracing H0 (and some
-;;; others) that can contain strings.
-
-(defun trace-cell-or-name? (cell-or-name)
-  (break "trace-cell-or-name? is temporarily deprecated")
-  (when *running?* 
-    (let ((names (if (stringp cell-or-name)
-		     (list cell-or-name)
-		     (if (cell? cell-or-name)
-			 (cell-name (list (cell-name cell-or-name) (cell-symb cell-or-name) (cell-link cell-or-name)))))))
-      (when (intersection names *trace-cell-names* :test #'string-equal)
-	(format t "======= Tracing ~s: ~s =======~%" (car names) (<=! (car names)))
-	(when (gethash (car names) *systacks*)
-	  (pprint (gethash (car names) *systacks*))
-	  (format t "============================~%"))
-	))))
 
 ;;; Example usage of *trace-@orID-exprs*
 ;;;   ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
@@ -497,14 +483,12 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defparameter *system-cells* '("H0" "H1" "H3" "H5" "W0" "S"))
 (defparameter *all-system-cells* (append *system-cells* (loop for w below 43 collect (format nil "W~a" w))))
 
-(defvar *systacks* (make-hash-table :test #'equal))
-
 (defun create-system-cells ()
   (loop for name in *all-system-cells*
 	do
 	(make-cell! :name name)
 	(setf (gethash name *systacks*) (list :empty))
-	(!! :deep-memory "Created system cell: ~s and its stack.~%" name))
+	(!! :dr-memory "Created system cell: ~s and its stack.~%" name))
   (setf (cell "S") "S-is-null")
   )
 
@@ -529,7 +513,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  as depth = (length stack)
 	  do
 	  (when (> depth *stack-depth-limit*)
-	    (!! :deep-memory "Tailing stack ~a, now ~a deep, to ~a. [mem]~%" key depth *stack-depth-limit*)
+	    (!! :dr-memory "Tailing stack ~a, now ~a deep, to ~a. [mem]~%" key depth *stack-depth-limit*)
 	    (loop for s+ on stack
 		  as d below *stack-depth-limit*
 		  finally (setf (cdr s+) nil))))))
@@ -1876,19 +1860,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (setf *trace-cell-names* nil)
   (setf *breaks* nil) ;; If this is set to t (or '(t)) it break on every call
   (setf *stack-depth-limit* 25) ;; (Nb. must be much higher, ~100, for Ackermann!)
-  (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
+  (setf *!!list* *default-!!list*) 
   (setf *cell-tracing-on* nil)
   (setf *trace-@orID-exprs* nil)
   (trace ipl-eval))
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
@@ -1898,7 +1882,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-'(progn ;; Test of call stack state machine.
+(progn ;; Test of call stack state machine.
   (set-default-tracing)
   (setf *trace-cell-names* '("H0" "H1") *cell-tracing-on* t)
   (load-ipl "T123.lisp" :adv-limit 100)
