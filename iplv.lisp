@@ -1875,33 +1875,21 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun set-default-tracing ()
   (untrace)
   (setf *trace-cell-names* nil)
-  (setf *breaks* nil)
+  (setf *breaks* nil) ;; If this is set to t (or '(t)) it break on every call
   (setf *stack-depth-limit* 25) ;; (Nb. must be much higher, ~100, for Ackermann!)
   (setf *!!list* *default-!!list*) ;; :deep-memory :load :run :jfns :run-full :io :end-dump (t for all)
   (setf *cell-tracing-on* nil)
   (setf *trace-@orID-exprs* nil)
   (trace ipl-eval))
 
-;;; Example usage of *trace-@orID-exprs*
-;;;   ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
-;;;   ("P051R050" (setf *!!list* '(:run :run-full :jfns)))
-;;; Can also be a number in which case it refers to the H3 value (@), as:
-;;;   (123 ...)
-;;; (setf *trace-@orID-exprs*
-;;;    '(("P052R040"
-;;;       (setf *trace-cell-names* '("W0" "W1" "H0") *cell-tracing-on* t)
-;;;       (trace symbolify ipl-meta-string-equal ipl-string-equal))
-;;;      (123 (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
-;;;      ))
-
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
@@ -1911,7 +1899,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-(progn ;; Test of call stack state machine.
+'(progn ;; Test of call stack state machine.
   (set-default-tracing)
   (setf *trace-cell-names* '("H0" "H1") *cell-tracing-on* t)
   (load-ipl "T123.lisp" :adv-limit 100)
@@ -1920,10 +1908,12 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (progn ;; LT
   (set-default-tracing)
   ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
-  ;(setf *breaks* '("P050R000")) ;; If this is set to t (or '(t)) it break on every call
+  ;(setf *breaks* '("P050R000")) 
   ;(trace GATHER-ALL-POSSIBLE-RELATED-SYMBOLS symbolify)
-  '(setf *trace-@orID-exprs*
-    '((370 (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))
-      ))
+  (setf *trace-@orID-exprs*
+	'(
+	  (179 (lpll "*12")) ;; Check that the thing is at least read correctly!
+	  (370 (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))
+	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 20000)
   )
