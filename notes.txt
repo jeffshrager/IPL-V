@@ -17,6 +17,14 @@ name the A, B, ... * . , ' etc in the code as A0 ... *0 ... '0 ... and
 this seems to handle more cases, but there are places where it's
 trying to do an equal test and it's not clear what's being equated.
 
+The nub of the symbol/cell problem is that H0, and all the Hs and Ws
+have to either be symbols (strings) or numbers. They can NOT be cells,
+because then it's confusing whether the thing is the name of the cell
+or the symbol itself. (This is resolved for (S) at INTERPRET-Q in the
+evaluator.) The thing just has to be mega careful not to put cells on
+the stack, except that it can put NAMES OF CELLS on the stack, but not
+the cells themselves because then we have this messy ambiguity.
+
 * The H0 cleanup problem
 
 There is a running issue about Jfns popping off things from H0, or
