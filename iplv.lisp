@@ -2,6 +2,8 @@
 
 #|
 
+FFF Replace lots of (vv "H0" (make-cell :name "H0" val)) nonsense with (Input[push]-to-H0 val)
+
 WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
 The weirdest example (so far) is that the symbol "P" is actually the
 0th cell in the P zone, so is really "P0", so that all the code that
@@ -180,6 +182,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defmacro H0 () `(cell "H0"))
 (defmacro H0+ () `(stack "H0"))
+
+(defgeneric Input[push]-to-H0 (val))
+(defmethod Input[push]-to-H0 ((cell cell))
+  (!! :run-full "Input[push]-to-H0 is pushing (the name of) ~s on H0~%" cell)
+  (vv "H0" (make-cell :name "H0" :symb (cell-name cell))))
+(defmethod Input[push]-to-H0 ((val string))
+  (!! :run-full "**WARNING** Input[push]-to-H0 is pushing a non-cell: ~s on H0~%" val)
+  (vv "H0" (make-cell :name "H0" :symb val)))
 
 (defmacro H1 () `(cell "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
 (defmacro H1+ () `(stack "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
@@ -646,9 +656,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 			  (setf (H5) "-") (return nil)))
 		    (!! :jfns "In J10 dl-attribute-cell = ~s~%" dl-attribute-cell)
 		    (if (ipl-string-equal target (cell-symb dl-attribute-cell))
-			(let* ((val (cell (cell-link dl-attribute-cell))))
-			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" target dl-attribute-cell val) 
-			  (setf (H5) "+") (vv "H0" val) (return t))
+			(let* ((cell (cell (cell-link dl-attribute-cell))))
+			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" target dl-attribute-cell cell) 
+			  (setf (H5) "+")
+			  (Input[push]-to-H0 cell)
+			  (return t))
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
 			      (progn
@@ -744,7 +756,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (progn (!! :jfns "In J60 next cell is ~s!~%" link)
 		     (PopH0 1)
 		     (setf (h5) "+")
-		     (vv "H0" link)))))
+		     (Input[push]-to-H0 link)))))
 
   ;; WWW Many of these list operations are unclear on whether they are
   ;; matching/inserting the SYMB of the intended cell, for example
@@ -822,23 +834,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
 	(!! :jfns "J65 trying to append ~s to ~s~%" arg0 arg1)
-	(loop with list-cell = (<=! arg1)
-	      with symb = (if (stringp arg0)
-			      arg0
-			      (if (cell? arg0)
-				  (cell-symb arg0)
-				  (break "Error in J66: ~a should be a symbol or cell!" arg0)))
+	(loop with list-cell = (cell (cell-symb arg1))
+	      with symb = (cell-symb arg0)
+	      with new-cell = (make-cell! :name (new-local-symbol) :symb symb)
 	      do
-	      (cond
-		    ((zero? (cell-link list-cell))
-		     (!! :jfns "J65 hit end, adding ~s to the list!~%" symb)
-		     (let* ((new-name (new-local-symbol)) ;; (cell-name list-cell)))
-			    ;; WWW If this tries to work with numeric data there's gonna be a problem!
-			    (new-cell (make-cell! :name new-name :pq "21" :symb symb :link "0")))
-		       (setf (cell-link list-cell) new-name)
-		       (setf (cell new-name) new-cell)
-		       (return t))))
-	      ;; Move to next cell if nothnig above returned out
+	      (cond ((zero? (cell-link list-cell))
+		     (!! :jfns "J65 hit end, adding ~s to the list!~%" new-cell)
+		     (setf (cell-link list-cell) (cell-name new-cell))
+		     (return t)))
+	      ;; Move to next cell if nothing above returned out
 	      (setf list-cell (cell (cell-link list-cell)))))
 
   (defj J66 (arg0 arg1) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
@@ -846,9 +850,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; search of list (1) is made. against (0) (starting with the
 	;; cell after cell (1) . If (0) is found, J66 does nothing
 	;; further. If (0) is not found, it is inserted at the end of
-	;; the list, as in J65. (??? What happens if the list
-	;; branches??? At the moment this can't do anything sensible
-	;; with a branching list!)
+	;; the list, as in J65. [Nb. This can't do anything sensible
+	;; with a branching list!]
 	(PopH0 2)
 	(let ((target (cell-symb arg0)))
 	(!! :jfns "J66 trying to insert ~s in ~s~%" target arg1)
@@ -1346,9 +1349,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (!! :jfns "J186 read ~s~%" c)
 	  (if (char-equal #\space c)
 	      (setf (H5) "-")
-	      (setf (H0) (make-cell! :name (new-local-symbol)
-				     :symb (format nil (if (numchar? c) "~c" "~c0") c))
-		    (H5) "+"))))
+	      (progn
+		(Input[push]-to-H0 (format nil (if (numchar? c) "~c" "~c0") c))
+		(setf (H5) "+")))))
 
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
   (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
@@ -1836,6 +1839,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (progn ;; F1 test
   (set-default-tracing)
+  (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2" "W25") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
