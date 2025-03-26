@@ -1051,7 +1051,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; (1) and (2). The output (0) is the input (0).
 	;; *** WWW (PopH0 2) -- Ackermann fails if this gets done!!! *** WWW
 	;;     and it's unclear how to do is anyway, because it says it changes (0) *** ???
-	(poph0 2) ;; The output (0) is the input (0).
+	(poph0 3) (vv "H0" arg0) ;; The output (0) is the input (0).
 	(let* ((n1 (num?get arg1 "J111"))
 	       (n2 (num?get arg2 "J111"))
 	       (r (- n1 n2)))
@@ -1161,9 +1161,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(PopH0 1)
 	(line-print-linear-list arg0))
 
-  (defj J152 () "PRINT SYMBOL (0)"
+  (defj J152 (arg0) "PRINT SYMBOL (0)"
 	;; Pop after!!
-	(line-print-cell (H0))
+	(line-print-cell (cell (cell-symb arg0)))
 	(PopH0 1))
 
   (defj J154 () "Clear print line"
@@ -1836,7 +1836,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-`(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (load-ipl "F1.lisp")
   )
@@ -1844,9 +1844,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  (setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
-  (setf *trace-@orID-exprs* '((158 (break))))
-  (setf *!!list* '(:run :jfns) *cell-tracing-on* t)
+  ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
+  ;(setf *trace-@orID-exprs* '((158 (break))))
+  ;(setf *!!list* '(:run :jfns) *cell-tracing-on* t)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
