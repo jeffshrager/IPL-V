@@ -1051,14 +1051,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; (1) and (2). The output (0) is the input (0).
 	;; *** WWW (PopH0 2) -- Ackermann fails if this gets done!!! *** WWW
 	;;     and it's unclear how to do is anyway, because it says it changes (0) *** ???
+	(poph0 2) ;; The output (0) is the input (0).
 	(let* ((n1 (num?get arg1 "J111"))
 	       (n2 (num?get arg2 "J111"))
 	       (r (- n1 n2)))
 	  (!! :jfns "J111: ~a - ~a = ~a~%" n1 n2 r)
-	  (let ((H0 (<== (H0))))
-	    (setf (cell-link H0) r))))
+	  (setf (cell-link (cell (cell-symb arg0))) r)))
 
-  (defj J117 (arg0) "TEST IF (O) = 0."
+  (defj J117 (arg0) "TEST IF (0) = 0."
+	(poph0 1)
 	(let* ((n (num?get arg0 "J117")))
 	  (!! :jfns "J117: Testing if ~s (~s: ~s) = 0?~%" arg0 (<=! arg0) n)
 	  (if (zerop n) (setf (H5) "+") (setf (H5) "-"))))
@@ -1078,27 +1079,26 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  ;; but the doc doesn't say that this does a push. ???
 	  (setf (H0) new-cell)))
 
-  (defj J124 () "CLEAR (0)"
+  (defj J124 (arg0) "CLEAR (0)"
 	;; The number (0) is set to be 0. If the ce 1is not a data term, it is
 	;; made an in- teger data term= 0. If a number, its type, integer, or
 	;; floating point, is unaffected. It is left as the output (0).
-	;; (No pop bcs H0 is replaced -- Maybe pop and push?)
+	;; (NO POP!)
 	(let ((H0 (<=! (H0))))
 	  (!! :jfns "J124: Clear (H0): ~s~%" H0)
-	  (setf (cell-link H0) 0)))
+	  (setf (cell-link (cell (cell-symb arg0))) 0)))
 
-  (defj J125 () "TALLY 1 IN (0)"
+  (defj J125 (arg0) "TALLY 1 IN (0)"
 	;; An integer 1 is added to the number (0). The type of the result
 	;; is the same as the type of (0). It is left as the output
 	;; (0). [NNN: If there is no value in (0) this assumes zero and
 	;; set the number to 1"
-	;; (No pop)
-	(let* ((H0 (<=! (H0)))
-	       (curval (cell-link H0)))
-	  (!! :jfns "J125: Tally (H0) currently: ~s~%" H0)
-	  (setf (cell-link H0)
+	;; NO POP! "It is left as the output (0)." !!
+	(let ((curval (cell-link (cell (cell-symb arg0)))))
+	  (!! :jfns "J125: Tally (0) currently: ~s~%" arg0)
+	  (setf (cell-link (cell (cell-symb arg0))) 
 		(if (not (numberp curval))
-		    (progn (!! :jfns "Warning! J125 was send a non-number: ~s, setting result to 1~%" curval) 1)
+		    (progn (!! :jfns "Warning! J125 was sent a non-number: ~s, setting result to 1~%" curval) 1)
 		    (1+ curval)))))
 
   (defj J130 (H0) "TEST IF (O) IS REGIONAL SYMBOL"
@@ -1716,13 +1716,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        (2 (setf (cell (S)) (H0)) (^^ "H0")) ;; Output to S (then restore HO)
        (3 (^^ (s)))                         ;; Restore (pop up) S 
        (4 (vv (S)))                         ;; Preserve (push down) S
-       (5 
-	;; Replace (0) by S -- Here if S is just a symbol we need to either get
-	;; it, or make a cell to hold it because it's just a list symbol
-	;; (string, actually) (But if H0 is already a cell we can just replace
-	;; it.)
-	(setf (H0) (<=! (s)))
-	)
+       (5 (setf (H0) (make-cell! :name "H0" :symb (s))))
        (6 ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
 	(setf (cell (s)) (<== (H0))))
        (7 (go BRANCH)) ;; Branch to S if H5-
@@ -1850,6 +1844,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
+  (setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
+  (setf *trace-@orID-exprs* '((158 (break))))
+  (setf *!!list* '(:run :jfns) *cell-tracing-on* t)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
