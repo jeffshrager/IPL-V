@@ -855,7 +855,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(loop with list-cell = (<=! (cell-symb arg1))
 	      as link = (cell-link list-cell)
 	      do
-	      (print (list "*****************" list-cell))
 	      (cond ((string-equal (cell-symb list-cell) target)
 		     (!! :jfns "J66 found ~s in the list already. No action!~%" target)
 		     (return nil))
@@ -1495,29 +1494,26 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; (NNN H0p might be deprecated FFF Remove?)
 
 (defun J183/4-Scanner (arg0 mode)
-  (let* ((H0 (<=! arg0))
+  (let* ((counter (cell (cell-symb arg0)))
 	 (w25p (cell-link (cell "W25")))
-	 ;;(h0p (cell-link H0))
+	 (curpos (cell-link counter))
 	 )
-    (!! :jfns "Starting in J183/4-Scanner: H0 = ~s, w25p = ~a, h0p = ~%" H0 w25p) ;; h0p)
-    ;; (if (not (numberp h0p)) (break "In J183/4 expected H0(p) (~a) to be a number.~%" (H0)))
+    (!! :jfns "Starting in J183/4-Scanner: counter = ~s, w25p = ~a~%" counter w25p)
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
     (setf (H5) "-")
-    (incf w25p)		    ;; Start at W25+1 (per manual)
+    (incf w25p) ;; Start at W25+1 (per manual)
     (loop until (= w25p 80) 
 	  ;; WWW OBIWON !!! The only place I should have to correct this is here (I hope!) 
 	  as char = (aref *W24-Line-Buffer* (1- w25p))
 	  do 
-	  (!! :jfns "Deep in J183/4-Scanner: w25p = ~a, char = ~s, h0p = ~%" w25p char) ;; h0p)
+	  (!! :jfns "Deep in J183/4-Scanner: w25p = ~a, char = ~s~%" w25p char)
 	  (when (case mode
 		  (:blank (char-equal char #\space))
 		  (:non-blank (not (char-equal char #\space)))
 		  (t (error "!!! J183/4-Scanner given unknown mode: ~s" mode)))
-	    ;;(setf (cell-link H0) h0p)
-	    (setf (cell-link H0) w25p)
+	    (setf (cell-link counter) w25p)
 	    (setf (H5) "+")
 	    (return t))
-	  ;; (incf H0p)
 	  (incf w25p)
 	  )))
 
@@ -1701,7 +1697,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        ;; 0 take the symbol itself
        (0 (setf (s) symb) (go INTERPRET-P))
        ;; 1 Take the name the symbol is pointing to
-       (1 (setf (s) (cell-symb (cell symb))) (go INTERPRET-P))
+       (1 (setf (s) (cell-name (cell symb))) (go INTERPRET-P)) ;; ????????????
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to
        (2 (setf (s) (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
        (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
@@ -1715,7 +1711,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 (vv "H0" (S)))                    ;; Input S (after preserving HO) 
-       (2 (setf (cell (S)) (H0)) (^^ "H0")) ;; Output to S (then restore HO)
+       (2 (setf (cell (S)) (cell (cell-symb (H0)))) (^^ "H0")) ;; Output to S (then restore HO) ???????????????
        (3 (^^ (s)))                         ;; Restore (pop up) S 
        (4 (vv (S)))                         ;; Preserve (push down) S
        (5 (setf (H0) (make-cell! :name "H0" :symb (s))))
@@ -1838,12 +1834,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-`(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
+  ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2" "W25") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
 
-`(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1864,9 +1861,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (progn ;; LT
   (set-default-tracing)
-  ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+  (setf *trace-cell-names* '("H0" "W0" "W1" "W2" "W25") *cell-tracing-on* t)
   ;(setf *breaks* '("P050R000")) 
-  ;(trace GATHER-ALL-POSSIBLE-RELATED-SYMBOLS symbolify)
+  ;(trace)
   (setf *trace-@orID-exprs*
 	'(
 	  (179 (lpll "*12")) ;; Check that the thing is at least read correctly!
