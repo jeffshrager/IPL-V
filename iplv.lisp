@@ -629,7 +629,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; by a search and test of all attributes on the description list.)
 	(PopH0 2)
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
-	(let* ((list-head (<=! arg1))
+	(let* ((list-head (cell (cell-symb arg1)))
 	       (dlist-name (cell-symb list-head))
 	       (target (cell-symb arg0)))
 	  (!! :jfns "In J10 list-head = ~s, dlist-name = ~s, target = ~s~%" list-head dlist-name target)
@@ -1276,8 +1276,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (if (j181-helper-is-regional-symbol? string)
 	      (progn
 		(!! :jfns "J181 decided that ~s IS a regional symbol, so we're installing it.~%" string)
-		(make-cell! :name string)
-		(setf (H0) (make-cell! :name (new-local-symbol) :symb string))
+		(make-cell! :name string :symb "0" :link "0")
+		(vv "H0" (make-cell! :name "H0" :symb string)) ;; FFF This H0 mess needs to be cleaned up!
 		(setf (H5) "+"))
 	      (progn
 		(!! :jfns "J181 decided that ~s is NOT a regional symbol.~%" string)
@@ -1324,7 +1324,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; the column holding the scanned-for character. If input (0) = decimal
   ;; integer 0, after scanning, output (0) will be the size of a field beginning
   ;; in column 1W25 and delimited on the right by the next occurrence of the
-  ;; scanned-for character.)
+  ;; scanned-for character.) [Nb. W25 is NOT changed!]
 
   (defj J183 (arg0) "SET (0) TO NEXT BLANK"
 	(J183/4-Scanner arg0 :blank))
