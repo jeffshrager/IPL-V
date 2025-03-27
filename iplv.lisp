@@ -692,12 +692,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	       (dl-head (if (not (zero? maybe-dl-head?)) maybe-dl-head
 			    (progn (!! :jfns "In J11 no dlist yet for ~s so I'm creating one!~%" list-head)
 				   (make-cell! :name (new-local-symbol) :symb "0" :link "0"))))
-	       ;;:symb "0" :link (cell-name (make-cell! :name (new-local-symbol)
-	       ;;:symb "0" :link "0")))))))
 	       )
 	  ;; Either get the DL for the list, or create one if it doesn't exist.
 	  ;; (This is redundant if it was already there)
-	  (setf (cell-symb list-head) dl-head)
+	  (setf (cell-symb list-head) (cell-name dl-head))
 	  (J11-helper-add-to-dlist dl-head att val)
 	  (!! :jfns (lpll arg2))
 	  ))
@@ -779,7 +777,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; up the original cell, so I've taken these as usually creating new
   ;; cells, and testing for SYMB equivalence.
 
-(defj J62 (target list-head-cell-or-its-name) "LOCATE (O) ONLIST (1)"
+(defj J62 (arg0 arg1) "LOCATE (O) ON LIST (1)"
 	;; LOCATE (0) ON LIST (1). A search of list with name (1) is
 	;; made, testing each symbol against (0) (starting with cell
 	;; after cell (1)). If (0) is found, the output (0) is the
@@ -792,18 +790,12 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; heuristically see if the string can be a cell, in which
 	;; case we use that cell's symb. ... Is this complexity needed
 	;; anylonger with <== and <=!?]
-	(poph0 1) ;; Why does this pop only 1?? FFF
-	(let* ((inlink (if (cell? list-head-cell-or-its-name) ;; Is all this needed w/<=! and <== ??
-			   (cell-name list-head-cell-or-its-name)
-			   (if (stringp list-head-cell-or-its-name)
-			       list-head-cell-or-its-name
-			       (break "J62 wants a cell name as the list entry to start at but got ~s"
-				      list-head-cell-or-its-name))))
-	       (incell (cell inlink))
-	       (target (symbolify target "J62")))
-	  (!! :jfns "J62 trying to locate target:~s in linear list starting with cell ~s~%" target incell)
+	(poph0 2) 
+	(let* ((target (arg< arg0))
+	       (list-head (cell (cell-symb arg1))))
+	  (!! :jfns "J62 trying to locate target:~s in linear list starting with cell ~s~%" target list-head)
 	  ;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
-	  (setf (H0) (j62-helper-search-list-for-symb target incell inlink))))
+	  (vvH0 (j62-helper-search-list-for-symb target list-head (cell-link list-head)))))
 
   (defj J63 (symbol-or-cell list-cell-or-name) "INSERT (0) BEFORE SYMBOL IN (1)"
 	;; (1) is assumed to name a cell in a list. A new cell is
@@ -1244,7 +1236,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; entry column, 1W25, is set equal to 1W25 + (0).
 	(poph0 1)
 	(let ((w25 (cell "W25")))
-	  (setf (cell-link w25) (+ (cell-link (<=! a0)) (cell-link w25)))))
+	  (setf (cell-link w25) (+ (cell-link (cell (arg< a0))) (cell-link w25)))))
   
   (defj J166 () "SAVE ON UNIT (O) FOR RESTART"
 	(PopH0)
@@ -1412,42 +1404,39 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    finally (return (1+ p)))))
 
 (defun J11-helper-add-to-dlist (dlist-head att val &key (if-aleady-exists :replace)) ;; :error :allow-multiple
- (!! :jfns "ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s~%" dlist-head att val)
- (loop with next-att-cell = (cell-link dlist-head)
-       with last-val-cell = dlist-head ;; In case we fall through immediately
-       with next-val-cell = nil ;; gets set below
-       until (zero? next-att-cell)
-       do
-       (setf next-att-cell (cell next-att-cell)) ;; Can't do this above bcs need zero? check
-       (setf next-val-cell (cell (cell-link next-att-cell)))
-       (!! :jfns "ADD-TO-DLIST is checking next-att-cell=~s, last-val-cell=~s~%" next-att-cell last-val-cell)
-       (if (ipl-string-equal att (cell-symb next-att-cell))
-	   (case if-aleady-exists
-	     (:replace
-	      (!! :jfns "In J11 (helper) replacing ~s symbol with ~s~%" next-val-cell val)
-	      (setf (cell-symb next-val-cell) val) (setf (H5) "+") (return t))
-	     (:error (error "In ADD-TO-DLIST, att ~a already exits in ~s" att dlist-head))
-	     (:allow-multiple nil) ;; When we get to the end we'll add a new one.
-	     ))
-       ;; Move forward
-       (setf last-val-cell next-val-cell
-	     next-att-cell (cell-link last-val-cell))
-       finally
-       (progn
-	 (print "bbbbbbbbbbbbbbbbbbbbbbbbbbb")
-	 ;; If we got here we're holding the last val in last-val-cell
-	 ;; and need to append the new att and val. The one edge case is
-	 ;; if there are not atts at all, in which case last-val-cell
-	 ;; will be dlist-head ... which I hope is right!
-	 (let*
-	     ((new-val-cell (make-cell! :name (new-local-symbol) :symb val :link "0"))
-	      (new-att-cell (make-cell! :name (new-local-symbol) :symb att :link (cell-name new-val-cell))))
-	   (!! :jfns "ADD-TO-DLIST taking the finally option: last-val-cell=~s, new-att-cell = ~s, new-val-cell=~s~%"
-	       last-val-cell new-att-cell new-val-cell)
-	   (setf (cell-link last-val-cell) (cell-name new-att-cell))
-	   (setf (H5) "+")
-	   (return t))))
-  )
+  (!! :jfns "ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s~%" dlist-head att val)
+  (loop with next-att-cell = (cell-link dlist-head)
+	with last-val-cell = dlist-head ;; In case we fall through immediately
+	with next-val-cell = nil	;; gets set below
+	until (zero? next-att-cell)
+	do
+	(setf next-att-cell (cell next-att-cell)) ;; Can't do this above bcs need zero? check
+	(setf next-val-cell (cell (cell-link next-att-cell)))
+	(!! :jfns "ADD-TO-DLIST is checking next-att-cell=~s, last-val-cell=~s~%" next-att-cell last-val-cell)
+	(if (ipl-string-equal att (cell-symb next-att-cell))
+	    (case if-aleady-exists
+	      (:replace
+	       (!! :jfns "In J11 (helper) replacing ~s symbol with ~s~%" next-val-cell val)
+	       (setf (cell-symb next-val-cell) val) (setf (H5) "+") (return t))
+	      (:error (error "In ADD-TO-DLIST, att ~a already exits in ~s" att dlist-head))
+	      (:allow-multiple nil) ;; When we get to the end we'll add a new one.
+	      ))
+	;; Move forward
+	(setf last-val-cell next-val-cell
+	      next-att-cell (cell-link last-val-cell))
+	finally
+	;; If we got here we're holding the last val in last-val-cell
+	;; and need to append the new att and val. The one edge case is
+	;; if there are not atts at all, in which case last-val-cell
+	;; will be dlist-head ... which I hope is right!
+	(let*
+	    ((new-val-cell (make-cell! :name (new-local-symbol) :symb val :link "0"))
+	     (new-att-cell (make-cell! :name (new-local-symbol) :symb att :link (cell-name new-val-cell))))
+	  (!! :jfns "ADD-TO-DLIST taking the finally option: last-val-cell=~s, new-att-cell = ~s, new-val-cell=~s~%"
+	      last-val-cell new-att-cell new-val-cell)
+	  (setf (cell-link last-val-cell) (cell-name new-att-cell))
+	  (setf (H5) "+")
+	  (return t))))
 
 (defun dlist-of (listhead &key (create-if-does-not-exist? nil))
   (let* ((dlisthead (cell-symb listhead)))
@@ -1467,14 +1456,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
         ((zerop nth) (setf (H5) "+") (vv "H0" (<== cell-name)))
 	(t (j8n-helper (<== cell-name) (1- nth)))))
 
-(defun j62-helper-search-list-for-symb (target-symb incell inlink)
+(defun j62-helper-search-list-for-symb (target incell inlink)
   (cond ((zero? inlink)
 	 (setf (H5) "-")
 	 incell)
-	((ipl-string-equal incell target-symb)
+	((ipl-string-equal (cell-symb incell) target)
 	 (setf (H5) "+")
 	 incell)
-	(t (j62-helper-search-list-for-symb target-symb (<== inlink) (cell-link incell)))
+	(t (j62-helper-search-list-for-symb target (cell inlink) (cell-link incell)))
 	))
 
 (defun j181-helper-remove-non-numeric-except-first (s)
@@ -1878,7 +1867,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (set-default-tracing)
   ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2" "W25") *cell-tracing-on* t)
   ;(setf *breaks* '("P050R000")) 
-  (trace J11-helper-add-to-dlist)
+  (trace j62-helper-search-list-for-symb)
   (setf *trace-@orID-exprs*
 	'(
 	  (179 (lpll "*12")) ;; Check that the thing is at least read correctly!
