@@ -2,7 +2,7 @@
 
 #|
 
-FFF Replace lots of (vv "H0" (make-cell :name "H0" val)) nonsense with (Input[push]-to-H0 val)
+FFF Replace lots of (vv "H0" (make-cell :name "H0" val)) nonsense with (vvH0 val)
 
 WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
 The weirdest example (so far) is that the symbol "P" is actually the
@@ -183,13 +183,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defmacro H0 () `(cell "H0"))
 (defmacro H0+ () `(stack "H0"))
 
-(defgeneric Input[push]-to-H0 (val))
-(defmethod Input[push]-to-H0 ((cell cell))
-  (!! :run-full "Input[push]-to-H0 is pushing (the name of) ~s on H0~%" cell)
+;;; "vvH0" is read: "Input/Push to H0"
+
+(defgeneric vvH0 (val))
+(defmethod vvH0 ((cell cell))
+  (!! :run-full "vvH0 is pushing (the name of) ~s on H0~%" cell)
   (vv "H0" (make-cell :name "H0" :symb (cell-name cell))))
-(defmethod Input[push]-to-H0 ((val string))
-  (!! :run-full "**WARNING** Input[push]-to-H0 is pushing a non-cell: ~s on H0~%" val)
+(defmethod vvH0 ((val string))
+  (!! :run-full "**WARNING** vvH0 is pushing a non-cell: ~s on H0~%" val)
   (vv "H0" (make-cell :name "H0" :symb val)))
+
+;;; This is used in JFns to deref args H0
+
+(defmacro Arg< (arg) `(cell-symb ,arg)) 
 
 (defmacro H1 () `(cell "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
 (defmacro H1+ () `(stack "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
@@ -659,7 +665,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 			(let* ((cell (cell (cell-link dl-attribute-cell))))
 			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" target dl-attribute-cell cell) 
 			  (setf (H5) "+")
-			  (Input[push]-to-H0 cell)
+			  (vvH0 cell)
 			  (return t))
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
@@ -668,7 +674,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 				(setf (H5) "-") (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 
-  (defj J11 (a0 a1 a2) "ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)"
+  (defj J11 (arg0 arg1 arg2) "ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)"
 	;; After J11, the symbol (1) is on the description list of
 	;; list (2) as the value of attribute (0). If (0) was already
 	;; on the description list, the old value has been removed,
@@ -679,15 +685,22 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; name) if it does not exist (head of (2) empty). There is no
 	;; output in HO. 
 	(PopH0 3)
-	(add-to-dlist (dlist-of (<=! a2 :create-if-does-not-exist? t) :create-if-does-not-exist? t)
-		      (<== a0)
-		      ;; FFF ??? Maybe unrestrict this by auto-creating the cell?
-		      (if (cell? a1) a1
-			  (let ((a1cell (<== a1)))
-			    (!! :jfns "In J11, A1 is ~s so we're coercing it to ~s~%" a1 a1cell)
-			    a1cell)))
-	(!! :jfns (lpll a2))
-	)
+	(let* ((att (arg< arg0))
+	       (val (arg< arg1))
+	       (list-head (cell (arg< arg2)))
+	       (maybe-dl-head? (cell-symb list-head))
+	       (dl-head (if (not (zero? maybe-dl-head?)) maybe-dl-head
+			    (progn (!! :jfns "In J11 no dlist yet for ~s so I'm creating one!~%" list-head)
+				   (make-cell! :name (new-local-symbol) :symb "0" :link "0"))))
+	       ;;:symb "0" :link (cell-name (make-cell! :name (new-local-symbol)
+	       ;;:symb "0" :link "0")))))))
+	       )
+	  ;; Either get the DL for the list, or create one if it doesn't exist.
+	  ;; (This is redundant if it was already there)
+	  (setf (cell-symb list-head) dl-head)
+	  (J11-helper-add-to-dlist dl-head att val)
+	  (!! :jfns (lpll arg2))
+	  ))
 
   (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
 	;; The description list of list (0) is erased as a list
@@ -756,7 +769,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (progn (!! :jfns "In J60 next cell is ~s!~%" link)
 		     (PopH0 1)
 		     (setf (h5) "+")
-		     (Input[push]-to-H0 link)))))
+		     (vvH0 link)))))
 
   ;; WWW Many of these list operations are unclear on whether they are
   ;; matching/inserting the SYMB of the intended cell, for example
@@ -1350,7 +1363,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (if (char-equal #\space c)
 	      (setf (H5) "-")
 	      (progn
-		(Input[push]-to-H0 (format nil (if (numchar? c) "~c" "~c0") c))
+		(vvH0 (format nil (if (numchar? c) "~c" "~c0") c))
 		(setf (H5) "+")))))
 
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
@@ -1398,44 +1411,42 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    until (not (find (aref s p) cs :test #'char-equal))
 		    finally (return (1+ p)))))
 
-(defun add-to-dlist (dlisthead att valcell &key (if-aleady-exists :replace)) ;; :error :allow-multiple
- (!! :jfns "ADD-TO-DLIST entry: dlisthead = ~s, att=~s, valcell = valcell=~s~%" dlisthead att valcell)
- (loop with dlist-name = (cell-name dlisthead)
-       with valcell-name = (cell-name valcell)
-       with attname = (if (stringp att) att
-			  (if (cell? att) (cell-name att)
-			      (error "In ADD-TO-DLIST, att must be a string or cell, but is ~s" att)))
-       with next-att-cell = (cell-link dlisthead)
-       with last-val-cell = dlisthead ;; In case we fall through immediately
+(defun J11-helper-add-to-dlist (dlist-head att val &key (if-aleady-exists :replace)) ;; :error :allow-multiple
+ (!! :jfns "ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s~%" dlist-head att val)
+ (loop with next-att-cell = (cell-link dlist-head)
+       with last-val-cell = dlist-head ;; In case we fall through immediately
+       with next-val-cell = nil ;; gets set below
        until (zero? next-att-cell)
        do
        (setf next-att-cell (cell next-att-cell)) ;; Can't do this above bcs need zero? check
-       (!! :jfns "ADD-TO-DLIST is checking next-att-cell=~s, last-val-cell=~s~%"
-	   next-att-cell last-val-cell)
-       (if (string-equal attname (cell-symb next-att-cell))
+       (setf next-val-cell (cell (cell-link next-att-cell)))
+       (!! :jfns "ADD-TO-DLIST is checking next-att-cell=~s, last-val-cell=~s~%" next-att-cell last-val-cell)
+       (if (ipl-string-equal att (cell-symb next-att-cell))
 	   (case if-aleady-exists
-	     (:replace (setf (cell-link next-att-cell) valcell-name) (setf (H5) "+") (return t))
-	     (:error (error "In ADD-TO-DLIST, att ~a already exits in ~s" att dlisthead))
+	     (:replace
+	      (!! :jfns "In J11 (helper) replacing ~s symbol with ~s~%" next-val-cell val)
+	      (setf (cell-symb next-val-cell) val) (setf (H5) "+") (return t))
+	     (:error (error "In ADD-TO-DLIST, att ~a already exits in ~s" att dlist-head))
 	     (:allow-multiple nil) ;; When we get to the end we'll add a new one.
 	     ))
-       (let* ((val-link (cell-link next-att-cell)))
-	 (if (blank? val-link)
-	     (error "In ADD-TO-DLIST, att ~a has no value in ~a" next-att-cell dlisthead))
-	 (setf last-val-cell (cell val-link))
-	 (setf next-att-cell (cell-link last-val-cell)))
+       ;; Move forward
+       (setf last-val-cell next-val-cell
+	     next-att-cell (cell-link last-val-cell))
        finally
-       ;; If we got here we're holding the last val in last-val-cell
-       ;; and need to append the new att and val. The one edge case
-       ;; is if there are not atts at all, in which case
-       ;; last-val-cell will be dlisthead ... which I hope is right!
-       (let*
-	   ((val-linking-cell (make-cell! :name (new-local-symbol dlist-name) :symb valcell-name :link "0"))
-	    (new-att-cell (make-cell! :name (new-local-symbol dlist-name) :symb attname :link (cell-name val-linking-cell))))
-	 (!! :jfns "ADD-TO-DLIST taking the finally option: last-val-cell=~s, val-linking-cell=~s, new-att-cell = ~s~%"
-	     last-val-cell val-linking-cell new-att-cell)
-	 (setf (cell-link last-val-cell) (cell-name new-att-cell))
-	 (setf (H5) "+")
-	 (return t)))
+       (progn
+	 (print "bbbbbbbbbbbbbbbbbbbbbbbbbbb")
+	 ;; If we got here we're holding the last val in last-val-cell
+	 ;; and need to append the new att and val. The one edge case is
+	 ;; if there are not atts at all, in which case last-val-cell
+	 ;; will be dlist-head ... which I hope is right!
+	 (let*
+	     ((new-val-cell (make-cell! :name (new-local-symbol) :symb val :link "0"))
+	      (new-att-cell (make-cell! :name (new-local-symbol) :symb att :link (cell-name new-val-cell))))
+	   (!! :jfns "ADD-TO-DLIST taking the finally option: last-val-cell=~s, new-att-cell = ~s, new-val-cell=~s~%"
+	       last-val-cell new-att-cell new-val-cell)
+	   (setf (cell-link last-val-cell) (cell-name new-att-cell))
+	   (setf (H5) "+")
+	   (return t))))
   )
 
 (defun dlist-of (listhead &key (create-if-does-not-exist? nil))
@@ -1837,14 +1848,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+`(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2" "W25") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+`(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1865,9 +1876,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (progn ;; LT
   (set-default-tracing)
-  (setf *trace-cell-names* '("H0" "W0" "W1" "W2" "W25") *cell-tracing-on* t)
+  ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2" "W25") *cell-tracing-on* t)
   ;(setf *breaks* '("P050R000")) 
-  ;(trace)
+  (trace J11-helper-add-to-dlist)
   (setf *trace-@orID-exprs*
 	'(
 	  (179 (lpll "*12")) ;; Check that the thing is at least read correctly!
