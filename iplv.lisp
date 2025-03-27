@@ -689,7 +689,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	       (val (arg< arg1))
 	       (list-head (cell (arg< arg2)))
 	       (maybe-dl-head (cell-symb list-head))
-	       (dl-head (if (not (zero? maybe-dl-head)) maybe-dl-head
+	       (dl-head (if (not (zero? maybe-dl-head)) (cell maybe-dl-head)
 			    (progn (!! :jfns "In J11 no dlist yet for ~s so I'm creating one!~%" list-head)
 				   (make-cell! :name (new-local-symbol) :symb "0" :link "0"))))
 	       )
