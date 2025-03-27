@@ -688,8 +688,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(let* ((att (arg< arg0))
 	       (val (arg< arg1))
 	       (list-head (cell (arg< arg2)))
-	       (maybe-dl-head? (cell-symb list-head))
-	       (dl-head (if (not (zero? maybe-dl-head?)) maybe-dl-head
+	       (maybe-dl-head (cell-symb list-head))
+	       (dl-head (if (not (zero? maybe-dl-head)) maybe-dl-head
 			    (progn (!! :jfns "In J11 no dlist yet for ~s so I'm creating one!~%" list-head)
 				   (make-cell! :name (new-local-symbol) :symb "0" :link "0"))))
 	       )
@@ -1867,7 +1867,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (set-default-tracing)
   ;(setf *trace-cell-names* '("H0" "W0" "W1" "W2" "W25") *cell-tracing-on* t)
   ;(setf *breaks* '("P050R000")) 
-  (trace j62-helper-search-list-for-symb)
+  ;(trace j62-helper-search-list-for-symb)
   (setf *trace-@orID-exprs*
 	'(
 	  (179 (lpll "*12")) ;; Check that the thing is at least read correctly!
