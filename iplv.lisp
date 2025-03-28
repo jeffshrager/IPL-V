@@ -183,34 +183,52 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defmacro H0 () `(cell "H0"))
 (defmacro H0+ () `(stack "H0"))
 
-;;; Input/Push to system stack:
+;;; Input/Push to system stack: This creates a copy only of the
+;;; CONTENTS of the system cell.
 
-(defun ipush (stack-name &optional pushee)
+(defun data-set (curcell &key (sign "0") (pq "0") (symb "") (link "0") (id ""))
+       (setf (cell-sign curcell) sign
+	     (cell-pq curcell) pq
+	     (cell-symb curcell) symb
+	     (cell-id curcell) id)
+       curcell)
+
+;;; WWW *** Note that these cells are NOT stored in the symbtab! (We
+;;; use "make-cell" NOT "make-cell!"; In fact, they don't have names!)
+;;; (FFF Maybe use hiearchical structs to separate the load from the
+;;; cell name?)
+
+(defun ipush (stack-name &optional newval)
   (let* ((curcell (cell stack-name)))
-    (push (make-cell! :name (newsym stack-name)
-		      :pq (cell-pq curcell)
-		      :symb (cell-symb curcell)
-		      :link (cell-link curcell))
+    (push (make-cell :sign (cell-sign curcell)
+		     :pq (cell-pq curcell)
+		     :symb (cell-symb curcell)
+		     :link (cell-link curcell))
 	  (stack stack-name))
-    (cond ((cell? pushee)
-	   (setf (cell stack-name) (make-cell! :name (newsym stack-name) :symb (cell-name pushee)))
-	   (!! :run-full "iPushing (the name of) ~s on ~a~%" pushee stack-name))
-	  ((null pushee)
-	   (!! :run-full "iPushing ~a~%" stack-name))
-	  ((numberp pushee)
-	   (setf (cell stack-name) (make-cell! :name (newsym stack-name) :pq 12 :link pushee))
-	   (!! :run-full "iPushing (the number) ~s on ~a~%" pushee stack-name))
-	  (t
-	   (!! :run-full "**WARNING** iPushing a non-cell: ~s on ~a~%" pushee stack-name)
-	   (setf (cell stack-name) (make-cell! :name (newsym stack-name) :symb pushee))))))
+    (cond ((or (stringp newval)
+	       (functionp newval))
+	   (data-set curcell :symb newval))
+	  ((cell? newval)
+	   (data-set curcell :sign (cell-sign curcell) :pq (cell-pq curcell) :symb (cell-name newval))
+	   (!! :run-full "iPushing (the name of) ~s on ~a~%" newval stack-name))
+	  ((null newval) (!! :run-full "iPushing ~a~%" stack-name))
+	  ((numberp newval)
+	   (!! :run-full "iPushing (the number) ~s on ~a~%" newval stack-name)
+	   (data-set curcell :pq 12 :link newval))
+	  (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))))
+
+;;; Warning: Pop has to create a new cell in the head otherwise anyone
+;;; holding the old value might have it destroyed. ... or we could
+;;; just do the popping at the end....let's try that first as it make
+;;; the most sense.
 
 (defun ipop (stack-name)
   (let ((topcell (pop (stack stack-name))))
-    (setf (cell stack-name)
-	  (make-cell! :name (newsym stack-name)
-		      :pq (cell-pq topcell)
-		      :symb (cell-symb topcell)
-		      :link (cell-link topcell)))))
+    (data-set (cell stack-name)
+	      :pq (cell-pq topcell)
+	      :symb (cell-symb topcell)
+	      :link (cell-link topcell)
+	      :id (cell-id topcell))))
 
 ;;; This is used in JFns to deref args H0
 
@@ -508,10 +526,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (clrhash *col->vals*)
   )
 
+;;; The system cells are exactly like user-created cells. They have a
+;;; specific name associated with a cell struct. What makes them
+;;; special is just that they are "pushable" by creating cell-content
+;;; stack entries that copy the contents of the named cell. The cell
+;;; contents have no names and are not in the symtab; they exist only
+;;; on the stack.
+
 ;;; Note that S and H5 are nots cells but just symbols, but they're
 ;;; both stackable (protectable), so they need to have stacks.
 
-(defparameter *system-cells* '("H0" "H1" "H3" "H5" "W0" "S"))
+(defparameter *system-cells* '("H0" "H1" "H3" "H5" "S"))
 (defparameter *all-system-cells* (append *system-cells* (loop for w below 43 collect (format nil "W~a" w))))
 
 (defun create-system-cells ()
@@ -861,24 +886,25 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; further. If (0) is not found, it is inserted at the end of
 	;; the list, as in J65. [Nb. This can't do anything sensible
 	;; with a branching list!]
-	(PopH0 2)
 	(let ((target (cell-symb arg0)))
-	(!! :jfns "J66 trying to insert ~s in ~s~%" target arg1)
-	(loop with list-cell = (<=! (cell-symb arg1))
-	      as link = (cell-link list-cell)
-	      do
-	      (cond ((string-equal (cell-symb list-cell) target)
-		     (!! :jfns "J66 found ~s in the list already. No action!~%" target)
-		     (return nil))
-		    ((zero? link)
-		     (!! :jfns "J66 hit end, adding ~s to the end of the list!~%" target)
-		     (let* ((new-name (newsym))
-			    (new-cell (make-cell! :name new-name :symb target :link "0")))
-		       (setf (cell-link list-cell) new-name))
+	  (!! :jfns "J66 trying to insert ~s in ~s~%" target arg1)
+	  (loop with list-cell = (<=! (cell-symb arg1))
+		as link = (cell-link list-cell)
+		do
+		(cond ((string-equal (cell-symb list-cell) target)
+		       (!! :jfns "J66 found ~s in the list already. No action!~%" target)
+		       (return nil))
+		      ((zero? link)
+		       (!! :jfns "J66 hit end, adding ~s to the end of the list!~%" target)
+		       (let* ((new-name (newsym))
+			      (new-cell (make-cell! :name new-name :symb target :link "0")))
+			 (setf (cell-link list-cell) new-name))
 		       (return t)))
-	      ;; Move to next cell if nothing above returned out
-	      (setf list-cell (cell (cell-link list-cell))))))
-
+		;; Move to next cell if nothing above returned out
+		(setf list-cell (cell (cell-link list-cell)))))
+	(PopH0 2)
+	)
+ 
   (defj J68 (arg0) "DELETE SYMBOL IN CELL (0)"
 	;; (0) names a cell in a list. The symbol in it is deleted by
 	;; replacing it with the next symbol down the list (the next
@@ -1058,20 +1084,20 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
   (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
 	;; The number (0) is set equal to the algebraic difference between numbers
-	;; (1) and (2). The output (0) is the input (0).
-	(poph0 3)
+	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
 	(ipush "H0" (cell-symb arg0)) ;; The output (0) is the input (0).
 	(let* ((n1 (numget (cell-symb arg1)))
 	       (n2 (numget (cell-symb arg2)))
 	       (r (- n1 n2)))
 	  (!! :jfns "J111: ~a - ~a = ~a~%" n1 n2 r)
+	  (poph0 -2)
 	  (numset (cell-symb arg0) r)))
 
   (defj J117 (arg0) "TEST IF (0) = 0." ;; USED IN ACKERMAN
-	(poph0 1)
 	(let* ((n (numget (cell-symb arg0))))
 	  (!! :jfns "J117: Testing if ~s (~s: ~s) = 0?~%" arg0 (<=! arg0) n)
-	  (if (zerop n) (H5+) (H5-))))
+	  (if (zerop n) (H5+) (H5-)))
+	(poph0 1))
 
   (defj J120 (arg0) "COPY (0)"
 	;; COPY (0). The output (0) names a new cell containing the
@@ -1166,8 +1192,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; input/output buffer and it's used for all input and output.
 
   (defj J151 (arg0) "Print list (0)" ;; USED IN F1
+	(line-print-linear-list arg0)
 	(PopH0 1)
-	(line-print-linear-list arg0))
+	)
 
   (defj J152 (arg0) "PRINT SYMBOL (0)" ;; USED IN ACKERMAN
 	;; Pop after!!
@@ -1379,7 +1406,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; back on. Unfortunately, it's not consistent whether a jfn removes
 ;;; all its args.
 
-(defun PopH0 (n) (dotimes (i n) (ipop "H0")))
+;;; If n is negative, it pops the top of the stack w/o replacing the
+;;; top. (Some JFns need this to happen!)
+
+(defun PopH0 (n) (dotimes (i (abs n)) (if (> n 0) (ipop "H0") (pop (H0+)))))
 
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
@@ -1653,7 +1683,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (!! :run "********** Starting run at ~a with adv-limit = ~a **********~%" start-symb adv-limit)
   (setf *adv-limit* adv-limit)
   (setf *running?* t)
-  (ipl-eval (cell start-symb))
+  (ipl-eval start-symb)
   (if (member :end-dump *!!list*) (report-system-cells t))
   )
 
@@ -1666,14 +1696,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (numinit "W25" 1)
   )
 
-(defun ipl-eval (start-cell)
-  (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s~%" start-cell)
+(defun ipl-eval (start-symb)
+  (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s~%" start-symb)
   (prog (cell pq q p symb link)
-     (setf (h1) (make-cell! :name "H1" :symb "exit"))
-     (ipush "H1" start-cell) ;; Where we're headed this time in.
+     (ipush "H1" "exit")
+     (ipush "H1" start-symb) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q 
-     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (*fname-hint* = ~s)~%" (h1) *fname-hint*)
+     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (*fname-hint* = ~s)~%" (H1) *fname-hint*)
      ;; H1's symb contains the name of the cell holding the
      ;; instruction to be interpreted. At this point it could be a
      ;; symbol or a list. If it's a symbol, we need to de-reference it
@@ -1854,16 +1884,16 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
-  (setf *!!list* '() *cell-tracing-on* nil)
+  ;(setf *!!list* '() *cell-tracing-on* nil)
   ;(push :run-full *!!list*)
-  ;(trace functionp ipush)
-  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  ;(trace functionp ipush ipop iset data-set)
+  (setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1883,7 +1913,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "T123.lisp" :adv-limit 100)
   )
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
   (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
