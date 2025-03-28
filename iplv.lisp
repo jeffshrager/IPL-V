@@ -624,7 +624,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	    (H5-)
 	    (H5+)))
 
-  (defj J6 () "REVERSE (0) and (1)" ;; WWW H1 is not (1)
+  (defj J6 () "REVERSE (0) and (1)" ;; USED IN F1
 	(let ((z (H0)))
 	  (setf (H0) (first (H0+)))
 	  (setf (first (H0+)) z)))
@@ -634,7 +634,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
     ;; instruction in sequence. Aka....
     (break "J7: Processor halted ... use :C to continue."))
 
-  (defj J8 () "RESTORE H0" (ipop "H0"))
+  (defj J8 () "RESTORE H0" (ipop "H0")) ;; USED IN ACKERMAN
 
   (defj J9 () "ERASE CELL (0)"
 	;; Maybe remhash the name from the symtab? FFF
@@ -753,7 +753,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J52 () "PRESERVE W0-W2 THEN MOVE(0)-(2) into W0-W2" (J5n=preserve-wn-then-move-0-n-into-w0-wn 2))
   (defj J53 () "PRESERVE W0-W3 THEN MOVE(0)-(3) into W0-W3" (J5n=preserve-wn-then-move-0-n-into-w0-wn 3))
 
-  (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)"
+  (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)" ;; USED IN F1
 	;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
 	;; cell. If a next cell exists (LINK of (0) not a termination
 	;; symbol), then the output (0) is the name of the next cell,
@@ -854,7 +854,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      ;; Move to next cell if nothing above returned out
 	      (setf list-cell (cell (cell-link list-cell)))))
 
-  (defj J66 (arg0 arg1) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT"
+  (defj J66 (arg0 arg1) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" ;; USED IN F1
 	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
 	;; search of list (1) is made. against (0) (starting with the
 	;; cell after cell (1) . If (0) is found, J66 does nothing
@@ -1018,7 +1018,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; is describable. J90 creates an empty list (also used to create
   ;; empty storage cells, and empty data terms).
 
-  (defj J90 () "Create a blank cell on H0"
+  (defj J90 () "Create a blank cell on H0"  ;; USED IN F1
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
 	;; The output (0) is the name a the new list.
@@ -1056,7 +1056,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (setf cell-name (cell-link cell))
 	      ))
 
-  (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)."
+  (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
 	;; The number (0) is set equal to the algebraic difference between numbers
 	;; (1) and (2). The output (0) is the input (0).
 	(poph0 3)
@@ -1067,7 +1067,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (!! :jfns "J111: ~a - ~a = ~a~%" n1 n2 r)
 	  (numset (cell-symb arg0) r)))
 
-  (defj J117 (arg0) "TEST IF (0) = 0."
+  (defj J117 (arg0) "TEST IF (0) = 0." ;; USED IN ACKERMAN
 	(poph0 1)
 	(let* ((n (numget (cell-symb arg0))))
 	  (!! :jfns "J117: Testing if ~s (~s: ~s) = 0?~%" arg0 (<=! arg0) n)
@@ -1094,18 +1094,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; type, integer, or floating point, is unaffected. It is left
 	;; as the output (0).  (NO POP!)
 	(!! :jfns "J124: Clear (H0): ~s~%" arg0)
-	(numset (cell-symb arg0) 0))
+	(numset arg0 0))
 
-  (defj J125 (arg0) "TALLY 1 IN (0)"
+  (defj J125 (arg0) "TALLY 1 IN (0)" ;; USED IN ACKERMAN
 	;; An integer 1 is added to the number (0). The type of the result
 	;; is the same as the type of (0). It is left as the output
 	;; (0). [NNN: If there is no value in (0) this assumes zero and
 	;; set the number to 1"
 	;; NO POP! "It is left as the output (0)." !!
-	(let* ((valsym (cell-symb arg0))
-	       (curval (numget valsym)))
+	(let* ((curval (numget (cell-symb arg0))))
 	  (!! :jfns "J125: Tally (0) currently: ~s~%" arg0)
-	  (numset valsym 
+	  (numset (cell-symb arg0)
 		  (if (not (numberp curval))
 		      (progn (!! :jfns "Warning! J125 was sent a non-number: ~s, setting result to 1~%" curval) 1)
 		      (1+ curval)))))
@@ -1166,11 +1165,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; kludge-convenience. For example, there is exactly one 80 column
   ;; input/output buffer and it's used for all input and output.
 
-  (defj J151 (arg0) "Print list (0)"
+  (defj J151 (arg0) "Print list (0)" ;; USED IN F1
 	(PopH0 1)
 	(line-print-linear-list arg0))
 
-  (defj J152 (arg0) "PRINT SYMBOL (0)"
+  (defj J152 (arg0) "PRINT SYMBOL (0)" ;; USED IN ACKERMAN
 	;; Pop after!!
 	(line-print-cell (cell (cell-symb arg0)))
 	(PopH0 1))
@@ -1502,7 +1501,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
     (setf (cell-link data-cell) n)))
 
 (defun numinit (sym n)
-  (setf (cell sym) (make-cell! :name (newsym sym) :pq "01" :link n)))
+  (let ((data-cell (cell sym)))
+    (setf (cell-pq data-cell) "01"
+	  (cell-symb data-cell) :numeric
+	  (cell-link data-cell) n)))
 
 ;;; !!! WWW OBIWAN UNIVERSE WITH LISP ZERO ORIGIN INDEXING WWW !!!
 ;;; (NNN H0p might be deprecated FFF Remove?)
@@ -1852,7 +1854,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(push :run-full *!!list*)
@@ -1861,7 +1863,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1887,7 +1889,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
   (trace J183/4-Scanner)
   ; Looking @203
-  (setf *trace-@orID-exprs*
+  '(setf *trace-@orID-exprs*
 	'(
 	  (190
 	   (setf *!!list* '(:run :run-full :jfns))
