@@ -1012,10 +1012,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	       (first-cell-name (cell-symb head)))
 	  (j8n-helper first-cell-name 2)))
 	      
-  ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0 <== n <=
-  ;; 9. The order is (n-1) first, (n-2) second, ..., (0) last. The output (0) is
-  ;; the name (internal) of the new list; it is describable. J90 creates an
-  ;; empty list (also used to create empty storage cells, and empty data terms).
+  ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0
+  ;; < n < 9. The order is (n-1) first, (n-2) second, ..., (0)
+  ;; last. The output (0) is the name (internal) of the new list; it
+  ;; is describable. J90 creates an empty list (also used to create
+  ;; empty storage cells, and empty data terms).
 
   (defj J90 () "Create a blank cell on H0"
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
@@ -1089,12 +1090,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   
   (defj J124 (arg0) "CLEAR (0)"
 	;; The number (0) is set to be 0. If the cell is not a data
-	;; term, it is made an integer data term= 0. If a number, its
+	;; term, it is made an integer data term=0. If a number, its
 	;; type, integer, or floating point, is unaffected. It is left
 	;; as the output (0).  (NO POP!)
-	(let ((H0 (<=! (H0))))
-	  (!! :jfns "J124: Clear (H0): ~s~%" H0)
-	  (setf (cell-link (cell (cell-symb arg0))) 0)))
+	(!! :jfns "J124: Clear (H0): ~s~%" arg0)
+	(numset (cell-symb arg0) 0))
 
   (defj J125 (arg0) "TALLY 1 IN (0)"
 	;; An integer 1 is added to the number (0). The type of the result
@@ -1102,12 +1102,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; (0). [NNN: If there is no value in (0) this assumes zero and
 	;; set the number to 1"
 	;; NO POP! "It is left as the output (0)." !!
-	(let ((curval (cell-link (cell (cell-symb arg0)))))
+	(let* ((valsym (cell-symb arg0))
+	       (curval (numget valsym)))
 	  (!! :jfns "J125: Tally (0) currently: ~s~%" arg0)
-	  (setf (cell-link (cell (cell-symb arg0))) 
-		(if (not (numberp curval))
-		    (progn (!! :jfns "Warning! J125 was sent a non-number: ~s, setting result to 1~%" curval) 1)
-		    (1+ curval)))))
+	  (numset valsym 
+		  (if (not (numberp curval))
+		      (progn (!! :jfns "Warning! J125 was sent a non-number: ~s, setting result to 1~%" curval) 1)
+		      (1+ curval)))))
 
   (defj J130 (arg0) "TEST IF (O) IS REGIONAL SYMBOL"
 	;; Tests if Q = 0 in arg0.
@@ -1483,6 +1484,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun w25-get () (numget "W25"))
 (defun w25-set (n) (numset "W25" n))
 
+;;; These number things have to be given the name of what is supposed
+;;; to be a numerical data cell, that is, one where the link is
+;;; expected to be a number.
+
 (defun numget (sym)
   (let* ((data-cell (cell sym))
 	 (n (cell-link data-cell)))
@@ -1503,9 +1508,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; (NNN H0p might be deprecated FFF Remove?)
 
 (defun J183/4-Scanner (arg0 mode)
-  (let* ((counter (cell (cell-symb arg0)))
+  (let* ((counter (cell-symb arg0))
 	 (w25p (W25-get))
-	 (curpos (cell-link counter))
+	 (curpos (numget counter))
 	 )
     (!! :jfns "Starting in J183/4-Scanner: counter = ~s, w25p = ~a~%" counter w25p)
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
@@ -1520,7 +1525,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		  (:blank (char-equal char #\space))
 		  (:non-blank (not (char-equal char #\space)))
 		  (t (error "!!! J183/4-Scanner given unknown mode: ~s" mode)))
-	    (setf (cell-link counter) w25p)
+	    (numset counter w25p)
 	    (H5+)
 	    (return t))
 	  (incf w25p)
@@ -1879,6 +1884,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
+  (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
   (trace J183/4-Scanner)
   ; Looking @203
   (setf *trace-@orID-exprs*
