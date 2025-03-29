@@ -647,37 +647,30 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; as (0) and H5 set + ; if not found, or if the description list
 	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
 	;; by a search and test of all attributes on the description list.) 
+	(PopH0 2)
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
 	(let* ((list-head (cell arg1))
 	       (dlist-name (cell-symb list-head))
 	       (target arg0))
 	  (!! :jfns "In J10 list-head = ~s, dlist-name = ~s, target = ~s~%" list-head dlist-name target)
 	  (if (zero? dlist-name)
-	      (progn
-		(!! :jfns "In J10 -- no dl, so we're done with H5-~%")
-		(PopH0 2)
-		(H5-))
-	      (loop with dl-attribute-cell = (cell (cell-symb (<== dlist-name)))
+	      (progn (!! :jfns "In J10 -- no dl, so we're done with H5-~%") (H5-))
+	      (loop with dl-attribute-cell = (cell (cell-link (cell dlist-name)))
 		    do ;; Note we're skipping the dl of the dl if any
 		    ;; The first could be the last. This is sort of messy. FFF Unduplicate code %%%
 		    (if (null dl-attribute-cell)
-			(progn
-			  (!! :jfns "J10 failed (a) to find ~s.~%" target)
-			  (PopH0 2)
-			  (H5-) (return nil)))
+			(progn (!! :jfns "J10 failed (a) to find ~s.~%" target) (H5-) (return nil)))
 		    (!! :jfns "In J10 dl-attribute-cell = ~s~%" dl-attribute-cell)
 		    (if (ipl-string-equal target (cell-symb dl-attribute-cell))
 			(let* ((cell (cell (cell-link dl-attribute-cell))))
-			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" target dl-attribute-cell cell) 
+			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" target dl-attribute-cell (cell-symb cell))
 			  (H5+)
-			  (PopH0 2)
-			  (ipush "H0" cell)
+			  (ipush "H0" (cell-symb cell))
 			  (return t))
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
 			      (progn
 				(!! :jfns "J10 failed (b) to find ~s.~%" target)
-				(PopH0 2)
 				(H5-) (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 
@@ -1043,6 +1036,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
 	(!! :jfns "J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg1 arg0)
+	(poph0 2)
 	(loop with cell-name = (cell-link (cell arg1))
 	      with cell
 	      with exec-cell = (make-cell! :symb arg0 :link "0")
@@ -1062,9 +1056,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      ;; execution cell with an immediate pop.
 	      (ipl-eval exec-cell)
 	      (setf cell-name (cell-link cell))
-	      )
-	(PopH0 2) ;; ??? Does this need to be done before the calls ???
-	)
+	      ))
 
   (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
 	;; The number (0) is set equal to the algebraic difference between numbers
@@ -1931,8 +1923,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
-  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
-  ;(trace copy-ipl-list copy-ipl-list-and-return-head)
-  ;(setf *trace-@orID-exprs* '((206 (break))))
+  (push :pq *!!list*)
+  (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
+  ;(trace ipl-string-equal)
+  ;(setf *trace-@orID-exprs* '((236 (break))))
   (load-ipl "LTFixed.lisp" :adv-limit 500)
   )
