@@ -1143,10 +1143,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		      (1+ curval)))))
 
   (defj J130 (arg0) "TEST IF (O) IS REGIONAL SYMBOL"
-	;; Tests if Q = 0 in arg0.
-	(poph0 1)
-	(if (zerop (getpq :q (cell-pq (cell (cell-symb arg0)))))
-	    (H5+) (H5-)))
+	;; Tests if Q = 0 in arg0. [WWW ??? We might want this to
+	;; actually do something a little more un-IPL-ish, like look
+	;; at the symbol and make sure it starts with a letter.]
+	(if ;; (zerop (getpq :q (cell-pq (cell (cell-symb arg0)))))
+	 (is-regional? (cell-symb arg0))
+	 (H5+) (H5-))
+	(poph0 1))
 
   (defj J133 (l) "TEST IF LIST (0) HAS BEEN MARKED PROCESSED"
 	;; Tests if P = 1 (and Q != 1 or 5) in the cell whose name is
@@ -1309,7 +1312,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (setf string (j181-helper-remove-non-numeric-except-first string))
 	  (!! :jfns "J181 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a]~%" string start end *W24-Line-Buffer* w25p w30n)
 	  (W25-set (+ (W25-get) w30n))
-	  (if (j181-helper-is-regional-symbol? string)
+	  (if (regional-symbol? string)
 	      (progn
 		(!! :jfns "J181 decided that ~s IS a regional symbol, so we're installing it.~%" string)
 		(make-cell! :name string :symb "0" :link "0")
@@ -1508,7 +1511,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun numchar? (c)
   (find c "0123456789"))
 
-(defun j181-helper-is-regional-symbol? (string)
+(defun regional-symbol? (string)
   (and (find (aref string 0) *LT-Regional-Chars*)
        (loop for p from 1 by 1
 	     with lim = (1- (length string))
@@ -1755,7 +1758,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        ;; 1 Take the name the symbol is pointing to ???? THIS IS WRONG?
        (1 (setf (s) (cell-symb (cell (cell-name (cell symb))))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to ???? THIS IS WRONG?
-       (2 (setf (s) (cell (cell-symb (cell (cell-symb (cell symb)))))) (go INTERPRET-P)) ;; ????????
+       (2 (setf (s) (cell-symb (cell (cell-symb (cell (cell-symb (cell symb))))))) (go INTERPRET-P))
        (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
@@ -1891,7 +1894,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :jfns) *cell-tracing-on* t)
@@ -1901,7 +1904,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
