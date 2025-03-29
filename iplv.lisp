@@ -214,7 +214,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  ((null newval) (!! :run-full "iPushing ~a~%" stack-name))
 	  ((numberp newval)
 	   (!! :run-full "iPushing (the number) ~s on ~a~%" newval stack-name)
-	   (data-set curcell :pq 12 :link newval))
+	   (data-set curcell :pq "12" :link newval))
 	  (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))))
 
 ;;; Warning: Pop has to create a new cell in the head otherwise anyone
@@ -1147,7 +1147,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; actually do something a little more un-IPL-ish, like look
 	;; at the symbol and make sure it starts with a letter.]
 	(if ;; (zerop (getpq :q (cell-pq (cell (cell-symb arg0)))))
-	 (is-regional? (cell-symb arg0))
+	 (regional-symbol? (cell-symb arg0))
 	 (H5+) (H5-))
 	(poph0 1))
 
@@ -1520,8 +1520,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	     do (return nil)
 	     finally (return t))))
 
-(defun w25-get () (numget "W25"))
-(defun w25-set (n) (numset "W25" n))
+(defun w25-get () (numget (cell-symb (cell "W25"))))
+(defun w25-set (n) (numset (cell-symb (cell "W25")) n))
+(defun w25-init ()
+  (make-cell! :name "W25"
+	      :symb (cell-name (make-cell! :name (newsym "W25") :pq "12" :link 1))))
 
 ;;; These number things have to be given the name of what is supposed
 ;;; to be a numerical data cell, that is, one where the link is
@@ -1540,12 +1543,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  "WARNING: NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link.~%"
 	  data-cell sym))
     (setf (cell-link data-cell) n)))
-
-(defun numinit (sym n)
-  (let ((data-cell (cell sym)))
-    (setf (cell-pq data-cell) "01"
-	  (cell-symb data-cell) :numeric
-	  (cell-link data-cell) n)))
 
 ;;; !!! WWW OBIWAN UNIVERSE WITH LISP ZERO ORIGIN INDEXING WWW !!!
 ;;; (NNN H0p might be deprecated FFF Remove?)
@@ -1704,7 +1701,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (H5+) ;; Init H5 +
   (setf (cell-link (cell "H3")) 0) ;; Init H3 Cycle-Counter
   (setf *W24-Line-Buffer* (Blank80)) ;; Init Read Line buffer
-  (numinit "W25" 1)
+  (w25-init)
   )
 
 (defun ipl-eval (start-symb)
