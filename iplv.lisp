@@ -1085,12 +1085,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
 	;; The number (0) is set equal to the algebraic difference between numbers
 	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
-	(ipush "H0" (cell-symb arg0)) ;; The output (0) is the input (0).
 	(let* ((n1 (numget (cell-symb arg1)))
 	       (n2 (numget (cell-symb arg2)))
 	       (r (- n1 n2)))
 	  (!! :jfns "J111: ~a - ~a = ~a~%" n1 n2 r)
-	  (poph0 -2)
+	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
 	  (numset (cell-symb arg0) r)))
 
   (defj J117 (arg0) "TEST IF (0) = 0." ;; USED IN ACKERMAN
@@ -1409,7 +1408,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; If n is negative, it pops the top of the stack w/o replacing the
 ;;; top. (Some JFns need this to happen!)
 
-(defun PopH0 (n) (dotimes (i (abs n)) (if (> n 0) (ipop "H0") (pop (H0+)))))
+(defun PopH0 (n) (dotimes (i (abs n)) (if (< n 0) (pop (H0+)) (ipop "H0"))))
 
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
@@ -1520,6 +1519,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defun numget (sym)
   (let* ((data-cell (cell sym))
 	 (n (cell-link data-cell)))
+    (if (< n 0) (break "Numget was asked to get a negative number ~a from  ~s (~s)." n data-cell sym))
     (if (numberp n) n (break "Numget was asked to get a non-number ~s from ~s (~s)." n data-cell sym))))
 
 (defun numset (sym n)
@@ -1744,10 +1744,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
      (case q
        ;; 0 take the symbol itself
        (0 (setf (s) symb) (go INTERPRET-P))
-       ;; 1 Take the name the symbol is pointing to
+       ;; 1 Take the name the symbol is pointing to ???? THIS IS WRONG?
        (1 (setf (s) (cell-symb (cell (cell-name (cell symb))))) (go INTERPRET-P))
-       ;; 2 Take the symbol in the cell at the name that the symb is pointing to
-       (2 (setf (s) (cell-sym (cell (cell-symb (cell (cell-symb (cell symb))))))) (go INTERPRET-P)) ;; ????????
+       ;; 2 Take the symbol in the cell at the name that the symb is pointing to ???? THIS IS WRONG?
+       (2 (setf (s) (cell (cell-symb (cell (cell-symb (cell symb)))))) (go INTERPRET-P)) ;; ????????
        (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
@@ -1883,23 +1883,23 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
-  (setf *!!list* '(:run :jfns) *cell-tracing-on* t)
+  ;(setf *!!list* '(:run :jfns) *cell-tracing-on* t)
   ;(push :run-full *!!list*)
-  (trace functionp ipush ipop iset data-set)
-  (setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  ;(trace functionp ipush ipop iset data-set)
+  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
-  ;(setf *trace-@orID-exprs* '((25 (break))))
+  ;(setf *trace-@orID-exprs* '((9 (break))))
   ;(setf *!!list* '(:run :jfns) *cell-tracing-on* t)
-  ;(trace numget numset)
+  ;(trace ipop poph0)
   (load-ipl "Ackermann.iplv" :adv-limit 100000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
