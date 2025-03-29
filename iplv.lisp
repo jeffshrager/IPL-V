@@ -1050,7 +1050,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (ipush "H0" cell)
 	      (H5+)
 	      ;; Call the routine
-	      (!! :jfns "J100: Exec'ing ~s on ~s~%" exec-cell (h0))
+	      (!! :jfns "J100: Exec'ing ~s on ~s~%" exec-symb (h0))
 	      ;; Unfortunately, ipl-eval needs a start cell. If we are
 	      ;; given a symbol here, we need to wrap it in a dummy
 	      ;; execution cell with an immediate pop.
@@ -1890,17 +1890,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
-  (setf *!!list* '(:run :pq :jfns) *cell-tracing-on* t)
+  ;(setf *!!list* '(:run :pq :jfns) *cell-tracing-on* t)
   ;(push :run-full *!!list*)
   ;(trace functionp ipush ipop iset data-set)
-  (setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1920,13 +1920,18 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "T123.lisp" :adv-limit 100)
   )
 
-'(progn ;; LT 
+;;; WWW If this ends early with a BAD EXPRESSION (or other "normal
+;;; error"), you're likely to get redisual errors from the loader
+;;; trying to read more data after "normal" termination of the
+;;; program.
+
+(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
-  (push :pq *!!list*)
+  ;(push :pq *!!list*)
   ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
   ;(trace ipl-string-equal)
-  (setf *trace-@orID-exprs*
+  '(setf *trace-@orID-exprs*
 	'((254
 	   (push :run-full *!!list*)
 	   (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t))))
