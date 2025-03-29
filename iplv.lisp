@@ -1039,7 +1039,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(poph0 2)
 	(loop with cell-name = (cell-link (cell arg1))
 	      with cell
-	      with exec-cell = (make-cell! :symb arg0 :link "0")
+	      with exec-symb = arg0
 	      until (zero? cell-name)
 	      do ;; FFF %%% There's a mofit here that could be
 		 ;; captured in a macro, of getting the name to check
@@ -1054,7 +1054,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      ;; Unfortunately, ipl-eval needs a start cell. If we are
 	      ;; given a symbol here, we need to wrap it in a dummy
 	      ;; execution cell with an immediate pop.
-	      (ipl-eval exec-cell)
+	      (ipl-eval exec-symb)
 	      (setf cell-name (cell-link cell))
 	      ))
 
@@ -1752,7 +1752,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        ;; 0 take the symbol itself
        (0 (setf (s) symb) (go INTERPRET-P))
        ;; 1 Take the name the symbol is pointing to ???? THIS IS WRONG?
-       (1 (setf (s) (cell-symb (cell (cell-name (cell symb))))) (go INTERPRET-P))
+       (1 (setf (s) (cell-symb (cell symb))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to ???? THIS IS WRONG?
        (2 (setf (s) (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
        (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
@@ -1890,7 +1890,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-`(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   (setf *!!list* '(:run :pq :jfns) *cell-tracing-on* t)
@@ -1900,7 +1900,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1920,12 +1920,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "T123.lisp" :adv-limit 100)
   )
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
   (push :pq *!!list*)
-  (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
+  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
   ;(trace ipl-string-equal)
-  ;(setf *trace-@orID-exprs* '((236 (break))))
+  (setf *trace-@orID-exprs*
+	'((254
+	   (push :run-full *!!list*)
+	   (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 500)
   )
