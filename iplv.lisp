@@ -104,10 +104,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (defvar *breaks* nil) ;; If this is set to t it breaks on every call
 (defvar *trace-cell-names* nil) 
 
-;;; t for all or :dr-memory :load :run :jfns :run-full :io :end-dump
-;;; :deep-alerts
+;;; t for all or :dr-memory :load :run :jfns :run-full :io :end-dump 
+;;; :deep-alerts :pq
 (defvar *!!list* nil) 
-(defparameter *default-!!list* '(:run :jfns))
+(defparameter *default-!!list* '(:run :jfns :pq))
 
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
@@ -1278,7 +1278,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; turns unused regional symbols into empty but used symbols.)
 	(let* ((w25p (w25-get))
 	       (w30n (numget (cell-symb (cell "W30"))))
-	       (start w25p)
+	       (start (1- w25p))
 	       (end (+ start w30n))
 	       (string (subseq *W24-Line-Buffer* start end)))
 	  ;; Note that, unlike J182, here "All non-numerical
@@ -1295,6 +1295,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		(H5+))
 	      (progn
 		(!! :jfns "J181 decided that ~s is NOT a regional symbol.~%" string)
+		(ipush "H0" string)
 		(H5-)))))
 
   (defj J182 (arg0) "INPUT LINE DATATERM (0)" ;; USED IN LT
@@ -1907,7 +1908,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1927,7 +1928,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "T123.lisp" :adv-limit 100)
   )
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
   (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
