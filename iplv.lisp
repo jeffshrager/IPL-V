@@ -1113,13 +1113,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 				    :symb (cell-symb old-cell)
 				    :link (cell-link old-cell)))))))
   
-  (defj J124 (arg0) "CLEAR (0)"
+  (defj J124 (arg0) "CLEAR (0)" ;; USED IN LT
 	;; The number (0) is set to be 0. If the cell is not a data
 	;; term, it is made an integer data term=0. If a number, its
 	;; type, integer, or floating point, is unaffected. It is left
 	;; as the output (0).  (NO POP!)
 	(!! :jfns "J124: Clear (H0): ~s~%" arg0)
-	(numset arg0 0))
+	(numset (cell-symb arg0) 0))
 
   (defj J125 (arg0) "TALLY 1 IN (0)" ;; USED IN ACKERMAN
 	;; An integer 1 is added to the number (0). The type of the result
@@ -1281,7 +1281,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (W25-set 0)
 	  ))
 	
-  (defj J181 () "INPUT LINE SYMBOL."
+  (defj J181 () "INPUT LINE SYMBOL."  ;; USED IN LT
 	;; INPUT LINE SYMBOL. The IPL symbol in the field starting in column
 	;; 1W25, of size 1W30, in line 1W24, is input to HO and H5 is set +. The
 	;; symbol is regional if the first (leftmost) column holds a regional
@@ -1291,10 +1291,10 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; -. In either case, 1W25 is incremented by the amount 1W30. (J181
 	;; turns unused regional symbols into empty but used symbols.)
 	(let* ((w25p (w25-get))
-	       (w30n (numget "W30"))
-	       (start (- (1+ w25p) 2))
-	       (end (+ 1 start w30n))
-	       (string (subseq *W24-Line-Buffer* start end)))
+	       (w30n (numget (cell-symb (cell "W30"))))
+	       (start w25p)
+	       (end (+ start w30n))
+	       (string (print (subseq *W24-Line-Buffer* start end))))
 	  ;; Note that, unlike J182, here "All non-numerical
 	  ;; characters except in the first column are ignored." So we
 	  ;; need a special scraping step to carry this out.
@@ -1893,7 +1893,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1913,7 +1913,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "T123.lisp" :adv-limit 100)
   )
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
   (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
