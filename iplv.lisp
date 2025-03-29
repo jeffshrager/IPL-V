@@ -1745,9 +1745,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        ;; 0 take the symbol itself
        (0 (setf (s) symb) (go INTERPRET-P))
        ;; 1 Take the name the symbol is pointing to
-       (1 (setf (s) (cell-name (cell symb))) (go INTERPRET-P)) 
+       (1 (setf (s) (cell-symb (cell (cell-name (cell symb))))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to
-       (2 (setf (s) (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
+       (2 (setf (s) (cell-sym (cell (cell-symb (cell (cell-symb (cell symb))))))) (go INTERPRET-P)) ;; ????????
        (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
@@ -1759,8 +1759,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 (ipush "H0" (S)))                    ;; Input S (after preserving HO) 
-       (2 (print (list "------------------" (s) (h0)))
-	  (ipush (S) (cell-symb (H0))) ;; ???????????????/
+       (2 (ipush (S) (cell-symb (H0))) ;; ???????????????/
 	  (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
        (3 (ipop (S)))                         ;; Restore (pop up) S 
        (4 (ipush (S)))                         ;; Preserve (push down) S
@@ -1886,14 +1885,15 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (progn ;; F1 test
   (set-default-tracing)
-  ;(setf *!!list* '() *cell-tracing-on* nil)
+  (setf *!!list* '() *cell-tracing-on* nil)
+  (setf *!!list* '(:run :jfns) *cell-tracing-on* t)
   ;(push :run-full *!!list*)
-  ;(trace functionp ipush ipop iset data-set)
+  (trace functionp ipush ipop iset data-set)
   (setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
