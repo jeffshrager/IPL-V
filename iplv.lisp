@@ -666,13 +666,12 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(!! :jfns "J9 just pops H0; We don't need to do our own GC.~%")
 	(poph0 1))
 
-  (defj J10 (arg0 arg1) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)"
+  (defj J10 (arg0 arg1) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)" ;; USED IN LT
 	;; If the symbol (0) is on the description list of list (1) as an
 	;; attribute, then its value--i.e., the symbol following it--is output
 	;; as (0) and H5 set + ; if not found, or if the description list
 	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
-	;; by a search and test of all attributes on the description list.)
-	(PopH0 2)
+	;; by a search and test of all attributes on the description list.) 
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
 	(let* ((list-head (cell (cell-symb arg1)))
 	       (dlist-name (cell-symb list-head))
@@ -681,6 +680,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (if (zero? dlist-name)
 	      (progn
 		(!! :jfns "In J10 -- no dl, so we're done with H5-~%")
+		(PopH0 2)
 		(H5-))
 	      (loop with dl-attribute-cell = (cell (cell-symb (<== dlist-name)))
 		    do ;; Note we're skipping the dl of the dl if any
@@ -688,18 +688,21 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    (if (null dl-attribute-cell)
 			(progn
 			  (!! :jfns "J10 failed (a) to find ~s.~%" target)
+			  (PopH0 2)
 			  (H5-) (return nil)))
 		    (!! :jfns "In J10 dl-attribute-cell = ~s~%" dl-attribute-cell)
 		    (if (ipl-string-equal target (cell-symb dl-attribute-cell))
 			(let* ((cell (cell (cell-link dl-attribute-cell))))
 			  (!! :jfns "J10 found ~s at ~s, returning ~s~%" target dl-attribute-cell cell) 
 			  (H5+)
+			  (PopH0 2)
 			  (ipush "H0" cell)
 			  (return t))
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
 			      (progn
 				(!! :jfns "J10 failed (b) to find ~s.~%" target)
+				(PopH0 2)
 				(H5-) (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 
@@ -713,7 +716,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; list. J11 will create the description list (with a local
 	;; name) if it does not exist (head of (2) empty). There is no
 	;; output in HO. 
-	(PopH0 3)
 	(let* ((att (arg< arg0))
 	       (val (arg< arg1))
 	       (list-head (cell (arg< arg2)))
@@ -727,15 +729,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (setf (cell-symb list-head) (cell-name dl-head))
 	  (J11-helper-add-to-dlist dl-head att val)
 	  (!! :jfns (lpll arg2))
+	  (PopH0 3)
 	  ))
 
   (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
 	;; The description list of list (0) is erased as a list
 	;; structure (J72), and the head of (0) is set empty.
-        (poph0 1) ;; ??
 	(let ((lhead (<== arg0)))
 	  (!! :jfns "J15 clearing the dl of ~s (~s)~%" arg0 lhead)
-	  (setf (cell-symb lhead) "0")))
+	  (setf (cell-symb lhead) "0"))
+	(poph0 1)
+	)
 
   ;; It's sort of unclear, but (p. 179) seems to imply that these
   ;; remove the Hns: "Ten routines, J2 through J29, that provide block
@@ -819,12 +823,14 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; heuristically see if the string can be a cell, in which
 	;; case we use that cell's symb. ... Is this complexity needed
 	;; anylonger with <== and <=!?]
-	(poph0 2) 
 	(let* ((target (arg< arg0))
 	       (list-head (cell (cell-symb arg1))))
 	  (!! :jfns "J62 trying to locate target:~s in linear list starting with cell ~s~%" target list-head)
 	  ;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
-	  (ipush "H0" (j62-helper-search-list-for-symb target list-head (cell-link list-head)))))
+	  (let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
+	    (poph0 2) 
+	    (ipush "H0" r))))
+	
 
   (defj J63 (symbol-or-cell list-cell-or-name) "INSERT (0) BEFORE SYMBOL IN (1)"
 	;; (1) is assumed to name a cell in a list. A new cell is
@@ -864,7 +870,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; WWW If this tries to work with numeric data there's gonna be a
   ;; problem bcs PQ will be wrong.
   (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
-	(PopH0 2)
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
 	(!! :jfns "J65 trying to append ~s to ~s~%" arg0 arg1)
@@ -875,6 +880,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	      (cond ((zero? (cell-link list-cell))
 		     (!! :jfns "J65 hit end, adding ~s to the list!~%" new-cell)
 		     (setf (cell-link list-cell) (cell-name new-cell))
+		     (PopH0 2)
 		     (return t)))
 	      ;; Move to next cell if nothing above returned out
 	      (setf list-cell (cell (cell-link list-cell)))))
@@ -916,18 +922,20 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; cell (see discussion in § 9.4, DELETE). [This is weird! It
 	;; moves the next symbol up and then deletes the NEXT
 	;; cell....?]
-	(poph0 1) ;; Note the explicit side-mention of popping H0!
 	(let* ((this-cell (<== arg0)) ;; was <=!
 	       (next-cell-name (cell-link this-cell)))
 	  (if (zero? next-cell-name)
-	      (progn (!! "J68 hit the end of the list.~%") (H5-))
+	      (progn (!! "J68 hit the end of the list.~%")
+		     (poph0 1)
+		     (H5-))
 	      ;; Here's the complex work. Ugh!
 	      (let* ((next-cell (cell next-cell-name))
 		     (next-cell-link))
 		(!! "J68 Moving symbol in ~s to ~s and deleting ~s.~%"
 		    next-cell this-cell next-cell)
 		(setf (cell-symb this-cell) (cell-symb next-cell)
-		      (cell-link this-cell) (cell-link next-cell))))))
+		      (cell-link this-cell) (cell-link next-cell))
+		(poph0 1)))))
 
   (defj J71 (arg0) "ERASE LIST (0)"
 	;; (0) is assumed to name a list. All cells of the list--both
@@ -1002,16 +1010,17 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; has no list cells, then the output (0) is the input (1) and H5 is set
 	;; -. [Again, I think that this is intended only to work on linear lists
 	;; since there's no "last symbol" in a non-linear list.]
-	(PopH0 2)
 	(let* ((l0 (<=! arg0))
 	       (c1 (<=! arg1))
 	       (c1link (cell-link c1))
 	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
 	  (cond ((zero? (cell-link l0))
+		 (PopH0 2)
 		 (ipush "H0" c1)
 		 (setf (h5) "-"))
 		(t (setf (cell-link c1) (cell-link l0))
 		   (setf (cell-link last-cell-in-l0) c1link)
+		   (PopH0 2)
 		   (ipush "H0" last-cell-in-l0)))))
 
   ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <== n <== 9. (Ten routines: J80-J89)
@@ -1020,20 +1029,19 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   ;; and sets H5- if (0) is a termination symbol. 
 
   (defj J80 (arg0) "FIND THE HEAD SYMBOL OF (0)"
-	(poph0 1)
 	(H5+)
-	(let* ((cell (<== arg0)))
-	  (setf (H0) (cell-symb cell))
+	(let* ((cell (<== arg0))
+	       (r (cell-symb cell)))
+	  (poph0 1)
+	  (setf (H0) r)
 	  (if (zero? (cell-link cell)) (H5-))))
 
   (defj J81 (arg0) "FIND THE nth SYMBOL OF (0)"
-	(poph0 1)
 	(let* ((head (<== arg0))
 	       (first-cell-name (cell-symb head)))
 	  (j8n-helper first-cell-name 1)))
 
   (defj J82 (arg0) "FIND THE nth SYMBOL OF (0)"
-	(poph0 1)
 	(let* ((head (<== arg0))
 	       (first-cell-name (cell-symb head)))
 	  (j8n-helper first-cell-name 2)))
@@ -1053,7 +1061,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (!! :jfns "J90 creating blank list cell: ~s~%" cell)
 	  (ipush "H0" name)))
 
-  (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)"
+  (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" ;; USED IN LT
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
 	;; named (0) is performed successively with each of the symbols of list named
 	;; (1) as input. The order is the order on the list, starting with the first
@@ -1281,7 +1289,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (W25-set 0)
 	  ))
 	
-  (defj J181 () "INPUT LINE SYMBOL."  ;; USED IN LT
+  (defj J181 () "INPUT LINE SYMBOL." ;; USED IN LT
 	;; INPUT LINE SYMBOL. The IPL symbol in the field starting in column
 	;; 1W25, of size 1W30, in line 1W24, is input to HO and H5 is set +. The
 	;; symbol is regional if the first (leftmost) column holds a regional
@@ -1294,7 +1302,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	       (w30n (numget (cell-symb (cell "W30"))))
 	       (start w25p)
 	       (end (+ start w30n))
-	       (string (print (subseq *W24-Line-Buffer* start end))))
+	       (string (subseq *W24-Line-Buffer* start end)))
 	  ;; Note that, unlike J182, here "All non-numerical
 	  ;; characters except in the first column are ignored." So we
 	  ;; need a special scraping step to carry this out.
@@ -1311,7 +1319,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		(!! :jfns "J181 decided that ~s is NOT a regional symbol.~%" string)
 		(H5-)))))
 
-  (defj J182 (arg0) "INPUT LINE DATATERM (0)" 	;; Pop???
+  (defj J182 (arg0) "INPUT LINE DATATERM (0)" ;; USED IN LT
 	;; J182 INPUT LINE DATA TERM (0). The field specified as J181
 	;; is taken as the value of a data term. Input data term (0)
 	;; is set to that value and left as output (0). H5 is set +.
@@ -1331,9 +1339,9 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; zero for integer) and H5 is set - . In either case, 1W25 is
 	;; incremented by the amount 1W30.
 	(let* ((w25p (W25-get))
-	       (w30n (numget "W30"))
-	       (start (- (1+ w25p) 2))
-	       (end (+ 1 start w30n))
+	       (w30n (numget (cell-symb (cell "W30"))))
+	       (start w25p)
+	       (end (+ start w30n))
 	       (string (subseq *W24-Line-Buffer* start end)))
 	  ;; WWW Assumes that the target is alpha, which could be wrong in future applications!
 	  (setf (cell-symb arg0) string)
@@ -1474,8 +1482,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 (defun j8n-helper (cell-name nth)
   ;; If we hit zero on the cell-name, we're f'ed
-  (cond ((zero? cell-name) (H5-))
-        ((zerop nth) (H5+) (ipush "H0" cell-name))
+  (cond ((zero? cell-name) (poph0 1) (H5-))
+        ((zerop nth) (H5+) (poph0 1) (ipush "H0" cell-name))
 	(t (j8n-helper (<== cell-name) (1- nth)))))
 
 (defun j62-helper-search-list-for-symb (target incell inlink)
