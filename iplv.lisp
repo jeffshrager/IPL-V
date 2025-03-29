@@ -107,7 +107,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 ;;; t for all or :dr-memory :load :run :jfns :run-full :io :end-dump 
 ;;; :deep-alerts :pq
 (defvar *!!list* nil) 
-(defparameter *default-!!list* '(:run :jfns :pq))
+(defparameter *default-!!list* '(:run :jfns))
 
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
@@ -1145,7 +1145,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; copies of this symbol carry along the Q value, if a symbol
 	;; is made local when created, it will be local in all its
 	;; occurrences. [I have no idea what his last sentence means!]
-	;; (No pop bcs H0 is modified)
+	;; (No pop bcs output is the input)
 	(let ((cell (<=! H0 :create-if-does-not-exist? t)))
 	  (setf (cell-pq cell)
 		(let* ((pq (cell-pq cell))
@@ -1154,8 +1154,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 		    (0 "02")
 		    (1 (!! :jfns "Warning: J136 assuming ~s is q-only!%") "02")
 		    (2 (setf (aref pq 1) #\2) pq)
-		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))
-	  (setf (H0) cell)))
+		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))))
 
   (defj J137 (l) "MARK LIST (0) PROCESSED"
 	;; List (0) is preserved, its head made empty (Q = 4, SYMB =
@@ -1226,7 +1225,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	(poph0 1)
 	(!! :jfns "J157 called on ~s~%" a0)
 	(block J157A
-	  (let* ((s (cell-symb (<== a0))) ;; <=! !!!
+	  (let* ((s (cell-symb (cell (cell-symb (cell a0)))))
 		 (l (length s))
 		 (p (W25-get)))
 	    (when (> (+ l p) 80) (H5-) (return-from J157A nil))
@@ -1932,9 +1931,8 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 (progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
-  (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
-  (trace copy-ipl-list copy-ipl-list-and-return-head)
+  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
+  ;(trace copy-ipl-list copy-ipl-list-and-return-head)
   ;(setf *trace-@orID-exprs* '((206 (break))))
   (load-ipl "LTFixed.lisp" :adv-limit 500)
   )
-
