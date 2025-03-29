@@ -15,31 +15,6 @@ for example, A goes to A0.
 
 (Note the J8 error popping stack motif!)
 
-
-PQ Meaning for all PQ used in LT:
----------------------------------
-00 (blank) Execute fn named by symb name per se (*)
-01 Execute fn contained in cell named by symb (*>)
-04 (blank) Execute fn named by symb name per se (same as 00 bcs no tracing) (>)
-10 Push the symb (name) itself on H0 (*>)
-11 Push content of the cell named by symb, onto H0 (*>)
-12 Push 2nd deref on H0 (*>>)
-14 Push the symb (name) itself on H0 (same as 10 bcs no tracining) (*)
-20 Move H0 to the named symbol (per se) and pop (restore) H0. (*)
-   (? This is a little weird bcs it seems like you should be moving
-      the value to the command itself!)   
-21 Move H0 to the cell named by symb, and pop (restore) H0. (*>)
-30 Pop the named stack (per se) (*)
-31 Pop the stack of the sym in the named cell (1st ref) (*>)
-32 Pop the stack of the 2nd derefed cell (*>>)
-40 Push down (preserve) the named symb (per se)
-50 Replace H0 by the named symb (per se) (*)
-51 Replace H0 by the cell named in the H0 symb (*>)
-52 Replace H0 2nd deref (*>>)
-60 Set the symb name per se to H0 (or cell named by H0 if string) (*)
-64 Set the symb name per se to H0 (or cell named by H0 if string) (Same as 60 (no tracing)) (*)
-70 Branch to symb name (per se) if H5- (*)
-
 It seems that all JFns will remove their inputs, e.g., p.10: "...it is
 understood from the definition of TEST that J2 will remove both (0)
 and (1) from HO."
@@ -1704,6 +1679,36 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (w25-init)
   )
 
+(defun pq-explain (cell)
+  (when (and (cell? cell) (stringp (cell-pq cell)))
+    (second (assoc (cell-pq cell) *pq-meanings* :test #'string-equal))))
+
+(defparameter *pq-meanings*
+  '(
+    ("" "(= 00) Execute fn named by symb name per se (*)")
+    ("  " "(= 00) Execute fn named by symb name per se (*)")
+    ("00" "(= blank) Execute fn named by symb name per se (*)")
+    ("01" "Execute fn contained in cell named by symb (*>)")
+    ("04" "(blank) Execute fn named by symb name per se (same as 00 bcs no tracing) (>)")
+    ("10" "Push the symb (name) itself on H0 (*>)")
+    ("11" "Push content of the cell named by symb, onto H0 (*>)")
+    ("12" "Push 2nd deref on H0 (*>>)")
+    ("13" "Push the symb (name) itself on H0 (same as 10 bcs no tracining) (*)")
+    ("14" "Push the symb (name) itself on H0 (same as 10 bcs no tracining) (*)")
+    ("20" "Move H0 to the named symbol (per se) and pop (restore) H0. (*)")
+    ("21" "Move H0 to the cell named by symb, and pop (restore) H0. (*>)")
+    ("30" "Pop the named stack (per se) (*)")
+    ("31" "Pop the stack of the sym in the named cell (1st ref) (*>)")
+    ("32" "Pop the stack of the 2nd derefed cell (*>>)")
+    ("40" "Push down (preserve) the named symb (per se)")
+    ("50" "Replace H0 by the named symb (per se) (*)")
+    ("51" "Replace H0 by the cell named in the H0 symb (*>)")
+    ("52" "Replace H0 2nd deref (*>>)")
+    ("60" "Set the symb name per se to H0 (or cell named by H0 if string) (*)")
+    ("64" "Set the symb name per se to H0 (or cell named by H0 if string) (Same as 60 (no tracing)) (*)")
+    ("70" "Branch to symb name (per se) if H5- (*)")
+    ))
+
 (defun ipl-eval (start-symb)
   (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s~%" start-symb)
   (prog (cell pq q p symb link)
@@ -1740,6 +1745,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	 ))
      (setq cell (cell (cell-symb (H1)))) ;; This shouldn't be needed since we're operating all in cell now.
      (!! :run "@~a~a >>>>>>>>>> ~s~%" (cell-link (cell "H3")) (H5) cell)
+     (!! :pq "          [~a]~%" (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
@@ -1755,7 +1761,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
        ;; 1 Take the name the symbol is pointing to ???? THIS IS WRONG?
        (1 (setf (s) (cell-symb (cell (cell-name (cell symb))))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to ???? THIS IS WRONG?
-       (2 (setf (s) (cell-symb (cell (cell-symb (cell (cell-symb (cell symb))))))) (go INTERPRET-P))
+       (2 (setf (s) (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
        (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
@@ -1891,13 +1897,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
-  ;(setf *!!list* '(:run :jfns) *cell-tracing-on* t)
+  (setf *!!list* '(:run :pq :jfns) *cell-tracing-on* t)
   ;(push :run-full *!!list*)
   ;(trace functionp ipush ipop iset data-set)
-  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
 
@@ -1921,7 +1927,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "T123.lisp" :adv-limit 100)
   )
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
   (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
