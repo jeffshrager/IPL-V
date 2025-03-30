@@ -193,9 +193,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	  (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))))
 
 ;;; Warning: Pop has to create a new cell in the head otherwise anyone
-;;; holding the old value might have it destroyed. ... or we could
-;;; just do the popping at the end....let's try that first as it make
-;;; the most sense.
+;;; holding the old value might have it destroyed.
 
 (defun ipop (stack-name)
   (let ((topcell (pop (stack stack-name))))
@@ -608,10 +606,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 	;; Before we go anywhere else, the names could be equal or the
 	;; name of one could be equal to the symbol of the other, in
 	;; either direction. This is sooooooooo horrible!
-	(let ((a (symbolify arg0 "J2"))
-	      (b (symbolify arg1 "J2")))
-	  (!! :jfns "J2 comparing a:~s with b:~s~%" a b)
-	  (setf (h5) (if (ipl-string-equal a b) "+" "-")))
+	(setf (h5) (if (ipl-string-equal arg0 arg1) "+" "-"))
 	(poph0 2)
 	;; ("p.10: "...it is understood from the definition of TEST
 	;; that J2 will remove both (0) and (1) from HO.")
@@ -1546,10 +1541,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (!! :jfns "Read into *W24-Line-Buffer*: ~s~%" *W24-Line-Buffer*))
 
 (defun J2n=move-0-to-n-into-w0-wn (n)
-  (setf (cell "W0") (H0))
+  ;; Handle W0 then take care of the rest later.
+  (ipush "W0" (cell-symb (H0)))
+  (ipop "H0")
   (loop for nn from 1 to n ;; Won't do anything if n=0
+	as wcell-name = (format nil "W~a" nn) 
 	as val in (H0+)
-	do (setf (cell (format nil "W~a" nn)) val))
+	do (ipush wcell-name (cell-symb val)))
   (PopH0 n))
 
 (defun J3n=restore-wn (n)
@@ -1766,13 +1764,11 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 (ipush "H0" (S)))                    ;; Input S (after preserving HO) 
-       (2 (ipush (S) (cell-symb (H0))) ;; ???????????????/
-	  (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
+       (2 (ipush (S) (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
        (3 (ipop (S)))                         ;; Restore (pop up) S 
        (4 (ipush (S)))                         ;; Preserve (push down) S
        (5 (setf (H0) (make-cell! :name "H0" :symb (s))))
-       (6 ;; Copy (0) in S -- opposite of 5, and we unpack the cell to a symbol.
-	(setf (cell (s)) (<== (H0))))
+       (6 (ipop (S)) (ipush (S) (cell-symb (H0)))) ;; A copy of (0) is put in S; the current symbol in S is lost, and (O) is unaffected.
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
@@ -1890,7 +1886,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :pq :jfns) *cell-tracing-on* t)
@@ -1900,7 +1896,7 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -1929,11 +1925,13 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (set-default-tracing)
   ;(setf *!!list* nil)
   ;(push :pq *!!list*)
-  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t)
+  ;(setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
   ;(trace ipl-string-equal)
   '(setf *trace-@orID-exprs*
-	'((254
-	   (push :run-full *!!list*)
-	   (setf *trace-cell-names* '("H0" "H1" "W0" "W1" "W25" "W30") *cell-tracing-on* t))))
+	'((240 (lpll "A0")
+	   (push :pq *!!list*)
+	   (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
+	   )
+	  (260 (lpll "A0"))))
   (load-ipl "LTFixed.lisp" :adv-limit 500)
   )
