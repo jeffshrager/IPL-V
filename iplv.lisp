@@ -2,7 +2,9 @@
 
 #|
 
-FFF Replace lots of (vv "H0" (make-cell :name "H0" val)) nonsense with (vv "H0" val)
+FFF Consider replacing system cells stacks with JUST symbols, thus
+avoiding entirely the mess of accidently sharing and destructive
+disasters.
 
 WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
 The weirdest example (so far) is that the symbol "P" is actually the
@@ -17,28 +19,32 @@ for example, A goes to A0.
 
 It seems that all JFns will remove their inputs, e.g., p.10: "...it is
 understood from the definition of TEST that J2 will remove both (0)
-and (1) from HO."
-
-To Do (or at least think about):
-
-FFF Normalize the poph0 (to the extent possible) and fold into DefJ?
+and (1) from HO." UNLESS OTHERWISE STATED! See: (PopH0 n) FFF ???
+Maybe fold poph0, to the extent possible, into DefJ?
 
 WWW Noting handles multiply-nested dlists!
 
 WWW A lot of code assumes that a list isn't branching -- e.g., DLIST
 processing.
 
-??? FFF Should W24 (read/print line) be in an actual cell? Right now it's in a
-special global that can only process on line of I or O at a time.
+??? Does anyone need W24 (read/print line) to be an actual cell?
+Right now it's a special global that can only process on line of I or
+O at a time.
 
-FFF Need to find out where the memory leaks are that are leaving junk on the
-stacks (primarily H0) -- I think it's the Jfns that aren't cleaning up after
-themselves, and/or not absorbing their inputs.
+WWW WATCH OUT FOR memory leaks are that are leaving junk on the
+stacks (primarily H0) ... usually it's the Jfns that aren't cleaning
+up after themselves, and/or not absorbing their inputs. Also WATCH OUT
+FOR accidental pointer sharing -- failing to copy. AVOID SETF'inf into
+cells -- use ipop and ipush almost always!
 
-FFF There's a hack for true blanks in both symb and link in LT:/016D070 to avoid
-the load-time trap. Eventually, test for data mode 21 to allow both blanks.
+WWW There's a hack for true blanks in both symb and link in
+LT:/016D070 to avoid the load-time trap. Eventually (FFF) test for
+data mode 21 to allow both blanks.
 
-WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will be wrong.
+WWW If J65 tries to insert numeric data there's gonna be a problem bcs
+PQ will be wrong. (I don't deeply understand the numerical data
+representation. For example, there NO handling of floats in the
+current system.)
 
 |#
 
@@ -1356,8 +1362,6 @@ WWW If J65 tries to insert numeric data there's gonna be a problem bcs PQ will b
   (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
   (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
   (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
-  (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
-  (defj J78 () "Unimplemented!" (break "J78 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
   (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
   (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
