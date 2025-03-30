@@ -167,12 +167,15 @@ current system.)
 ;;; Input/Push to system stack: This creates a copy only of the
 ;;; CONTENTS of the system cell.
 
+;;; WWW DESTRUCTIVE!!! MAKE SURE YOU'RE DOING IT TO A CLEAN CELL!!!
 (defun data-set (curcell &key (sign "0") (pq "0") (symb "") (link "0") (id ""))
-       (setf (cell-sign curcell) sign
-	     (cell-pq curcell) pq
-	     (cell-symb curcell) symb
-	     (cell-id curcell) id)
-       curcell)
+  (!! :dr-memory "WWW DATA-SET IS DESTRUCTIVELY HACKING ~s " curcell)
+  (setf (cell-sign curcell) sign
+	(cell-pq curcell) pq
+	(cell-symb curcell) symb
+	(cell-id curcell) id)
+  (!! :dr-memory " TO: ~s~%" curcell)
+  curcell)
 
 ;;; WWW *** Note that these cells are NOT stored in the symbtab! (We
 ;;; use "make-cell" NOT "make-cell!"; In fact, they don't have names!)
@@ -180,34 +183,43 @@ current system.)
 ;;; cell name?)
 
 (defun ipush (stack-name &optional newval)
-  (let* ((curcell (cell stack-name)))
-    (push (make-cell :sign (cell-sign curcell)
-		     :pq (cell-pq curcell)
-		     :symb (cell-symb curcell)
-		     :link (cell-link curcell))
+  (!! :dr-memory "IPUSH wants to put ~s on ~a~%" (or newval "[nil: No newval]" stack-name))
+  (let* ((newcell (cell stack-name)))
+    (push (make-cell :sign (cell-sign newcell)
+		     :pq (cell-pq newcell)
+		     :symb (cell-symb newcell)
+		     :link (cell-link newcell))
 	  (stack stack-name))
     (cond ((or (stringp newval)
 	       (functionp newval))
-	   (data-set curcell :symb newval))
+	   (data-set newcell :symb newval))
 	  ((cell? newval)
-	   (data-set curcell :sign (cell-sign curcell) :pq (cell-pq curcell) :symb (cell-name newval))
+	   (data-set newcell :sign (cell-sign newcell) :pq (cell-pq newcell) :symb (cell-name newval))
 	   (!! :run-full "iPushing (the name of) ~s on ~a~%" newval stack-name))
 	  ((null newval) (!! :run-full "iPushing ~a~%" stack-name))
 	  ((numberp newval)
 	   (!! :run-full "iPushing (the number) ~s on ~a~%" newval stack-name)
-	   (data-set curcell :pq "12" :link newval))
-	  (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))))
+	   (data-set newcell :pq "12" :link newval))
+	  (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))
+    (!! :dr-memory "IPUSH pushew new cell: ~s (WWW NOT STORED!) on ~s~%" newcell stack-name)
+    newcell))
 
 ;;; Warning: Pop has to create a new cell in the head otherwise anyone
-;;; holding the old value might have it destroyed.
+;;; holding the old value might have it destroyed. (Actually, I think
+;;; that this is safe bcs all pushes create new cells, but better
+;;; clean than worry.)
 
 (defun ipop (stack-name)
-  (let ((topcell (pop (stack stack-name))))
-    (data-set (cell stack-name)
-	      :pq (cell-pq topcell)
-	      :symb (cell-symb topcell)
-	      :link (cell-link topcell)
-	      :id (cell-id topcell))))
+  (let* ((popped-cell (pop (stack stack-name)))
+	 (new-cell (make-cell!
+		    :name stack-name
+		    :pq (cell-pq popped-cell)
+		    :symb (cell-symb popped-cell)
+		    :link (cell-link popped-cell)
+		    :id (cell-id popped-cell))))
+    (!! :dr-memory "IPOP created new cell: ~s on ~a, popping ~s~%" new-cell stack-name popped-cell)
+    new-cell
+    ))
 
 ;;; This is used in JFns to deref args H0
 
@@ -215,6 +227,12 @@ current system.)
 (defmacro H1+ () `(stack "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
 
 (defmacro H5 () `(cell "H5"))
+
+;;; ??? WWW Setting H5 could lead to issues if someone is expecting H5
+;;; to work correctly on the stack, esp. e.g., generator operations. I
+;;; think that this is okay to do, though, because the code(r) who
+;;; wants to save H5 usually does it explicitly. The problem is that
+;;; ipush and ipop might not work on H5
 
 (defmacro H5+ () `(setf (H5) "+"))
 (defmacro H5- () `(setf (H5) "-"))
@@ -620,14 +638,12 @@ current system.)
 
   (defj J3 () "SET H5 -" (H5-))
   (defj J4 () "SET H5 +" (H5+))
-  (defj J5 () "REVERSE H5"
-	(if (string-equal "+" (H5))
-	    (H5-)
-	    (H5+)))
+  (defj J5 () "REVERSE H5" (if (string-equal "+" (H5)) (H5-) (H5+)))
 
   (defj J6 () "REVERSE (0) and (1)" ;; USED IN F1
+	;; WWW Worry that ths isn't using ipop and ipush! WWW
 	(let ((z (H0)))
-	  (setf (H0) (first (H0+)))
+	  (setf (H0) (first (H0+))) 
 	  (setf (first (H0+)) z)))
 
   (defj J7 () "HALT, PROCEED ON GO"
