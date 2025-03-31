@@ -98,6 +98,16 @@ current system.)
 	      ""
 	      (format nil " [~a;~a]" (cell-comments cell) (cell-comments.1 cell)))))
 
+;;; The generator triplex. The generator system maintains its own
+;;; private stack, which is the "generator hideout" referred to in the
+;;; manual and below where J17-19 are defj'ed.
+
+(defvar *genstack* nil)
+(defstruct gentry fn wn +-result) 
+
+;;; =========================================================================
+;;; DEBUGGING UTILS
+
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 (defvar *cell-tracing-on* nil)
@@ -115,11 +125,8 @@ current system.)
 (defvar *!!list* nil) 
 (defparameter *default-!!list* '(:run :jfns))
 
-
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! (&optional next-breaks) (setf *breaks* next-breaks) "Use :c to run free.")
-
-(defparameter *alphachars* "ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890!@#$%^&*()-_=+[]{};':\" ,./?><")
 
 ;;; Cell dereferencing: Used when you need a cell. <=! is more
 ;;; powerful in that it can create the cell if it's not found, and is
@@ -716,6 +723,50 @@ current system.)
 	  (setf (cell-symb lhead) "0"))
 	(poph0 1)
 	)
+
+  ;; ==================================================================
+  ;; GENERATOR FUNCTIONALITY
+  
+  ;; Just as a reminder: (defvar *genstack* nil) (defstruct gentry fn wn +-result)
+
+  (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
+
+  ;; J17 GENERATOR SETUP. Has two inputs: (0) = Wn, the name of the
+  ;; highest W that will be used for working storage, e.g., (0) = W6,
+  ;; if cells WO through W6 will be used. (1) = The name of the
+  ;; subprocess to be executed by generator. J17 does three things
+  ;; (and has no output): 1. Preserves the cells WO through Wn,
+  ;; thereby preserving the superroutine-subprocess context. 2. Stores
+  ;; Wn and the name of the subprocess in storage cells and preserves
+  ;; a third cell for the output sign of H5 (these three storage cells
+  ;; are called the generator hideout). 3. Obtains the trace mode of
+  ;; the superroutine, and records it in one of the hideout cells (see
+  ;; § 15.0, MONITOR SYSTEM).
+
+  (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
+
+  ;; J18 EXECUTE SUBPROCESS. Has no input. It does six things:
+  ;; 1. Restores the symbols in WO through Wn (generator context),
+  ;; thereby returning the previous context of symbols to the top of
+  ;; the W's (superroutine-subprocess context) 2. Stacks the generator
+  ;; context in a hideout cell. 3. Sets the trace mode of the
+  ;; subprocess to be that of the superroutine (see § 15.0, MONITOR
+  ;; SYSTEM). 4. Executes the subprocess. 5. Returns the symbols of
+  ;; the generator's context from the hideout to the W's, pushing the
+  ;; W's down, thereby preserving the superroutine-subprocess
+  ;; context. 6. Records H5, the communication of the sub-process to
+  ;; the generator (see J19), in one of the hideout cells.
+
+  (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
+
+  ;; J19 GENERATOR CLEANUP. Has no input. Does three things:
+  ;; 1. Restores WO through Wn. 2. Restores all the cells of the
+  ;; hideout. 3. Places in H5. the recorded sign, which will be + if
+  ;; the generator went to completion (last subprocess communicated +
+  ;; ), and - if the generator was stopped (last subprocess
+  ;; communicated - ).
+
+  ;; ==================================================================
 
   ;; It's sort of unclear, but (p. 179) seems to imply that these
   ;; remove the Hns: "Ten routines, J2 through J29, that provide block
@@ -1364,9 +1415,6 @@ current system.)
 
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
   (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
-  (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
-  (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
-  (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
   (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
   (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
