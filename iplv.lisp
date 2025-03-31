@@ -226,14 +226,9 @@ current system.)
 (defmacro H1 () `(cell "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
 (defmacro H1+ () `(stack "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
 
-(defmacro H5 () `(cell "H5"))
+;;; WWW H5 MUST be set using these functions!
 
-;;; ??? WWW Setting H5 could lead to issues if someone is expecting H5
-;;; to work correctly on the stack, esp. e.g., generator operations. I
-;;; think that this is okay to do, though, because the code(r) who
-;;; wants to save H5 usually does it explicitly. The problem is that
-;;; ipush and ipop might not work on H5
-
+(defmacro H5 () `(cell-symb (cell "H5")))
 (defmacro H5+ () `(setf (H5) "+"))
 (defmacro H5- () `(setf (H5) "-"))
 
@@ -528,8 +523,7 @@ current system.)
 ;;; contents have no names and are not in the symtab; they exist only
 ;;; on the stack.
 
-;;; Note that S and H5 are nots cells but just symbols, but they're
-;;; both stackable (protectable), so they need to have stacks.
+;;; (WWW S is not a cell just a symbol.)
 
 (defparameter *system-cells* '("H0" "H1" "H3" "H5" "S"))
 (defparameter *all-system-cells* (append *system-cells* (loop for w below 43 collect (format nil "W~a" w))))
@@ -630,7 +624,7 @@ current system.)
 	;; Before we go anywhere else, the names could be equal or the
 	;; name of one could be equal to the symbol of the other, in
 	;; either direction. This is sooooooooo horrible!
-	(setf (h5) (if (ipl-string-equal arg0 arg1) "+" "-"))
+	(if (ipl-string-equal arg0 arg1) (H5+) (H5-))
 	(poph0 2)
 	;; ("p.10: "...it is understood from the definition of TEST
 	;; that J2 will remove both (0) and (1) from HO.")
@@ -995,17 +989,16 @@ current system.)
 	;; has no list cells, then the output (0) is the input (1) and H5 is set
 	;; -. [Again, I think that this is intended only to work on linear lists
 	;; since there's no "last symbol" in a non-linear list.]
+	(poph0 2)
 	(let* ((l0 (<=! arg0))
 	       (c1 (<=! arg1))
 	       (c1link (cell-link c1))
 	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
 	  (cond ((zero? (cell-link l0))
-		 (PopH0 2)
 		 (ipush "H0" c1)
-		 (setf (h5) "-"))
+		 (H5-))
 		(t (setf (cell-link c1) (cell-link l0))
 		   (setf (cell-link last-cell-in-l0) c1link)
-		   (PopH0 2)
 		   (ipush "H0" last-cell-in-l0)))))
 
   ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <== n <== 9. (Ten routines: J80-J89)
@@ -1014,10 +1007,10 @@ current system.)
   ;; and sets H5- if (0) is a termination symbol. 
 
   (defj J80 (arg0) "FIND THE HEAD SYMBOL OF (0)"
+	(poph0 1)
 	(H5+)
 	(let* ((cell (<== arg0))
 	       (r (cell-symb cell)))
-	  (poph0 1)
 	  (setf (H0) r)
 	  (if (zero? (cell-link cell)) (H5-))))
 
@@ -1145,9 +1138,8 @@ current system.)
 	       (pq (cell-pq l))
 	       (q (getpq :q pq))
 	       (p (getpq :p pq)))
-	  (setf (H5)
-		(if (and (= p 1) (member q '(0 2 3 4 6 7)))
-		    "+" "-"))))
+	  (if (and (= p 1) (member q '(0 2 3 4 6 7)))
+	      (H5+) (H5-))))
 
   (defj J136 (H0) "MAKE SYMBOL (O) LOCAL."
 	;; The output (0) is the input (0) with Q = 2. Since all
@@ -1840,10 +1832,10 @@ current system.)
      (trace-cells)
      (go INTERPRET-Q)
    BRANCH
-     (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (h5) (s))
+     (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (H5) (s))
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
-     (when (string-equal (h5) "-") (setf link (s)) (go ADVANCE-W/FORCED-LINK))
+     (when (string-equal (H5) "-") (setf link (s)) (go ADVANCE-W/FORCED-LINK))
      (go ADVANCE)
      ))
 
