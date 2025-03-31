@@ -232,9 +232,6 @@ current system.)
 (defmacro H5+ () `(setf (H5) "+"))
 (defmacro H5- () `(setf (H5) "-"))
 
-(defmacro S () `(cell "S"))
-(defmacro S+ () `(stack "S"))
-
 ;;; This can trace strings, or any element (name/symb/link) of a cell
 ;;; incl. stackables.
 
@@ -525,7 +522,7 @@ current system.)
 
 ;;; (WWW S is not a cell just a symbol.)
 
-(defparameter *system-cells* '("H0" "H1" "H3" "H5" "S"))
+(defparameter *system-cells* '("H0" "H1" "H3" "H5"))
 (defparameter *all-system-cells* (append *system-cells* (loop for w below 43 collect (format nil "W~a" w))))
 
 (defun create-system-cells ()
@@ -1712,7 +1709,7 @@ current system.)
     ("70" "Branch to symb name (per se) if H5- (*)")
     ))
 
-(defun ipl-eval (start-symb)
+(defun ipl-eval (start-symb &aux s)
   (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s~%" start-symb)
   (prog (cell pq q p symb link)
      (ipush "H1" "exit")
@@ -1760,36 +1757,36 @@ current system.)
      (!! :run-full "-----> At INTERPRET-Q: CELL =~s~%      Q = ~s, symb=~s~%" cell q symb)
      (case q
        ;; 0 take the symbol itself
-       (0 (setf (s) symb) (go INTERPRET-P))
+       (0 (setf S symb) (go INTERPRET-P))
        ;; 1 Take the name the symbol is pointing to ???? THIS IS WRONG?
-       (1 (setf (s) (cell-symb (cell symb))) (go INTERPRET-P))
+       (1 (setf S (cell-symb (cell symb))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to ???? THIS IS WRONG?
-       (2 (setf (s) (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
-       (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
-       (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf (s) symb) (go INTERPRET-P))
+       (2 (setf S (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
+       (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf S symb) (go INTERPRET-P))
+       (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf S symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
        )
    INTERPRET-P 
-     (!! :run-full "-----> At INTERPRET-P w/P = ~s, (s)=~s~%" p (s))
+     (!! :run-full "-----> At INTERPRET-P w/P = ~s, S=~s~%" p S)
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
-       (1 (ipush "H0" (S)))                    ;; Input S (after preserving HO) 
-       (2 (ipush (S) (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
-       (3 (ipop (S)))                         ;; Restore (pop up) S 
-       (4 (ipush (S)))                         ;; Preserve (push down) S
-       (5 (setf (H0) (make-cell! :name "H0" :symb (s))))
-       (6 (ipop (S)) (ipush (S) (cell-symb (H0)))) ;; A copy of (0) is put in S; the current symbol in S is lost, and (O) is unaffected.
+       (1 (ipush "H0" S))                    ;; Input S (after preserving HO) 
+       (2 (ipush S (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
+       (3 (ipop S))                         ;; Restore (pop up) S 
+       (4 (ipush S))                         ;; Preserve (push down) S
+       (5 (setf (H0) (make-cell! :name "H0" :symb S)))
+       (6 (ipop S) (ipush S (cell-symb (H0)))) ;; A copy of (0) is put in S; the current symbol in S is lost, and (O) is unaffected.
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
    TEST-FOR-PRIMITIVE 
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
-     (!! :run-full "-----> At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~s, symb=~s~%" (s) q symb)
+     (!! :run-full "-----> At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~s, symb=~s~%" S q symb)
      (case q 
-       (5 (setf link (s)) (go ADVANCE))
+       (5 (setf link S) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (!! :run-full "-----> At ADVANCE")
      (trace-cells)
@@ -1824,18 +1821,18 @@ current system.)
      (ipop "H1")
      (go ADVANCE)
    DESCEND 
-     (!! :run-full "-----> At DESCEND w/S = ~s~%" (s))
+     (!! :run-full "-----> At DESCEND w/S = ~s~%" S)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
-     (setf *fname-hint* (s))
-     (ipush "H1" (cell (s)))
+     (setf *fname-hint* S)
+     (ipush "H1" (cell S))
      (trace-cells)
      (go INTERPRET-Q)
    BRANCH
-     (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (H5) (s))
+     (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (H5) S)
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
-     (when (string-equal (H5) "-") (setf link (s)) (go ADVANCE-W/FORCED-LINK))
+     (when (string-equal (H5) "-") (setf link S) (go ADVANCE-W/FORCED-LINK))
      (go ADVANCE)
      ))
 
