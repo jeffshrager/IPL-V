@@ -103,7 +103,7 @@ current system.)
 ;;; manual and below where J17-19 are defj'ed.
 
 (defvar *genstack* nil)
-(defstruct gentry fn wn +-result) 
+(defstruct gentry fn wn wnames +-) 
 
 ;;; =========================================================================
 ;;; DEBUGGING UTILS
@@ -530,7 +530,8 @@ current system.)
 ;;; (WWW S is not a cell just a symbol.)
 
 (defparameter *system-cells* '("H0" "H1" "H3" "H5"))
-(defparameter *all-system-cells* (append *system-cells* (loop for w below 43 collect (format nil "W~a" w))))
+(defparameter *w-cells* (loop for w below 43 collect (format nil "W~a" w)))
+(defparameter *all-system-cells* (append *system-cells* *w-cells*))
 
 (defun create-system-cells ()
   (loop for name in *all-system-cells*
@@ -727,44 +728,76 @@ current system.)
   ;; ==================================================================
   ;; GENERATOR FUNCTIONALITY
   
-  ;; Just as a reminder: (defvar *genstack* nil) (defstruct gentry fn wn +-result)
+  ;; Just as a reminder: (defvar *genstack* nil) (defstruct gentry fn wn :wnames +-)
 
-  (defj J17 () "Unimplemented!" (break "J17 is unimplemented!"))
+  (defj J17 (wn-symb fn) "GENERATOR SETUP" 
+	;; Has two inputs: (0) = Wn, the name of the highest W that will be
+	;; used for working storage, e.g., (0) = W6, if cells WO through W6
+	;; will be used. (1) = The name of the subprocess to be executed by
+	;; generator. J17 does three things (and has no output):
+	;; 1. Preserves the cells WO through Wn, thereby preserving the
+	;; superroutine-subprocess context. 2. Stores Wn and the name of the
+	;; subprocess in storage cells and preserves a third cell for the
+	;; output sign of H5 (these three storage cells are called the
+	;; generator hideout). 3. Obtains the trace mode of the
+	;; superroutine, and records it in one of the hideout cells (see §
+	;; 15.0, MONITOR SYSTEM).
+	(poph0 2)
+	(let* ((wn (parse-integer (subseq wn-symb 1 2))))
+	  (J4n=preserve-wn wn)
+	  (push (make-gentry :fn fn
+			     :wn wn :wnames (first-n wn *w-cells*)
+			     :+- :oops-this-should-have-been-replaced!)
+		*genstack*)))
 
-  ;; J17 GENERATOR SETUP. Has two inputs: (0) = Wn, the name of the
-  ;; highest W that will be used for working storage, e.g., (0) = W6,
-  ;; if cells WO through W6 will be used. (1) = The name of the
-  ;; subprocess to be executed by generator. J17 does three things
-  ;; (and has no output): 1. Preserves the cells WO through Wn,
-  ;; thereby preserving the superroutine-subprocess context. 2. Stores
-  ;; Wn and the name of the subprocess in storage cells and preserves
-  ;; a third cell for the output sign of H5 (these three storage cells
-  ;; are called the generator hideout). 3. Obtains the trace mode of
-  ;; the superroutine, and records it in one of the hideout cells (see
-  ;; § 15.0, MONITOR SYSTEM).
+  (defj J18 () "EXECUTE SUBPROCESS" 
+	;; Has no input. It does six things: 1. Restores the symbols
+	;; in WO through Wn (generator context), thereby returning the
+	;; previous context of symbols to the top of the W's
+	;; (superroutine-subprocess context) 2. Stacks the generator
+	;; context in a hideout cell. 3. Sets the trace mode of the
+	;; subprocess to be that of the superroutine (see § 15.0,
+	;; MONITOR SYSTEM). 4. Executes the subprocess. 5. Returns the
+	;; symbols of the generator's context from the hideout to the
+	;; W's, pushing the W's down, thereby preserving the
+	;; superroutine-subprocess context. 6. Records H5, the
+	;; communication of the sub-process to the generator (see
+	;; J19), in one of the hideout cells.
+	(let* ((gentry (first *genstack*))
+	       (fn (gentry-fn gentry))
+	       (wn (gentry-wn gentry))
+	       (wnames (gentry-wnames gentry))
+	       (wvals (loop for wname in wnames
+			 as wcell = (cell wname)
+			 do (ipop wname)
+			 collect wcell)))
+	  ;; This seems redundant with the one in J19, but that one is
+	  ;; restoring the caller context, whereas this one is
+	  ;; restoring the generator context.
+	  (J3n=restore-wn wn)
+	  (ipl-eval fn)
+	  (loop for wname in wnames
+		as wval in wvals
+		do (ipush wname wval))
+	  (setf (gentry-+- gentry) (H5))
+	  ))
 
-  (defj J18 () "Unimplemented!" (break "J18 is unimplemented!"))
-
-  ;; J18 EXECUTE SUBPROCESS. Has no input. It does six things:
-  ;; 1. Restores the symbols in WO through Wn (generator context),
-  ;; thereby returning the previous context of symbols to the top of
-  ;; the W's (superroutine-subprocess context) 2. Stacks the generator
-  ;; context in a hideout cell. 3. Sets the trace mode of the
-  ;; subprocess to be that of the superroutine (see § 15.0, MONITOR
-  ;; SYSTEM). 4. Executes the subprocess. 5. Returns the symbols of
-  ;; the generator's context from the hideout to the W's, pushing the
-  ;; W's down, thereby preserving the superroutine-subprocess
-  ;; context. 6. Records H5, the communication of the sub-process to
-  ;; the generator (see J19), in one of the hideout cells.
-
-  (defj J19 () "Unimplemented!" (break "J19 is unimplemented!"))
-
-  ;; J19 GENERATOR CLEANUP. Has no input. Does three things:
-  ;; 1. Restores WO through Wn. 2. Restores all the cells of the
-  ;; hideout. 3. Places in H5. the recorded sign, which will be + if
-  ;; the generator went to completion (last subprocess communicated +
-  ;; ), and - if the generator was stopped (last subprocess
-  ;; communicated - ).
+  (defj J19 () "GENERATOR CLEANUP"
+	;; Has no input. Does three things: 1. Restores WO through
+	;; Wn. 2. Restores all the cells of the hideout. 3. Places in
+	;; H5. the recorded sign, which will be + if the generator went to
+	;; completion (last subprocess communicated + ), and - if the
+	;; generator was stopped (last subprocess communicated - ).
+	(let* ((gentry (pop *genstack*))
+	       (wn (gentry-wn gentry))
+	       (+- (gentry-+- gentry)))
+	  ;; This seems redundant with the one in J18, but that one is
+	  ;; restoring the generator context, whereas this one is
+	  ;; restoring the caller context.
+	  (J3n=restore-wn wn) 
+	  (if (string-equal +- "+") (H5+)
+	      (if (string-equal +- "-") (H5-)
+		  (break "In J19 +- is ~s" +-)))))
 
   ;; ==================================================================
 
@@ -1580,7 +1613,7 @@ current system.)
 	  ;; WWW OBIWON !!! The only place I should have to correct this is here (I hope!) 
 	  as char = (aref *W24-Line-Buffer* (1- w25p))
 	  do 
-	  (!! :jfns "Deep in J183/4-Scanner: w25p = ~a, char = ~s~%" w25p char)
+	  (!! :run-full "Deep in J183/4-Scanner: w25p = ~a, char = ~s~%" w25p char)
 	  (when (case mode
 		  (:blank (char-equal char #\space))
 		  (:non-blank (not (char-equal char #\space)))
