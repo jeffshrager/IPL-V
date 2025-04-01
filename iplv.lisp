@@ -748,7 +748,8 @@ current system.)
 	  (push (make-gentry :fn fn
 			     :wn wn :wnames (first-n (1+ wn) *w-cells*)
 			     :+- :oops-this-should-have-been-replaced!)
-		*genstack*)))
+		*genstack*))
+	(!! :jfns "J17 *genstack* push: ~s~%" (car *genstack*)))
 
   (defj J18 () "EXECUTE SUBPROCESS" 
 	;; Has no input. It does six things: 1. Restores the symbols
@@ -775,7 +776,9 @@ current system.)
 	  ;; restoring the caller context, whereas this one is
 	  ;; restoring the generator context.
 	  (J3n=restore-wn wn)
+	  (!! :jfns "J18 Executing ~s~%" fn)
 	  (ipl-eval fn)
+	  (!! :jfns "J18 ~s returned with H5=~a~%" fn (H5))
 	  (loop for wname in wnames
 		as wval in wvals
 		do (ipush wname wval))
@@ -791,6 +794,7 @@ current system.)
 	(let* ((gentry (pop *genstack*))
 	       (wn (gentry-wn gentry))
 	       (+- (gentry-+- gentry)))
+	  (!! :jfns "J19 popping gentry: ~s~%" fn gentry)
 	  ;; This seems redundant with the one in J18, but that one is
 	  ;; restoring the generator context, whereas this one is
 	  ;; restoring the caller context.
@@ -2020,6 +2024,6 @@ current system.)
   ;(setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
   ;(trace ipl-string-equal)
   (setf *trace-@orID-exprs*
-	'((358 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
+	'((300 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 500)
   )
