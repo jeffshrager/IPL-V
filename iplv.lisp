@@ -200,7 +200,7 @@ current system.)
 		     :link (cell-link topcell))
 	  (stack stack-name))
     ;; Now create another new cell, this time to replace the top cell. This one IS saved!
-    (let ((newmain (make-cell! :name stack-name)))
+    (let ((newmain (store (copy-cell topcell))))
       ;; And replace it with whatever it appropriate given the input type.
       (cond ((or (stringp newval) (functionp newval))
 	     (data-set newmain :symb newval))
@@ -1050,6 +1050,7 @@ current system.)
 	;; the list from (0) on. (Nothing else is copied, not even the
 	;; description list of (0), if it exists.)  The name is local if the
 	;; input (0) is local; otherwise, it is internal.
+	(poph0 1)
 	(ipush "H0" (cell-name (copy-ipl-list-and-return-head (cell arg0)))))
 
   (defj J74 (arg0) "Copy List Structure"
@@ -1259,16 +1260,22 @@ current system.)
 		    (2 (setf (aref pq 1) #\2) pq)
 		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))))
 
-  ;; ($$$ defj J137 (l) "MARK LIST (0) PROCESSED"
-  ;; 	;; List (0) is preserved, its head made empty (Q = 4, SYMB =
-  ;; 	;; 0), and P set to be 1. Restoring (0) will return (0) to its
-  ;; 	;; initial state. This will work even with data terms. The
-  ;; 	;; output (0) is the input (0).
-  ;; 	(poph0 1)
-  ;; 	(ipush "H0")
-  ;; 	(setf (H0) (make-cell (<== l))
-  ;; 	(setf (cell-pq l) "14" (cell-symb l) "0")
-  ;; 	))
+  ;; This is deeply upsetting -- it pushes a non-system element -- the
+  ;; head of a list, meaning that any named cell can be pushed and
+  ;; restored. I think that ipush and ipop will do the thing, but
+  ;; ... who knows!
+
+  (defj J137 (l) "MARK LIST (0) PROCESSED"
+	;; List (0) is preserved [ipushed], its [new] head made empty (Q =
+	;; 4, SYMB = 0), and P set to be 1. Restoring (0) will return
+	;; (0) to its initial state. This will work even with data
+	;; terms. The output (0) is the input (0).
+	(poph0 1)
+	(ipush l) ;; This will leave a copy in the main symtab.
+	(let ((newmain (cell l))) ;; This should be the NEW copy of the pushed head.
+	  ;; Now we mark the new main cell as indicated.
+	  (setf (cell-pq newmain) "14" (cell-symb newmain) "0")
+	  ))
 
   (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE." 	;; Pop????
 	;; Identical to J147, except uses Q = 4.
@@ -1780,9 +1787,14 @@ current system.)
   (H5+) ;; Init H5 +
   (setf (cell-link (cell "H3")) 0) ;; Init H3 Cycle-Counter
   (setf *W24-Line-Buffer* (Blank80)) ;; Init Read Line buffer
-  (w25-init)
+  (w25-init) ;; I/O pointer
+  (w26-init) ;; Trap action list (actually ignored, but needed for most complex code to work.)
   (setf *genstack* nil)
   )
+
+;;; Trap action list (actually ignored, but needed for most complex code to work.)
+(defun w26-init ()
+  (make-cell! :name "W26" :symb (cell-name (make-cell! :name (newsym "W26") :symb "0" :link "0"))))
 
 (defun pq-explain (cell)
   (when (and (cell? cell) (stringp (cell-pq cell)))
@@ -2035,12 +2047,12 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
-(progn ;; LT 
+`(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
-  ;(push :pq *!!list*)
-  ;(setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
-  ;(trace ipl-string-equal)
+  (push :pq *!!list*)
+  (setf *trace-cell-names* '("H0" "W0" "W1" "W25" "w30") *cell-tracing-on* t)
+  (trace copy-ipl-list-and-return-head)
   `(setf *trace-@orID-exprs*
 	'((300 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 500)
