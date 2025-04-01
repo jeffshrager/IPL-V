@@ -746,7 +746,7 @@ current system.)
 	(let* ((wn (parse-integer (subseq wn-symb 1 2))))
 	  (J4n=preserve-wn wn)
 	  (push (make-gentry :fn fn
-			     :wn wn :wnames (first-n wn *w-cells*)
+			     :wn wn :wnames (first-n (1+ wn) *w-cells*)
 			     :+- :oops-this-should-have-been-replaced!)
 		*genstack*)))
 
