@@ -191,25 +191,32 @@ current system.)
 
 (defun ipush (stack-name &optional newval)
   (!! :dr-memory "IPUSH wants to put ~s on ~a~%" (or newval "[nil: No newval]" stack-name))
-  (let* ((newcell (cell stack-name)))
-    (push (make-cell :sign (cell-sign newcell)
-		     :pq (cell-pq newcell)
-		     :symb (cell-symb newcell)
-		     :link (cell-link newcell))
+  ;; Start by creating a new cell on the stack and copy everything from
+  ;; the main cell into it. NOTE THAT THIS IS NOT SAVED!
+  (let* ((topcell (cell stack-name))) 
+    (push (make-cell :sign (cell-sign topcell)
+		     :pq (cell-pq topcell)
+		     :symb (cell-symb topcell)
+		     :link (cell-link topcell))
 	  (stack stack-name))
-    (cond ((or (stringp newval)
-	       (functionp newval))
-	   (data-set newcell :symb newval))
-	  ((cell? newval)
-	   (data-set newcell :sign (cell-sign newcell) :pq (cell-pq newcell) :symb (cell-name newval))
-	   (!! :run-full "iPushing (the name of) ~s on ~a~%" newval stack-name))
-	  ((null newval) (!! :run-full "iPushing ~a~%" stack-name))
-	  ((numberp newval)
-	   (!! :run-full "iPushing (the number) ~s on ~a~%" newval stack-name)
-	   (data-set newcell :pq "12" :link newval))
-	  (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))
-    (!! :dr-memory "IPUSH pushew new cell: ~s (WWW NOT STORED!) on ~s~%" newcell stack-name)
-    newcell))
+    ;; Now create another new cell, this time to replace the top cell. This one IS saved!
+    (let ((newmain (make-cell! :name stack-name)))
+      ;; And replace it with whatever it appropriate given the input type.
+      (cond ((or (stringp newval) (functionp newval))
+	     (data-set newmain :symb newval))
+	    ((cell? newval)
+	     ;; Here we copy everything into it (except the name).
+	     (data-set newmain :sign (cell-sign newval) :pq (cell-pq newval) :symb (cell-name newval))
+	     (!! :run-full "iPushing a copy of data from ~s on ~a~%" newval stack-name))
+	    ((null newval)
+	     ;; This is just a push, and the copy has already been made.
+	     (!! :run-full "iPushing ~a~%" stack-name))
+	    ((numberp newval)
+	     (!! :run-full "iPushing (the number) ~s on ~a~%" newval stack-name)
+	     (data-set newmain :pq "12" :link newval))
+	    (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))
+      (!! :dr-memory "IPUSH pushew new cell: ~s (WWW NOT STORED!) on ~s~%" newmain stack-name)
+      newmain)))
 
 ;;; Warning: Pop has to create a new cell in the head otherwise anyone
 ;;; holding the old value might have it destroyed. (Actually, I think
@@ -747,7 +754,16 @@ current system.)
 	  (J4n=preserve-wn wn)
 	  (push (make-gentry :fn fn
 			     :wn wn :wnames (first-n (1+ wn) *w-cells*)
-			     :+- :oops-this-should-have-been-replaced!)
+			     ;; ??? There's an open issue of what
+			     ;; happens if J19 is called before any of
+			     ;; the cycles have executed. This could
+			     ;; happen if the generating list or fn
+			     ;; has no elements at all. My theory in
+			     ;; this case is that the generator
+			     ;; actually completed, although it
+			     ;; completed running through a null list,
+			     ;; so we return a +.
+			     :+- "+")
 		*genstack*))
 	(!! :jfns "J17 *genstack* push: ~s~%" (car *genstack*)))
 
@@ -1142,7 +1158,7 @@ current system.)
 		 ;; cell.
 	      (setf cell (cell cell-name))
 	      ;; Push the arg
-	      (ipush "H0" cell)
+	      (ipush "H0" (cell-symb cell))
 	      (H5+)
 	      ;; Call the routine
 	      (!! :jfns "J100: Exec'ing ~s on ~s~%" exec-symb (h0))
@@ -1218,7 +1234,8 @@ current system.)
 	;; Tests if P = 1 (and Q != 1 or 5) in the cell whose name is
 	;; (0). It will only be 1 if list (0) has been preserved and P
 	;; = 1 put in its head by J137. This means list (0) has been
-	;; marked processed. [Does this pop H0??]
+	;; marked processed. 
+	(poph0 1)
 	(let* ((l (<== l))
 	       (pq (cell-pq l))
 	       (q (getpq :q pq))
@@ -1242,15 +1259,16 @@ current system.)
 		    (2 (setf (aref pq 1) #\2) pq)
 		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))))
 
-  (defj J137 (l) "MARK LIST (0) PROCESSED"
-	;; List (0) is preserved, its head made empty (Q = 4, SYMB =
-	;; 0), and P set to be 1. Restoring (0) will return (0) to its
-	;; initial state. This will work even with data terms. The
-	;; output (0) is the input (0).
-	(setf (H0) (<== l))
-	(ipush "H0")
-	(setf (cell-pq l) "14" (cell-symb l) "0")
-	)
+  ;; ($$$ defj J137 (l) "MARK LIST (0) PROCESSED"
+  ;; 	;; List (0) is preserved, its head made empty (Q = 4, SYMB =
+  ;; 	;; 0), and P set to be 1. Restoring (0) will return (0) to its
+  ;; 	;; initial state. This will work even with data terms. The
+  ;; 	;; output (0) is the input (0).
+  ;; 	(poph0 1)
+  ;; 	(ipush "H0")
+  ;; 	(setf (H0) (make-cell (<== l))
+  ;; 	(setf (cell-pq l) "14" (cell-symb l) "0")
+  ;; 	))
 
   (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE." 	;; Pop????
 	;; Identical to J147, except uses Q = 4.
