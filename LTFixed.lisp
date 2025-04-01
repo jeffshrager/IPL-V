@@ -2772,9 +2772,9 @@
 ("DESCRIPTION LIST OF TRAP ACTIONS." "" "X23" "" "" "0" "" "" "X023D000")
 ;;; NB I've moved 1.2 to the top just to test the tree transformer with the simplest case.
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
+*1.4    ((AVB)I(BVA))
 *1.2    ((AVA)IA)
 *1.3    (BI(AVB))
-*1.4    ((AVB)I(BVA))
 *1.5    ((AV(BVC))I(BV(AVC)))
 *1.6    ((BIC)I((AVB)I(AVC)))
 *1.01   ((PIQ).=.(-PVQ))  DEF.

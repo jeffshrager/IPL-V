@@ -190,7 +190,7 @@ current system.)
 ;;; cell name?)
 
 (defun ipush (stack-name &optional newval)
-  (!! :dr-memory "IPUSH wants to put ~s on ~a~%" (or newval "[nil: No newval]" stack-name))
+  (!! :dr-memory "IPUSH wants to put ~s on ~a~%" (or newval "[nil: No newval]") stack-name)
   ;; Start by creating a new cell on the stack and copy everything from
   ;; the main cell into it. NOTE THAT THIS IS NOT SAVED!
   (let* ((topcell (cell stack-name))) 
@@ -849,7 +849,7 @@ current system.)
   (defj J40 () "PRESERVE W0-W0" (J4n=preserve-wn 0))
   (defj J41 () "PRESERVE W0-W1" (J4n=preserve-wn 1))
   (defj J42 () "PRESERVE W0-W2" (J4n=preserve-wn 2))
-  (defj J43 () "PRESERVE W0-W3" (J4n=preserve-wn 3))
+ (defj J43 () "PRESERVE W0-W3" (J4n=preserve-wn 3))
   (defj J44 () "PRESERVE W0-W4" (J4n=preserve-wn 4))
   (defj J45 () "PRESERVE W0-W5" (J4n=preserve-wn 5))
   (defj J46 () "PRESERVE W0-W6" (J4n=preserve-wn 6))
@@ -910,25 +910,22 @@ current system.)
 	  (let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
 	    (poph0 2) 
 	    (ipush "H0" r))))
-	
 
-  (defj J63 (symbol-or-cell list-cell-or-name) "INSERT (0) BEFORE SYMBOL IN (1)"
+  (defj J63 (new-symbol list-cell-name) "INSERT (0) BEFORE SYMBOL IN (1)"
 	;; (1) is assumed to name a cell in a list. A new cell is
 	;; inserted in the list behind (1). The symbol in (1) is
 	;; moved into the new cell, and (0) is put into (1). The end
 	;; result is that (0) occurs in the list before the symbol
 	;; that was originally in cell (1).
-	(let* ((list-cell (<== list-cell-or-name))
+	(let* ((list-cell (cell list-cell-name))
 	       (new-cell-name (newsym))
 	       (list-cell-symbol (cell-symb list-cell))
-	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell)))
-	       )
-	  (if (cell? symbol-or-cell) (setf symbol-or-cell (cell-symb symbol-or-cell)))
-	  (setf (cell-symb list-cell) symbol-or-cell
+	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell))))
+	  (setf (cell-symb list-cell) new-symbol
 		(cell-link list-cell) new-cell-name))
 	(poph0 2))
 
-  (defj J64 (symbol-or-cell list-cell-or-name) "INSERT (0) AFTER SYMBOL IN (1)"
+  (defj J64 (new-symbol list-cell-name) "INSERT (0) AFTER SYMBOL IN (1)"
 	;; Identical with J63, except the symbol in (1) is left in
 	;; (1), and (0) is put into the new cell, thus occurring after
 	;; the symbol in (1). (If (1) is a private termination symbol,
@@ -936,22 +933,22 @@ current system.)
 	;; insert after.) [WWW???!!! I dunno WTF this is talking
 	;; about! And it's prob. gonna break at list ends because
 	;; ... see above!]
-	(let* ((symbol (if (cell? symbol-or-cell) (cell-symb symbol-or-cell) symbol-or-cell))
-	       (list-cell (<== list-cell-or-name))
-	       (new-cell-name (newsym))
-	       (new-cell (make-cell! :name new-cell-name
-				     :symb symbol
-				     :link (cell-link list-cell)))
-	       )
-	  (setf (cell-link list-cell) new-cell-name))
 	(poph0 2)
-	)
+	(!! :jfns "******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!~%")
+	(let* ((list-cell (cell list-cell-name)))
+	  (if (and (zero? (cell-symb list-cell)) (zero? (cell-link list-cell)))
+	      (setf (cell-symb list-cell) new-symbol)
+	      (setf (cell-link list-cell)
+		    (cell-name (make-cell! :name (newsym)
+					   :symb new-symbol
+					   :link (cell-link list-cell)))))))
 
   ;; WWW If this tries to work with numeric data there's gonna be a
   ;; problem bcs PQ will be wrong.
   (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
+	(PopH0 2)
 	(!! :jfns "J65 trying to append ~s to ~s~%" arg0 arg1)
 	(loop with list-cell = (cell arg1)
 	      with symb = arg0
@@ -960,7 +957,6 @@ current system.)
 	      (cond ((zero? (cell-link list-cell))
 		     (!! :jfns "J65 hit end, adding ~s to the list!~%" new-cell)
 		     (setf (cell-link list-cell) (cell-name new-cell))
-		     (PopH0 2)
 		     (return t)))
 	      ;; Move to next cell if nothing above returned out
 	      (setf list-cell (cell (cell-link list-cell)))))
@@ -972,6 +968,7 @@ current system.)
 	;; further. If (0) is not found, it is inserted at the end of
 	;; the list, as in J65. [Nb. This can't do anything sensible
 	;; with a branching list!]
+	(PopH0 2)
 	(let ((target arg0))
 	  (!! :jfns "J66 trying to insert ~s in ~s~%" target arg1)
 	  (loop with list-cell = (<=! arg1)
@@ -982,14 +979,11 @@ current system.)
 		       (return nil))
 		      ((zero? link)
 		       (!! :jfns "J66 hit end, adding ~s to the end of the list!~%" target)
-		       (let* ((new-name (newsym))
-			      (new-cell (make-cell! :name new-name :symb target :link "0")))
-			 (setf (cell-link list-cell) new-name))
+		       (setf (cell-link list-cell)
+			     (cell-name (make-cell! :name (newsym) :symb target :link "0")))
 		       (return t)))
 		;; Move to next cell if nothing above returned out
-		(setf list-cell (cell (cell-link list-cell)))))
-	(PopH0 2)
-	)
+		(setf list-cell (cell (cell-link list-cell))))))
  
   (defj J68 (arg0) "DELETE SYMBOL IN CELL (0)"
 	;; (0) names a cell in a list. The symbol in it is deleted by
@@ -1002,22 +996,21 @@ current system.)
 	;; cell (see discussion in § 9.4, DELETE). [This is weird! It
 	;; moves the next symbol up and then deletes the NEXT
 	;; cell....?]
+	(poph0 1)
 	(let* ((this-cell (<== arg0)) ;; was <=!
 	       (next-cell-name (cell-link this-cell)))
 	  (if (zero? next-cell-name)
 	      (progn (!! "J68 hit the end of the list.~%")
-		     (poph0 1)
 		     (H5-))
 	      ;; Here's the complex work. Ugh!
-	      (let* ((next-cell (cell next-cell-name))
-		     (next-cell-link))
+	      (let* ((next-cell (cell next-cell-name)))
 		(!! "J68 Moving symbol in ~s to ~s and deleting ~s.~%"
 		    next-cell this-cell next-cell)
 		(setf (cell-symb this-cell) (cell-symb next-cell)
-		      (cell-link this-cell) (cell-link next-cell))
-		(poph0 1)))))
+		      (cell-link this-cell) (cell-link next-cell))))))
 
   (defj J71 (arg0) "ERASE LIST (0)"
+	(declare (ignore arg0))
 	;; (0) is assumed to name a list. All cells of the list--both
 	;; head and list cells--are returned to available
 	;; space. (Noth-ing else is returned, not even the description
@@ -1025,10 +1018,10 @@ current system.)
 	;; (0) names a list cell, the cell linking to it will be
 	;; linking to available space after J71, a dangerous but not
 	;; always fatal situation.
-	(poph0 1) ;; Of course, we don't actually do anything with this.
-	)
+	(poph0 1))
 
   (defj J72 (arg0) "ERASE LIST STRUCTURE (0)"
+	(declare (ignore arg0))
 	;; (0) is assumed to name a list structure or a sublist
 	;; structure. List (0) is erased, as are all lists with local
 	;; names on list (0), and all lists with local names on them,
@@ -1039,8 +1032,7 @@ current system.)
 	;; is a noop since we use lisp GC and aren't really worried
 	;; about memory. Some day FFF this should remhash the cells in
 	;; the list from the symtab.]
-	(PopH0 1)
-	)
+	(PopH0 1))
 
   (defj J73 (arg0) "Copy list"
 	;; COPYLIST (0). The output (0) names a new list, with the identical
@@ -1256,7 +1248,7 @@ current system.)
 		      (l (length pq)))
 		  (case l
 		    (0 "02")
-		    (1 (!! :jfns "Warning: J136 assuming ~s is q-only!%") "02")
+		    (1 (!! :jfns "Warning: J136 assuming ~s is q-only!~%") "02")
 		    (2 (setf (aref pq 1) #\2) pq)
 		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))))
 
@@ -1359,7 +1351,7 @@ current system.)
 	(W25-set (+ (cell-link (cell a0)) (W25-get))))
   
   (defj J166 () "SAVE ON UNIT (O) FOR RESTART"
-	(PopH0)
+	(PopH0 0)
 	(!! :jfns "Yeah, I'm gonna pass on implementing J166 (Save for restart)!~%")
 	)
 
@@ -1615,8 +1607,9 @@ current system.)
 (defun numget (sym)
   (let* ((data-cell (cell sym))
 	 (n (cell-link data-cell)))
-    (if (< n 0) (break "Numget was asked to get a negative number ~a from  ~s (~s)." n data-cell sym))
-    (if (numberp n) n (break "Numget was asked to get a non-number ~s from ~s (~s)." n data-cell sym))))
+    (if (not (numberp n))
+	(break "Numget was asked to get a non-number ~s from ~s (~s)." n data-cell sym)
+	(if (>= n 0) n (break "Numget was asked to get a negative number ~a from  ~s (~s)." n data-cell sym)))))
 
 (defun numset (sym n)
   (let* ((data-cell (cell sym)))
@@ -1631,9 +1624,7 @@ current system.)
 
 (defun J183/4-Scanner (arg0 mode)
   (let* ((counter arg0)
-	 (w25p (W25-get))
-	 (curpos (numget counter))
-	 )
+	 (w25p (W25-get)))
     (!! :jfns "Starting in J183/4-Scanner: counter = ~s, w25p = ~a~%" counter w25p)
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
     (H5-)
@@ -1664,7 +1655,7 @@ current system.)
   (ipush "W0" (cell-symb (H0)))
   (ipop "H0")
   (loop for nn from 1 to n ;; Won't do anything if n=0
-	as wcell-name = (format nil "W~a" nn) 
+	as wcell-name in (cdr *w-cells*) ;; skip w0 (done above)
 	as val in (H0+)
 	do (ipush wcell-name (cell-symb val)))
   (PopH0 n))
@@ -1673,7 +1664,7 @@ current system.)
   (loop for nn from 0 to n do (ipop (format nil "W~a" nn))))
 
 (defun J4n=preserve-wn (n)
-  (loop for nn from 0 to n do (ipush (format nil "W~a" nn))))
+  (loop for nn from 0 to n as wname in *w-cells* do (ipush wname)))
 
 (defun J5n=preserve-wn-then-move-0-n-into-w0-wn (n)
   (J4n=preserve-wn n)
@@ -1683,19 +1674,21 @@ current system.)
 (defvar *copy-list-collector* nil)
 
 (defun copy-ipl-list-and-return-head (head)
+  (print "********************************************** COPY TRACKING: copy-ipl-list-and-return-head")
   (setf *copy-list-collector* nil)
   (copy-ipl-list (<=! head) (newsym))
   (store-cells *copy-list-collector*)
   (car (last *copy-list-collector*)))
 
 (defun copy-ipl-list (cell-or-symb/link &optional new-cell-name)
+  (print "********************************************** COPY TRACKING: copy-ipl-list")
   (cond
     ;; If you're handed a cell, create a new one
     ((cell? cell-or-symb/link)
      (let ((new-name (or new-cell-name (newsym))))
        (push (make-cell! :name new-name
-			:symb (copy-ipl-list (cell-symb cell-or-symb/link))
-			:link (copy-ipl-list (cell-link cell-or-symb/link)))
+			 :symb (copy-ipl-list (cell-symb cell-or-symb/link))
+			 :link (copy-ipl-list (cell-link cell-or-symb/link)))
 	     *copy-list-collector*)
        new-name))
     ;; If you get a zero, just return it to get pluged back in.
@@ -1705,8 +1698,8 @@ current system.)
     ((local-symbol? cell-or-symb/link)
      (let ((new-name (newsym)))
        (push (make-cell! :name new-name
-				:symb (copy-ipl-list (cell-symb cell-or-symb/link))
-				:link (copy-ipl-list (cell-link cell-or-symb/link)))
+			 :symb (copy-ipl-list (cell-symb cell-or-symb/link))
+			 :link (copy-ipl-list (cell-link cell-or-symb/link)))
 	     *copy-list-collector*)
        new-name))
     ;; If we're handed a global symbol, just return it.
@@ -1715,13 +1708,14 @@ current system.)
     (t (break "In copy-ipl-list got ~s which wasn't expected." cell-or-symb/link))))
 
 (defun copy-list-structure (l)
-  (break "COPY-LIST-STRUCTURE is probably wrong!")
+  (print "********************************************** COPY-LIST-STRUCTURE is probably wrong!")
   (if (zero? l) l ;; End of sublist, just return the EOsL "0"
       (let ((new-name (newsym)))
 	(setf (gethash new-name *symtab*) (mapcar #'copy-list-cell l))
 	new-name)))
 
 (defun copy-list-cell (cell)
+  (print "********************************************** COPY TRACKING: copy-list-cell")
   (if (zero? cell) cell ;; End of sublist, just return the EOsL "0"
       (let* ((new-cell (copy-cell cell)))
 	(setf (cell-name new-cell) (newsym))
@@ -2013,7 +2007,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :pq :jfns) *cell-tracing-on* t)
@@ -2023,7 +2017,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2048,13 +2042,15 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
-  ;(push :pq *!!list*)
+  (push :pq *!!list*)
   ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  ;(trace copy-ipl-list-and-return-head)
-  `(setf *trace-@orID-exprs*
-	'((400 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
-  (load-ipl "LTFixed.lisp" :adv-limit 100000)
+  (trace copy-ipl-list-and-return-head copy-list-structure)
+  (setf *trace-@orID-exprs*
+	'((435 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))
+	  (460 (break))
+	  ))
+  (load-ipl "LTFixed.lisp" :adv-limit 1000)
   )
