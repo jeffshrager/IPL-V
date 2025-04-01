@@ -2056,5 +2056,5 @@ current system.)
   ;(trace copy-ipl-list-and-return-head)
   `(setf *trace-@orID-exprs*
 	'((400 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
-  (load-ipl "LTFixed.lisp" :adv-limit 1000)
+  (load-ipl "LTFixed.lisp" :adv-limit 100000)
   )
