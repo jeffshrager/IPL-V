@@ -1911,6 +1911,7 @@ current system.)
 	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!~%"))
      (incf (cell-link (cell "H3")))
      (when (string-equal (cell-symb (h1)) "exit")
+       (ipop "H1") ;; Remove the exit flag
        (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^~%")
        (return))
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
@@ -2012,7 +2013,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :pq :jfns) *cell-tracing-on* t)
@@ -2022,7 +2023,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2047,13 +2048,13 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
-`(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
   ;(setf *!!list* nil)
-  (push :pq *!!list*)
-  (setf *trace-cell-names* '("H0" "W0" "W1" "W25" "w30") *cell-tracing-on* t)
-  (trace copy-ipl-list-and-return-head)
+  ;(push :pq *!!list*)
+  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  ;(trace copy-ipl-list-and-return-head)
   `(setf *trace-@orID-exprs*
-	'((300 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
-  (load-ipl "LTFixed.lisp" :adv-limit 500)
+	'((400 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
+  (load-ipl "LTFixed.lisp" :adv-limit 1000)
   )
