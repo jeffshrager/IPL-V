@@ -1100,8 +1100,8 @@ current system.)
 	  (if (zero? (cell-link cell)) (H5-))))
 
   (defj J81 (arg0) "FIND THE nth SYMBOL OF (0)"
-	(let* ((head (<== arg0))
-	       (first-cell-name (cell-symb head)))
+	(let* ((head (cell arg0))
+	       (first-cell-name (cell-link head)))
 	  (j8n-helper first-cell-name 1)))
 
   (defj J82 (arg0) "FIND THE nth SYMBOL OF (0)"
