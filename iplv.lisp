@@ -1709,20 +1709,21 @@ current system.)
 
 ;;; This only prints lists that are linked via their LINK symbols.
 
-(defun line-print-linear-list (cell)
+(defun lpll (c) (line-print-linear-list c))
+(defun line-print-linear-list (cell &optional (depth 0))
+  (if (> depth 5) (break "LINE-PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
   (setf cell (<=! cell))
   (format t "~%+------------------------- ~s -------------------------+~%" cell)
   ;; FFF Maintain depth and indent.
   (when (not (zero? (cell-symb cell)))
       (format t "| Description list:~%")
-      (line-print-linear-list (cell-symb cell)))
+      (line-print-linear-list (cell-symb cell) (1+ depth)))
   (loop do (format t "| ~s~70T|~%" cell)
 	(let ((link (cell-link cell)))
 	  (if (zero? link) (return :end-of-list))
 	  (setf cell (cell link))))
   (format t "+---------------------------------------------------------------------+~%")
   )
-(defun lpll (c) (line-print-linear-list c))
 
 (defun line-print-cell (cell)
   (setf cell (<=! cell))
@@ -1758,6 +1759,7 @@ current system.)
   (setf (cell-link (cell "H3")) 0) ;; Init H3 Cycle-Counter
   (setf *W24-Line-Buffer* (Blank80)) ;; Init Read Line buffer
   (w25-init)
+  (setf *genstack* nil)
   )
 
 (defun pq-explain (cell)
@@ -2017,11 +2019,7 @@ current system.)
   ;(push :pq *!!list*)
   ;(setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
   ;(trace ipl-string-equal)
-  '(setf *trace-@orID-exprs*
-	'((240 (lpll "A0")
-	   (push :pq *!!list*)
-	   (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
-	   )
-	  (260 (lpll "A0"))))
+  (setf *trace-@orID-exprs*
+	'((358 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 500)
   )
