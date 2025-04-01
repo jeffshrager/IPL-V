@@ -794,7 +794,7 @@ current system.)
 	(let* ((gentry (pop *genstack*))
 	       (wn (gentry-wn gentry))
 	       (+- (gentry-+- gentry)))
-	  (!! :jfns "J19 popping gentry: ~s~%" fn gentry)
+	  (!! :jfns "J19 popping gentry: ~s~%" gentry)
 	  ;; This seems redundant with the one in J18, but that one is
 	  ;; restoring the generator context, whereas this one is
 	  ;; restoring the caller context.
@@ -2023,7 +2023,7 @@ current system.)
   ;(push :pq *!!list*)
   ;(setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t)
   ;(trace ipl-string-equal)
-  (setf *trace-@orID-exprs*
+  `(setf *trace-@orID-exprs*
 	'((300 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 500)
   )
