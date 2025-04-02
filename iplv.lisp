@@ -604,12 +604,15 @@ current system.)
 ;;; output. In this case you don't want to pop bcs you'll lose the
 ;;; result.
 
+(defvar *jfn->name* (make-hash-table :test #'equal))
+(clrhash *jfn->name*) ;; In case we're reloading
+
 (defmacro defj (name args explanation &rest forms)
   `(let ((uname ,(string-upcase (format nil "~a" name))))
      (setf (gethash uname *jfn-plists*) '(explanation ,explanation))
-     (setf (gethash uname *symtab*)
-	   (lambda ,args
-	     ,@forms))))
+     (let ((fn (lambda ,args ,@forms)))
+       (setf (gethash uname *symtab*) fn)
+       (setf (gethash fn *jfn->name*) uname))))
 
 ;;; This is, alas, a bit heuristic because our strings can be
 ;;; addresses as well as simple strings. This results in a horrible
@@ -962,7 +965,9 @@ current system.)
 		     (setf (cell-link list-cell) (cell-name new-cell))
 		     (return t)))
 	      ;; Move to next cell if nothing above returned out
-	      (setf list-cell (cell (cell-link list-cell)))))
+	      (setf list-cell (cell (cell-link list-cell))))
+	)
+	
 
   (defj J66 (arg0 arg1) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" ;; USED IN F1
 	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
@@ -1754,7 +1759,8 @@ current system.)
   (cond ((> depth 10) (format t "~a[Breaking recursion @~a~%" (blanks (* (1- depth) 3)) depth))
 	((or (not (atom symb)) (null symb) (null (ignore-errors (cell symb))) (zero? symb)))
 	(t (let ((cell (cell symb)))
-	     (format t "~a(~a) ~s~%" (blanks (* depth 3)) depth cell)
+	     (format t "~a(~a) ~s~%" (blanks (* depth 3)) depth
+		     (or (gethash cell *jfn->name*) cell))
 	     (when (cell? cell)
 	       ;; Break direct recursions
 	       (unless (string-equal (cell-symb cell) symb)
@@ -2062,9 +2068,9 @@ current system.)
   (set-default-tracing)
   (setf *!!list* '(:jfns :run))
   ;(trace copy-ipl-list-and-return-head copy-list-structure)
-  '(setf *trace-@orID-exprs*
-	'((500 (setf *!!list* '(:pq :jfns :run :run-full)) (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
-	  (550 (break))
-	  ))
+  (setf *trace-@orID-exprs*
+	'(("M089R060" (setf *breaks* '("M089R060")
+		       *!!list* '(:pq :jfns :run)) (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)))
+	  )
   (load-ipl "LTFixed.lisp" :adv-limit 1500)
   )
