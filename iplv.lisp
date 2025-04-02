@@ -180,7 +180,9 @@ current system.)
   (setf (cell-sign curcell) sign
 	(cell-pq curcell) pq
 	(cell-symb curcell) symb
-	(cell-id curcell) id)
+	(cell-id curcell) id
+	(cell-link curcell) link
+	)
   (!! :dr-memory " TO: ~s~%" curcell)
   curcell)
 
@@ -286,8 +288,9 @@ current system.)
 ;;; those lines and then clearing the buffer and doing the next.
 
 (defun blank80 () (subseq (format nil "~81d" 0) 0 80))
-
-(defvar *W24-Line-Buffer* (Blank80))
+(defparameter blank80 (Blank80))
+(defun blanks (n) (subseq blank80 0 n))
+(defvar *W24-Line-Buffer* Blank80)
 
 ;;; ===================================================================
 ;;; Debugging Utils
@@ -1145,19 +1148,12 @@ current system.)
 	      with cell
 	      with exec-symb = arg0
 	      until (zero? cell-name)
-	      do ;; FFF %%% There's a mofit here that could be
-		 ;; captured in a macro, of getting the name to check
-		 ;; for zero? and then when it's not zero, getting the
-		 ;; cell.
+	      do 
 	      (setf cell (cell cell-name))
-	      ;; Push the arg
+	      ;; Setup: arg->H0 and H5=+
 	      (ipush "H0" (cell-symb cell))
 	      (H5+)
-	      ;; Call the routine
-	      (!! :jfns "J100: Exec'ing ~s on ~s~%" exec-symb (h0))
-	      ;; Unfortunately, ipl-eval needs a start cell. If we are
-	      ;; given a symbol here, we need to wrap it in a dummy
-	      ;; execution cell with an immediate pop.
+	      (!! :jfns "J100: Exec'ing ~s on ~s~%" exec-symb (cell-symb (h0)))
 	      (ipl-eval exec-symb)
 	      (setf cell-name (cell-link cell))
 	      ))
@@ -1280,14 +1276,14 @@ current system.)
   ;; input/output buffer and it's used for all input and output.
 
   (defj J151 (arg0) "Print list (0)" ;; USED IN F1
-	(line-print-linear-list arg0)
+	(line-print-linear-list (cell arg0))
 	(PopH0 1)
 	)
 
   (defj J152 (arg0) "PRINT SYMBOL (0)" ;; USED IN ACKERMAN
 	;; Pop after!!
-	(line-print-cell (cell arg0))
-	(PopH0 1))
+	(PopH0 1)
+	(line-print-cell (cell arg0)))
 
   (defj J154 () "Clear print line"
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
@@ -1658,10 +1654,12 @@ current system.)
 	as wcell-name in (cdr *w-cells*) ;; skip w0 (done above)
 	as val in (H0+)
 	do (ipush wcell-name (cell-symb val)))
+  ;; Note that we've already popped 0 above, so although this seems
+  ;; like it should be n+1, it's just n!
   (PopH0 n))
 
 (defun J3n=restore-wn (n)
-  (loop for nn from 0 to n do (ipop (format nil "W~a" nn))))
+  (loop for nn from 0 to n as wname in *w-cells* do (ipop wname)))
 
 (defun J4n=preserve-wn (n)
   (loop for nn from 0 to n as wname in *w-cells* do (ipush wname)))
@@ -1732,11 +1730,11 @@ current system.)
 
 ;;; This only prints lists that are linked via their LINK symbols.
 
-(defun lpll (c) (line-print-linear-list c))
+(defun lpll (symb) (line-print-linear-list symb))
 (defun line-print-linear-list (cell &optional (depth 0))
+  (setf cell (<== cell))
   (if (> depth 5) (break "LINE-PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
-  (setf cell (<=! cell))
-  (format t "~%+------------------------- ~s -------------------------+~%" cell)
+  (format t "~%+------------------------- ~s <~a> -------------------------+~%" cell depth)
   ;; FFF Maintain depth and indent.
   (when (not (zero? (cell-symb cell)))
       (format t "| Description list:~%")
@@ -1745,9 +1743,25 @@ current system.)
 	(let ((link (cell-link cell)))
 	  (if (zero? link) (return :end-of-list))
 	  (setf cell (cell link))))
-  (format t "+---------------------------------------------------------------------+~%")
+  (format t "+--------------------------End: ~s <~a> -------------------------------------------+~%" cell depth)
   )
 
+(defun lpl (symb)
+  (format t "~%+------------------------- ~s -------------------------+~%" (cell symb))
+  (line-print-list symb)
+  (format t "~%+-------------------------------------------------------+~%"))
+(defun line-print-list (symb &optional (depth 0))
+  (cond ((> depth 10) (format t "~a[Breaking recursion @~a~%" (blanks (* (1- depth) 3)) depth))
+	((or (not (atom symb)) (null symb) (null (ignore-errors (cell symb))) (zero? symb)))
+	(t (let ((cell (cell symb)))
+	     (format t "~a(~a) ~s~%" (blanks (* depth 3)) depth cell)
+	     (when (cell? cell)
+	       ;; Break direct recursions
+	       (unless (string-equal (cell-symb cell) symb)
+		 (line-print-list (cell-symb cell) (1+ depth)))
+	       (unless (string-equal (cell-link cell) symb)
+		 (line-print-list (cell-link cell) (1+ depth))))))))
+	     
 (defun line-print-cell (cell)
   (setf cell (<=! cell))
   (format t "~%+--------------------- ~s ---------------------+~%" cell)
@@ -1796,28 +1810,28 @@ current system.)
 
 (defparameter *pq-meanings*
   '(
-    ("" "(= 00) Execute fn named by symb name per se (*)")
-    ("  " "(= 00) Execute fn named by symb name per se (*)")
-    ("00" "(= blank) Execute fn named by symb name per se (*)")
-    ("01" "Execute fn contained in cell named by symb (*>)")
-    ("04" "(blank) Execute fn named by symb name per se (same as 00 bcs no tracing) (>)")
-    ("10" "Push the symb (name) itself on H0 (*>)")
-    ("11" "Push content of the cell named by symb, onto H0 (*>)")
-    ("12" "Push 2nd deref on H0 (*>>)")
-    ("13" "Push the symb (name) itself on H0 (same as 10 bcs no tracining) (*)")
-    ("14" "Push the symb (name) itself on H0 (same as 10 bcs no tracining) (*)")
-    ("20" "Move H0 to the named symbol (per se) and pop (restore) H0. (*)")
-    ("21" "Move H0 to the cell named by symb, and pop (restore) H0. (*>)")
-    ("30" "Pop the named stack (per se) (*)")
-    ("31" "Pop the stack of the sym in the named cell (1st ref) (*>)")
-    ("32" "Pop the stack of the 2nd derefed cell (*>>)")
+    ("" "(= 00) Execute fn named by symb name per se")
+    ("  " "(= 00) Execute fn named by symb name per se")
+    ("00" "(= blank) Execute fn named by symb name per se")
+    ("01" "Execute fn contained in cell named by symb")
+    ("04" "(blank) Execute fn named by symb name per se (same as 00 bcs no tracing)")
+    ("10" "Push the symb (name) itself on H0")
+    ("11" "Push content of the cell named by symb, onto H0")
+    ("12" "Push 2nd deref on H0")
+    ("13" "Push the symb (name) itself on H0 (same as 10 bcs no tracining)")
+    ("14" "Push the symb (name) itself on H0 (same as 10 bcs no tracining)")
+    ("20" "Move H0 to the named symbol (per se) and pop (restore) H0")
+    ("21" "Move H0 to the cell named by symb, and pop (restore) H0")
+    ("30" "Pop the named stack (per se)")
+    ("31" "Pop the stack of the sym in the named cell (1st ref)")
+    ("32" "Pop the stack of the 2nd derefed cell")
     ("40" "Push down (preserve) the named symb (per se)")
-    ("50" "Replace H0 by the named symb (per se) (*)")
-    ("51" "Replace H0 by the cell named in the H0 symb (*>)")
-    ("52" "Replace H0 2nd deref (*>>)")
-    ("60" "Set the symb name per se to H0 (or cell named by H0 if string) (*)")
-    ("64" "Set the symb name per se to H0 (or cell named by H0 if string) (Same as 60 (no tracing)) (*)")
-    ("70" "Branch to symb name (per se) if H5- (*)")
+    ("50" "Replace H0 by the named symb (per se)")
+    ("51" "Replace H0 by the cell named in the H0 symb")
+    ("52" "Replace H0 2nd deref")
+    ("60" "A copy of (0) replaces S (current S lost; (O) unaffected") ;; Was (wrongly?): Set the symb name per se to H0")
+    ("64" "A copy of (0) replaces S (current S lost; (O) unaffected (same as 60)")
+    ("70" "Branch to symb name (per se) on H5: -(symb per se)|+(link)")
     ))
 
 (defun ipl-eval (start-symb &aux s)
@@ -1887,8 +1901,10 @@ current system.)
        (2 (ipush S (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
        (3 (ipop S))                         ;; Restore (pop up) S 
        (4 (ipush S))                         ;; Preserve (push down) S
-       (5 (setf (H0) (make-cell! :name "H0" :symb S)))
-       (6 (ipop S) (ipush S (cell-symb (H0)))) ;; A copy of (0) is put in S; the current symbol in S is lost, and (O) is unaffected.
+       ;; 5: REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
+       (5 (ipop "H0") (ipush "H0" S))
+       ;; A copy of (0) is put in S; the current symbol in S is lost, and (0) is unaffected.
+       (6 (ipop S) (ipush S (cell-symb (H0)))) 
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
@@ -2042,15 +2058,13 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
-  ;(setf *!!list* nil)
-  (push :pq *!!list*)
-  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (trace copy-ipl-list-and-return-head copy-list-structure)
-  (setf *trace-@orID-exprs*
-	'((435 (push :pq *!!list*) (setf *trace-cell-names* '("H0" "W0" "W1") *cell-tracing-on* t))
-	  (460 (break))
+  (setf *!!list* '(:jfns :run))
+  ;(trace copy-ipl-list-and-return-head copy-list-structure)
+  '(setf *trace-@orID-exprs*
+	'((500 (setf *!!list* '(:pq :jfns :run :run-full)) (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  (550 (break))
 	  ))
-  (load-ipl "LTFixed.lisp" :adv-limit 1000)
+  (load-ipl "LTFixed.lisp" :adv-limit 1500)
   )
