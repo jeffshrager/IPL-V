@@ -958,7 +958,7 @@ current system.)
 	(!! :jfns "J65 trying to append ~s to ~s~%" arg0 arg1)
 	(loop with list-cell = (cell arg1)
 	      with symb = arg0
-	      with new-cell = (make-cell! :name (newsym) :symb symb)
+	      with new-cell = (make-cell! :name (newsym) :symb symb :link "0")
 	      do
 	      (cond ((zero? (cell-link list-cell))
 		     (!! :jfns "J65 hit end, adding ~s to the list!~%" new-cell)
@@ -2069,7 +2069,8 @@ current system.)
   (setf *!!list* '(:jfns :run))
   ;(trace copy-ipl-list-and-return-head copy-list-structure)
   (setf *trace-@orID-exprs*
-	'(("M089R060" (setf *breaks* '("M089R060")
+	'(;(292 (break))
+	  ("P050R000" (setf *breaks* '("M089R060")
 		       *!!list* '(:pq :jfns :run)) (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)))
 	  )
   (load-ipl "LTFixed.lisp" :adv-limit 1500)
