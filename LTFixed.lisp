@@ -2773,9 +2773,9 @@
 ;;; NB These order of these depends on what I was debugging at a given moment
 ;;; This simple version is from Stefferud p. 4
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
-*1.2    ((AVA)IA)
+*1.2    ((AVB)IC)
 
-*1.2    ((PVP)IP)
+*1.3    ((PVP)IP)
 
 &&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
 
