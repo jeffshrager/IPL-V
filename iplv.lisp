@@ -108,6 +108,14 @@ current system.)
 ;;; =========================================================================
 ;;; DEBUGGING UTILS
 
+(defmacro !! (key &rest args) 
+  `(when (or (equal *!!list* t)
+	     (equal ,key t)
+	     (member ,key *!!list*))
+     ,(if (stringp (car args))
+	  `(format t ,(car args) ,@(cdr args))
+	  `(progn ,@args))))
+
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 (defvar *cell-tracing-on* nil)
@@ -300,24 +308,6 @@ current system.)
 ;;; string and args, or a sequence of exprs that get eval'ed
 
 (defvar *report-all-system-cells?* nil)
-
-(defun !! (key &rest args) 
-  (if (stringp (car args))
-      ;; Simple style is a format string and args:
-      (let ((fmt (car args))
-	    (args (cdr args)))
-	;; WWW if the arg is actually nil, apply gets confused so we pre-fix this case.
-	(unless args (setf args '(())))
-	(when (or (equal *!!list* t)
-		  (equal key t)
-		  (member key *!!list*))
-	  (format t "!![~a]::" key)
-	  (apply #'format t fmt args)))
-      ;; Otherwise, each arg is treated as an evalable expression.
-      (loop for seg in args do (eval seg)))
-  ;; This is a separate special tracking thing when you have :run-full
-  (when (and (member key '(:run :run-full)) (member :run-full *!!list*)) ;; ?? Is this AND redundant ??
-    (report-system-cells *report-all-system-cells?*)))
 
 ;;; This also checks to make sure that there isn't crap left on the
 ;;; stacks or in the cells and breaks if ther is. 
@@ -642,7 +632,7 @@ current system.)
 	;; Before we go anywhere else, the names could be equal or the
 	;; name of one could be equal to the symbol of the other, in
 	;; either direction. This is sooooooooo horrible!
-	(!! :jfns (format t "~%~A~%" (print-letters (format nil "~a=~a" arg0 arg1) 1 1)))
+	(!! :jfns (announce "~a=~a" arg0 arg1))
 	(if (ipl-string-equal arg0 arg1) (H5+) (H5-))
 	(poph0 2)
 	;; ("p.10: "...it is understood from the definition of TEST
@@ -679,7 +669,7 @@ current system.)
 	;; by a search and test of all attributes on the description list.) 
 	(PopH0 2)
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
-	(!! :jfns (format t "~%~A~%" (print-letters (format nil "Find ~a in ~a" arg0 arg1) 1 1)))
+	(!! :jfns (announce "Find ~a in ~a" arg0 arg1))
 	(let* ((list-head (cell arg1))
 	       (dlist-name (cell-symb list-head))
 	       (target arg0))
@@ -954,6 +944,7 @@ current system.)
   ;; WWW If this tries to work with numeric data there's gonna be a
   ;; problem bcs PQ will be wrong.
   (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
+	(!! :jfns (announce "~a =+> ~a" arg0 arg1))
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
 	(PopH0 2)
@@ -1252,7 +1243,7 @@ current system.)
 		      (l (length pq)))
 		  (case l
 		    (0 "02")
-		    (1 (!! :jfns "Warning: J136 assuming ~s is q-only!~%") "02")
+		    (1 (!! :jfns "Warning: J136 assuming ~s is q-only!~%" H0) "02")
 		    (2 (setf (aref pq 1) #\2) pq)
 		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))))
 
@@ -2054,6 +2045,7 @@ current system.)
 	  ("!" . (" # " " # " " # " " " " # "))
 	  ("?" . ("###" " #" " ##" " " " # "))
 	  ("-" . (" " " " "###" " " "   "))
+	  ("+" . (" # " " # " "###" " # " " # "))
 	  ("." . (" " " " " " " " " # "))
 	  ("(" . (" # " "#  " "#  " "#  " " # "))
 	  (")" . (" # " "  #" "  #" "  #" " # "))
@@ -2163,11 +2155,11 @@ current system.)
 
 (progn ;; LT 
   (set-default-tracing)
-  (setf *!!list* '(:jfns :run))
+  (setf *!!list* '(:run))
   ;(trace copy-ipl-list-and-return-head copy-list-structure)
-  '(setf *trace-@orID-exprs*
+  (setf *trace-@orID-exprs*
 	'(;(292 (break))
-	  ("P050R000" (setf *breaks* '("M089R060")
+	  ("P052R000" (setf *breaks* '("M089R060")
 		       *!!list* '(:pq :jfns :run)) (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)))
 	  )
   (load-ipl "LTFixed.lisp" :adv-limit 1500)
