@@ -642,6 +642,7 @@ current system.)
 	;; Before we go anywhere else, the names could be equal or the
 	;; name of one could be equal to the symbol of the other, in
 	;; either direction. This is sooooooooo horrible!
+	(!! :jfns (format t "~%~A~%" (print-letters (format nil "~a=~a" arg0 arg1) 1 1)))
 	(if (ipl-string-equal arg0 arg1) (H5+) (H5-))
 	(poph0 2)
 	;; ("p.10: "...it is understood from the definition of TEST
@@ -678,6 +679,7 @@ current system.)
 	;; by a search and test of all attributes on the description list.) 
 	(PopH0 2)
 	(!! :jfns "In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
+	(!! :jfns (format t "~%~A~%" (print-letters (format nil "Find ~a in ~a" arg0 arg1) 1 1)))
 	(let* ((list-head (cell arg1))
 	       (dlist-name (cell-symb list-head))
 	       (target arg0))
@@ -1074,11 +1076,12 @@ current system.)
 	;; the last cell on the list. The output (0) names the
 	;; remainder list: a new blank head followed by the string of
 	;; list cells that occurred after cell (0).
+	(poph0 1)
 	(let* ((split-cell (<=! arg0))
 	       (new-head (make-cell! :name (newsym) :link (cell-link split-cell))))
 	  (setf (cell-link split-cell) "0")
 	  (!! :jfns "J75 splitting a list: New tail: ~s, New head (H0): ~s~%" split-cell new-head)
-	  (setf (H0) new-head)))
+	  (ipush "H0" (cell-name new-head))))
 
   (defj J76 (arg0 arg1) "INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL"
 	;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
@@ -1478,6 +1481,7 @@ current system.)
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
   (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
+  (defj J121 () "Unimplemented!" (break "J121 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
@@ -1677,14 +1681,12 @@ current system.)
 (defvar *copy-list-collector* nil)
 
 (defun copy-ipl-list-and-return-head (head)
-  (print "********************************************** COPY TRACKING: copy-ipl-list-and-return-head")
   (setf *copy-list-collector* nil)
   (copy-ipl-list (<=! head) (newsym))
   (store-cells *copy-list-collector*)
   (car (last *copy-list-collector*)))
 
 (defun copy-ipl-list (cell-or-symb/link &optional new-cell-name)
-  (print "********************************************** COPY TRACKING: copy-ipl-list")
   (cond
     ;; If you're handed a cell, create a new one
     ((cell? cell-or-symb/link)
@@ -1711,14 +1713,12 @@ current system.)
     (t (break "In copy-ipl-list got ~s which wasn't expected." cell-or-symb/link))))
 
 (defun copy-list-structure (l)
-  (print "********************************************** COPY-LIST-STRUCTURE is probably wrong!")
   (if (zero? l) l ;; End of sublist, just return the EOsL "0"
       (let ((new-name (newsym)))
 	(setf (gethash new-name *symtab*) (mapcar #'copy-list-cell l))
 	new-name)))
 
 (defun copy-list-cell (cell)
-  (print "********************************************** COPY TRACKING: copy-list-cell")
   (if (zero? cell) cell ;; End of sublist, just return the EOsL "0"
       (let* ((new-cell (copy-cell cell)))
 	(setf (cell-name new-cell) (newsym))
@@ -2010,6 +2010,103 @@ current system.)
     (report-system-cells t)))
 
 ;;; =========================================================================
+;;; Large printer
+
+(defparameter *letters*
+  (loop for (let . whomp) in 
+	'(("a" . ("###" "# #" "###" "# #" "# #"))
+	  ("b" . ("###" "# #" "###" "# #" "###"))
+	  ("c" . ("###" "#" "#" "#" "###"))
+	  ("d" . ("##" "# #" "# #" "# #" "##"))
+	  ("e" . ("###" "#" "###" "#" "###"))
+	  ("f" . ("###" "#" "###" "#" "#"))
+	  ("g" . ("###" "# #" "###" " #" "###"))
+	  ("h" . ("# #" "# #" "###" "# #" "# #"))
+	  ("i" . ("###" " #" " #" " #" "###"))
+	  ("j" . ("###" " #" " #" " #" "##"))
+	  ("k" . ("# #" "##" "#" "##" "# #"))
+	  ("l" . ("#" "#" "#" "#" "###"))
+	  ("m" . ("# #" "###" "###" "# #" "# #"))
+	  ("n" . ("###" "# #" "# #" "# #" "# #"))
+	  ("o" . ("###" "# #" "# #" "# #" "###"))
+	  ("p" . ("###" "# #" "###" "#" "#"))
+	  ("q" . ("###" "# #" "###" " #" " #"))
+	  ("r" . ("###" "# #" "##" "# #" "# #"))
+	  ("s" . ("###" "#" "###" " #" "###"))
+	  ("t" . ("###" " #" " #" " #" " #"))
+	  ("u" . ("# #" "# #" "# #" "# #" "###"))
+	  ("v" . ("# #" "# #" "# #" "# #" " #"))
+	  ("w" . ("# #" "# #" "# #" "###" "###"))
+	  ("x" . ("# #" " #" " #" " #" "# #"))
+	  ("y" . ("# #" "# #" "###" " #" "###"))
+	  ("z" . ("###" " #" " #" "#" "###"))
+	  (" " . (" "))
+	  ("1" . (" #" "##" " #" " #" "###"))
+	  ("2" . ("## " "  #" " ##" "#  " "###"))
+	  ("3" . ("###" "  #" " ##" "  #" "###"))
+	  ("4" . ("#" "#" "# #" "###" " #"))
+	  ("5" . ("###" "#" "###" "  #" "###"))
+	  ("6" . ("###" "#" "###" "# #" "###"))
+	  ("7" . ("###" "  #" " # " " # " "#  "))
+	  ("8" . ("###" "# #" "###" "# #" "###"))
+	  ("9" . ("###" "# #" "###" "  #" "  #"))
+	  ("0" . ("###" "# #" "# #" "# #" "###"))
+	  ("!" . (" # " " # " " # " " " " # "))
+	  ("?" . ("###" " #" " ##" " " " # "))
+	  ("-" . (" " " " "###" " " "   "))
+	  ("." . (" " " " " " " " " # "))
+	  ("(" . (" # " "#  " "#  " "#  " " # "))
+	  (")" . (" # " "  #" "  #" "  #" " # "))
+	  ("/" . ("  #" " # " " # " " # " "# "))
+	  ("*" . ("# #" " # " "### " " # " "# #"))
+	  (":" . (" " " # " " " " # " " "))
+	  ("=" . ("   " "   " "###" " " " "))
+	  ("'" . (" # " " # " " " " " " "))
+	  ("#" . (" # " "###" " # " "###" " # ")))
+	collect (cons let (mapcar #'(lambda (whimp) (substitute (char-upcase (aref let 0)) #\# whimp)) whomp))))
+
+(defun print-letters (text &optional (scale 1) (espace 2))
+  (let ((bigletters '()))
+    ;; Get letter patterns for each character
+    (loop for i across text
+          do (push
+	      (or (cdr (assoc (string-downcase (string i)) *letters* :test #'string=))
+		  (cdr (assoc " " *letters* :test #'string=)))
+              bigletters))
+    (setf bigletters (reverse bigletters))
+    ;; Create output lines
+    (let ((output (make-list (* 5 scale) :initial-element "")))
+      (loop for i from 0 below 5
+            do (loop for ind from 0 below (length bigletters)
+                     for j = (nth ind bigletters)
+                     do (let ((temp " "))
+                          (if (and j (< i (length j)))
+                              (setf temp (nth i j))
+                              (setf temp " "))
+                          (let ((line ""))
+                            ;; Scale horizontally
+                            (loop for z across temp
+                                  do (dotimes (s scale)
+                                       (setf line (concatenate 'string line (string z)))))
+                            ;; Add spacing
+                            (setf line (concatenate 'string line 
+                                                    (make-string (- (+ (* 3 scale) espace) (length line)) 
+                                                                 :initial-element #\Space)))
+                            ;; Append to output line
+                            (setf (nth (* i scale) output) 
+                                  (concatenate 'string (nth (* i scale) output) line))
+                            
+                            ;; Create bold effect for scaling
+                            (loop for bold from 1 below scale
+                                  do (setf (nth (+ (* i scale) bold) output)
+                                           (nth (* i scale) output)))))))
+      (format nil "~{~A~^~%~}" output))))
+
+(defun announce (fmt &rest args)
+  (format t "~%~A~%" (print-letters (apply #'format nil fmt args) 1 1)))
+
+
+;;; =========================================================================
 ;;; Test calls
 
 ;;; Reminders: rsc rsc* (lpll list-head-cell)
@@ -2029,7 +2126,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :pq :jfns) *cell-tracing-on* t)
@@ -2039,7 +2136,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2068,10 +2165,12 @@ current system.)
   (set-default-tracing)
   (setf *!!list* '(:jfns :run))
   ;(trace copy-ipl-list-and-return-head copy-list-structure)
-  (setf *trace-@orID-exprs*
+  '(setf *trace-@orID-exprs*
 	'(;(292 (break))
 	  ("P050R000" (setf *breaks* '("M089R060")
 		       *!!list* '(:pq :jfns :run)) (setf *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)))
 	  )
   (load-ipl "LTFixed.lisp" :adv-limit 1500)
   )
+
+

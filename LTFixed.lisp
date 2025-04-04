@@ -2771,7 +2771,21 @@
 ("" "" "X22" "" "" "0" "" "" "X022D000")
 ("DESCRIPTION LIST OF TRAP ACTIONS." "" "X23" "" "" "0" "" "" "X023D000")
 ;;; NB These order of these depends on what I was debugging at a given moment
+;;; This simple version is from Stefferud p. 4
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
+*1.2    ((AVA)IA)
+
+*1.2    ((PVP)IP)
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
+*1.2    ((AVA)IA)
+*1.3    (BI(AVB))
+
+*2.08   (PIP)
+
+&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+
 *1.2    ((AVA)IA)
 *1.4    ((AVB)I(BVA))
 *1.5    ((AV(BVC))I(BV(AVC)))
