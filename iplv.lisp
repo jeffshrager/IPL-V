@@ -1,5 +1,7 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+(setf *print-pretty* nil)
+
 #|
 
 WWW (from J136): "all copies of this symbol carry along the Q
@@ -79,6 +81,14 @@ current system.)
 (defmacro make-cell! (&rest args)
   `(store (make-cell ,@args)))
 
+(defmacro !! (key &rest args) 
+  `(when (or (equal *!!list* t)
+	     (equal ,key t)
+	     (member ,key *!!list*))
+     ,(if (stringp (car args))
+	  `(format t ,(car args) ,@(cdr args))
+	  `(progn ,@args))))
+
 (defun store (cell &optional (name (cell-name cell)))
   (!! :dr-memory "== Store ==> ~s [mem]~%" cell)
   (setf (gethash name *symtab*) cell)
@@ -111,14 +121,6 @@ current system.)
 ;;; =========================================================================
 ;;; DEBUGGING UTILS
 
-(defmacro !! (key &rest args) 
-  `(when (or (equal *!!list* t)
-	     (equal ,key t)
-	     (member ,key *!!list*))
-     ,(if (stringp (car args))
-	  `(format t ,(car args) ,@(cdr args))
-	  `(progn ,@args))))
-
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 (defvar *cell-tracing-on* nil)
@@ -138,6 +140,15 @@ current system.)
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! (&optional next-breaks) (setf *breaks* next-breaks) "Use :c to run free.")
+
+(defun ds () ;; dump-stack
+  (loop for key being the hash-keys of *systacks*
+	using (hash-value val)
+	do (print (list key val)))
+  (format t "~%~%") :done)
+
+;;; =========================================================================
+;;; ACCESSORS
 
 ;;; Cell dereferencing: Used when you need a cell. <=! is more
 ;;; powerful in that it can create the cell if it's not found, and is
@@ -219,7 +230,7 @@ current system.)
 	     (data-set newmain :symb newval))
 	    ((cell? newval)
 	     ;; Here we copy everything into it (except the name).
-	     (data-set newmain :sign (cell-sign newval) :pq (cell-pq newval) :symb (cell-name newval))
+	     (data-set newmain :sign (cell-sign newval) :pq (cell-pq newval) :symb (cell-name newval) :link (cell-link newval))
 	     (!! :run-full "iPushing a copy of data from ~s on ~a~%" newval stack-name))
 	    ((null newval)
 	     ;; This is just a push, and the copy has already been made.
@@ -851,7 +862,7 @@ current system.)
   (defj J40 () "PRESERVE W0-W0" (J4n=preserve-wn 0))
   (defj J41 () "PRESERVE W0-W1" (J4n=preserve-wn 1))
   (defj J42 () "PRESERVE W0-W2" (J4n=preserve-wn 2))
- (defj J43 () "PRESERVE W0-W3" (J4n=preserve-wn 3))
+  (defj J43 () "PRESERVE W0-W3" (J4n=preserve-wn 3))
   (defj J44 () "PRESERVE W0-W4" (J4n=preserve-wn 4))
   (defj J45 () "PRESERVE W0-W5" (J4n=preserve-wn 5))
   (defj J46 () "PRESERVE W0-W6" (J4n=preserve-wn 6))
@@ -919,13 +930,21 @@ current system.)
 	;; moved into the new cell, and (0) is put into (1). The end
 	;; result is that (0) occurs in the list before the symbol
 	;; that was originally in cell (1).
+	(poph0 2)
+	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!~%")
+	(!! :jdeep "             .....=========================================================~%J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
+	(!! :jdeep "             .....Here are the lists before:~%")
 	(let* ((list-cell (cell list-cell-name))
 	       (new-cell-name (newsym))
 	       (list-cell-symbol (cell-symb list-cell))
 	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell))))
 	  (setf (cell-symb list-cell) new-symbol
 		(cell-link list-cell) new-cell-name))
-	(poph0 2))
+	(!! :jdeep "             .....*********************************************************~%")
+	(!! :jdeep "             .....Here is the target list, after:~%")
+	(!! :jdeep (lpl list-cell-name))
+	(!! :jdeep "             .....=========================================================~%")
+	)
 
   (defj J64 (new-symbol list-cell-name) "INSERT (0) AFTER SYMBOL IN (1)"
 	;; Identical with J63, except the symbol in (1) is left in
@@ -968,7 +987,7 @@ current system.)
 	      with new-cell = (make-cell! :name (newsym) :symb symb :link "0")
 	      do
 	      (cond ((zero? (cell-link list-cell))
-		     (!! :jdeep "             .....J65 hit end, adding ~s to the list!~%" new-cell)
+		     (!! :jdeep "             .....J65 hit end, adding ~s to the list at ~s!~%" new-cell list-cell)
 		     (setf (cell-link list-cell) (cell-name new-cell))
 		     (return t)))
 	      ;; Move to next cell if nothing above returned out
@@ -1032,7 +1051,7 @@ current system.)
 	(declare (ignore arg0))
 	;; (0) is assumed to name a list. All cells of the list--both
 	;; head and list cells--are returned to available
-	;; space. (Noth-ing else is returned, not even the description
+	;; space. (Nothing else is returned, not even the description
 	;; list of (0), if it exists.) There is no out-put in HO. If
 	;; (0) names a list cell, the cell linking to it will be
 	;; linking to available space after J71, a dangerous but not
@@ -1900,7 +1919,7 @@ current system.)
        (0 (setf S symb) (go INTERPRET-P))
        ;; 1 Take the name the symbol is pointing to ???? THIS IS WRONG?
        (1 (setf S (cell-symb (cell symb))) (go INTERPRET-P))
-       ;; 2 Take the symbol in the cell at the name that the symb is pointing to ???? THIS IS WRONG?
+       ;; 2 Take the symbol in the cell at the name that the symb is pointing to 
        (2 (setf S (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
        (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf S symb) (go INTERPRET-P))
        (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf S symb) (go INTERPRET-P))
@@ -1909,7 +1928,8 @@ current system.)
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
        )
    INTERPRET-P 
-     (!! :run-full "-----> At INTERPRET-P w/P = ~s, S=~s~%" p S)
+     (!! :run-full "     -----> At INTERPRET-P w/P = ~s, S=~s~%" p S)
+     (!! :s "     -----> At INTERPRET-P w/P = ~s, S=~s~%" p S) ;; FFF Allow the keys to be a list
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 (ipush "H0" S))                    ;; Input S (after preserving HO) 
@@ -2172,9 +2192,54 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
+;; Jfns used by P52
+;; J0	
+;; J2	
+;; J6
+;; J30
+;; J31
+;; J41	
+;; J50
+;; J60	
+;; J63
+;; J65
+;; J72
+;; J90
+;; J136
+
+#|
+
+This is going wrong somplace around {P052R380::P52+1647|21|W0|P52+1648
+[INSERT CONNECTIVE.;]} which seems to PUSH down the cell L+2247 which,
+after the push has {L+2247|0|V0|9+2249} (and is followed by B0 @
+2249), and the top of the stack has: ({|00|0|9+2248}) and
+{9+2248||A0|0}, which all seems sort of close to correct except that
+the 2248 has to somehow find its way into the right of a list with V0,
+so that we end up with something like:
+
+{L0||0|L1}
+{L1||L2|0}
+{L2||V0|L3}
+{L3||L5|L4}
+{L4||L6|0}
+... etc.
+
+(See Sefferud p.5.)
+
+Note that these are all SEPARATE INDEPENDENT LISTS!  (No, really: See Sefferud p.5!)
+
+377
+
+|#
+
 (progn ;; LT 
   (set-default-tracing)
-  (setf *breaks* '(254))
-  (setf *trace-@orID-exprs* ())
+  (setf *trace-@orID-exprs*
+	'((360 ; "P052R000"
+	   (trace ipush)
+	   (setf
+	    *!!list* '(:s :pq :jfns :run :jdeep :jcalls :dr-memory)
+	    *trace-cell-names* '("H0" "W0" "W1" "W2")
+	    *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 1500)
   )
