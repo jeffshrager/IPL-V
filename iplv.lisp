@@ -1250,6 +1250,13 @@ current system.)
 				    :symb (cell-symb old-cell)
 				    :link (cell-link old-cell)))))))
   
+  (defj J121 (to from) "SET (O) IDENTICAL TO (1)"
+	;; The contents of the cell named (1) is places in the cell
+	;; (0). The output (0) is the input (0). [????]
+	(poph0 2)
+	(setf (cell-link (cell to)) (cell-link (cell from)))
+	(ipush "H0" to))
+
   (defj J124 (arg0) "CLEAR (0)" ;; USED IN LT
 	;; The number (0) is set to be 0. If the cell is not a data
 	;; term, it is made an integer data term=0. If a number, its
@@ -1532,7 +1539,6 @@ current system.)
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
   (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
-  (defj J121 () "Unimplemented!" (break "J121 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
@@ -1862,7 +1868,7 @@ current system.)
   (setf *running?* nil)
   (create-system-cells) ;; See above in storage section
   (H5+) ;; Init H5 +
-  (setf (cell-link (cell "H3")) 0) ;; Init H3 Cycle-Counter
+  (setf (cell-link (cell "H3")) 0 (cell-pq (cell "H3")) "01") ;; Init H3 Cycle-Counter
   (setf *W24-Line-Buffer* (Blank80)) ;; Init Read Line buffer
   (w25-init) ;; I/O pointer
   (w26-init) ;; Trap action list (actually ignored, but needed for most complex code to work.)
@@ -2203,7 +2209,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2228,70 +2234,10 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
-;; Jfns used by P52
-;; J0	
-;; J2	
-;; J6
-;; J30
-;; J31
-;; J41	
-;; J50
-;; J60	
-;; J63
-;; J65
-;; J72
-;; J90
-;; J136
-
-#|
-
-This is going wrong somplace around {P052R380::P52+1647|21|W0|P52+1648
-[INSERT CONNECTIVE.;]} which seems to PUSH down the cell L+2247 which,
-after the push has {L+2247|0|V0|9+2249} (and is followed by B0 @
-2249), and the top of the stack has: ({|00|0|9+2248}) and
-{9+2248||A0|0}, which all seems sort of close to correct except that
-the 2248 has to somehow find its way into the right of a list with V0,
-so that we end up with something like:
-
-{L0||0|L1}
-{L1||L2|0}
-{L2||V0|L3}
-{L3||L5|L4}
-{L4||L6|0}
-... etc.
-
-(See Sefferud p.5.)
-
-Note that these are all SEPARATE INDEPENDENT LISTS!  (No, really: See Sefferud p.5!)
-
-M050 Checked 2025-04-05
-M054 Checked 2025-04-05
-M089 Checked 2025-04-05
-P006 Checked 2025-04-05
-P007 Checked 2025-04-05
-P008 Checked 2025-04-05
-P015 Checked 2025-04-05
-P018 Checked 2025-04-05
-P019 Checked 2025-04-05
-P027 Checked 2025-04-05
-P029 Checked 2025-04-05
-P031 Checked 2025-04-05
-P050 Checked 2025-04-05
-P051 Checked 2025-04-05
-P052 Checked 2025-04-05
-Q005 Checked 2025-04-05
-Q007 Checked 2025-04-05
-Q014 Checked 2025-04-05
-Q015 Checked 2025-04-05
-Q019 Checked 2025-04-05
-X001 Checked 2025-04-05
-
-|#
-
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
   '(setf *!!list* nil *cell-tracing-on* nil)
-  (setf *trace-@orID-exprs*
+  '(setf *trace-@orID-exprs*
 	'((420 (push :jdeep *!!list*))))
-  (load-ipl "LTFixed.lisp" :adv-limit 1500)
+  (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
