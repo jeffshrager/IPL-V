@@ -208,10 +208,10 @@ current system.)
   (!! :dr-memory " TO: ~s~%" curcell)
   curcell)
 
-;;; WWW *** Note that these cells are NOT stored in the symbtab! (We
-;;; use "make-cell" NOT "make-cell!"; In fact, they don't have names!)
-;;; (FFF Maybe use hiearchical structs to separate the load from the
-;;; cell name?)
+;;; WWW *** Note that the stacked cells are NOT stored in the symbtab
+;;; -- only the main is! (We use "make-cell" NOT "make-cell!"; In fact,
+;;; they don't have names!)  (FFF Maybe use hiearchical structs to
+;;; separate the load from the cell name?)
 
 (defun ipush (stack-name &optional newval)
   (!! :dr-memory "IPUSH wants to put ~s on ~a~%" (or newval "[nil: No newval]") stack-name)
@@ -224,7 +224,7 @@ current system.)
 		     :link (cell-link topcell))
 	  (stack stack-name))
     ;; Now create another new cell, this time to replace the top cell. This one IS saved!
-    (let ((newmain (store (copy-cell topcell))))
+    (let ((newmain (store (copy-cell topcell)))) ;; NNN WWW This will replace the top cell in the symbtab!
       ;; And replace it with whatever it appropriate given the input type.
       (cond ((or (stringp newval) (functionp newval))
 	     (data-set newmain :symb newval))
@@ -1955,7 +1955,8 @@ current system.)
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 (ipush "H0" S))                    ;; Input S (after preserving HO) 
-       (2 (ipush S (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
+       (2 (setf (cell-symb (cell S)) (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
+       ;;(2 (ipush S (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
        (3 (ipop S))                         ;; Restore (pop up) S 
        (4 (ipush S))                         ;; Preserve (push down) S
        ;; 5: REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
@@ -2276,10 +2277,17 @@ X001 Checked 2025-04-05
 
 (progn ;; LT 
   (set-default-tracing)
-  (setf *!!list* '(:s :pq :jfns :run :jcalls)
- 	*trace-cell-names* '("H0" "W0" "W1" "W2")
-	*cell-tracing-on* t)
+  (setf *!!list* nil *cell-tracing-on* nil)
   '(setf *trace-@orID-exprs*
-	'((360 "P052R000")))
+	'((240 ;; Here A0 gets put into 2247, apparently correctly
+	   (setf *!!list* '(:s :pq :jfns :run :jcalls :jdeep)
+ 	    *trace-cell-names* '("H0" "W0" "W1" "W2")
+	    *cell-tracing-on* t))
+	  ;; In the next 37 steps, something goes wrong!
+	  (252 (lpl "L+2247") (trace ipush)) ;; Up to here we're good!  IT'S NOT COPYING THE LINK THROUGH THE PUSH!
+	  (253 (lpl "L+2247") (break)) ;; So, this smashes the A0 !!!
+	  (277 (break)) ;; By this time 2247 has lost A0! (V0 overwrote it!) -- see J65 call just above
+	  (338 (break)))
+	)
   (load-ipl "LTFixed.lisp" :adv-limit 1500)
   )
