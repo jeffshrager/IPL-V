@@ -1476,11 +1476,12 @@ current system.)
   ;; scanned-for character.) [Nb. W25 is NOT changed!]
 
   (defj J183 (arg0) "SET (0) TO NEXT BLANK"
+	;; 183/4 the term indicated by (0) is updated, so don't pop H0
 	(J183/4-Scanner arg0 :blank))
  
   (defj J184 (arg0) "SET (0) TO NEXT NON-BLANK"
-	;; J184 SET (0) TO NEXT NON-BLANK. Same as J183, except scans for any
-	;; non-blank character.
+	;; Same as J183, except scans for any non-blank character.
+	;; 183/4 the term indicated by (0) is updated, so don't pop H0
 	(J183/4-Scanner arg0 :non-blank))
 
   (defj J186 () "INPUT LINE CHARACTER"
@@ -2157,7 +2158,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :pq :jdeep :jcalls) *cell-tracing-on* t)
@@ -2167,7 +2168,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2228,18 +2229,14 @@ so that we end up with something like:
 
 Note that these are all SEPARATE INDEPENDENT LISTS!  (No, really: See Sefferud p.5!)
 
-377
-
 |#
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
-  (setf *trace-@orID-exprs*
-	'((360 ; "P052R000"
-	   (trace ipush)
-	   (setf
-	    *!!list* '(:s :pq :jfns :run :jdeep :jcalls :dr-memory)
-	    *trace-cell-names* '("H0" "W0" "W1" "W2")
-	    *cell-tracing-on* t))))
+  (setf *!!list* '(:s :pq :jfns :run :jcalls)
+ 	*trace-cell-names* '("H0" "W0" "W1" "W2")
+	*cell-tracing-on* t)
+  '(setf *trace-@orID-exprs*
+	'((360 "P052R000")))
   (load-ipl "LTFixed.lisp" :adv-limit 1500)
   )
