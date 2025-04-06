@@ -1193,6 +1193,10 @@ current system.)
 	  (!! :jdeep "            .....J90 creating blank list cell: ~s~%" cell)
 	  (ipush "H0" name)))
 
+  (defj J91 () "Create a list of 1 entry" (J9n-helper 1))
+  (defj J92 () "Create a list of 1 entry" (J9n-helper 2))
+  (defj J93 () "Create a list of 1 entry" (J9n-helper 3))
+
   (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" ;; USED IN LT
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
 	;; named (0) is performed successively with each of the symbols of list named
@@ -1379,19 +1383,19 @@ current system.)
 	;; advanced, and H5 is set + . If (0) exceeds the remaining
 	;; space, no entry is made and H5 is set - .
 	(poph0 1)
-	(!! :jdeep "             .....J157 called on ~s~%" a0)
 	(block J157A
-	  (let* ((s (cell-symb (cell (cell-symb (cell a0)))))
+	  (let* ((s (cell-symb (cell a0)))
 		 (l (length s))
 		 (p (W25-get)))
-	    (when (> (+ l p) 80) (H5-) (return-from J157A nil))
+	    (!! :jdeep "             .....J157 called on ~s, string: ~s (w25=~a)~%" a0 s p)
+	    (when (> (+ l p) 80) (H5-) (return-from J157A nil)) ;; (Sadly, J157 isn't a DEFUN'ed block)
 	    (loop for c across s
 		  as i from p by 1
 		  do (setf (aref *W24-Line-Buffer* i) c))
 	    (W25-set (+ l p))
-	    (H5+))
-	  (!! :jdeep "             .....Print buffer is now:~%~s~%" *W24-Line-Buffer*)
-	  ))
+	    (H5+)
+	    (!! :jdeep "             .....Print buffer is now:~%~s (w25=~a)~%" *W24-Line-Buffer* (+ l p))
+	    )))
 
   (defj J160 (col) "TAB TO COL (0)"
 	(poph0 1)
@@ -1524,9 +1528,6 @@ current system.)
   (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
   (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
   (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
-  (defj J91 () "Unimplemented!" (break "J91 is unimplemented!"))
-  (defj J92 () "Unimplemented!" (break "J92 is unimplemented!"))
-  (defj J93 () "Unimplemented!" (break "J93 is unimplemented!"))
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
@@ -1564,6 +1565,18 @@ current system.)
   (subseq s 0 (loop for p from (1- (length s)) downto 0
 		    until (not (find (aref s p) cs :test #'char-equal))
 		    finally (return (1+ p)))))
+
+(defun J9n-helper (n)
+  (let* ((head-name (newsym)) ;; Needed for tracing later
+	 (prev-cell (make-cell! :name head-name :pq "00" :symb "0" :link "0"))
+	 )
+    (loop for i below n
+	  as next-name = (newsym)
+	  as next-cell = (make-cell! :name next-name :pq "00" :symb "0" :link "0")
+	  do (setf (cell-link prev-cell) next-name prev-cell next-cell))
+    (ipush "H0" head-name)
+    (!! :jdeep "            .....J9n creating blank list: ~%")
+    (!! :jdeep (lpl head-name))))
 
 (defun J11-helper-add-to-dlist (dlist-head att val &key (if-aleady-exists :replace)) ;; :error :allow-multiple
   (!! :jdeep "             .....ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s~%" dlist-head att val)
@@ -2190,14 +2203,14 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-@orID-exprs* '((9 (break))))
   ;(setf *!!list* '(:run :pq :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0)
-  (load-ipl "Ackermann.iplv" :adv-limit 100000)
+  (load-ipl "Ackermann.iplv" :adv-limit 25000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
       (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
@@ -2275,19 +2288,10 @@ X001 Checked 2025-04-05
 
 |#
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
-  (setf *!!list* nil *cell-tracing-on* nil)
-  '(setf *trace-@orID-exprs*
-	'((240 ;; Here A0 gets put into 2247, apparently correctly
-	   (setf *!!list* '(:s :pq :jfns :run :jcalls :jdeep)
- 	    *trace-cell-names* '("H0" "W0" "W1" "W2")
-	    *cell-tracing-on* t))
-	  ;; In the next 37 steps, something goes wrong!
-	  (252 (lpl "L+2247") (trace ipush)) ;; Up to here we're good!  IT'S NOT COPYING THE LINK THROUGH THE PUSH!
-	  (253 (lpl "L+2247") (break)) ;; So, this smashes the A0 !!!
-	  (277 (break)) ;; By this time 2247 has lost A0! (V0 overwrote it!) -- see J65 call just above
-	  (338 (break)))
-	)
+  '(setf *!!list* nil *cell-tracing-on* nil)
+  (setf *trace-@orID-exprs*
+	'((420 (push :jdeep *!!list*))))
   (load-ipl "LTFixed.lisp" :adv-limit 1500)
   )
