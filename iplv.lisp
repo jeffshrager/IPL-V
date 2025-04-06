@@ -349,6 +349,27 @@ current system.)
 (defun illegal-value? (val) ;; Might be other conditions.
   (or (null val) (and (stringp val) (string-equal val ""))))
 
+(defun rems (target-sym) ;; report elements of memory with symbol
+  (format t "Core:~%")
+  (loop for cell-name being the hash-keys of *symtab*
+	using (hash-value cell)
+	as cell-symb = (and (cell? cell) (cell-symb cell))
+	when (and (cell? cell)
+		  (and (stringp cell-symb))
+		  (string-equal target-sym cell-symb))
+	do (format t "  ~s~%" cell))
+  (format t "Stacks:~%")
+  (loop for stack-name being the hash-keys of *systacks*
+	using (hash-value cells)
+	do (loop for cell in cells
+		 as depth from 1 by 1
+		 as cell-symb = (and (cell? cell) (cell-symb cell))
+		 when (and (cell? cell)
+			   (and (stringp cell-symb))
+			   (string-equal target-sym cell-symb))
+		 do (format t "  ~a(~a): ~s~%" stack-name depth cell))))
+
+
 ;;; ===================================================================
 ;;; Loader (loads from files converted by tsv2lisp.py)
 
@@ -1105,7 +1126,7 @@ current system.)
 	;; remainder list: a new blank head followed by the string of
 	;; list cells that occurred after cell (0).
 	(poph0 1)
-	(let* ((split-cell (<=! arg0))
+	(let* ((split-cell (<== arg0))
 	       (new-head (make-cell! :name (newsym) :link (cell-link split-cell))))
 	  (setf (cell-link split-cell) "0")
 	  (!! :jdeep "             .....J75 splitting a list: New tail: ~s, New head (H0): ~s~%" split-cell new-head)
@@ -2158,7 +2179,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :pq :jdeep :jcalls) *cell-tracing-on* t)
@@ -2168,7 +2189,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2229,9 +2250,31 @@ so that we end up with something like:
 
 Note that these are all SEPARATE INDEPENDENT LISTS!  (No, really: See Sefferud p.5!)
 
+M050 Checked 2025-04-05
+M054 Checked 2025-04-05
+M089 Checked 2025-04-05
+P006 Checked 2025-04-05
+P007 Checked 2025-04-05
+P008 Checked 2025-04-05
+P015 Checked 2025-04-05
+P018 Checked 2025-04-05
+P019 Checked 2025-04-05
+P027 Checked 2025-04-05
+P029 Checked 2025-04-05
+P031 Checked 2025-04-05
+P050 Checked 2025-04-05
+P051 Checked 2025-04-05
+P052 Checked 2025-04-05
+Q005 Checked 2025-04-05
+Q007 Checked 2025-04-05
+Q014 Checked 2025-04-05
+Q015 Checked 2025-04-05
+Q019 Checked 2025-04-05
+X001 Checked 2025-04-05
+
 |#
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
   (setf *!!list* '(:s :pq :jfns :run :jcalls)
  	*trace-cell-names* '("H0" "W0" "W1" "W2")
