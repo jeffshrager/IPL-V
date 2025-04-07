@@ -2197,7 +2197,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :pq :jdeep :jcalls) *cell-tracing-on* t)
@@ -2207,7 +2207,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2232,9 +2232,9 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
-  '(setf *!!list* nil *cell-tracing-on* nil)
+  (setf *!!list* nil *cell-tracing-on* nil)
   '(setf *trace-@orID-exprs*
 	'((760 (setf 
 		*!!list* '(:s :pq :jfns :run :jdeep :jcalls :dr-memory)
