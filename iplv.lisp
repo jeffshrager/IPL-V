@@ -1229,6 +1229,11 @@ current system.)
 	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
 	  (numset arg0 r)))
 
+  (defj J116 ([0] [1]) "TEST IF (0) < (1)"
+	(poph0 2)
+	(if (< (numget [0]) (numget [1]))
+	    (h5+) (h5-)))
+
   (defj J117 (arg0) "TEST IF (0) = 0." ;; USED IN ACKERMAN
 	(let* ((n (numget arg0)))
 	  (!! :jdeep "             .....J117: Testing if ~s (~s: ~s) = 0?~%" arg0 (<=! arg0) n)
@@ -1538,7 +1543,6 @@ current system.)
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
-  (defj J116 () "Unimplemented!" (break "J116 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
@@ -1725,16 +1729,10 @@ current system.)
   (!! :jdeep "             .....Read into *W24-Line-Buffer*: ~s~%" *W24-Line-Buffer*))
 
 (defun J2n=move-0-to-n-into-w0-wn (n)
-  ;; Handle W0 then take care of the rest later.
-  (ipush "W0" (cell-symb (H0)))
-  (ipop "H0")
-  (loop for nn from 1 to n ;; Won't do anything if n=0
-	as wcell-name in (cdr *w-cells*) ;; skip w0 (done above)
-	as val in (H0+)
-	do (ipush wcell-name (cell-symb val)))
-  ;; Note that we've already popped 0 above, so although this seems
-  ;; like it should be n+1, it's just n!
-  (PopH0 n))
+  (loop for nn from 0 to n 
+	as wcell-name in *w-cells*
+	as HCell = (let ((top (H0))) (ipop "H0") top)
+	do (ipush wcell-name (cell-symb HCell))))
 
 (defun J3n=restore-wn (n)
   (loop for nn from 0 to n as wname in *w-cells* do (ipop wname)))
@@ -2199,7 +2197,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :pq :jdeep :jcalls) *cell-tracing-on* t)
@@ -2209,7 +2207,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2234,10 +2232,13 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
   '(setf *!!list* nil *cell-tracing-on* nil)
   '(setf *trace-@orID-exprs*
-	'((420 (push :jdeep *!!list*))))
+	'((760 (setf 
+		*!!list* '(:s :pq :jfns :run :jdeep :jcalls :dr-memory)
+		*trace-cell-names* '("H0" "W0" "W1" "W2")
+		*cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
