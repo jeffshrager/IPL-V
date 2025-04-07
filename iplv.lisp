@@ -1638,7 +1638,7 @@ current system.)
 (defun j8n-helper (cell-name nth)
   ;; If we hit zero on the cell-name, we're f'ed
   (cond ((zero? cell-name) (poph0 1) (H5-))
-        ((zerop nth) (H5+) (poph0 1) (ipush "H0" cell-name))
+        ((= nth 1) (H5+) (poph0 1) (ipush "H0" cell-name)) ;; !!!!!!!!!!!!
 	(t (j8n-helper (<== cell-name) (1- nth)))))
 
 (defun j62-helper-search-list-for-symb (target incell inlink)
