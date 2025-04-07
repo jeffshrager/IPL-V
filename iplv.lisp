@@ -2234,7 +2234,7 @@ current system.)
 
 (progn ;; LT 
   (set-default-tracing)
-  (setf *!!list* nil *cell-tracing-on* nil)
+  '(setf *!!list* nil *cell-tracing-on* nil)
   '(setf *trace-@orID-exprs*
 	'((760 (setf 
 		*!!list* '(:s :pq :jfns :run :jdeep :jcalls :dr-memory)
