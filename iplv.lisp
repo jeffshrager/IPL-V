@@ -548,6 +548,13 @@ current system.)
 
 (defvar *jfn-plists* (make-hash-table :test #'equal))
 
+(defun prettify-jexps-if-any (cell)
+  (when (cell? cell)
+    (let* ((symbexp (getf (gethash (cell-symb cell) *jfn-plists*) 'explanation))
+	   (linkexp (getf (gethash (cell-link cell) *jfn-plists*) 'explanation)))
+      (if (or symbexp linkexp) (format nil "~%               [~a | ~a]" (or  symbexp "") (or linkexp ""))
+	  ""))))
+
 (defun reset! ()
   (clrhash *systacks*)
   (clrhash *symtab*) 
@@ -753,7 +760,7 @@ current system.)
 	  ;; (This is redundant if it was already there)
 	  (setf (cell-symb list-head) (cell-name dl-head))
 	  (J11-helper-add-to-dlist dl-head att val)
-	  (!! :jdeep (lpll arg2))
+	  (!! :jdeep (pll arg2))
 	  (PopH0 3)
 	  ))
 
@@ -963,7 +970,7 @@ current system.)
 		(cell-link list-cell) new-cell-name))
 	(!! :jdeep "             .....*********************************************************~%")
 	(!! :jdeep "             .....Here is the target list, after:~%")
-	(!! :jdeep (lpl list-cell-name))
+	(!! :jdeep (pl list-cell-name))
 	(!! :jdeep "             .....=========================================================~%")
 	)
 
@@ -979,7 +986,7 @@ current system.)
 	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!~%")
 	(!! :jdeep "             .....=========================================================~%J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
 	(!! :jdeep "             .....Here are the lists before:~%")
-	(!! :jdeep (lpl new-symbol) (lpl list-cell-name))
+	(!! :jdeep (pl new-symbol) (pl list-cell-name))
 	(let* ((list-cell (cell list-cell-name)))
 	  (if (and (zero? (cell-symb list-cell)) (zero? (cell-link list-cell)))
 	      (setf (cell-symb list-cell) new-symbol)
@@ -989,7 +996,7 @@ current system.)
 					   :link (cell-link list-cell))))))
 	(!! :jdeep "             .....*********************************************************~%")
 	(!! :jdeep "             .....Here is the target list, after:~%")
-	(!! :jdeep (lpl list-cell-name))
+	(!! :jdeep (pl list-cell-name))
 	(!! :jdeep "             .....=========================================================~%")
 	)
 
@@ -1002,7 +1009,7 @@ current system.)
 	(PopH0 2)
 	(!! :jdeep "             .....=========================================================~%J65 trying to append ~s to ~s~%" arg0 arg1)
 	(!! :jdeep "             .....Here are the lists before:~%")
-	(!! :jdeep (lpl arg0) (lpl arg1))
+	(!! :jdeep (pl arg0) (pl arg1))
 	(loop with list-cell = (cell arg1)
 	      with symb = arg0
 	      with new-cell = (make-cell! :name (newsym) :symb symb :link "0")
@@ -1015,7 +1022,7 @@ current system.)
 	      (setf list-cell (cell (cell-link list-cell))))
 	(!! :jdeep "             .....*********************************************************~%")
 	(!! :jdeep "             .....Here is the target list, after:~%")
-	(!! :jdeep (lpl arg1))
+	(!! :jdeep (pl arg1))
 	(!! :jdeep "             .....=========================================================~%")
 	)
 	
@@ -1159,6 +1166,8 @@ current system.)
   ;; Set H5 + if the nth symbol exists, - if not. Assume list (0) describable,
   ;; so that J81 finds symbol in first list cell, etc. J80 finds symbol in head;
   ;; and sets H5- if (0) is a termination symbol. 
+
+  ;; By way if inteference, I'm going to 
 
   (defj J80 (arg0) "FIND THE HEAD SYMBOL OF (0)"
 	(poph0 1)
@@ -1591,7 +1600,7 @@ current system.)
 	  do (setf (cell-link prev-cell) next-name prev-cell next-cell))
     (ipush "H0" head-name)
     (!! :jdeep "            .....J9n creating blank list: ~%")
-    (!! :jdeep (lpl head-name))))
+    (!! :jdeep (pl head-name))))
 
 (defun J11-helper-add-to-dlist (dlist-head att val &key (if-aleady-exists :replace)) ;; :error :allow-multiple
   (!! :jdeep "             .....ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s~%" dlist-head att val)
@@ -1808,10 +1817,10 @@ current system.)
 ;;; This only prints lists that are linked via their LINK symbols.
 
 (defun pll (symb) (print-linear-list symb))
-(defun print-linear-list (cell &key (deep? nil) &optional (depth 0))
-  (setf cell (<== cell))
+(defun print-linear-list (symb &optional (depth 0))
+  (setf cell (<== symb))
   (if (> depth 5) (break "PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
-  (format t "~%+------------------------- ~s <~a> -------------------------+~%" cell depth)
+  (format t "~%+------------------------- ~s [~a] -------------------------+~%" symb depth)
   ;; FFF Maintain depth and indent.
   (when (not (zero? (cell-symb cell)))
       (format t "| Description list:~%")
@@ -1820,10 +1829,14 @@ current system.)
 	(let ((link (cell-link cell)))
 	   (if (zero? link) (return :end-of-list))
 	   (setf cell (cell link))))
-  (format t "+--------------------------End: ~s <~a> -------------------------------------------+~%" cell depth)
+  (format t "+--------------------------End: ~s <~a> -------------------------------------------+~%" symb)
   )
 
-(defun pl (symb &key (limit 10)) (print-list symb :limit limit))
+(defun pl (symb)
+    (format t "~%+------------------------- ~s ~s -------------------------+~%" symb (cell symb))
+    (print-list symb :limit 10)
+    (format t "+--------------------------End ~s -------------------------------------------+~%" symb)
+    )
 (defun print-list (symb &key (depth 0) (limit 10))
   (cond ((> depth limit) (format t "~a[@~a...]~%" (blanks (* (1- depth) 3)) depth))
 	((or (not (atom symb)) (null symb) (null (ignore-errors (cell symb))) (zero? symb)))
@@ -1885,28 +1898,28 @@ current system.)
 
 (defparameter *pq-meanings*
   '(
-    ("" "(= 00) Execute fn named by symb name per se")
-    ("  " "(= 00) Execute fn named by symb name per se")
-    ("00" "(= blank) Execute fn named by symb name per se")
-    ("01" "Execute fn contained in cell named by symb")
-    ("04" "(blank) Execute fn named by symb name per se (same as 00 bcs no tracing)")
+    ("" "Execute fn named by symb name itself")
+    ("  " "Execute fn named by symb name itself")
+    ("00" "Execute fn named by symb name itself")
+    ("01" "Execute fn in cell named by symb")
+    ("04" "Execute fn named in symb name itself (==00)")
     ("10" "Push the symb (name) itself on H0")
-    ("11" "Push content of the cell named by symb, onto H0")
+    ("11" "Push cntnts of the cell named by symb, onto H0")
     ("12" "Push 2nd deref on H0")
-    ("13" "Push the symb (name) itself on H0 (same as 10 bcs no tracining)")
-    ("14" "Push the symb (name) itself on H0 (same as 10 bcs no tracining)")
-    ("20" "Move H0 to the named symbol (per se) and pop (restore) H0")
-    ("21" "Move H0 to the cell named by symb, and pop (restore) H0")
-    ("30" "Pop the named stack (per se)")
-    ("31" "Pop the stack of the sym in the named cell (1st ref)")
+    ("13" "Push the symb (name) itself on H0 (==10)")
+    ("14" "Push the symb (name) itself on H0 (==10)")
+    ("20" "Move H0 to the named symbol itself and pop H0")
+    ("21" "Move H0 to the cell named by symb, and pop H0")
+    ("30" "Pop the named stack itself")
+    ("31" "Pop the stack of the sym in the named cell")
     ("32" "Pop the stack of the 2nd derefed cell")
-    ("40" "Push down (preserve) the named symb (per se)")
-    ("50" "Replace H0 by the named symb (per se)")
+    ("40" "Push down (preserve) the named symb itself")
+    ("50" "Replace H0 by the named symb itself")
     ("51" "Replace H0 by the cell named in the H0 symb")
     ("52" "Replace H0 2nd deref")
-    ("60" "A copy of (0) replaces S (current S lost; (O) unaffected") ;; Was (wrongly?): Set the symb name per se to H0")
-    ("64" "A copy of (0) replaces S (current S lost; (O) unaffected (same as 60)")
-    ("70" "Branch to symb name (per se) on H5: -(symb per se)|+(link)")
+    ("60" "Copy of (0) replaces S; S lost; H0 n.c.") ;; Was (wrongly?): Set the symb name itself to H0")
+    ("64" "Copy of (0) replaces S; S lost; H0 n.c. (==60)")
+    ("70" "Goto by H5: -symb|+link itself")
     ))
 
 (defun ipl-eval (start-symb &aux s)
@@ -1944,8 +1957,8 @@ current system.)
 	 (go ADVANCE)
 	 ))
      (setq cell (cell (cell-symb (H1)))) ;; This shouldn't be needed since we're operating all in cell now.
-     (!! :run "@~a~a >>>>>>>>>> ~s~%" (cell-link (cell "H3")) (H5) cell)
-     (!! :pq "          [~a]~%" (pq-explain cell))
+     ;(!! :run "@~a~a >>>>> ~s (~a) ~a~%" (cell-link (cell "H3")) (H5) cell (pq-explain cell) (prettify-jexps-if-any cell))
+     (!! :run "@~a~a >>>>> ~s (~a)~%" (cell-link (cell "H3")) (H5) cell (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
@@ -2182,7 +2195,7 @@ current system.)
 ;;; =========================================================================
 ;;; Test calls
 
-;;; Reminders: rsc rsc* (lpll list-head-cell)
+;;; Reminders: rsc rsc* (pll list-head-cell)
 
 ;;; Basic tracing setup for "light" tracing.
 
@@ -2202,7 +2215,7 @@ current system.)
 '(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
-  ;(setf *!!list* '(:run :pq :jdeep :jcalls) *cell-tracing-on* t)
+  ;(setf *!!list* '(:run :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!list*)
   ;(trace functionp ipush ipop iset data-set)
   ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
@@ -2214,7 +2227,7 @@ current system.)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-@orID-exprs* '((9 (break))))
-  ;(setf *!!list* '(:run :pq :jdeep) *cell-tracing-on* t)
+  ;(setf *!!list* '(:run :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0)
   (load-ipl "Ackermann.iplv" :adv-limit 25000)
   (print (cell "N0"))
@@ -2238,46 +2251,26 @@ current system.)
 
 J64 is broken adding an extraneous blank cell @343:
 
-@343+ >>>>>>>>>> {P050R140::P50+1588||J64|P50+1589 [INSERT MEX UNDER OLD HEAD.;]}
-          [(= 00) Execute fn named by symb name per se]
-     -----> At INTERPRET-P w/P = 0, S="J64"
-   H0={H0|0|L+2246|0} ++ ({|0|*1|0} {|0|*1|0} {|0|9+2231|0} {|0|9+2231|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|||} :EMPTY)
-   W1={W1|0|L+2246|0} ++ ({|||} :EMPTY)
-   W2={W2|||} ++ (:EMPTY)
-   .......... Calling J64 [INSERT (0) AFTER SYMBOL IN (1)]: (NEW-SYMBOL LIST-CELL-NAME)=("L+2246" "*1")
-             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!
-             .....=========================================================
-J64 trying to append "L+2246" to "*1"
-             .....Here are the lists before:
+This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
 
-+------------------------- {L+2246|02|I0|9+2250} -------------------------+
-(0) {L+2246|02|I0|9+2250}
-   (1) {I000D000::I0||I0+1842|0 [IMPLIES;]}
-      (2) {I000D010::I0+1842||0|I0+1843}
-         (3) {I000D020::I0+1843||Q14|I0+1844}
-
-+------------------------- {*1||9+2234|0} -------------------------+
-(0) {*1||9+2234|0}
-   (1) {9+2234||0|9+2236}
-      (2) {9+2236||Q7|9+2235}
-         (3) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-            (4) "J10"
-         (3) {9+2235||9+2233|0}
-            (4) {9+2233|22|1  |}
-
-Result:
-+------------------------- {*1||9+2234|9+2253} -------------------------+
 (0) {*1||9+2234|9+2253}
-   (1) {9+2234||0|9+2236}
-      (2) {9+2236||Q7|9+2235}
-         (3) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-            (4) "J10"
-         (3) {9+2235||9+2233|0}
-            (4) {9+2233|22|1  |}
-   (1) {9+2253||L+2246|0} <<<<<<<<<<<<<<<<<<<<<<<<<< ??????????????????????????
+   (1) {9+2234||0|9+2236} ;; *1's Dlist
+   (1) {9+2253||L+2246|0} ;; This is the sceond line from p. 5: {...||9-1|0}
       (2) {L+2246|02|I0|9+2250}
-      ...
+         (3) {9+2250||L+2247|9+2251}
+            (4) {L+2247|02|V0|9+2248}
+               (5) {9+2248||A0|9+2249}
+                  (6) {9+2249||B0|0}
+            (4) {9+2251||C0|0}
+
+(0) {*2||9+2268|9+2287}
+   (1) {9+2287||L+2280|0}
+      (2) {L+2280|02|I0|9+2284}
+         (3) {9+2284||L+2281|9+2285}
+            (4) {L+2281|02|V0|9+2282}
+               (5) {9+2282||P0|9+2283}
+                  (6) {9+2283||P0|0}
+            (4) {9+2285||P0|0}
 
 No Q2:
 
@@ -2304,17 +2297,17 @@ Why is this the J2 @ 879 testing L+2280!!?
 
 (progn ;; LT 
   (set-default-tracing)
+  '(trace prettify-jexps-if-any)
   (setf *!!list* nil *cell-tracing-on* nil)
   '(setf 
-   *!!list* '(:s :pq :jfns :run :jdeep :jcalls)
+   *!!list* '(:jfns :run :jdeep :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
   (setf *trace-@orID-exprs*
-	'((340 (setf 
-		*!!list* '(:s :pq :jfns :run :jdeep :jcalls :dr-memory)
+	'(("Q002R000" (setf 
+		*!!list* '(:jfns :run :jcalls)
 		*trace-cell-names* '("H0" "W0" "W1" "W2")
 		*cell-tracing-on* t))
-	  (345 (break))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
