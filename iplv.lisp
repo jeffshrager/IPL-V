@@ -974,7 +974,7 @@ current system.)
 	;; (0) is put in cell (1), which agrees with the definition of
 	;; insert after.) [WWW???!!! I dunno WTF this is talking
 	;; about! And it's prob. gonna break at list ends because
-	;; ... see above!]
+	;; ... see above!] 
 	(poph0 2)
 	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!~%")
 	(!! :jdeep "             .....=========================================================~%J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
@@ -1168,6 +1168,11 @@ current system.)
 	  (setf (H0) r)
 	  (if (zero? (cell-link cell)) (H5-))))
 
+;;; FIND THE NTH SYMBOL ON LIST (0) Ten routines, J80-J89. Set H5+ if
+;;; the Nth symbol exists, - if not. Assume list (0) is de-scribable,
+;;; so that J81 finds symbol in first list cell, etc. J80 finds
+;;; symbol in head; and sets H5- if (0) is a termination symbol.
+
   (defj J81 (arg0) "FIND THE nth SYMBOL OF (0)"
 	(let* ((head (cell arg0))
 	       (first-cell-name (cell-link head)))
@@ -1349,14 +1354,14 @@ current system.)
   ;; input/output buffer and it's used for all input and output.
 
   (defj J151 (arg0) "Print list (0)" ;; USED IN F1
-	(line-print-linear-list (cell arg0))
+	(print-linear-list (cell arg0))
 	(PopH0 1)
 	)
 
   (defj J152 (arg0) "PRINT SYMBOL (0)" ;; USED IN ACKERMAN
 	;; Pop after!!
 	(PopH0 1)
-	(line-print-cell (cell arg0)))
+	(pretty-print-cell (cell arg0)))
 
   (defj J154 () "Clear print line"
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
@@ -1802,28 +1807,25 @@ current system.)
 
 ;;; This only prints lists that are linked via their LINK symbols.
 
-(defun lpll (symb) (line-print-linear-list symb))
-(defun line-print-linear-list (cell &optional (depth 0))
+(defun pll (symb) (print-linear-list symb))
+(defun print-linear-list (cell &key (deep? nil) &optional (depth 0))
   (setf cell (<== cell))
-  (if (> depth 5) (break "LINE-PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
+  (if (> depth 5) (break "PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
   (format t "~%+------------------------- ~s <~a> -------------------------+~%" cell depth)
   ;; FFF Maintain depth and indent.
   (when (not (zero? (cell-symb cell)))
       (format t "| Description list:~%")
-      (line-print-linear-list (cell-symb cell) (1+ depth)))
+      (print-linear-list (cell-symb cell) (1+ depth)))
   (loop do (format t "| ~s~70T|~%" cell)
 	(let ((link (cell-link cell)))
-	  (if (zero? link) (return :end-of-list))
-	  (setf cell (cell link))))
+	   (if (zero? link) (return :end-of-list))
+	   (setf cell (cell link))))
   (format t "+--------------------------End: ~s <~a> -------------------------------------------+~%" cell depth)
   )
 
-(defun lpl (symb)
-  (format t "~%+------------------------- ~s -------------------------+~%" (cell symb))
-  (line-print-list symb)
-  (format t "~%+-------------------------------------------------------+~%"))
-(defun line-print-list (symb &optional (depth 0))
-  (cond ((> depth 10) (format t "~a[Breaking recursion @~a~%" (blanks (* (1- depth) 3)) depth))
+(defun pl (symb &key (limit 10)) (print-list symb :limit limit))
+(defun print-list (symb &key (depth 0) (limit 10))
+  (cond ((> depth limit) (format t "~a[@~a...]~%" (blanks (* (1- depth) 3)) depth))
 	((or (not (atom symb)) (null symb) (null (ignore-errors (cell symb))) (zero? symb)))
 	(t (let ((cell (cell symb)))
 	     (format t "~a(~a) ~s~%" (blanks (* depth 3)) depth
@@ -1831,11 +1833,11 @@ current system.)
 	     (when (cell? cell)
 	       ;; Break direct recursions
 	       (unless (string-equal (cell-symb cell) symb)
-		 (line-print-list (cell-symb cell) (1+ depth)))
+		 (print-list (cell-symb cell) :depth (1+ depth) :limit limit))
 	       (unless (string-equal (cell-link cell) symb)
-		 (line-print-list (cell-link cell) (1+ depth))))))))
+		 (print-list (cell-link cell) :depth (1+ depth) :limit limit)))))))
 	     
-(defun line-print-cell (cell)
+(defun pretty-print-cell (cell)
   (setf cell (<=! cell))
   (format t "~%+--------------------- ~s ---------------------+~%" cell)
   (format t "| ~s~70T|~%" cell)
@@ -2232,13 +2234,87 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
+#|
+
+J64 is broken adding an extraneous blank cell @343:
+
+@343+ >>>>>>>>>> {P050R140::P50+1588||J64|P50+1589 [INSERT MEX UNDER OLD HEAD.;]}
+          [(= 00) Execute fn named by symb name per se]
+     -----> At INTERPRET-P w/P = 0, S="J64"
+   H0={H0|0|L+2246|0} ++ ({|0|*1|0} {|0|*1|0} {|0|9+2231|0} {|0|9+2231|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|||} :EMPTY)
+   W1={W1|0|L+2246|0} ++ ({|||} :EMPTY)
+   W2={W2|||} ++ (:EMPTY)
+   .......... Calling J64 [INSERT (0) AFTER SYMBOL IN (1)]: (NEW-SYMBOL LIST-CELL-NAME)=("L+2246" "*1")
+             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!
+             .....=========================================================
+J64 trying to append "L+2246" to "*1"
+             .....Here are the lists before:
+
++------------------------- {L+2246|02|I0|9+2250} -------------------------+
+(0) {L+2246|02|I0|9+2250}
+   (1) {I000D000::I0||I0+1842|0 [IMPLIES;]}
+      (2) {I000D010::I0+1842||0|I0+1843}
+         (3) {I000D020::I0+1843||Q14|I0+1844}
+
++------------------------- {*1||9+2234|0} -------------------------+
+(0) {*1||9+2234|0}
+   (1) {9+2234||0|9+2236}
+      (2) {9+2236||Q7|9+2235}
+         (3) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+            (4) "J10"
+         (3) {9+2235||9+2233|0}
+            (4) {9+2233|22|1  |}
+
+Result:
++------------------------- {*1||9+2234|9+2253} -------------------------+
+(0) {*1||9+2234|9+2253}
+   (1) {9+2234||0|9+2236}
+      (2) {9+2236||Q7|9+2235}
+         (3) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+            (4) "J10"
+         (3) {9+2235||9+2233|0}
+            (4) {9+2233|22|1  |}
+   (1) {9+2253||L+2246|0} <<<<<<<<<<<<<<<<<<<<<<<<<< ??????????????????????????
+      (2) {L+2246|02|I0|9+2250}
+      ...
+
+No Q2:
+
+@895- >>>>>>>>>> {M042R040::M42+699|11|W0|M42+700}                                                                       
+@896- >>>>>>>>>> {M042R050::M42+700||Q2|M42+701 [GET NUMBER OF LEVELS;]}                                                 
+@896- >>>>>>>>>> {Q002R000::Q2|40|H0|Q2+1683 [Q2 FIND NO. OF LEVELS OF TEX (0).;]}                                       
+@897- >>>>>>>>>> {Q002R010::Q2+1683|10|Q2|Q2+1684 [H5- MEANS DEFECTIVE EXPRESSION.;]}                                    
+@898- >>>>>>>>>> {Q002R020::Q2+1684||J10|Q2+1685 [FIND VALUE ON DESCRIPTION LIST.;]}                                     
+   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: (ARG0 ARG1)=("Q2" "*2")
+@875+ >>>>>>>>>> {M043R020::M43+731||J81|M43+732 [FIND MEX.;]}
+   .......... Calling J81 [FIND THE nth SYMBOL OF (0)]: (ARG0)=("*2")
+@876+ >>>>>>>>>> {M043R030::M43+732|70|J33|M43+733}
+
+Why is this the J2 @ 879 testing L+2280!!?
+
+@877+ >>>>>>>>>> {M043R040::M43+733||P4|M43+734 [GO THRU 'NOTS';]}
+@877+ >>>>>>>>>> {P004R000::P4|12|H0|P4+1409 [P4 GC THRU NOTS OF SEGMENT (0),;]}
+@878+ >>>>>>>>>> {P004R010::P4+1409|11|K2|P4+1410 [LEAVE 1ST UNNOTTED SEGMENT.;]}
+@879+ >>>>>>>>>> {P004R020::P4+1410||J2|P4+1411 [H5- VEANS NO OUTPUT.;]}
+   .......... Calling J2 [TEST (0) == (1)?]: (ARG0 ARG1)=("-0" "L+2280")
+@880- >>>>>>>>>> {P004R030::P4+1411|70|J4|P4+1412 [QUIT, H5+ MEANS NORMAL EXIT.;]}
+
+|#
+
 (progn ;; LT 
   (set-default-tracing)
-  '(setf *!!list* nil *cell-tracing-on* nil)
-  '(setf *trace-@orID-exprs*
-	'((760 (setf 
+  (setf *!!list* nil *cell-tracing-on* nil)
+  '(setf 
+   *!!list* '(:s :pq :jfns :run :jdeep :jcalls)
+   *trace-cell-names* '("H0" "W0" "W1" "W2")
+   *cell-tracing-on* t)
+  (setf *trace-@orID-exprs*
+	'((340 (setf 
 		*!!list* '(:s :pq :jfns :run :jdeep :jcalls :dr-memory)
 		*trace-cell-names* '("H0" "W0" "W1" "W2")
-		*cell-tracing-on* t))))
+		*cell-tracing-on* t))
+	  (345 (break))
+	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )

@@ -1584,7 +1584,7 @@
 ("" "" "" "" "10" "Q4" "J14" "" "P003R060")
 ("" "1" "" "" "" "" "" "" "    R")
 ("P4 GC THRU NOTS OF SEGMENT (0)," "" "P4" "" "12" "H0" "" "" "P004R000")
-("LEAVE 1ST UNNOTTED SEGMENT." "" "" "" "11" "Q2" "" "" "P004R010")
+("LEAVE 1ST UNNOTTED SEGMENT." "" "" "" "11" "K2" "" "" "P004R010")
 ("H5- VEANS NO OUTPUT." "" "" "" "" "J2" "" "" "P004R020")
 ("QUIT, H5+ MEANS NORMAL EXIT." "" "" "" "70" "J4" "" "" "P004R030")
 ("FIND SUBSEGMENT OF NOT." "" "" "" "" "J81" "" "" "P004R040")
