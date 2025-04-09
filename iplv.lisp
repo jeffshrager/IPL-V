@@ -668,6 +668,10 @@ current system.)
 
 (defun setup-j-fns ()
 
+  ;; THERE'S A TIMING PROBLEM WITH POPPING THE H0 STACK BEFORE CALLING
+  ;; THE FUNCTION, WHICH IS THAT IF "H0" IS THE ARG, POPPING BEFORE THE
+  ;; ACTION WILL GIVE YOU THE WRONG RESULT!!
+
   (defj J0 () "No operation")
 
   (defj J1 (arg0) "EXECUTE (0)"
@@ -675,7 +679,7 @@ current system.)
     ;;; positions the process's inputs correctly), and the process is
     ;;; executed as if its name occurred in the instruction in- stead
     ;;; of J1.
-    (poph0 1)
+    (poph0 1) ;; WWW If H0 is the arg this is going to be wrong!
     (ipl-eval arg0))
 
   (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; The identity test
@@ -720,7 +724,7 @@ current system.)
 	;; as (0) and H5 set + ; if not found, or if the description list
 	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
 	;; by a search and test of all attributes on the description list.) 
-	(PopH0 2)
+	(PopH0 2) ;; WWW H0 POP!
 	(!! :jdeep "             .....In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
 	(!! :jdeep (announce "Find ~a in ~a" arg0 arg1))
 	(let* ((list-head (cell arg1))
@@ -1187,15 +1191,12 @@ current system.)
   ;; so that J81 finds symbol in first list cell, etc. J80 finds symbol in head;
   ;; and sets H5- if (0) is a termination symbol. 
 
-  ;; By way if inteference, I'm going to 
-
   (defj J80 (arg0) "FIND THE HEAD SYMBOL OF (0)"
-	(poph0 1)
-	(H5+)
-	(let* ((cell (<== arg0))
-	       (r (cell-symb cell)))
-	  (setf (H0) r)
-	  (if (zero? (cell-link cell)) (H5-))))
+	(h5+)
+	(if (zero? arg0)
+	    (H5-)
+	    (ipush "H0" (cell-symb (cell arg0))))
+	(poph0 1))
 
 ;;; FIND THE NTH SYMBOL ON LIST (0) Ten routines, J80-J89. Set H5+ if
 ;;; the Nth symbol exists, - if not. Assume list (0) is de-scribable,
@@ -1203,12 +1204,12 @@ current system.)
 ;;; symbol in head; and sets H5- if (0) is a termination symbol.
 
   (defj J81 (arg0) "FIND THE 1st (non-head) SYMBOL OF (0)"
-	(poph0 1)
-	(j8n-helper (cell-link (cell arg0)) 1))
+	(j8n-helper (cell-link (cell arg0)) 1)
+	(poph0 1))
 
   (defj J82 (arg0) "FIND THE 2nd (non-head0 SYMBOL OF (0)"
-	(poph0 1)
-	(j8n-helper (cell-link (cell arg0)) 2))
+	(j8n-helper (cell-link (cell arg0)) 2)
+	(poph0 1))
 	      
   ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0
   ;; < n < 9. The order is (n-1) first, (n-2) second, ..., (0)
@@ -1939,6 +1940,11 @@ current system.)
     ("70" "Goto by H5: -symb|+link itself")
     ))
 
+(defun check-arglist-for-red-flags*** (args)
+  (if (member "H0" args :test #'string-equal)
+      (format t "WARNING: @~a H0 is passed as a per se argument: ~s! WATCH OUT FOR H0 POP RACE!~%" (h3-cycles) args))
+  args)
+
 (defun ipl-eval (start-symb &aux s)
   (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s~%" start-symb)
   (prog (cell pq q p symb link)
@@ -1958,10 +1964,11 @@ current system.)
        (when fn 
 	 (let* ((arglist (second (function-lambda-expression fn)))
 		(args (if (null arglist) ()
-			  (cons (cell-symb (H0))
-				(loop for arg in (cdr arglist)
-				      as val in (h0+)
-				      collect (cell-symb val))))))
+			  (check-arglist-for-red-flags***
+			   (cons (cell-symb (H0))
+				 (loop for arg in (cdr arglist)
+				       as val in (h0+)
+				       collect (cell-symb val)))))))
 	   (when *fname-hint* 
 	     (!! :jcalls (format t (if arglist "   .......... Calling ~a [~a]: ~s=~s~%"
 				    "   .......... Calling ~a [~a] (No Args)~*~*~%")
@@ -2003,9 +2010,8 @@ current system.)
      (!! :s "     -----> At INTERPRET-P w/P = ~s, S=~s~%" p S) ;; FFF Allow the keys to be a list
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
-       (1 (ipush "H0" S))                    ;; Input S (after preserving HO) 
-       (2 (setf (cell-symb (cell S)) (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
-       ;;(2 (ipush S (cell-symb (H0))) (ipop "H0")) ;; Output to S (then restore HO) !!!!!!!!!
+       (1 (ipush "H0" S))                    ;; Input S (after preserving HO)
+       (2 (setf (cell-symb (cell S)) (cell-symb (H0))) (ipop "H0")) ;; 2=Output to S (then restore HO)
        (3 (ipop S))                         ;; Restore (pop up) S 
        (4 (ipush S))                         ;; Preserve (push down) S
        ;; 5: REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
@@ -2229,7 +2235,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :jdeep :jcalls) *cell-tracing-on* t)
@@ -2239,7 +2245,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2290,7 +2296,21 @@ This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
                   (6) {9+2283||P0|0}
             (4) {9+2285||P0|0}
 
+@477 How come W1 doesn't get set to L+2247????
+
+@477+ >>>>> {M054R080::M54+796|20|W1|M54+797 [                  TO MAP (0).;1W1=MAP]} (Move H0 to the named symbol itself and pop H0)
+   H0={H0|0|L+2247|0} ++ ({|0|L+2258|0} {|0|W1|0} {|0|9+2231|0} {|0|9+2231|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
+   W1={W1||0|} ++ ({||L4|} {|||} :EMPTY)
+   W2={W2|0|L+2246|0} ++ ({|0|L+2246|0} {|||} :EMPTY)
+@478+ >>>>> {M054R090::M54+797|60|W2|M54+798 [;1W2=SEGMNT]} (Copy of (0) replaces S; S lost; H0 n.c.)
+   H0={H0|0|L+2247|0} ++ ({|0|L+2258|0} {|0|W1|0} {|0|9+2231|0} {|0|9+2231|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
+   W1={W1||0|} ++ ({||L4|} {|||} :EMPTY)
+   W2={W2|0|L+2247|0} ++ ({|0|L+2246|0} {|||} :EMPTY)
+
 Q2 is failing for unknown reasons.
+
 
 J100 -- "9+2287" isn't a list, it's an element of the list. Why is 2287 being passed here instead of the list head, which is... "*2"
 Should be 2280, I think.
@@ -2333,13 +2353,12 @@ Why is this the J2 @ 879 testing L+2280!!?
   (set-default-tracing)
   '(trace j8n-helper)
   '(setf *!!list* nil *cell-tracing-on* nil)
-  (setf 
+  '(setf 
    *!!list* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
   '(setf *trace-@orID-exprs*
-	'((509 (break))
-	  (?? (setf *!!list* '(:jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
-	  ))
+	'((470 (setf *!!list* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  (480 (break))))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
