@@ -668,6 +668,14 @@ current system.)
 
   (defj J0 () "No operation")
 
+  (defj J1 (arg0) "EXECUTE (0)"
+    ;;; The process, (0), is removed from H0, H0 is restored (this
+    ;;; positions the process's inputs correctly), and the process is
+    ;;; executed as if its name occurred in the instruction in- stead
+    ;;; of J1.
+    (poph0 1)
+    (ipl-eval arg0))
+
   (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; The identity test
 	;; is on the SYMBpart only; P and Q are ignored. [Also, in the
 	;; case of alphabetics, trailing blanks or zeros are ignored.]
@@ -1162,6 +1170,13 @@ current system.)
 		   (setf (cell-link last-cell-in-l0) c1link)
 		   (ipush "H0" last-cell-in-l0)))))
 
+  (defj J79 (arg0) "TEST IF CELL (0) IS NOTEMPTY"
+	;; H5 is set - if SYMB of (0) is 0, and set + otherwise. (Q of
+	;; (0) is ignored; thus, both cells holding internal zero and
+	;; termination cells give H5-).
+	(poph0 1)
+	(if (zero? (cell-symb (cell arg0))) (H5-) (H5+)))
+
   ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <== n <== 9. (Ten routines: J80-J89)
   ;; Set H5 + if the nth symbol exists, - if not. Assume list (0) describable,
   ;; so that J81 finds symbol in first list cell, etc. J80 finds symbol in head;
@@ -1182,15 +1197,13 @@ current system.)
 ;;; so that J81 finds symbol in first list cell, etc. J80 finds
 ;;; symbol in head; and sets H5- if (0) is a termination symbol.
 
-  (defj J81 (arg0) "FIND THE nth SYMBOL OF (0)"
-	(let* ((head (cell arg0))
-	       (first-cell-name (cell-link head)))
-	  (j8n-helper first-cell-name 1)))
+  (defj J81 (arg0) "FIND THE 1st (non-head) SYMBOL OF (0)"
+	(poph0 1)
+	(j8n-helper (cell-link (cell arg0)) 1))
 
-  (defj J82 (arg0) "FIND THE nth SYMBOL OF (0)"
-	(let* ((head (<== arg0))
-	       (first-cell-name (cell-symb head)))
-	  (j8n-helper first-cell-name 2)))
+  (defj J82 (arg0) "FIND THE 2nd (non-head0 SYMBOL OF (0)"
+	(poph0 1)
+	(j8n-helper (cell-link (cell arg0)) 2))
 	      
   ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0
   ;; < n < 9. The order is (n-1) first, (n-2) second, ..., (0)
@@ -1224,6 +1237,7 @@ current system.)
 	      with exec-symb = arg0
 	      until (zero? cell-name)
 	      do 
+	      (!! :jdeep "             .....J100: cell-name=~s, cell=~s~%" cell-name cell)
 	      (setf cell (cell cell-name))
 	      ;; Setup: arg->H0 and H5=+
 	      (ipush "H0" (cell-symb cell))
@@ -1231,6 +1245,7 @@ current system.)
 	      (!! :jdeep "             .....J100: Exec'ing ~s on ~s~%" exec-symb (cell-symb (h0)))
 	      (ipl-eval exec-symb)
 	      (setf cell-name (cell-link cell))
+	      (!! :jdeep "             .....J100 returned, H5=~s, next cell-name=~s~%" (H5) cell-name)
 	      ))
 
   (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
@@ -1551,9 +1566,7 @@ current system.)
 		(ipush "H0" (format nil (if (numchar? c) "~c" "~c0") c))
 		(H5+)))))
 
-  (defj J1 () "Unimplemented!" (break "J1 is unimplemented!"))
   (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
-  (defj J79 () "Unimplemented!" (break "J79 is unimplemented!"))
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
   (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
   (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
@@ -1650,10 +1663,9 @@ current system.)
 ;;; Assumes a linear list.
 
 (defun j8n-helper (cell-name nth)
-  ;; If we hit zero on the cell-name, we're f'ed
-  (cond ((zero? cell-name) (poph0 1) (H5-))
-        ((= nth 1) (H5+) (poph0 1) (ipush "H0" cell-name)) ;; !!!!!!!!!!!!
-	(t (j8n-helper (<== cell-name) (1- nth)))))
+  (cond ((zero? cell-name) (H5-))
+        ((= nth 1) (H5+) (ipush "H0" (cell-symb (cell cell-name))))
+	(t (j8n-helper (cell-link (cell cell-name)) (1- nth)))))
 
 (defun j62-helper-search-list-for-symb (target incell inlink)
   (cond ((zero? inlink)
@@ -1818,19 +1830,19 @@ current system.)
 
 (defun pll (symb) (print-linear-list symb))
 (defun print-linear-list (symb &optional (depth 0))
-  (setf cell (<== symb))
-  (if (> depth 5) (break "PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
-  (format t "~%+------------------------- ~s [~a] -------------------------+~%" symb depth)
-  ;; FFF Maintain depth and indent.
-  (when (not (zero? (cell-symb cell)))
+  (let ((cell (<== symb)))
+    (if (> depth 5) (break "PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
+    (format t "~%+------------------------- ~s [~a] -------------------------+~%" symb depth)
+    ;; FFF Maintain depth and indent.
+    (when (not (zero? (cell-symb cell)))
       (format t "| Description list:~%")
       (print-linear-list (cell-symb cell) (1+ depth)))
-  (loop do (format t "| ~s~70T|~%" cell)
-	(let ((link (cell-link cell)))
-	   (if (zero? link) (return :end-of-list))
-	   (setf cell (cell link))))
-  (format t "+--------------------------End: ~s <~a> -------------------------------------------+~%" symb)
-  )
+    (loop do (format t "| ~s~70T|~%" cell)
+	  (let ((link (cell-link cell)))
+	    (if (zero? link) (return :end-of-list))
+	    (setf cell (cell link))))
+    (format t "+--------------------------End: ~a -------------------------------------------+~%" symb)
+    ))
 
 (defun pl (symb)
     (format t "~%+------------------------- ~s ~s -------------------------+~%" symb (cell symb))
@@ -2254,7 +2266,7 @@ J64 is broken adding an extraneous blank cell @343:
 This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
 
 (0) {*1||9+2234|9+2253}
-   (1) {9+2234||0|9+2236} ;; *1's Dlist
+   ...(1) {9+2234||0|9+2236} ;; *1's Dlist...
    (1) {9+2253||L+2246|0} ;; This is the sceond line from p. 5: {...||9-1|0}
       (2) {L+2246|02|I0|9+2250}
          (3) {9+2250||L+2247|9+2251}
@@ -2264,6 +2276,7 @@ This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
             (4) {9+2251||C0|0}
 
 (0) {*2||9+2268|9+2287}
+   (1) ...(*2's Dlist)...
    (1) {9+2287||L+2280|0}
       (2) {L+2280|02|I0|9+2284}
          (3) {9+2284||L+2281|9+2285}
@@ -2272,7 +2285,23 @@ This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
                   (6) {9+2283||P0|0}
             (4) {9+2285||P0|0}
 
-No Q2:
+Q2 is failing for unknown reasons.
+
+J100 -- "9+2287" isn't a list, it's an element of the list. Why is 2287 being passed here instead of the list head, which is... "*2"
+Should be 2280, I think.
+
+@917- >>>>> {Q002R340::Q2+1711||J100|Q2-9-101 [THEN QUIT + OR-.;]} (Execute fn named by symb name itself)
+   H0={H0|0|Q2-9-100|0} ++ ({|0|9+2287|0} {|0|L11|0} {|0|9+2265|0} {|0|9+2265|0})
+   W0={W0|0|9+2295|0} ++ ({|0|9+2294|0} {|0|9+2294|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|9+2293|0} ++ ({|0|9+2287|0} {|0|9+2287|0} {|0|9+2287|0} {|||})
+   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
+   .......... Calling J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]: (ARG0 ARG1)=("Q2-9-100" "9+2287")
+             .....J100 GENERATE SYMBOLS FROM LIST "9+2287" FOR SUBPROCESS "Q2-9-100"
+   H0={H0|0|L11|0} ++ ({|0|9+2265|0} {|0|9+2265|0} {|0|9+2265|0} {|0|9+2265|0})
+   W0={W0|0|9+2295|0} ++ ({|0|9+2294|0} {|0|9+2294|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|9+2293|0} ++ ({|0|9+2287|0} {|0|9+2287|0} {|0|9+2287|0} {|||})
+   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
+
 
 @895- >>>>>>>>>> {M042R040::M42+699|11|W0|M42+700}                                                                       
 @896- >>>>>>>>>> {M042R050::M42+700||Q2|M42+701 [GET NUMBER OF LEVELS;]}                                                 
@@ -2297,15 +2326,16 @@ Why is this the J2 @ 879 testing L+2280!!?
 
 (progn ;; LT 
   (set-default-tracing)
-  '(trace prettify-jexps-if-any)
-  (setf *!!list* nil *cell-tracing-on* nil)
-  '(setf 
-   *!!list* '(:jfns :run :jdeep :jcalls)
+  '(trace j8n-helper)
+  '(setf *!!list* nil *cell-tracing-on* nil)
+  (setf 
+   *!!list* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  (setf *trace-@orID-exprs*
-	'(("Q002R000" (setf 
-		*!!list* '(:jfns :run :jcalls)
+  '(setf *trace-@orID-exprs*
+	'((890 ;; "Q002R000"
+	   (setf 
+		*!!list* '(:jfns :run :jcalls :jdeep)
 		*trace-cell-names* '("H0" "W0" "W1" "W2")
 		*cell-tracing-on* t))
 	  ))
