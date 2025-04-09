@@ -270,6 +270,8 @@ current system.)
 (defmacro H5+ () `(setf (H5) "+"))
 (defmacro H5- () `(setf (H5) "-"))
 
+(defmacro H3-cycles () `(cell-link (cell "H3")))
+
 ;;; This can trace strings, or any element (name/symb/link) of a cell
 ;;; incl. stackables.
 
@@ -288,7 +290,7 @@ current system.)
 ;;;      ))
 
 (defun trace-cells ()
-  (let* ((cycle (cell-link (cell "H3")))
+  (let* ((cycle (h3-cycles))
 	 (id (cell-id *trace-instruction*)))
     (mapcar #'eval
 	    (loop for (key . exprs) in *trace-@orID-exprs*
@@ -1173,9 +1175,12 @@ current system.)
   (defj J79 (arg0) "TEST IF CELL (0) IS NOTEMPTY"
 	;; H5 is set - if SYMB of (0) is 0, and set + otherwise. (Q of
 	;; (0) is ignored; thus, both cells holding internal zero and
-	;; termination cells give H5-).
+	;; termination cells give H5-). [??? It looks like this should
+	;; be getting the name of a cell, but in the one call that
+	;; it's used in LT - M054R130 - H0={...|0|0|0}, so ...hmmmm?]
 	(poph0 1)
-	(if (zero? (cell-symb (cell arg0))) (H5-) (H5+)))
+	(if (zero? arg0) (format t "WARNING: @~a J79 IS PROBABLY GETTING BAD INPUT: ~s~%" (h3-cycles) arg0))
+	(if (or (zero? arg0) (zero? (cell-symb (cell arg0)))) (H5-) (H5+)))
 
   ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <== n <== 9. (Ten routines: J80-J89)
   ;; Set H5 + if the nth symbol exists, - if not. Assume list (0) describable,
@@ -1221,8 +1226,8 @@ current system.)
 	  (ipush "H0" name)))
 
   (defj J91 () "Create a list of 1 entry" (J9n-helper 1))
-  (defj J92 () "Create a list of 1 entry" (J9n-helper 2))
-  (defj J93 () "Create a list of 1 entry" (J9n-helper 3))
+  (defj J92 () "Create a list of 2 entries" (J9n-helper 2))
+  (defj J93 () "Create a list of 3 entries" (J9n-helper 3))
 
   (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" ;; USED IN LT
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
@@ -1893,7 +1898,7 @@ current system.)
   (setf *running?* nil)
   (create-system-cells) ;; See above in storage section
   (H5+) ;; Init H5 +
-  (setf (cell-link (cell "H3")) 0 (cell-pq (cell "H3")) "01") ;; Init H3 Cycle-Counter
+  (setf (H3-cycles) 0 (cell-pq (cell "H3")) "01") ;; Init H3 Cycle-Counter
   (setf *W24-Line-Buffer* (Blank80)) ;; Init Read Line buffer
   (w25-init) ;; I/O pointer
   (w26-init) ;; Trap action list (actually ignored, but needed for most complex code to work.)
@@ -1969,8 +1974,8 @@ current system.)
 	 (go ADVANCE)
 	 ))
      (setq cell (cell (cell-symb (H1)))) ;; This shouldn't be needed since we're operating all in cell now.
-     ;(!! :run "@~a~a >>>>> ~s (~a) ~a~%" (cell-link (cell "H3")) (H5) cell (pq-explain cell) (prettify-jexps-if-any cell))
-     (!! :run "@~a~a >>>>> ~s (~a)~%" (cell-link (cell "H3")) (H5) cell (pq-explain cell))
+     ;(!! :run "@~a~a >>>>> ~s (~a) ~a~%" (H3-cycles) (H5) cell (pq-explain cell) (prettify-jexps-if-any cell))
+     (!! :run "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf pq (cell-pq cell)
@@ -2021,7 +2026,7 @@ current system.)
      (trace-cells)
      (if (and *adv-limit* (zerop (decf *adv-limit*)))
 	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!~%"))
-     (incf (cell-link (cell "H3")))
+     (incf (H3-cycles))
      (when (string-equal (cell-symb (h1)) "exit")
        (ipop "H1") ;; Remove the exit flag
        (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^~%")
@@ -2100,7 +2105,7 @@ current system.)
 (defun maybe-break? (s)
   (when (or (equal t *breaks*)
 	    (member t *breaks*)
-	    (member (cell-link (cell "H3")) *breaks* :test #'equal)
+	    (member (H3-cycles) *breaks* :test #'equal)
 	    (member s *breaks* :test #'equal))
     (break "************************** Break called by user at ~s (BEFORE execution!)~%[Switching to STEP! mode -- use :C to step or (free!)+:C to run free." s)
     (step!)
@@ -2333,11 +2338,8 @@ Why is this the J2 @ 879 testing L+2280!!?
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
   '(setf *trace-@orID-exprs*
-	'((890 ;; "Q002R000"
-	   (setf 
-		*!!list* '(:jfns :run :jcalls :jdeep)
-		*trace-cell-names* '("H0" "W0" "W1" "W2")
-		*cell-tracing-on* t))
+	'((509 (break))
+	  (?? (setf *!!list* '(:jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
