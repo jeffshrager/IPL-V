@@ -2040,7 +2040,9 @@ current system.)
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 (ipush "H0" S))                    ;; Input S (after preserving HO)
-       (2 (setf (cell-symb (cell S)) (cell-symb (H0))) (ipop "H0")) ;; 2=Output to S (then restore HO)
+       (2
+	;; (!! :s "************************* (cell S) = ~s, (H0) = ~s~%" (cell s) (H0))
+	(setf (cell-symb (cell S)) (cell-symb (H0))) (ipop "H0")) ;; 2=Output to S (then restore HO)
        (3 (ipop S))                         ;; Restore (pop up) S 
        (4 (ipush S))                         ;; Preserve (push down) S
        ;; 5: REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
@@ -2325,21 +2327,49 @@ This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
                   (6) {9+2283||P0|0}
             (4) {9+2285||P0|0}
 
-@477 How come W1 doesn't get set to L+2247????
+@476 How come H0 = 0 here???
 
-@477+ >>>>> {M054R080::M54+796|20|W1|M54+797 [                  TO MAP (0).;1W1=MAP]} (Move H0 to the named symbol itself and pop H0)
-   H0={H0|0|L+2247|0} ++ ({|0|L+2258|0} {|0|W1|0} {|0|9+2231|0} {|0|9+2231|0})
+@476+ >>>>> {M054R070::M54-9-100|04|J43|M54+838 [9-100 SUBPROCESS, ADD SEGMENT (1);1W0=THMNAM]} (Execute fn named in symb name itself (==00))
+(Unimplemented monitor action in {M054R070::M54-9-100|04|J43|M54+838 [9-100 SUBPROCESS, ADD SEGMENT (1);1W0=THMNAM]}; Executing w/o monitor!)
+     -----> At INTERPRET-P w/P = 0, S="J43"
+   H0={H0|0|0|0} ++ ({|0|L+2289|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
    W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
-   W1={W1||0|} ++ ({||L4|} {|||} :EMPTY)
-   W2={W2|0|L+2246|0} ++ ({|0|L+2246|0} {|||} :EMPTY)
-@478+ >>>>> {M054R090::M54+797|60|W2|M54+798 [;1W2=SEGMNT]} (Copy of (0) replaces S; S lost; H0 n.c.)
-   H0={H0|0|L+2247|0} ++ ({|0|L+2258|0} {|0|W1|0} {|0|9+2231|0} {|0|9+2231|0})
+   W1={W1||L4|} ++ ({|||} :EMPTY)
+   W2={W2|0|L+2288|0} ++ ({|||} :EMPTY)
+   .......... Calling J43 [PRESERVE W0-W3] (No Args)
+   H0={H0|0|0|0} ++ ({|0|L+2289|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
    W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
-   W1={W1||0|} ++ ({||L4|} {|||} :EMPTY)
-   W2={W2|0|L+2247|0} ++ ({|0|L+2246|0} {|||} :EMPTY)
+   W1={W1||L4|} ++ ({||L4|} {|||} :EMPTY)
+   W2={W2|0|L+2288|0} ++ ({|0|L+2288|0} {|||} :EMPTY)
 
+That comes from the J81 @ 474:
+
+@474+ >>>>> {M054R460::M54+871||J81|M54+872 [FIND 1ST SUB MAP.;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J81"
+   H0={H0|0|9+2302|0} ++ ({|0|L+2289|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
+   W1={W1||L4|} ++ ({|||} :EMPTY)
+   W2={W2|0|L+2288|0} ++ ({|||} :EMPTY)
+   .......... Calling J81 [FIND THE 1st (non-head) SYMBOL OF (0)]: (ARG0)=("9+2302")
+   H0={H0|0|0|0} ++ ({|0|L+2289|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
+   W1={W1||L4|} ++ ({|||} :EMPTY)
+   W2={W2|0|L+2288|0} ++ ({|||} :EMPTY)
+
+And that's bcs the list is, in fact, empty:
+
+(pl "9+2302")
+(pl "9+2302")
+
++------------------------- "9+2302" {9+2302|02|0|9+2303} -------------------------+
+(0) {9+2302|02|0|9+2303}
+   (1) {9+2303|02|0|9+2304}
+      (2) {9+2304|02|0|0}
++--------------------------End "9+2302" -------------------------------------------+
+
+
+=====================
 Q2 is failing for unknown reasons.
-
 
 J100 -- "9+2287" isn't a list, it's an element of the list. Why is 2287 being passed here instead of the list head, which is... "*2"
 Should be 2280, I think.
@@ -2387,6 +2417,6 @@ Why is this the J2 @ 879 testing L+2280!!?
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
   (setf *trace-@orID-exprs*
-	'(("M054R000" (setf *!!list* '(:jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))))
+	'(("M054R000" (setf *!!list* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
