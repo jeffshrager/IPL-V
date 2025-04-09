@@ -679,7 +679,7 @@ current system.)
     ;;; positions the process's inputs correctly), and the process is
     ;;; executed as if its name occurred in the instruction in- stead
     ;;; of J1.
-    (poph0 1) ;; WWW If H0 is the arg this is going to be wrong!
+    (poph0 1) ;; Pre-popping in this case should be safe.
     (ipl-eval arg0))
 
   (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; The identity test
@@ -700,11 +700,13 @@ current system.)
   (defj J5 () "REVERSE H5" (if (string-equal "+" (H5)) (H5-) (H5+)))
 
   (defj J6 () "REVERSE (0) and (1)" ;; USED IN F1
-	(let ((curmain (H0))
-	      (curtop (first (H0+))))
+	(let ((r1 (cell-symb (H0)))
+	      (r2 (cell-symb (first (H0+)))))
+	  ;; !!! This is what you always have to do: Precompute your
+	  ;; answers, then pop the inputs and push the outputs:
 	  (poph0 2)
-	  (ipush "H0" (cell-symb curmain))
-	  (ipush "H0" (cell-symb curtop))))
+	  (ipush "H0" r1)
+	  (ipush "H0" r2)))
 
   (defj J7 () "HALT, PROCEED ON GO"
     ;; The computer stops; if started again, it interprets the next
@@ -724,7 +726,7 @@ current system.)
 	;; as (0) and H5 set + ; if not found, or if the description list
 	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
 	;; by a search and test of all attributes on the description list.) 
-	(PopH0 2) ;; WWW H0 POP!
+	(PopH0 2) ;; I think pre-popping is safe here because H0 won't ever be a list head.
 	(!! :jdeep "             .....In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
 	(!! :jdeep (announce "Find ~a in ~a" arg0 arg1))
 	(let* ((list-head (cell arg1))
@@ -761,7 +763,7 @@ current system.)
 	;; attribute, it is placed at the front of the description
 	;; list. J11 will create the description list (with a local
 	;; name) if it does not exist (head of (2) empty). There is no
-	;; output in HO. 
+	;; output in HO.  *** Def. needs to pop late !!!
 	(let* ((att arg0)
 	       (val arg1)
 	       (list-head (cell arg2))
@@ -804,7 +806,7 @@ current system.)
 	;; generator hideout). 3. Obtains the trace mode of the
 	;; superroutine, and records it in one of the hideout cells (see §
 	;; 15.0, MONITOR SYSTEM).
-	(poph0 2)
+	(poph0 2) ;; Safe -- never passed H0
 	(let* ((wn (parse-integer (subseq wn-symb 1 2))))
 	  (J4n=preserve-wn wn)
 	  (push (make-gentry :fn fn
@@ -925,7 +927,8 @@ current system.)
 	;; output (0) is the input (0), which is the name of the last
 	;; cell on the list, and H5 is set -. No test is made to see
 	;; that (0) is not a data term, and J60 will attempt to
-	;; interpret a data term as a standard IPL cell. 
+	;; interpret a data term as a standard IPL cell.  !!! Must pop
+	;; late (if at all) !!!
 	(let* ((this-cell (cell arg0))
 	       (link (cell-link this-cell)))
 	  (!! :jdeep "             .....In J60, this-cell = ~s, link = ~s~%" this-cell link)
@@ -946,25 +949,26 @@ current system.)
   ;; cells, and testing for SYMB equivalence.
 
 (defj J62 (arg0 arg1) "LOCATE (O) ON LIST (1)"
-	;; LOCATE (0) ON LIST (1). A search of list with name (1) is
-	;; made, testing each symbol against (0) (starting with cell
-	;; after cell (1)). If (0) is found, the output (0) is the
-	;; name of the cell containing it and H5 is set + . Hence, J62
-	;; locates the first occurrence of (0) if there are
-	;; several. If (0) is not found, the output (0) is the name of
-	;; the last cell on the list, and H5 set - . [This is a bit of
-	;; a problem, because the target could be a cell name or a
-	;; string, which is ambiguous if we're handed a string. We
-	;; heuristically see if the string can be a cell, in which
-	;; case we use that cell's symb. ... Is this complexity needed
-	;; anylonger with <== and <=!?]
-	(let* ((target arg0)
-	       (list-head (cell arg1)))
-	  (!! :jdeep "             .....J62 trying to locate target:~s in linear list starting with cell ~s~%" target list-head)
-	  ;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
-	  (let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
-	    (poph0 2) 
-	    (ipush "H0" r))))
+      ;; LOCATE (0) ON LIST (1). A search of list with name (1) is
+      ;; made, testing each symbol against (0) (starting with cell
+      ;; after cell (1)). If (0) is found, the output (0) is the
+      ;; name of the cell containing it and H5 is set + . Hence, J62
+      ;; locates the first occurrence of (0) if there are
+      ;; several. If (0) is not found, the output (0) is the name of
+      ;; the last cell on the list, and H5 set - . [This is a bit of
+      ;; a problem, because the target could be a cell name or a
+      ;; string, which is ambiguous if we're handed a string. We
+      ;; heuristically see if the string can be a cell, in which
+      ;; case we use that cell's symb. ... Is this complexity needed
+      ;; anylonger with <== and <=!?]  Prob. actually safe to
+      ;; pre-pop.
+      (let* ((target arg0)
+	     (list-head (cell arg1)))
+	(!! :jdeep "             .....J62 trying to locate target:~s in linear list starting with cell ~s~%" target list-head)
+	;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
+	(let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
+	  (poph0 2) 
+	  (ipush "H0" r))))
 
   (defj J63 (new-symbol list-cell-name) "INSERT (0) BEFORE SYMBOL IN (1)"
 	;; (1) is assumed to name a cell in a list. A new cell is
@@ -972,7 +976,6 @@ current system.)
 	;; moved into the new cell, and (0) is put into (1). The end
 	;; result is that (0) occurs in the list before the symbol
 	;; that was originally in cell (1).
-	(poph0 2)
 	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!~%")
 	(!! :jdeep "             .....=========================================================~%J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
 	(!! :jdeep "             .....Here are the lists before:~%")
@@ -986,6 +989,7 @@ current system.)
 	(!! :jdeep "             .....Here is the target list, after:~%")
 	(!! :jdeep (pl list-cell-name))
 	(!! :jdeep "             .....=========================================================~%")
+	(poph0 2)
 	)
 
   (defj J64 (new-symbol list-cell-name) "INSERT (0) AFTER SYMBOL IN (1)"
@@ -996,7 +1000,6 @@ current system.)
 	;; insert after.) [WWW???!!! I dunno WTF this is talking
 	;; about! And it's prob. gonna break at list ends because
 	;; ... see above!] 
-	(poph0 2)
 	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!~%")
 	(!! :jdeep "             .....=========================================================~%J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
 	(!! :jdeep "             .....Here are the lists before:~%")
@@ -1012,6 +1015,7 @@ current system.)
 	(!! :jdeep "             .....Here is the target list, after:~%")
 	(!! :jdeep (pl list-cell-name))
 	(!! :jdeep "             .....=========================================================~%")
+	(poph0 2)
 	)
 
   ;; WWW If this tries to work with numeric data there's gonna be a
@@ -1020,7 +1024,6 @@ current system.)
 	(!! :jdeep (announce "~a =++ ~a" arg0 arg1))
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
-	(PopH0 2)
 	(!! :jdeep "             .....=========================================================~%J65 trying to append ~s to ~s~%" arg0 arg1)
 	(!! :jdeep "             .....Here are the lists before:~%")
 	(!! :jdeep (pl arg0) (pl arg1))
@@ -1038,6 +1041,7 @@ current system.)
 	(!! :jdeep "             .....Here is the target list, after:~%")
 	(!! :jdeep (pl arg1))
 	(!! :jdeep "             .....=========================================================~%")
+	(PopH0 2)
 	)
 	
 
@@ -1048,7 +1052,6 @@ current system.)
 	;; further. If (0) is not found, it is inserted at the end of
 	;; the list, as in J65. [Nb. This can't do anything sensible
 	;; with a branching list!]
-	(PopH0 2)
 	(let ((target arg0))
 	  (!! :jdeep "             .....J66 trying to insert ~s in ~s~%" target arg1)
 	  (loop with list-cell = (<=! arg1)
@@ -1056,12 +1059,12 @@ current system.)
 		do
 		(cond ((string-equal (cell-symb list-cell) target)
 		       (!! :jdeep "             .....J66 found ~s in the list already. No action!~%" target)
-		       (return nil))
+		       (PopH0 2) (return nil))
 		      ((zero? link)
 		       (!! :jdeep "             .....J66 hit end, adding ~s to the end of the list!~%" target)
 		       (setf (cell-link list-cell)
 			     (cell-name (make-cell! :name (newsym) :symb target :link "0")))
-		       (return t)))
+		       (PopH0 2) (return t)))
 		;; Move to next cell if nothing above returned out
 		(setf list-cell (cell (cell-link list-cell))))))
  
@@ -1076,7 +1079,6 @@ current system.)
 	;; cell (see discussion in § 9.4, DELETE). [This is weird! It
 	;; moves the next symbol up and then deletes the NEXT
 	;; cell....?]
-	(poph0 1)
 	(let* ((this-cell (<== arg0)) ;; was <=!
 	       (next-cell-name (cell-link this-cell)))
 	  (if (zero? next-cell-name)
@@ -1087,7 +1089,9 @@ current system.)
 		(!! "J68 Moving symbol in ~s to ~s and deleting ~s.~%"
 		    next-cell this-cell next-cell)
 		(setf (cell-symb this-cell) (cell-symb next-cell)
-		      (cell-link this-cell) (cell-link next-cell))))))
+		      (cell-link this-cell) (cell-link next-cell)))))
+	(poph0 1)
+	)
 
   (defj J71 (arg0) "ERASE LIST (0)"
 	(declare (ignore arg0))
@@ -1122,8 +1126,9 @@ current system.)
 	;; the list from (0) on. (Nothing else is copied, not even the
 	;; description list of (0), if it exists.)  The name is local if the
 	;; input (0) is local; otherwise, it is internal.
-	(poph0 1)
-	(ipush "H0" (cell-name (copy-ipl-list-and-return-head (cell arg0)))))
+	(let* ((r (cell-name (copy-ipl-list-and-return-head (cell arg0)))))
+	  (poph0 1)
+	  (ipush "H0" r)))
 
   (defj J74 (arg0) "Copy List Structure"
 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
@@ -1137,8 +1142,9 @@ current system.)
 	;; remains unaffected. The output (0) names the new list structure. It is
 	;; local if the input (0) is local; It is internal otherwise.
 	(!! :jdeep "             .....J74 is copying list: ~s~%" (H0))
-	(setf (H0) (copy-list-structure arg0))
-	)
+	(let* ((r (copy-list-structure arg0)))
+	  (poph0 1)
+	  (ipush "H0" r)))
 
   (defj J75 (arg0) "DIVIDE LIST AFTER LOCATION (0)"
 	;; (0) is assumed to be the name of a cell on a list. A
@@ -1146,12 +1152,13 @@ current system.)
 	;; the last cell on the list. The output (0) names the
 	;; remainder list: a new blank head followed by the string of
 	;; list cells that occurred after cell (0).
-	(poph0 1)
 	(let* ((split-cell (<== arg0))
 	       (new-head (make-cell! :name (newsym) :link (cell-link split-cell))))
 	  (setf (cell-link split-cell) "0")
 	  (!! :jdeep "             .....J75 splitting a list: New tail: ~s, New head (H0): ~s~%" split-cell new-head)
-	  (ipush "H0" (cell-name new-head))))
+	  (let* ((r (cell-name new-head)))
+	    (poph0 1)
+	    (ipush "H0" r))))
 
   (defj J76 (arg0 arg1) "INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL"
 	;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
@@ -1164,16 +1171,17 @@ current system.)
 	;; has no list cells, then the output (0) is the input (1) and H5 is set
 	;; -. [Again, I think that this is intended only to work on linear lists
 	;; since there's no "last symbol" in a non-linear list.]
-	(poph0 2)
 	(let* ((l0 (<=! arg0))
 	       (c1 (<=! arg1))
 	       (c1link (cell-link c1))
 	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
 	  (cond ((zero? (cell-link l0))
+		 (poph0 2)
 		 (ipush "H0" c1)
 		 (H5-))
 		(t (setf (cell-link c1) (cell-link l0))
 		   (setf (cell-link last-cell-in-l0) c1link)
+		   (poph0 2)
 		   (ipush "H0" last-cell-in-l0)))))
 
   (defj J79 (arg0) "TEST IF CELL (0) IS NOTEMPTY"
@@ -1182,9 +1190,9 @@ current system.)
 	;; termination cells give H5-). [??? It looks like this should
 	;; be getting the name of a cell, but in the one call that
 	;; it's used in LT - M054R130 - H0={...|0|0|0}, so ...hmmmm?]
-	(poph0 1)
 	(if (zero? arg0) (format t "WARNING: @~a J79 IS PROBABLY GETTING BAD INPUT: ~s~%" (h3-cycles) arg0))
-	(if (or (zero? arg0) (zero? (cell-symb (cell arg0)))) (H5-) (H5+)))
+	(if (or (zero? arg0) (zero? (cell-symb (cell arg0)))) (H5-) (H5+))
+	(poph0 1))
 
   ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <== n <== 9. (Ten routines: J80-J89)
   ;; Set H5 + if the nth symbol exists, - if not. Assume list (0) describable,
@@ -1195,8 +1203,9 @@ current system.)
 	(h5+)
 	(if (zero? arg0)
 	    (H5-)
-	    (ipush "H0" (cell-symb (cell arg0))))
-	(poph0 1))
+	    (let* ((r (cell-symb (cell arg0))))
+	      (poph0 1)
+	      (ipush "H0" r))))
 
 ;;; FIND THE NTH SYMBOL ON LIST (0) Ten routines, J80-J89. Set H5+ if
 ;;; the Nth symbol exists, - if not. Assume list (0) is de-scribable,
@@ -1204,12 +1213,10 @@ current system.)
 ;;; symbol in head; and sets H5- if (0) is a termination symbol.
 
   (defj J81 (arg0) "FIND THE 1st (non-head) SYMBOL OF (0)"
-	(j8n-helper (cell-link (cell arg0)) 1)
-	(poph0 1))
+	(j8n-helper (cell-link (cell arg0)) 1))
 
   (defj J82 (arg0) "FIND THE 2nd (non-head0 SYMBOL OF (0)"
-	(j8n-helper (cell-link (cell arg0)) 2)
-	(poph0 1))
+	(j8n-helper (cell-link (cell arg0)) 2))
 	      
   ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0
   ;; < n < 9. The order is (n-1) first, (n-2) second, ..., (0)
@@ -1239,14 +1246,18 @@ current system.)
 	(!! :jdeep "             .....J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg1 arg0)
 	(poph0 2)
 	(loop with cell-name = (cell-link (cell arg1))
-	      with cell
+	      with cell = nil
 	      with exec-symb = arg0
+	      with inputs-popped = nil
 	      until (zero? cell-name)
 	      do 
 	      (!! :jdeep "             .....J100: cell-name=~s, cell=~s~%" cell-name cell)
 	      (setf cell (cell cell-name))
 	      ;; Setup: arg->H0 and H5=+
-	      (ipush "H0" (cell-symb cell))
+	      (let* ((r (cell-symb cell)))
+		;; This only pops the 2 inputs on the first call-down! Be afraid...be very afraid!
+		(unless inputs-popped (poph0 2) (setf inputs-popped t))
+		(ipush "H0" r))
 	      (H5+)
 	      (!! :jdeep "             .....J100: Exec'ing ~s on ~s~%" exec-symb (cell-symb (h0)))
 	      (ipl-eval exec-symb)
@@ -1265,9 +1276,8 @@ current system.)
 	  (numset arg0 r)))
 
   (defj J116 ([0] [1]) "TEST IF (0) < (1)"
-	(poph0 2)
-	(if (< (numget [0]) (numget [1]))
-	    (h5+) (h5-)))
+	(if (< (numget [0]) (numget [1])) (h5+) (h5-))
+	(poph0 2))
 
   (defj J117 (arg0) "TEST IF (0) = 0." ;; USED IN ACKERMAN
 	(let* ((n (numget arg0)))
@@ -1293,17 +1303,19 @@ current system.)
   (defj J121 (to from) "SET (O) IDENTICAL TO (1)"
 	;; The contents of the cell named (1) is places in the cell
 	;; (0). The output (0) is the input (0). [????]
-	(poph0 2)
 	(setf (cell-link (cell to)) (cell-link (cell from)))
+	(poph0 2)
 	(ipush "H0" to))
 
   (defj J124 (arg0) "CLEAR (0)" ;; USED IN LT
 	;; The number (0) is set to be 0. If the cell is not a data
 	;; term, it is made an integer data term=0. If a number, its
 	;; type, integer, or floating point, is unaffected. It is left
-	;; as the output (0).  (NO POP!)
+	;; as the output (0).  (NO POP!?!?)
 	(!! :jdeep "             .....J124: Clear (H0): ~s~%" arg0)
 	(numset arg0 0))
+
+************************************* 
 
   (defj J125 (arg0) "TALLY 1 IN (0)" ;; USED IN ACKERMAN
 	;; An integer 1 is added to the number (0). The type of the result
@@ -1669,8 +1681,13 @@ current system.)
 ;;; Assumes a linear list.
 
 (defun j8n-helper (cell-name nth)
-  (cond ((zero? cell-name) (H5-))
-        ((= nth 1) (H5+) (ipush "H0" (cell-symb (cell cell-name))))
+  (cond ((zero? cell-name)
+	 (poph0 1)
+	 (H5-))
+        ((= nth 1) (H5+)
+	 (let* ((r (cell-symb (cell cell-name))))
+	   (poph0 1)
+	   (ipush "H0" r)))
 	(t (j8n-helper (cell-link (cell cell-name)) (1- nth)))))
 
 (defun j62-helper-search-list-for-symb (target incell inlink)
@@ -1940,7 +1957,19 @@ current system.)
     ("70" "Goto by H5: -symb|+link itself")
     ))
 
-(defun check-arglist-for-red-flags*** (args)
+;;; !!! WWW There's this screw case for popping the H0 arg stack which
+;;; is when the JFns use H0 per se as an argument, or if it is
+;;; indirect, because once the pop takes place, the cell called H0 has
+;;; a new value (specifically, what used to be the top of its stack)
+;;; I've thought about ways to do this by some sort of macro that
+;;; creates a block and only does the pop at the end, but remember the
+;;; results get pushed, so really we need to pop just before pushing
+;;; the results. Ugh. So each Jfn needs to judiciously pop the
+;;; arguments after whatever computation has been done to compute the
+;;; new arguments. !!! This check isn't a guarantee bcs the use of H0
+;;; could be indirect.
+
+(defun check-jfn-arglist-for-red-flags*** (args)
   (if (member "H0" args :test #'string-equal)
       (format t "WARNING: @~a H0 is passed as a per se argument: ~s! WATCH OUT FOR H0 POP RACE!~%" (h3-cycles) args))
   args)
@@ -1964,7 +1993,7 @@ current system.)
        (when fn 
 	 (let* ((arglist (second (function-lambda-expression fn)))
 		(args (if (null arglist) ()
-			  (check-arglist-for-red-flags***
+			  (check-jfn-arglist-for-red-flags***
 			   (cons (cell-symb (H0))
 				 (loop for arg in (cdr arglist)
 				       as val in (h0+)
@@ -2349,7 +2378,7 @@ Why is this the J2 @ 879 testing L+2280!!?
 
 |#
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
   '(trace j8n-helper)
   '(setf *!!list* nil *cell-tracing-on* nil)
