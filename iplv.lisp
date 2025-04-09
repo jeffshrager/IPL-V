@@ -1315,7 +1315,7 @@ current system.)
 	(!! :jdeep "             .....J124: Clear (H0): ~s~%" arg0)
 	(numset arg0 0))
 
-************************************* 
+;************************************* 
 
   (defj J125 (arg0) "TALLY 1 IN (0)" ;; USED IN ACKERMAN
 	;; An integer 1 is added to the number (0). The type of the result
@@ -2378,7 +2378,7 @@ Why is this the J2 @ 879 testing L+2280!!?
 
 |#
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
   '(trace j8n-helper)
   '(setf *!!list* nil *cell-tracing-on* nil)
@@ -2386,8 +2386,7 @@ Why is this the J2 @ 879 testing L+2280!!?
    *!!list* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  '(setf *trace-@orID-exprs*
-	'((470 (setf *!!list* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
-	  (480 (break))))
+  (setf *trace-@orID-exprs*
+	'(("M054R000" (setf *!!list* '(:jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
