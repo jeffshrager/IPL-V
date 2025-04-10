@@ -1640,6 +1640,7 @@ current system.)
 		    finally (return (1+ p)))))
 
 (defun J9n-helper (n)
+  (break "WWWWWWRRRRRRRRROOOOOOONNNNNNNNNNNNNNGGGGGGGGGGG!")
   (let* ((head-name (newsym)) ;; Needed for tracing later
 	 (prev-cell (make-cell! :name head-name :pq "00" :symb "0" :link "0"))
 	 )
@@ -2325,7 +2326,8 @@ current system.)
 
 J64 is broken adding an extraneous blank cell @343:
 
-This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
+This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5. (These
+specific addresses will likley be different.)
 
 (0) {*1||9+2234|9+2253}
    ...(1) {9+2234||0|9+2236} ;; *1's Dlist...
@@ -2347,104 +2349,12 @@ This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
                   (6) {9+2283||P0|0}
             (4) {9+2285||P0|0}
 
-Why didn't this put 2308 in W1?
-
-@517+ >>>>> {M054R110::M54+841|70|M54-9-102|M54+842 [   IF NO, CONTINUE DOWN MAP.;]} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="M54-9-102"
-   H0={H0|0|L+2308|0} ++ ({|0|W1|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
-   W1={W1||0|} ++ ({||0|} {||L4|} {|||} :EMPTY)
-   W2={W2|0|A0|0} ++ ({|0|L+2289|0} {|0|L+2288|0} {|||} :EMPTY)
-@518+ >>>>> {M054R120::M54+842|11|W1|M54+843 [   IF YES, ADD THMNAME.;]} (Push cntnts of the cell named by symb, onto H0)
-     -----> At INTERPRET-P w/P = 1, S="0"
-   H0={H0|0|0|0} ++ ({|0|L+2308|0} {|0|W1|0} {|0|L+2300|0} {|0|W1|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
-   W1={W1||0|} ++ ({||0|} {||L4|} {|||} :EMPTY)
-   W2={W2|0|A0|0} ++ ({|0|L+2289|0} {|0|L+2288|0} {|||} :EMPTY)
-
-
-@476 How come H0 = 0 here???
-
-@476+ >>>>> {M054R070::M54-9-100|04|J43|M54+838 [9-100 SUBPROCESS, ADD SEGMENT (1);1W0=THMNAM]} (Execute fn named in symb name itself (==00))
-(Unimplemented monitor action in {M054R070::M54-9-100|04|J43|M54+838 [9-100 SUBPROCESS, ADD SEGMENT (1);1W0=THMNAM]}; Executing w/o monitor!)
-     -----> At INTERPRET-P w/P = 0, S="J43"
-   H0={H0|0|0|0} ++ ({|0|L+2289|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
-   W1={W1||L4|} ++ ({|||} :EMPTY)
-   W2={W2|0|L+2288|0} ++ ({|||} :EMPTY)
-   .......... Calling J43 [PRESERVE W0-W3] (No Args)
-   H0={H0|0|0|0} ++ ({|0|L+2289|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
-   W1={W1||L4|} ++ ({||L4|} {|||} :EMPTY)
-   W2={W2|0|L+2288|0} ++ ({|0|L+2288|0} {|||} :EMPTY)
-
-That comes from the J81 @ 474:
-
-@474+ >>>>> {M054R460::M54+871||J81|M54+872 [FIND 1ST SUB MAP.;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J81"
-   H0={H0|0|9+2302|0} ++ ({|0|L+2289|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
-   W1={W1||L4|} ++ ({|||} :EMPTY)
-   W2={W2|0|L+2288|0} ++ ({|||} :EMPTY)
-   .......... Calling J81 [FIND THE 1st (non-head) SYMBOL OF (0)]: (ARG0)=("9+2302")
-   H0={H0|0|0|0} ++ ({|0|L+2289|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
-   W1={W1||L4|} ++ ({|||} :EMPTY)
-   W2={W2|0|L+2288|0} ++ ({|||} :EMPTY)
-
-And that's bcs the list is, in fact, empty:
-
-(pl "9+2302")
-(pl "9+2302")
-
-+------------------------- "9+2302" {9+2302|02|0|9+2303} -------------------------+
-(0) {9+2302|02|0|9+2303}
-   (1) {9+2303|02|0|9+2304}
-      (2) {9+2304|02|0|0}
-+--------------------------End "9+2302" -------------------------------------------+
-
-
-=====================
-Q2 is failing for unknown reasons.
-
-J100 -- "9+2287" isn't a list, it's an element of the list. Why is 2287 being passed here instead of the list head, which is... "*2"
-Should be 2280, I think.
-
-@917- >>>>> {Q002R340::Q2+1711||J100|Q2-9-101 [THEN QUIT + OR-.;]} (Execute fn named by symb name itself)
-   H0={H0|0|Q2-9-100|0} ++ ({|0|9+2287|0} {|0|L11|0} {|0|9+2265|0} {|0|9+2265|0})
-   W0={W0|0|9+2295|0} ++ ({|0|9+2294|0} {|0|9+2294|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|9+2293|0} ++ ({|0|9+2287|0} {|0|9+2287|0} {|0|9+2287|0} {|||})
-   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
-   .......... Calling J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]: (ARG0 ARG1)=("Q2-9-100" "9+2287")
-             .....J100 GENERATE SYMBOLS FROM LIST "9+2287" FOR SUBPROCESS "Q2-9-100"
-   H0={H0|0|L11|0} ++ ({|0|9+2265|0} {|0|9+2265|0} {|0|9+2265|0} {|0|9+2265|0})
-   W0={W0|0|9+2295|0} ++ ({|0|9+2294|0} {|0|9+2294|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|9+2293|0} ++ ({|0|9+2287|0} {|0|9+2287|0} {|0|9+2287|0} {|||})
-   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
-
-
-@895- >>>>>>>>>> {M042R040::M42+699|11|W0|M42+700}                                                                       
-@896- >>>>>>>>>> {M042R050::M42+700||Q2|M42+701 [GET NUMBER OF LEVELS;]}                                                 
-@896- >>>>>>>>>> {Q002R000::Q2|40|H0|Q2+1683 [Q2 FIND NO. OF LEVELS OF TEX (0).;]}                                       
-@897- >>>>>>>>>> {Q002R010::Q2+1683|10|Q2|Q2+1684 [H5- MEANS DEFECTIVE EXPRESSION.;]}                                    
-@898- >>>>>>>>>> {Q002R020::Q2+1684||J10|Q2+1685 [FIND VALUE ON DESCRIPTION LIST.;]}                                     
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: (ARG0 ARG1)=("Q2" "*2")
-@875+ >>>>>>>>>> {M043R020::M43+731||J81|M43+732 [FIND MEX.;]}
-   .......... Calling J81 [FIND THE nth SYMBOL OF (0)]: (ARG0)=("*2")
-@876+ >>>>>>>>>> {M043R030::M43+732|70|J33|M43+733}
-
-Why is this the J2 @ 879 testing L+2280!!?
-
-@877+ >>>>>>>>>> {M043R040::M43+733||P4|M43+734 [GO THRU 'NOTS';]}
-@877+ >>>>>>>>>> {P004R000::P4|12|H0|P4+1409 [P4 GC THRU NOTS OF SEGMENT (0),;]}
-@878+ >>>>>>>>>> {P004R010::P4+1409|11|K2|P4+1410 [LEAVE 1ST UNNOTTED SEGMENT.;]}
-@879+ >>>>>>>>>> {P004R020::P4+1410||J2|P4+1411 [H5- VEANS NO OUTPUT.;]}
-   .......... Calling J2 [TEST (0) == (1)?]: (ARG0 ARG1)=("-0" "L+2280")
-@880- >>>>>>>>>> {P004R030::P4+1411|70|J4|P4+1412 [QUIT, H5+ MEANS NORMAL EXIT.;]}
 
 |#
 
-;; pl pll rj :c 
+;;; debugging tools: (pl cell) (pll cell) (rj) :c 
+
+;;; ******************** J9N are broken!!!!!!!!!!!!!!!!!!!!!!
 
 (progn ;; LT 
   (set-default-tracing)
