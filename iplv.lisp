@@ -1918,15 +1918,15 @@ current system.)
     )
 (defun print-list (symb &key (depth 0) (limit 10))
   (cond ((> depth limit) (format t "~a[@~a...]~%" (blanks (* (1- depth) 3)) depth))
-	((or (not (atom symb)) (null symb) (null (ignore-errors (cell symb))) (zero? symb)))
+	((or (not (atom symb)) (numberp symb) (null symb) (null (ignore-errors (cell symb))) (zero? symb)))
 	(t (let ((cell (cell symb)))
 	     (format t "~a(~a) ~s~%" (blanks (* depth 3)) depth
 		     (or (gethash cell *jfn->name*) cell))
 	     (when (cell? cell)
-	       ;; Break direct recursions
-	       (unless (string-equal (cell-symb cell) symb)
+	       ;; Break direct recursions and don't chase numbers
+	       (unless (equal (cell-symb cell) symb)
 		 (print-list (cell-symb cell) :depth (1+ depth) :limit limit))
-	       (unless (string-equal (cell-link cell) symb)
+	       (unless (equal (cell-link cell) symb)
 		 (print-list (cell-link cell) :depth (1+ depth) :limit limit)))))))
 	     
 (defun pretty-print-cell (cell)
@@ -2378,18 +2378,18 @@ specific addresses will likley be different.)
 
 |#
 
-;;; debugging tools: (pl cell) (pll cell) (rj) :c 
+;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
 
 (progn ;; LT 
   (set-default-tracing)
-  '(push :jdeep *!!*)
-  '(trace j8n-helper)
-  '(setf *!!* nil *cell-tracing-on* nil)
+  (setf *!!* nil *cell-tracing-on* nil)
   '(setf 
    *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  '(setf *trace-@orID-exprs*
-	'(("M054R000" (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))))
+  (setf *trace-@orID-exprs*
+	'(
+	  (1420 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
