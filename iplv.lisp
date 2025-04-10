@@ -123,6 +123,21 @@ current system.)
 
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
+(defvar *jfn-calls* (make-hash-table :test #'equal))
+
+(defun rj () ;; report on jfns
+  (let ((*print-length* nil))
+    (mapcar #'print
+	    (sort 
+	     (loop for jname being the hash-keys of *jfn-calls*
+		   using (hash-value args)
+		   as calls = (loop for al in (uniquify-list args)
+				    collect (cons (or al :noargs) (count al args :test #'equal)))
+		   collect (list jname (reduce #'+ (mapcar #'cdr calls))
+				 (sort calls #'> :key #'cdr)))
+	     #'> :key #'second))
+    nil))
+
 (defvar *cell-tracing-on* nil)
 ;;; These will get eval'ed at the given id, for example:
 ;;;   ("P051R050" (print "hello"))
@@ -1921,6 +1936,7 @@ current system.)
   (w25-init) ;; I/O pointer
   (w26-init) ;; Trap action list (actually ignored, but needed for most complex code to work.)
   (setf *genstack* nil)
+  (clrhash *jfn-calls*)
   )
 
 ;;; Trap action list (actually ignored, but needed for most complex code to work.)
@@ -2002,6 +2018,7 @@ current system.)
 	     (!! :jcalls (format t (if arglist "   .......... Calling ~a [~a]: ~s=~s~%"
 				    "   .......... Calling ~a [~a] (No Args)~*~*~%")
 			      *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args))
+	     (push args (gethash *fname-hint* *jfn-calls*)) ;; For (rj) summary reports
 	     (maybe-break? *fname-hint*)
 	     (setf *fname-hint* nil)
 	     )
@@ -2266,7 +2283,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil)
   ;(setf *!!list* '(:run :jdeep :jcalls) *cell-tracing-on* t)
@@ -2276,7 +2293,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2326,6 +2343,22 @@ This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5.
                (5) {9+2282||P0|9+2283}
                   (6) {9+2283||P0|0}
             (4) {9+2285||P0|0}
+
+Why didn't this put 2308 in W1?
+
+@517+ >>>>> {M054R110::M54+841|70|M54-9-102|M54+842 [   IF NO, CONTINUE DOWN MAP.;]} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="M54-9-102"
+   H0={H0|0|L+2308|0} ++ ({|0|W1|0} {|0|L+2300|0} {|0|W1|0} {|0|9+2273|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
+   W1={W1||0|} ++ ({||0|} {||L4|} {|||} :EMPTY)
+   W2={W2|0|A0|0} ++ ({|0|L+2289|0} {|0|L+2288|0} {|||} :EMPTY)
+@518+ >>>>> {M054R120::M54+842|11|W1|M54+843 [   IF YES, ADD THMNAME.;]} (Push cntnts of the cell named by symb, onto H0)
+     -----> At INTERPRET-P w/P = 1, S="0"
+   H0={H0|0|0|0} ++ ({|0|L+2308|0} {|0|W1|0} {|0|L+2300|0} {|0|W1|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|0|*1|0} {|0|*1|0})
+   W1={W1||0|} ++ ({||0|} {||L4|} {|||} :EMPTY)
+   W2={W2|0|A0|0} ++ ({|0|L+2289|0} {|0|L+2288|0} {|||} :EMPTY)
+
 
 @476 How come H0 = 0 here???
 
@@ -2407,6 +2440,8 @@ Why is this the J2 @ 879 testing L+2280!!?
 @880- >>>>>>>>>> {P004R030::P4+1411|70|J4|P4+1412 [QUIT, H5+ MEANS NORMAL EXIT.;]}
 
 |#
+
+;; pl pll rj :c 
 
 (progn ;; LT 
   (set-default-tracing)
