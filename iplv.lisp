@@ -82,9 +82,9 @@ current system.)
   `(store (make-cell ,@args)))
 
 (defmacro !! (key &rest args) 
-  `(when (or (equal *!!list* t)
+  `(when (or (equal *!!* t)
 	     (equal ,key t)
-	     (member ,key *!!list*))
+	     (member ,key *!!*))
      ,(if (stringp (car args))
 	  `(format t ,(car args) ,@(cdr args))
 	  `(progn ,@args))))
@@ -153,7 +153,7 @@ current system.)
 
 ;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump 
 ;;; :deep-alerts :pq
-(defvar *!!list* nil) 
+(defvar *!!* nil) 
 (defparameter *default-!!list* '(:run :jcalls))
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
@@ -297,14 +297,14 @@ current system.)
 
 ;;; Example usage of *trace-@orID-exprs*
 ;;;   ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
-;;;   ("P051R050" (setf *!!list* '(:run :run-full :jdeep)))
+;;;   ("P051R050" (setf *!!* '(:run :run-full :jdeep)))
 ;;; Can also be a number in which case it refers to the H3 value (@), as:
 ;;;   (123 ...)
 ;;; (setf *trace-@orID-exprs*
 ;;;    '(("P052R040"
 ;;;       (setf *trace-cell-names* '("W0" "W1" "H0") *cell-tracing-on* t)
 ;;;       (trace symbolify ipl-string-equal ipl-string-equal))
-;;;      (123 (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+;;;      (123 (trace) (setf *cell-tracing-on* nil *!!* *default-!!list*))
 ;;;      ))
 
 (defun trace-cells ()
@@ -1640,17 +1640,22 @@ current system.)
 		    finally (return (1+ p)))))
 
 (defun J9n-helper (n)
-  (break "WWWWWWRRRRRRRRROOOOOOONNNNNNNNNNNNNNGGGGGGGGGGG!")
   (let* ((head-name (newsym)) ;; Needed for tracing later
-	 (prev-cell (make-cell! :name head-name :pq "00" :symb "0" :link "0"))
+	 (head (make-cell! :name head-name :pq "00" :symb "0" :link "0"))
+	 ;; The order is (n-1) first, (n-2) second, ... (0) last.
+	 (symbols `(,@(reverse (loop for hn in (H0+) as m below n collect (cell-symb hn))) (cell-symb (h0))))
 	 )
-    (loop for i below n
-	  as next-name = (newsym)
-	  as next-cell = (make-cell! :name next-name :pq "00" :symb "0" :link "0")
-	  do (setf (cell-link prev-cell) next-name prev-cell next-cell))
-    (ipush "H0" head-name)
-    (!! :jdeep "            .....J9n creating blank list: ~%")
-    (!! :jdeep (pl head-name))))
+    (loop for sym in symbols
+	  with prev-cell = head
+	  as next-cell-name = (newsym)
+	  as next-cell = (make-cell! :name next-cell-name :pq "00" :symb sym :link "0")
+	  do 
+	  (setf (cell-link prev-cell) next-cell-name)
+	  (setf prev-cell next-cell))
+    (poph0 n)
+    (ipush "H0" head-name))
+    (!! :jdeep "            .....J9n created list: ~%")
+    (!! :jdeep (pl head-name)))
 
 (defun J11-helper-add-to-dlist (dlist-head att val &key (if-aleady-exists :replace)) ;; :error :allow-multiple
   (!! :jdeep "             .....ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s~%" dlist-head att val)
@@ -1928,7 +1933,7 @@ current system.)
   (setf *adv-limit* adv-limit)
   (setf *running?* t)
   (ipl-eval start-symb)
-  (if (member :end-dump *!!list*) (report-system-cells t))
+  (if (member :end-dump *!!*) (report-system-cells t))
   )
 
 (defun initialize-machine ()
@@ -2279,7 +2284,7 @@ current system.)
   (setf *trace-cell-names* nil)
   (setf *breaks* nil) ;; If this is set to t (or '(t)) it break on every call
   (setf *stack-depth-limit* 25) ;; (Nb. must be much higher, ~100, for Ackermann!)
-  (setf *!!list* *default-!!list*) 
+  (setf *!!* *default-!!list*) 
   (setf *report-all-system-cells?* nil)
   (setf *cell-tracing-on* nil)
   (setf *trace-@orID-exprs* nil)
@@ -2289,9 +2294,9 @@ current system.)
 
 '(progn ;; F1 test
   (set-default-tracing)
-  (setf *!!list* '() *cell-tracing-on* nil)
-  ;(setf *!!list* '(:run :jdeep :jcalls) *cell-tracing-on* t)
-  ;(push :run-full *!!list*)
+  (setf *!!* '() *cell-tracing-on* nil)
+  ;(setf *!!* '(:run :jdeep :jcalls) *cell-tracing-on* t)
+  ;(push :run-full *!!*)
   ;(trace functionp ipush ipop iset data-set)
   ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
@@ -2299,10 +2304,10 @@ current system.)
 
 '(progn ;; Ackermann test
   (set-default-tracing)
-  (setf *!!list* '() *cell-tracing-on* nil *stack-depth-limit* 100)
+  (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-@orID-exprs* '((9 (break))))
-  ;(setf *!!list* '(:run :jdeep) *cell-tracing-on* t)
+  ;(setf *!!* '(:run :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0)
   (load-ipl "Ackermann.iplv" :adv-limit 25000)
   (print (cell "N0"))
@@ -2354,17 +2359,16 @@ specific addresses will likley be different.)
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c 
 
-;;; ******************** J9N are broken!!!!!!!!!!!!!!!!!!!!!!
-
 (progn ;; LT 
   (set-default-tracing)
+  '(push :jdeep *!!*)
   '(trace j8n-helper)
-  '(setf *!!list* nil *cell-tracing-on* nil)
+  '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
-   *!!list* '(:jfns :run :jcalls)
+   *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  (setf *trace-@orID-exprs*
-	'(("M054R000" (setf *!!list* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))))
+  '(setf *trace-@orID-exprs*
+	'(("M054R000" (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
