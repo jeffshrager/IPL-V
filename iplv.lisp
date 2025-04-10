@@ -141,6 +141,20 @@ current system.)
 	   #'> :key #'second)
 	  do (format t "~a ~a [~a]~%   ~a~%" ncalls jname expl argcounts))))
 
+(defvar *card-ids-executed* nil)
+(defvar *rxtbl* (make-hash-table :test #'equal))
+(defun rx () ;; report on execs (card ids executed)
+  (clrhash *rxtbl*)
+  (loop for id in *card-ids-executed*
+	if (and (stringp id) (= 8 (length id)))
+	do (incf (gethash (subseq id 0 4) *rxtbl* 0)))
+  (mapcar #'print
+	  (sort 
+	   (loop for rname being the hash-keys of *rxtbl*
+		 using (hash-value nx)
+		 collect (cons rname nx))
+	   #'string< :key #'car)))
+
 (defvar *cell-tracing-on* nil)
 ;;; These will get eval'ed at the given id, for example:
 ;;;   ("P051R050" (print "hello"))
@@ -1293,6 +1307,14 @@ current system.)
 	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
 	  (numset arg0 r)))
 
+  (defj J114 ([0] [1]) "TEST IF (0) = (1)" 
+	(if (= (numget [0]) (numget [1])) (h5+) (h5-))
+	(poph0 2))
+
+  (defj J115 ([0] [1]) "TEST IF (0) > (1)" 
+	(if (> (numget [0]) (numget [1])) (h5+) (h5-))
+	(poph0 2))
+
   (defj J116 ([0] [1]) "TEST IF (0) < (1)"
 	(if (< (numget [0]) (numget [1])) (h5+) (h5-))
 	(poph0 2))
@@ -1604,8 +1626,6 @@ current system.)
 
   (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
   (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
-  (defj J114 () "Unimplemented!" (break "J114 is unimplemented!"))
-  (defj J115 () "Unimplemented!" (break "J115 is unimplemented!"))
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
@@ -2166,6 +2186,7 @@ current system.)
 	do (format t "~s => ~s~%" key value)))
 
 (defun maybe-break? (s)
+  (push s *card-ids-executed*)
   (when (or (equal t *breaks*)
 	    (member t *breaks*)
 	    (member (H3-cycles) *breaks* :test #'equal)
