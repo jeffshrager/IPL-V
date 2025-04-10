@@ -2350,8 +2350,6 @@ current system.)
 
 #|
 
-J64 is broken adding an extraneous blank cell @343:
-
 This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5. (These
 specific addresses will likley be different.)
 
@@ -2378,18 +2376,55 @@ specific addresses will likley be different.)
 
 |#
 
+#| Notes on the current problem:
+
+Why are there are all these weird 2282s in the H0 stack!? ;
+
+
+@1430+ >>>>> {P055R030::P55+1665||J60|P55+1666 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J60"
+   H0={H0|0|9+2282|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
+   W0={W0|0|9+2310|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
+   W1={W1|0|9+2282|0} ++ ({|0|9+2310|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
+   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
+   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: (ARG0)=("9+2282")
+             .....In J60, this-cell = {9+2282|01||16}, link = 16
+             .....In J60 next cell is 16!
+   H0={H0|12||16} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
+   W0={W0|0|9+2310|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
+   W1={W1|0|9+2282|0} ++ ({|0|9+2310|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
+   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
+@1431+ >>>>> {P055R040::P55+1666|70|J31|P55+1667 [H5- MEANS OUTPUT (0) IS;]} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="J31"
+   H0={H0|12||16} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
+   W0={W0|0|9+2310|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
+   W1={W1|0|9+2282|0} ++ ({|0|9+2310|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
+   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
+@1432+ >>>>> {P055R050::P55+1667|12|H0|P55+1668 [CELL AFTER WHICH TO INSERT.;]} (Push 2nd deref on H0)
+
+debugger invoked on a TYPE-ERROR @535EB7FE in thread #<THREAD "main thread" RUNNING {1001688003}>: The value NIL is not of type COMMON-LISP-USER::CELL
+
+Unfortunately,  2282 is a DATA cell, so there's something really wrong!
+
+(cell "9+2282")
+{9+2282|01||16}
+
+
+
+|#
+
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
 
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
-  '(setf 
+  (setf 
    *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
   (setf *trace-@orID-exprs*
 	'(
-	  (1420 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  (1400 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
