@@ -127,16 +127,19 @@ current system.)
 
 (defun rj () ;; report on jfns
   (let ((*print-length* nil))
-    (mapcar #'print
-	    (sort 
-	     (loop for jname being the hash-keys of *jfn-calls*
-		   using (hash-value args)
-		   as calls = (loop for al in (uniquify-list args)
-				    collect (cons (or al :noargs) (count al args :test #'equal)))
-		   collect (list jname (reduce #'+ (mapcar #'cdr calls))
-				 (sort calls #'> :key #'cdr)))
-	     #'> :key #'second))
-    nil))
+    (loop for (jname ncalls expl argcounts) in 
+	  (sort 
+	   (loop for jname being the hash-keys of *jfn-calls*
+		 using (hash-value args)
+		 as calls = (loop for al in (uniquify-list args)
+				  collect (cons (or al :noargs)
+						(count al args :test #'equal)))
+		 collect (list jname
+			       (reduce #'+ (mapcar #'cdr calls))
+			       (getf (gethash jname *jfn-plists*) 'explanation)
+			       (sort calls #'> :key #'cdr)))
+	   #'> :key #'second)
+	  do (format t "~a ~a [~a]~%   ~a~%" ncalls jname expl argcounts))))
 
 (defvar *cell-tracing-on* nil)
 ;;; These will get eval'ed at the given id, for example:
