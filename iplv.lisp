@@ -76,7 +76,7 @@ current system.)
 (defvar *symtab* (make-hash-table :test #'equal))
 (defvar *systacks* (make-hash-table :test #'equal))
 
-(defun newsym (&optional (prefix "9")) (format nil "~a~a" prefix (gensym "+")))
+(defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "+"))))
 
 (defmacro make-cell! (&rest args)
   `(store (make-cell ,@args)))
@@ -2380,7 +2380,6 @@ specific addresses will likley be different.)
 
 Why are there are all these weird 2282s in the H0 stack!? ;
 
-
 @1430+ >>>>> {P055R030::P55+1665||J60|P55+1666 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
      -----> At INTERPRET-P w/P = 0, S="J60"
    H0={H0|0|9+2282|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
@@ -2388,6 +2387,9 @@ Why are there are all these weird 2282s in the H0 stack!? ;
    W1={W1|0|9+2282|0} ++ ({|0|9+2310|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
    W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
    .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: (ARG0)=("9+2282")
+
+Unfortunately,  2282 is a DATA cell, so there's something really wrong!
+
              .....In J60, this-cell = {9+2282|01||16}, link = 16
              .....In J60 next cell is 16!
    H0={H0|12||16} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
