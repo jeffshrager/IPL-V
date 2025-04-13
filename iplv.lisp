@@ -702,6 +702,8 @@ current system.)
 	    (if (stringp arg) arg
 	      (break "In ~a trying to interpret ~s as a string symbol." jfn arg))))))
 
+(defvar *J991/2-emergency-hidey-hole* nil)
+
 (defun setup-j-fns ()
 
   ;; THERE'S A TIMING PROBLEM WITH POPPING THE H0 STACK BEFORE CALLING
@@ -1633,7 +1635,19 @@ current system.)
   (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
   (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
   (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
+
+  (defj J991 () "EMERGENCY HIDE"
+	(setf *J991/2-emergency-hidey-hole*
+	      (list (cell-symb (cell "H0"))
+		    (cell-symb (cell "W1")))))
+  
+  (defj J992 () "EMERGENCY RECORVER"
+	(ipush "H0" (first *J991/2-emergency-hidey-hole*))
+	;(ipush "W1" (second *J991/2-emergency-hidey-hole*))
+	)
+
   )
+
 
 ;;; ===================================================================
 ;;; JFn Utilities
@@ -2384,7 +2398,86 @@ specific addresses will likley be different.)
 
 #| Notes on the current problem:
 
-Why are there are all these weird 2282s in the H0 stack!? ;
+P55 LOCATE SUBLIST FOLLOWING
+DATA TERM (0) ON LIST (1))
+
+@1427+ >>>>> {P055R000::P55||J41|P55+1664 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)$$$
+     -----> At INTERPRET-P w/P = 0, S="J41"
+   H0={H0|0|9+2310|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
+   W0={W0|0|9+2313|0} ++ ({|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0} {|0|9+2311|0})
+   W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|||} :EMPTY)
+
+2310 is, in fact, as data term: (cell "9+2310")={9+2310|02||3}
+
+But 9+2282 isnt a list: (cell "9+2282")={9+2282|01||16}
+
+Maybe they meant W0 and W1, but those aren't anything useful either.
+
+Why are there are all those weird 2282s in the H0 stack anyway?
+
+The last time (above the P55 call) these values had anything useful in them was:
+
+@1322- >>>>> {M042R050::M42+700||Q2|M42+701 [GET NUMBER OF LEVELS;]} (Execute fn named by symb name itself)
+   H0={H0|0|*2|0} ++ ({|0|L11|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
+   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|L+2297|0} ++ ({|0|L+2297|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+
+Is L11 useful?
+
+Not really:
+
+
++------------------------- "L11" {L011D000::L11||0|0 [L11 FOUND PROBLEMS LIST.;]} -------------------------+
+(0) {L011D000::L11||0|0 [L11 FOUND PROBLEMS LIST.;]}
++--------------------------End "L11" -------------------------------------------+
+
+
+How about *2?
+
+Well, 2310 is in fact in there:
+
++------------------------- "*2" {*2||9+2285|9+2304} -------------------------+
+(0) {*2||9+2285|9+2304}
+   (1) {9+2285||0|9+2287}
+      (2) {9+2287||Q7|9+2286}
+         (3) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+            (4) "J10"
+         (3) {9+2286||9+2284|9+2306}
+            (4) {9+2284|22|2  |}
+            (4) {9+2306||Q15|9+2305}
+               (5) {Q015R000::Q15|10|Q15|J10 [Q15 ATTRIBUTE INTERNAL FORM.;]}
+                  (6) "J10"
+               (5) {9+2305||Q15|9+2318}
+                  (6) {Q015R000::Q15|10|Q15|J10 [Q15 ATTRIBUTE INTERNAL FORM.;]}
+                     (7) "J10"
+                  (6) {9+2318||Q2|9+2317}
+                     (7) {Q002R000::Q2|40|H0|Q2+1683 [Q2 FIND NO. OF LEVELS OF TEX (0).;]}
+                        (8) {H0|12||16}
+                        (8) {Q002R010::Q2+1683|10|Q2|Q2+1684 [H5- MEANS DEFECTIVE EXPRESSION.;]}
+                           (9) {Q002R000::Q2|40|H0|Q2+1683 [Q2 FIND NO. OF LEVELS OF TEX (0).;]}
+                              (10) {H0|12||16}
+                              [@11...]
+                              [@11...]
+                              (10) {Q002R010::Q2+1683|10|Q2|Q2+1684 [H5- MEANS DEFECTIVE EXPRESSION.;]}
+                              [@11...]
+                              [@11...]
+                           (9) {Q002R020::Q2+1684||J10|Q2+1685 [FIND VALUE ON DESCRIPTION LIST.;]}
+                              (10) "J10"
+                              (10) {Q002R030::Q2+1685|70|Q2-9-0|Q2+1686 [IF NONE, GO COUNT LEVELS.;]}
+                              [@11...]
+                              [@11...]
+                     (7) {9+2317||9+2310|0}
+                        (8) {9+2310|02||3}
+
+Although it wasn't until Q2 put it there, which is what fucked us. 
+
+GET NUMBER OF LEVELS					Q2			M042R050
+    IF NONE, QUIT -.				70	9-300			M042R055
+GET SUBLIST					9-100			M042R060
+
+I think that P55 assume that *2 was on the incoming list bcs the first thing is does it push 
+
 
 @1430+ >>>>> {P055R030::P55+1665||J60|P55+1666 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
      -----> At INTERPRET-P w/P = 0, S="J60"
@@ -2510,6 +2603,23 @@ But this smashed it: "Copy of (0) replaces S; S lost; H0 n.c."
    W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|||} :EMPTY)
    W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
 
+Okay, so 2310 as the data term in 1w1 looks okay (in accord with
+comment on M042R220: 1W1=D.T. But the list that came in @
+M042R010 (1W0=PROB) is somehow fucked up by the time we get to p55.
+
+Is J52 painting the H0-Hn in the wrong order into Wn?
+
+@1330- >>>>> {Q002R100::Q2+1691||J52|Q2+1692 [SAVE COUNTER, LEVEL, TEX.;1W1=LEVEL]} (Execute fn named by symb name itself)
+   H0={H0||9+2311|} ++ ({||9+2310|} {|0|*2|0} {|0|L11|0} {|0|9+2282|0})
+   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|L+2297|0} ++ ({|0|L+2297|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+   .......... Calling J52 [PRESERVE W0-W2 THEN MOVE(0)-(2) into W0-W2] (No Args)
+   H0={H0|0|L11|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
+   W0={W0|0|9+2311|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
+   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
+
 
 |#
 
@@ -2518,13 +2628,13 @@ But this smashed it: "Copy of (0) replaces S; S lost; H0 n.c."
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
-  (setf 
+  '(setf 
    *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
   (setf *trace-@orID-exprs*
 	'(
-	  (1400 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  (1300 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
