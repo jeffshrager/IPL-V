@@ -1844,7 +1844,7 @@ current system.)
   (loop for nn from 0 to n 
 	as wcell-name in *w-cells*
 	as HCell = (let ((top (H0))) (ipop "H0") top)
-	do (ipush wcell-name (cell-symb HCell))))
+	do (ipop wcell-name) (ipush wcell-name (cell-symb HCell))))
 
 (defun J3n=restore-wn (n)
   (loop for nn from 0 to n as wname in *w-cells* do (ipop wname)))
@@ -1853,7 +1853,7 @@ current system.)
   (loop for nn from 0 to n as wname in *w-cells* do (ipush wname)))
 
 (defun J5n=preserve-wn-then-move-0-n-into-w0-wn (n)
-  ;(J4n=preserve-wn n)
+  (J4n=preserve-wn n)
   (J2n=move-0-to-n-into-w0-wn n)
   )
 
@@ -2332,7 +2332,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :jdeep :jcalls) *cell-tracing-on* t)
@@ -2342,7 +2342,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2356,7 +2356,7 @@ current system.)
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-`(progn ;; Test of call stack state machine.
+'(progn ;; Test of call stack state machine.
   (set-default-tracing)
   (setf *trace-cell-names* '("H0" "H1") *cell-tracing-on* t)
   (load-ipl "T123.lisp" :adv-limit 100)
@@ -2402,7 +2402,7 @@ specific addresses will likley be different.)
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
   '(setf 
