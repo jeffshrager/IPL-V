@@ -1282,7 +1282,6 @@ current system.)
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
 	(!! :jdeep "             .....J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg1 arg0)
-	(poph0 2)
 	(loop with cell-name = (cell-link (cell arg1))
 	      with cell = nil
 	      with exec-symb = arg0
@@ -2561,6 +2560,99 @@ The J32 is restoring crap into the Ws!
 
 I think Q2 is fucking the W state. Q2 is where H0 gets loaded up with multiple copies of 2282.
 
+Here's how we go into Q2:
+
+@1322- >>>>> {Q002R000::Q2|40|H0|Q2+1684 [Q2 FIND NO. OF LEVELS OF TEX (0).;]} (Push down (preserve) the named symb itself)
+     -----> At INTERPRET-P w/P = 4, S="H0"
+   H0={H0|0|*2|0} ++ ({|0|*2|0} {|0|L11|0} {|0|9+2283|0} {|0|9+2283|0})
+   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@1323- >>>>> {Q002R010::Q2+1684|10|Q2|Q2+1685 [H5- MEANS DEFECTIVE EXPRESSION.;]} (Push the symb (name) itself on H0)
+     -----> At INTERPRET-P w/P = 1, S="Q2"
+   H0={H0|0|Q2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|L11|0} {|0|9+2283|0})
+   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+
+And here's how we come out:
+
+@1423+ >>>>> {Q002R220::Q2+1704||J11|J32 [QUIT +, OUTPUT (0) IS LEVEL.;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J11"
+   H0={H0|0|Q2|0} ++ ({|0|9+2311|0} {|0|*2|0} {|0|9+2311|0} {|0|9+2283|0})
+   W0={W0|0|9+2314|0} ++ ({|0|9+2314|0} {|0|9+2313|0} {|0|9+2313|0} {|0|9+2312|0})
+   W1={W1|0|9+2311|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|0|L+2298|0} {|||})
+   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
+   .......... Calling J11 [ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)]: (ARG0 ARG1 ARG2)=("Q2" "9+2311" "*2")
+             .....ADD-TO-DLIST entry: dlisthead = {9+2286||0|9+2288}, att="Q2", val="9+2311"
+             .....ADD-TO-DLIST is checking next-att-cell={9+2288||Q7|9+2287}, last-val-cell={9+2286||0|9+2288}
+             .....ADD-TO-DLIST is checking next-att-cell={9+2307||Q15|9+2306}, last-val-cell={9+2287||9+2285|9+2307}
+             .....ADD-TO-DLIST taking the finally option: last-val-cell={9+2306||Q15|0}, new-att-cell = {9+2319||Q2|9+2318}, new-val-cell={9+2318||9+2311|0}
+
++------------------------- "*2" [0] -------------------------+
+| Description list:
+
++------------------------- "9+2286" [1] -------------------------+
+| {9+2286||0|9+2288}                                                  |
+| {9+2288||Q7|9+2287}                                                 |
+| {9+2287||9+2285|9+2307}                                             |
+| {9+2307||Q15|9+2306}                                                |
+| {9+2306||Q15|9+2319}                                                |
+| {9+2319||Q2|9+2318}                                                 |
+| {9+2318||9+2311|0}                                                  |
++--------------------------End: 9+2286 -------------------------------------------+
+| {*2||9+2286|9+2305}                                                 |
+| {9+2305||L+2298|0}                                                  |
++--------------------------End: *2 -------------------------------------------+
+   H0={H0|0|9+2311|0} ++ ({|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0})
+   W0={W0|0|9+2314|0} ++ ({|0|9+2314|0} {|0|9+2313|0} {|0|9+2313|0} {|0|9+2312|0})
+   W1={W1|0|9+2311|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|0|L+2298|0} {|||})
+   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
+   .......... Calling J32 [RESTORE W0-W2] (No Args)
+   H0={H0|0|9+2311|0} ++ ({|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0})
+   W0={W0|0|9+2314|0} ++ ({|0|9+2313|0} {|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0})
+   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
+@1425+ >>>>> {M042R055::M42+702|70|M42-9-300|M42+703 [    IF NONE, QUIT -.;]} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="M42-9-300"
+   H0={H0|0|9+2311|0} ++ ({|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0})
+   W0={W0|0|9+2314|0} ++ ({|0|9+2313|0} {|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0})
+   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
+
+Here's Q2's preservere W0-W2. 
+
+@1330- >>>>> {Q002R100::Q2+1692||J52|Q2+1693 [SAVE COUNTER, LEVEL, TEX.;1W1=LEVEL]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J52"
+   H0={H0||9+2312|} ++ ({||9+2311|} {|0|*2|0} {|0|L11|0} {|0|9+2283|0})
+   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+   .......... Calling J52 [PRESERVE W0-W2 THEN MOVE(0)-(2) into W0-W2] (No Args)
+   H0={H0|0|L11|0} ++ ({|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0})
+   W0={W0|0|9+2312|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
+   W1={W1|0|9+2311|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|0|L+2298|0} {|||})
+   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
+
+This seems in accord with the way we went into Q2 (*2, 2298, blank),
+above, that is, when we get to this preserve, nothing has been fucked,
+but the restore (above, later) does NOT come back to where the
+preserves were (*2, 2298, blank). Preserve and restore need to have
+some sort of stack tags!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @1428+ >>>>> {P055R010::P55+1664|20|W0|P55-9-3 [DATA TERM (0) ON LIST (1));]} (Move H0 to the named symbol itself and pop H0)
      -----> At INTERPRET-P w/P = 2, S="W0"
    H0={H0|0|9+2282|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
@@ -2619,7 +2711,6 @@ Is J52 painting the H0-Hn in the wrong order into Wn?
    W0={W0|0|9+2311|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
    W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
    W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
-
 
 |#
 
