@@ -1853,7 +1853,7 @@ current system.)
   (loop for nn from 0 to n as wname in *w-cells* do (ipush wname)))
 
 (defun J5n=preserve-wn-then-move-0-n-into-w0-wn (n)
-  (J4n=preserve-wn n)
+  ;(J4n=preserve-wn n)
   (J2n=move-0-to-n-into-w0-wn n)
   )
 
@@ -2332,7 +2332,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :jdeep :jcalls) *cell-tracing-on* t)
@@ -2342,7 +2342,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2397,333 +2397,19 @@ specific addresses will likley be different.)
 
 #| Notes on the current problem:
 
-P55 LOCATE SUBLIST FOLLOWING
-DATA TERM (0) ON LIST (1))
-
-@1427+ >>>>> {P055R000::P55||J41|P55+1664 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)$$$
-     -----> At INTERPRET-P w/P = 0, S="J41"
-   H0={H0|0|9+2310|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
-   W0={W0|0|9+2313|0} ++ ({|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0} {|0|9+2311|0})
-   W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|||} :EMPTY)
-
-2310 is, in fact, as data term: (cell "9+2310")={9+2310|02||3}
-
-But 9+2282 isnt a list: (cell "9+2282")={9+2282|01||16}
-
-Maybe they meant W0 and W1, but those aren't anything useful either.
-
-Why are there are all those weird 2282s in the H0 stack anyway?
-
-The last time (above the P55 call) these values had anything useful in them was:
-
-@1322- >>>>> {M042R050::M42+700||Q2|M42+701 [GET NUMBER OF LEVELS;]} (Execute fn named by symb name itself)
-   H0={H0|0|*2|0} ++ ({|0|L11|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
-   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|L+2297|0} ++ ({|0|L+2297|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-
-Is L11 useful?
-
-Not really:
-
-
-+------------------------- "L11" {L011D000::L11||0|0 [L11 FOUND PROBLEMS LIST.;]} -------------------------+
-(0) {L011D000::L11||0|0 [L11 FOUND PROBLEMS LIST.;]}
-+--------------------------End "L11" -------------------------------------------+
-
-
-How about *2?
-
-Well, 2310 is in fact in there:
-
-+------------------------- "*2" {*2||9+2285|9+2304} -------------------------+
-(0) {*2||9+2285|9+2304}
-   (1) {9+2285||0|9+2287}
-      (2) {9+2287||Q7|9+2286}
-         (3) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-            (4) "J10"
-         (3) {9+2286||9+2284|9+2306}
-            (4) {9+2284|22|2  |}
-            (4) {9+2306||Q15|9+2305}
-               (5) {Q015R000::Q15|10|Q15|J10 [Q15 ATTRIBUTE INTERNAL FORM.;]}
-                  (6) "J10"
-               (5) {9+2305||Q15|9+2318}
-                  (6) {Q015R000::Q15|10|Q15|J10 [Q15 ATTRIBUTE INTERNAL FORM.;]}
-                     (7) "J10"
-                  (6) {9+2318||Q2|9+2317}
-                     (7) {Q002R000::Q2|40|H0|Q2+1683 [Q2 FIND NO. OF LEVELS OF TEX (0).;]}
-                        (8) {H0|12||16}
-                        (8) {Q002R010::Q2+1683|10|Q2|Q2+1684 [H5- MEANS DEFECTIVE EXPRESSION.;]}
-                           (9) {Q002R000::Q2|40|H0|Q2+1683 [Q2 FIND NO. OF LEVELS OF TEX (0).;]}
-                              (10) {H0|12||16}
-                              [@11...]
-                              [@11...]
-                              (10) {Q002R010::Q2+1683|10|Q2|Q2+1684 [H5- MEANS DEFECTIVE EXPRESSION.;]}
-                              [@11...]
-                              [@11...]
-                           (9) {Q002R020::Q2+1684||J10|Q2+1685 [FIND VALUE ON DESCRIPTION LIST.;]}
-                              (10) "J10"
-                              (10) {Q002R030::Q2+1685|70|Q2-9-0|Q2+1686 [IF NONE, GO COUNT LEVELS.;]}
-                              [@11...]
-                              [@11...]
-                     (7) {9+2317||9+2310|0}
-                        (8) {9+2310|02||3}
-
-Although it wasn't until Q2 put it there, which is what fucked us. 
-
-GET NUMBER OF LEVELS					Q2			M042R050
-    IF NONE, QUIT -.				70	9-300			M042R055
-GET SUBLIST					9-100			M042R060
-
-I think that P55 assume that *2 was on the incoming list bcs the first thing is does it push 
-
-
-@1430+ >>>>> {P055R030::P55+1665||J60|P55+1666 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J60"
-   H0={H0|0|9+2282|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
-   W0={W0|0|9+2310|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
-   W1={W1|0|9+2282|0} ++ ({|0|9+2310|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: (ARG0)=("9+2282")
-
-Unfortunately,  2282 is a DATA cell, so there's something really wrong!
-
-             .....In J60, this-cell = {9+2282|01||16}, link = 16
-             .....In J60 next cell is 16!
-   H0={H0|12||16} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
-   W0={W0|0|9+2310|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
-   W1={W1|0|9+2282|0} ++ ({|0|9+2310|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-@1431+ >>>>> {P055R040::P55+1666|70|J31|P55+1667 [H5- MEANS OUTPUT (0) IS;]} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="J31"
-   H0={H0|12||16} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
-   W0={W0|0|9+2310|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
-   W1={W1|0|9+2282|0} ++ ({|0|9+2310|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-@1432+ >>>>> {P055R050::P55+1667|12|H0|P55+1668 [CELL AFTER WHICH TO INSERT.;]} (Push 2nd deref on H0)
-
-debugger invoked on a TYPE-ERROR @535EB7FE in thread #<THREAD "main thread" RUNNING {1001688003}>: The value NIL is not of type COMMON-LISP-USER::CELL
-
-Unfortunately,  2282 is a DATA cell, so there's something really wrong!
-
-(cell "9+2282")
-{9+2282|01||16}
-
-Somehow just before the call to P55, all the relevant paramters that were in the Ws are lost!
-
-@1423+ >>>>> {Q002R220::Q2+1703||J11|J32 [QUIT +, OUTPUT (0) IS LEVEL.;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J11"
-   H0={H0|0|Q2|0} ++ ({|0|9+2310|0} {|0|*2|0} {|0|9+2310|0} {|0|9+2282|0})
-   W0={W0|0|9+2313|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
-   W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
-   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
-   .......... Calling J11 [ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)]: (ARG0 ARG1 ARG2)=("Q2" "9+2310" "*2")
-             .....ADD-TO-DLIST entry: dlisthead = {9+2285||0|9+2287}, att="Q2", val="9+2310"
-             .....ADD-TO-DLIST is checking next-att-cell={9+2287||Q7|9+2286}, last-val-cell={9+2285||0|9+2287}
-             .....ADD-TO-DLIST is checking next-att-cell={9+2306||Q15|9+2305}, last-val-cell={9+2286||9+2284|9+2306}
-             .....ADD-TO-DLIST taking the finally option: last-val-cell={9+2305||Q15|0}, new-att-cell = {9+2318||Q2|9+2317}, new-val-cell={9+2317||9+2310|0}
-
-+------------------------- "*2" [0] -------------------------+
-| Description list:
-
-+------------------------- "9+2285" [1] -------------------------+
-| {9+2285||0|9+2287}                                                  |
-| {9+2287||Q7|9+2286}                                                 |
-| {9+2286||9+2284|9+2306}                                             |
-| {9+2306||Q15|9+2305}                                                |
-| {9+2305||Q15|9+2318}                                                |
-| {9+2318||Q2|9+2317}                                                 |
-| {9+2317||9+2310|0}                                                  |
-+--------------------------End: 9+2285 -------------------------------------------+
-| {*2||9+2285|9+2304}                                                 |
-| {9+2304||L+2297|0}                                                  |
-+--------------------------End: *2 -------------------------------------------+
-   H0={H0|0|9+2310|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
-   W0={W0|0|9+2313|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
-   W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
-   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
-   .......... Calling J32 [RESTORE W0-W2] (No Args)
-   H0={H0|0|9+2310|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
-   W0={W0|0|9+2313|0} ++ ({|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0} {|0|9+2311|0})
-   W1={W1|0|L+2297|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-@1425+ >>>>> {M042R055::M42+701|70|M42-9-300|M42+702 [    IF NONE, QUIT -.;]} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="M42-9-300"
-   H0={H0|0|9+2310|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
-   W0={W0|0|9+2313|0} ++ ({|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0} {|0|9+2311|0})
-   W1={W1|0|L+2297|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-@1426+ >>>>> {M042R060::M42+702||M42-9-100|M42+703 [GET SUBLIST;]} (Execute fn named by symb name itself)
-
-
-The J32 is restoring crap into the Ws!
-
-I think Q2 is fucking the W state. Q2 is where H0 gets loaded up with multiple copies of 2282.
-
-Here's how we go into Q2:
-
-@1322- >>>>> {Q002R000::Q2|40|H0|Q2+1684 [Q2 FIND NO. OF LEVELS OF TEX (0).;]} (Push down (preserve) the named symb itself)
-     -----> At INTERPRET-P w/P = 4, S="H0"
-   H0={H0|0|*2|0} ++ ({|0|*2|0} {|0|L11|0} {|0|9+2283|0} {|0|9+2283|0})
-   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-@1323- >>>>> {Q002R010::Q2+1684|10|Q2|Q2+1685 [H5- MEANS DEFECTIVE EXPRESSION.;]} (Push the symb (name) itself on H0)
-     -----> At INTERPRET-P w/P = 1, S="Q2"
-   H0={H0|0|Q2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|L11|0} {|0|9+2283|0})
-   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-
-And here's how we come out:
-
-@1423+ >>>>> {Q002R220::Q2+1704||J11|J32 [QUIT +, OUTPUT (0) IS LEVEL.;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J11"
-   H0={H0|0|Q2|0} ++ ({|0|9+2311|0} {|0|*2|0} {|0|9+2311|0} {|0|9+2283|0})
-   W0={W0|0|9+2314|0} ++ ({|0|9+2314|0} {|0|9+2313|0} {|0|9+2313|0} {|0|9+2312|0})
-   W1={W1|0|9+2311|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|0|L+2298|0} {|||})
-   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
-   .......... Calling J11 [ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)]: (ARG0 ARG1 ARG2)=("Q2" "9+2311" "*2")
-             .....ADD-TO-DLIST entry: dlisthead = {9+2286||0|9+2288}, att="Q2", val="9+2311"
-             .....ADD-TO-DLIST is checking next-att-cell={9+2288||Q7|9+2287}, last-val-cell={9+2286||0|9+2288}
-             .....ADD-TO-DLIST is checking next-att-cell={9+2307||Q15|9+2306}, last-val-cell={9+2287||9+2285|9+2307}
-             .....ADD-TO-DLIST taking the finally option: last-val-cell={9+2306||Q15|0}, new-att-cell = {9+2319||Q2|9+2318}, new-val-cell={9+2318||9+2311|0}
-
-+------------------------- "*2" [0] -------------------------+
-| Description list:
-
-+------------------------- "9+2286" [1] -------------------------+
-| {9+2286||0|9+2288}                                                  |
-| {9+2288||Q7|9+2287}                                                 |
-| {9+2287||9+2285|9+2307}                                             |
-| {9+2307||Q15|9+2306}                                                |
-| {9+2306||Q15|9+2319}                                                |
-| {9+2319||Q2|9+2318}                                                 |
-| {9+2318||9+2311|0}                                                  |
-+--------------------------End: 9+2286 -------------------------------------------+
-| {*2||9+2286|9+2305}                                                 |
-| {9+2305||L+2298|0}                                                  |
-+--------------------------End: *2 -------------------------------------------+
-   H0={H0|0|9+2311|0} ++ ({|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0})
-   W0={W0|0|9+2314|0} ++ ({|0|9+2314|0} {|0|9+2313|0} {|0|9+2313|0} {|0|9+2312|0})
-   W1={W1|0|9+2311|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|0|L+2298|0} {|||})
-   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
-   .......... Calling J32 [RESTORE W0-W2] (No Args)
-   H0={H0|0|9+2311|0} ++ ({|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0})
-   W0={W0|0|9+2314|0} ++ ({|0|9+2313|0} {|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0})
-   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-@1425+ >>>>> {M042R055::M42+702|70|M42-9-300|M42+703 [    IF NONE, QUIT -.;]} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="M42-9-300"
-   H0={H0|0|9+2311|0} ++ ({|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0})
-   W0={W0|0|9+2314|0} ++ ({|0|9+2313|0} {|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0})
-   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-
-Here's Q2's preservere W0-W2. 
-
-@1330- >>>>> {Q002R100::Q2+1692||J52|Q2+1693 [SAVE COUNTER, LEVEL, TEX.;1W1=LEVEL]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J52"
-   H0={H0||9+2312|} ++ ({||9+2311|} {|0|*2|0} {|0|L11|0} {|0|9+2283|0})
-   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|L+2298|0} ++ ({|0|L+2298|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-   .......... Calling J52 [PRESERVE W0-W2 THEN MOVE(0)-(2) into W0-W2] (No Args)
-   H0={H0|0|L11|0} ++ ({|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0} {|0|9+2283|0})
-   W0={W0|0|9+2312|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|9+2311|0} ++ ({|0|L+2298|0} {|0|L+2298|0} {|0|L+2298|0} {|||})
-   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
-
-This seems in accord with the way we went into Q2 (*2, 2298, blank),
-above, that is, when we get to this preserve, nothing has been fucked,
-but the restore (above, later) does NOT come back to where the
-preserves were (*2, 2298, blank). Preserve and restore need to have
-some sort of stack tags!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-@1428+ >>>>> {P055R010::P55+1664|20|W0|P55-9-3 [DATA TERM (0) ON LIST (1));]} (Move H0 to the named symbol itself and pop H0)
-     -----> At INTERPRET-P w/P = 2, S="W0"
-   H0={H0|0|9+2282|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2231|0})
-   W0={W0|0|9+2310|0} ++ ({|0|9+2313|0} {|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0})
-   W1={W1|0|9+2310|0} ++ ({|0|9+2310|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-
-But (1) ain't a list! (The data term (0) is, in fact, a data term:
-
-(cell "9+2282"):{9+2282|01||16}
-
-(Although I think it's supposed to be (cell "9+2310"): {9+2310|02||3}
-
-But list (1) is probably supposed to be ... Maybe L+2297 (or perhaps *2)
-
-(0) {L+2297|02|I0|9+2301}
-   (1) {I000D000::I0||I0+1842|0 [IMPLIES;]}
-   (1) {9+2301||L+2298|9+2302}
-      (2) {L+2298|02|V0|9+2299}
-         (3) {9+2299||P0|9+2300}
-            (4) {9+2300||P0|0}
-      (2) {9+2302||P0|0}
-
-It was right there!
-
-@1426+ >>>>> {M042R060::M42+702||M42-9-100|M42+703 [GET SUBLIST;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="M42-9-100"
-   H0={H0|0|9+2310|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
-   W0={W0|0|9+2313|0} ++ ({|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0} {|0|9+2311|0})
-   W1={W1|0|*****L+2297*****|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-
-But this smashed it: "Copy of (0) replaces S; S lost; H0 n.c."
-
-@1426+ >>>>> {M042R220::M42-9-100|64|W1|M42+718 [9-100 SUBPROCESS, GET SUBLIST.;1W1=D.T.]} (Copy of (0) replaces S; S lost; H0 n.c. (==60))
-(Unimplemented monitor action in {M042R220::M42-9-100|64|W1|M42+718 [9-100 SUBPROCESS, GET SUBLIST.;1W1=D.T.]}; Executing w/o monitor!)
-     -----> At INTERPRET-P w/P = 6, S="W1"
-   H0={H0|0|9+2310|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
-   W0={W0|0|9+2313|0} ++ ({|0|9+2312|0} {|0|9+2312|0} {|0|9+2311|0} {|0|9+2311|0})
-   W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} {|||} :EMPTY)
-
-Okay, so 2310 as the data term in 1w1 looks okay (in accord with
-comment on M042R220: 1W1=D.T. But the list that came in @
-M042R010 (1W0=PROB) is somehow fucked up by the time we get to p55.
-
-Is J52 painting the H0-Hn in the wrong order into Wn?
-
-@1330- >>>>> {Q002R100::Q2+1691||J52|Q2+1692 [SAVE COUNTER, LEVEL, TEX.;1W1=LEVEL]} (Execute fn named by symb name itself)
-   H0={H0||9+2311|} ++ ({||9+2310|} {|0|*2|0} {|0|L11|0} {|0|9+2282|0})
-   W0={W0|0|*2|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|L+2297|0} ++ ({|0|L+2297|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-   .......... Calling J52 [PRESERVE W0-W2 THEN MOVE(0)-(2) into W0-W2] (No Args)
-   H0={H0|0|L11|0} ++ ({|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0} {|0|9+2282|0})
-   W0={W0|0|9+2311|0} ++ ({|0|*2|0} {|0|*2|0} {|0|*2|0} {|0|*2|0})
-   W1={W1|0|9+2310|0} ++ ({|0|L+2297|0} {|0|L+2297|0} {|0|L+2297|0} {|||})
-   W2={W2|0|*2|0} ++ ({|||} {|||} {|||} {|||})
 
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
   '(setf 
    *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  (setf *trace-@orID-exprs*
+  `(setf *trace-@orID-exprs*
 	'(
 	  (1300 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
