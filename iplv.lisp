@@ -844,7 +844,13 @@ current system.)
 	;; generator hideout). 3. Obtains the trace mode of the
 	;; superroutine, and records it in one of the hideout cells (see §
 	;; 15.0, MONITOR SYSTEM).
-	(poph0 2) ;; Safe -- never passed H0
+	(poph0 2) ;; Safe -- never passed H0 This is an ugly hack that
+	;; grabs the previous generator processing fn, if J18 is
+	;; passed as the process function.)
+	(!! :Jdeep "             J17 called with wn:~s and fn:~s~%" wn-symb fn)
+	(when (string-equal fn "J18")
+	  (setf fn (gentry-fn (car *genstack*)))
+	  (!! :jdeep "             .....J18 HACK!! is replacing subFn with ~s~%" fn))
 	(let* ((wn (parse-integer (subseq wn-symb 1 2))))
 	  (J4n=preserve-wn wn)
 	  (push (make-gentry :fn fn
@@ -879,10 +885,15 @@ current system.)
 	       (fn (gentry-fn gentry))
 	       (wn (gentry-wn gentry))
 	       (wnames (gentry-wnames gentry))
+	       ;; WVALS is the generator context, held by the lisp
+	       ;; stack. (So we don't need a special stack for the
+	       ;; generator context.)
 	       (wvals (loop for wname in wnames
 			 as wcell = (cell wname)
 			 do (ipop wname)
 			 collect wcell)))
+	  (!! :jdeep "             J18: *genstack* = ~s~%" *genstack*)
+	  (!! :jdeep "             .....J18 (fn=~s, wn=~s)~%" fn wn)
 	  ;; This seems redundant with the one in J19, but that one is
 	  ;; restoring the caller context, whereas this one is
 	  ;; restoring the generator context.
@@ -1302,6 +1313,16 @@ current system.)
 	      (!! :jdeep "             .....J100 returned, H5=~s, next cell-name=~s~%" (H5) cell-name)
 	      ))
 
+  (defj J110 (arg0 arg1 arg2) "(1) + (2) = (O)" 
+	;; The number (0) is set equal to the algebraic difference between numbers
+	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
+	(let* ((n1 (numget arg1))
+	       (n2 (numget arg2))
+	       (r (+ n1 n2)))
+	  (!! :jdeep "             .....J110: ~a + ~a = ~a~%" n1 n2 r)
+	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
+	  (numset arg0 r)))
+
   (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
 	;; The number (0) is set equal to the algebraic difference between numbers
 	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
@@ -1375,6 +1396,28 @@ current system.)
 		      (progn (!! :jdeep "             .....Warning! J125 was sent a non-number: ~s, setting result to 1~%" curval) 1)
 		      (1+ curval)))))
 
+  (defj J126 (arg0) "COUNT LIST (0)"
+	;; The output (0) is an integer data term, whose value is the
+	;; number of list cells in list (0) (i.e., it doesn't count
+	;; the head). If (0) = H2, J126 will count the available space
+	;; list. This is the only place where H2 can be used safely by
+	;; the programmer. [Nb. H2 is not passed to COUNT LIST in LT]
+	(let* ((count-cell (make-cell! :name (newsym) :pq "12" :link 0))
+	       (count-cell-name (cell-name count-cell))
+	       (list-head (cell arg0))
+	       (next-cell-name (cell-link list-head))
+	       (count 0))
+	  (!! :jdeep "             J126 counting ~a:~%" arg0)
+	  (!! :jdeep (pll (cell arg0)))
+	  (loop until (zero? next-cell-name)
+		do (incf count)
+		(setf next-cell-name (cell-link (cell next-cell-name)))
+		finally (progn (poph0 1)
+			       (numset count-cell-name count)
+			       (!! :jdeep "             J126 result is ~s:~%" count-cell)
+			       (ipush "H0" count-cell-name))
+		)))
+
   (defj J130 (arg0) "TEST IF (O) IS REGIONAL SYMBOL"
 	;; Tests if Q = 0 in arg0. [WWW ??? We might want this to
 	;; actually do something a little more un-IPL-ish, like look
@@ -1429,6 +1472,17 @@ current system.)
 	  ;; Now we mark the new main cell as indicated.
 	  (setf (cell-pq newmain) "14" (cell-symb newmain) "0")
 	  ))
+
+  (defj J138 (arg0) "J138 MAKE SYMBOL (O) INTERNAL"
+	;; The output (0) is the input (0) with Q = 4. Best considered
+	;; as "unmake local symbol." [Whatever the f any of that
+	;; means! This is one of those confusing ones where it seems
+	;; to indicate that the symbol includes the PQ.]
+	(setf (cell-pq (H0)) (format "~a4" (aref (cell-pq (H0)) 0))))
+
+  (defj J147 (arg0) "MARK ROUTINE (O) TO TRACE"
+	;; FFF Maybe actually turn tracing on! :-)
+	(poph0 1))
 
   (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE." 	;; Pop????
 	;; Identical to J147, except uses Q = 4.
@@ -1629,11 +1683,7 @@ current system.)
 		(ipush "H0" (format nil (if (numchar? c) "~c" "~c0") c))
 		(H5+)))))
 
-  (defj J14 () "Unimplemented!" (break "J14 is unimplemented!"))
-  (defj J110 () "Unimplemented!" (break "J110 is unimplemented!"))
-  (defj J126 () "Unimplemented!" (break "J126 is unimplemented!"))
-  (defj J138 () "Unimplemented!" (break "J138 is unimplemented!"))
-  (defj J147 () "Unimplemented!" (break "J147 is unimplemented!"))
+  (defj J14 () "Unimplemented!" (break "J14 is unimplemented!")) ;; ERASE ATTRIBUTE(0) OF (1) **
 
   (defj J991 () "EMERGENCY HIDE"
 	(setf *J991/2-emergency-hidey-hole*
@@ -1651,13 +1701,10 @@ current system.)
 ;;; ===================================================================
 ;;; JFn Utilities
 
-;;; Used to pop the inputs of JFns. Usually you'll want to do this
-;;; before the operation because you'll often want to put a result
-;;; back on. Unfortunately, it's not consistent whether a jfn removes
-;;; all its args.
-
-;;; If n is negative, it pops the top of the stack w/o replacing the
-;;; top. (Some JFns need this to happen!)
+;;; Used to pop the inputs of JFns. You need to be VERY CAREFUL about
+;;; when in the JFn you do pop the args bcs the JFn may want to use
+;;; H0! If n is negative, it pops the top of the underlying stack w/o
+;;; replacing the main (some JFns need this to happen).
 
 (defun PopH0 (n) (dotimes (i (abs n)) (if (< n 0) (pop (H0+)) (ipop "H0"))))
 
@@ -2409,9 +2456,9 @@ specific addresses will likley be different.)
    *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  `(setf *trace-@orID-exprs*
+  (setf *trace-@orID-exprs*
 	'(
-	  (1300 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  (1500 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
