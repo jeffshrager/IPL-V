@@ -901,7 +901,7 @@ current system.)
 	  ;; This seems redundant with the one in J19, but that one is
 	  ;; restoring the caller context, whereas this one is
 	  ;; restoring the generator context.
-	  (J3n=restore-wn wn)
+	  ;; (J3n=restore-wn wn) !!! This was causing double poppage ~ 20250415
 	  ;; We also temporarily pull the top of the genstack to reveal what's underneath in case there is a recursive generator in use. 
 	  (let ((held-genstack-entry (pop *genstack*)))
 	    (!! :jdeep "             .....J18 holding ~s off the genstack...~%" held-genstack-entry)
@@ -2468,7 +2468,7 @@ specific addresses will likley be different.)
    *cell-tracing-on* t)
   (setf *trace-@orID-exprs*
 	'(
-	  (1500 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  (1800 (trace ipop) (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
