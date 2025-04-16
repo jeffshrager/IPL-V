@@ -844,13 +844,17 @@ current system.)
 	;; generator hideout). 3. Obtains the trace mode of the
 	;; superroutine, and records it in one of the hideout cells (see §
 	;; 15.0, MONITOR SYSTEM).
-	(poph0 2) ;; Safe -- never passed H0 This is an ugly hack that
-	;; grabs the previous generator processing fn, if J18 is
-	;; passed as the process function.)
-	(!! :Jdeep "             J17 called with wn:~s and fn:~s~%" wn-symb fn)
-	(when (string-equal fn "J18")
-	  (setf fn (gentry-fn (car *genstack*)))
-	  (!! :jdeep "             .....J18 HACK!! is replacing subFn with ~s~%" fn))
+	(poph0 2) ;; Safe -- never passed H0
+
+	;; This is an ugly hack that grabs the previous generator processing fn, if 
+	;; J18 is passed as the process function. ... At the moment it's been undone
+	;; bcs instead I've made J18 actually remove the top entry from the genstack
+	;; before IPL-EVAL re-entry, which has sort of the same effect, albeit cleaner.
+	;; (!! :Jdeep "             J17 called with wn:~s and fn:~s~%" wn-symb fn)
+	;; (when (string-equal fn "J18")
+	;;   (setf fn (gentry-fn (car *genstack*)))
+	;;   (!! :jdeep "             .....J18 HACK!! is replacing subFn with ~s~%" fn))
+
 	(let* ((wn (parse-integer (subseq wn-symb 1 2))))
 	  (J4n=preserve-wn wn)
 	  (push (make-gentry :fn fn
@@ -889,18 +893,24 @@ current system.)
 	       ;; stack. (So we don't need a special stack for the
 	       ;; generator context.)
 	       (wvals (loop for wname in wnames
-			 as wcell = (cell wname)
-			 do (ipop wname)
-			 collect wcell)))
+			    as wcell = (cell wname)
+			    do (ipop wname)
+			    collect wcell)))
 	  (!! :jdeep "             J18: *genstack* = ~s~%" *genstack*)
 	  (!! :jdeep "             .....J18 (fn=~s, wn=~s)~%" fn wn)
 	  ;; This seems redundant with the one in J19, but that one is
 	  ;; restoring the caller context, whereas this one is
 	  ;; restoring the generator context.
 	  (J3n=restore-wn wn)
-	  (!! :jdeep "             .....J18 Executing ~s~%" fn)
-	  (ipl-eval fn)
-	  (!! :jdeep "             .....J18 ~s returned with H5=~a~%" fn (H5))
+	  ;; We also temporarily pull the top of the genstack to reveal what's underneath in case there is a recursive generator in use. 
+	  (let ((held-genstack-entry (pop *genstack*)))
+	    (!! :jdeep "             .....J18 holding ~s off the genstack...~%" held-genstack-entry)
+	    (!! :jdeep "             .....*genstack* is now: ~s~%" *genstack*)
+	    (!! :jdeep "             .....J18 Executing ~s~%" fn)
+	    (ipl-eval fn)
+	    (!! :jdeep "             .....J18 ~s returned with H5=~a~%" fn (H5))
+	    ;; Now we put it back
+	    (push held-genstack-entry *genstack*))
 	  (loop for wname in wnames
 		as wval in wvals
 		do (ipush wname wval))
