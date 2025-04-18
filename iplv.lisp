@@ -2461,12 +2461,12 @@ specific addresses will likley be different.)
 
 (progn ;; LT 
   (set-default-tracing)
-  (setf *!!* nil *cell-tracing-on* nil)
+  '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
    *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  (setf *trace-@orID-exprs*
+  '(setf *trace-@orID-exprs*
 	'(
 	  (1800 (trace ipop) (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))

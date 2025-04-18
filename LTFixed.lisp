@@ -38,7 +38,7 @@
 ("   PROBLEM (0). H5 + IF SUCCEEDS " "" "" "" "40" "W0" "" "" "M001R010")
 ("" "" "" "" "60" "W0" "" "1W0=PROB" "M001R020")
 ("TEST UTILITY." "" "" "" "" "M43" "" "" "M001R030")
-("     IF NO GOOD, QUIT." "" "" "" "70" "9-4" "" "" "M001R040")
+;("     IF NO GOOD, QUIT." "" "" "" "70" "9-4" "" "" "M001R040") don't worry about utility -- just try to prove it!
 ("" "" "" "" "11" "W0" "" "" "M001R050")
 ("PRINT 'TO PROVE' PROBLEM 1W0." "" "" "" "" "M78" "" "" "M001R060")
 ("" "" "" "" "11" "W0" "" "" "M001R070")
