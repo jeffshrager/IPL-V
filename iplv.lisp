@@ -1987,21 +1987,23 @@ current system.)
     (format t "+--------------------------End: ~a -------------------------------------------+~%" symb)
     ))
 
-(defun pl (symb)
+(defun pl (symb &rest args)
     (format t "~%+------------------------- ~s ~s -------------------------+~%" symb (cell symb))
-    (print-list symb :limit 10)
+    (apply #'print-list symb args)
     (format t "+--------------------------End ~s -------------------------------------------+~%" symb)
     )
-(defun print-list (symb &key (depth 0) (limit 10))
+(defun print-list (symb &key (depth 0) (limit 10) (dls? t))
   (cond ((> depth limit) (format t "~a[@~a...]~%" (blanks (* (1- depth) 3)) depth))
 	((or (not (atom symb)) (numberp symb) (null symb) (null (ignore-errors (cell symb))) (zero? symb)))
 	(t (let ((cell (cell symb)))
 	     (format t "~a(~a) ~s~%" (blanks (* depth 3)) depth
 		     (or (gethash cell *jfn->name*) cell))
 	     (when (cell? cell)
-	       ;; Break direct recursions and don't chase numbers
-	       (unless (equal (cell-symb cell) symb)
-		 (print-list (cell-symb cell) :depth (1+ depth) :limit limit))
+	       ;; Break direct recursions, don't chase numbers, and maybe don't chase DLs
+	       (if dls?
+		 (unless (equal (cell-symb cell) symb)
+		   (print-list (cell-symb cell) :depth (1+ depth) :limit limit))
+		 (format t "~a(dl suppressed)~%" (blanks (* (1+ depth) 3))))
 	       (unless (equal (cell-link cell) symb)
 		 (print-list (cell-link cell) :depth (1+ depth) :limit limit)))))))
 	     
@@ -2426,33 +2428,182 @@ current system.)
 
 #|
 
-This is what ((AVB)IC) Looks like. Compare with Sefferud p. 5. (These
-specific addresses will likley be different.)
+*1    ((AVA)IA)
++------------------------- "*1" {*1||9+2233|9+2252} -------------------------+
+(0) {*1||9+2233|9+2252}
+   (dl suppressed)
+   (1) {9+2252||L+2245|0}
+      (2) {L+2245|02|I0|9+2249}
+         (3) {I000D000::I0||I0+1841|0 [IMPLIES;]}
+            (4) {I000D010::I0+1841||0|I0+1842}
+               (5) {I000D020::I0+1842||Q14|I0+1843}
+                  (6) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
+                     (7) "J10"
+                  (6) {I000D030::I0+1843||J4|I0+1844}
+                     (7) "J4"
+                     (7) {I000D040::I0+1844||Q7|I0+1845}
+                        (8) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+                           (9) "J10"
+                        (8) {I000D050::I0+1845||I0+1846|0}
+                           (9) {I000D060::I0+1846|21|I|}
+         (3) {9+2249||L+2246|9+2250}
+            (4) {L+2246|02|V0|9+2247}
+               (5) {V000D000::V0||V0+2031|0 [OR;]}
+                  (6) {V000D000::V0+2031||0|V0+2032}
+                     (7) {V000D010::V0+2032||Q14|V0+2033}
+                        (8) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
+                           (9) "J10"
+                        (8) {V000D020::V0+2033||J4|V0+2034}
+                           (9) "J4"
+                           (9) {V000D030::V0+2034||Q7|V0+2035}
+                              (10) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+                              [@11...]
+                              (10) {V000D040::V0+2035||V0+2036|0}
+                              [@11...]
+                              [@11...]
+               (5) {9+2247||A0|9+2248}
+                  (6) {A000D000::A0||A0+1782|0 [FREE VARIABLE A;]}
+                     (7) {A000D010::A0+1782||0|A0+1783}
+                        (8) {A000D020::A0+1783||Q5|A0+1784}
+                           (9) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                              (10) "J10"
+                           (9) {A000D030::A0+1784||Q5|A0+1785}
+                              (10) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                              [@11...]
+                              (10) {A000D040::A0+1785||Q6|A0+1786}
+                              [@11...]
+                              [@11...]
+                  (6) {9+2248||A0|0}
+                     (7) {A000D000::A0||A0+1782|0 [FREE VARIABLE A;]}
+                        (8) {A000D010::A0+1782||0|A0+1783}
+                           (9) {A000D020::A0+1783||Q5|A0+1784}
+                              (10) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                              [@11...]
+                              (10) {A000D030::A0+1784||Q5|A0+1785}
+                              [@11...]
+                              [@11...]
+            (4) {9+2250||A0|0}
+               (5) {A000D000::A0||A0+1782|0 [FREE VARIABLE A;]}
+                  (6) {A000D010::A0+1782||0|A0+1783}
+                     (7) {A000D020::A0+1783||Q5|A0+1784}
+                        (8) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                           (9) "J10"
+                        (8) {A000D030::A0+1784||Q5|A0+1785}
+                           (9) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                              (10) "J10"
+                           (9) {A000D040::A0+1785||Q6|A0+1786}
+                              (10) {Q006R000::Q6|10|Q6|J10 [ATTRIBUTE-FREE VARIABLE;]}
+                              [@11...]
+                              (10) {A000D050::A0+1786||Q6|A0+1787}
+                              [@11...]
+                              [@11...]
++--------------------------End "*1" -------------------------------------------+
 
-(0) {*1||9+2234|9+2253}
-   ...(1) {9+2234||0|9+2236} ;; *1's Dlist...
-   (1) {9+2253||L+2246|0} ;; This is the sceond line from p. 5: {...||9-1|0}
-      (2) {L+2246|02|I0|9+2250}
-         (3) {9+2250||L+2247|9+2251}
-            (4) {L+2247|02|V0|9+2248}
-               (5) {9+2248||A0|9+2249}
-                  (6) {9+2249||B0|0}
-            (4) {9+2251||C0|0}
 
-(0) {*2||9+2268|9+2287}
-   (1) ...(*2's Dlist)...
-   (1) {9+2287||L+2280|0}
-      (2) {L+2280|02|I0|9+2284}
-         (3) {9+2284||L+2281|9+2285}
-            (4) {L+2281|02|V0|9+2282}
-               (5) {9+2282||P0|9+2283}
-                  (6) {9+2283||P0|0}
-            (4) {9+2285||P0|0}
+
+*2    ((PVP)IP)
++------------------------- "*2" {*2||9+2284|9+2303} -------------------------+
+(0) {*2||9+2284|9+2303}
+   (dl suppressed)
+   (1) {9+2303||L+2296|0}
+      (2) {L+2296|02|I0|9+2300}
+         (3) {I000D000::I0||I0+1841|0 [IMPLIES;]}
+            (4) {I000D010::I0+1841||0|I0+1842}
+               (5) {I000D020::I0+1842||Q14|I0+1843}
+                  (6) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
+                     (7) "J10"
+                  (6) {I000D030::I0+1843||J4|I0+1844}
+                     (7) "J4"
+                     (7) {I000D040::I0+1844||Q7|I0+1845}
+                        (8) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+                           (9) "J10"
+                        (8) {I000D050::I0+1845||I0+1846|0}
+                           (9) {I000D060::I0+1846|21|I|}
+         (3) {9+2300||L+2297|9+2301}
+            (4) {L+2297|02|V0|9+2298}
+               (5) {V000D000::V0||V0+2031|0 [OR;]}
+                  (6) {V000D000::V0+2031||0|V0+2032}
+                     (7) {V000D010::V0+2032||Q14|V0+2033}
+                        (8) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
+                           (9) "J10"
+                        (8) {V000D020::V0+2033||J4|V0+2034}
+                           (9) "J4"
+                           (9) {V000D030::V0+2034||Q7|V0+2035}
+                              (10) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+                              [@11...]
+                              (10) {V000D040::V0+2035||V0+2036|0}
+                              [@11...]
+                              [@11...]
+               (5) {9+2298||P0|9+2299}
+                  (6) {P000D000::P0||P0+1916|0 [VARIABLE P;]}
+                     (7) {P000D010::P0+1916||0|P0+1917}
+                        (8) {P000D020::P0+1917||Q5|P0+1918}
+                           (9) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                              (10) "J10"
+                           (9) {P000D030::P0+1918||Q5|P0+1919}
+                              (10) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                              [@11...]
+                              (10) {P000D033::P0+1919||Q9|P0+1920}
+                              [@11...]
+                              [@11...]
+                  (6) {9+2299||P0|0}
+                     (7) {P000D000::P0||P0+1916|0 [VARIABLE P;]}
+                        (8) {P000D010::P0+1916||0|P0+1917}
+                           (9) {P000D020::P0+1917||Q5|P0+1918}
+                              (10) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                              [@11...]
+                              (10) {P000D030::P0+1918||Q5|P0+1919}
+                              [@11...]
+                              [@11...]
+            (4) {9+2301||P0|0}
+               (5) {P000D000::P0||P0+1916|0 [VARIABLE P;]}
+                  (6) {P000D010::P0+1916||0|P0+1917}
+                     (7) {P000D020::P0+1917||Q5|P0+1918}
+                        (8) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                           (9) "J10"
+                        (8) {P000D030::P0+1918||Q5|P0+1919}
+                           (9) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
+                              (10) "J10"
+                           (9) {P000D033::P0+1919||Q9|P0+1920}
+                              (10) {Q009R000::Q9|10|Q9|J10 [Q9 ATTRIBUTE--BOUND VARIABLE.;]}
+                              [@11...]
+                              (10) {P000D037::P0+1920||Q9|P0+1921}
+                              [@11...]
+                              [@11...]
++--------------------------End "*2" -------------------------------------------+
 
 
 |#
 
 #| Notes on the current problem:
+
+@2034- >>>>> {M001R070::M1+129|11|W0|M1+130} (Push cntnts of the cell named by symb, onto H0)
+@2035- >>>>> {M001R080::M1+130||M12|M1+131 [TRY SUBSTITUTION.;]} (Execute fn named by symb name itself)
+@2035- >>>>> {M012R000::M12||J43|M12+234 [M12 SUBSTITUTION METHOD FOR;]} (Execute fn named by symb name itself)
+   .......... Calling J43 [PRESERVE W0-W3] (No Args)
+@2036- >>>>> {M012R010::M12+234|60|W1|M12+235 [    PROBLEM (0). H5+ MEANS;1W1=PROB]} (Copy of (0) replaces S; S lost; H0 n.c.)
+@2037- >>>>> {M012R020::M12+235||J81|M12+236 [    OUTPUT (0) IS A SOLUTION;]} (Execute fn named by symb name itself)
+   .......... Calling J81 [FIND THE 1st (non-head) SYMBOL OF (0)]: (ARG0)=("*2")
+@2038+ >>>>> {M012R030::M12+236|70|J33|M12+237 [    H5- MEANS NO OUTPUT.;]} (Goto by H5: -symb|+link itself)
+@2039+ >>>>> {M012R040::M12+237|60|W0|M12+238 [;1W0=PRBMEX]} (Copy of (0) replaces S; S lost; H0 n.c.)
+@2040+ >>>>> {M012R050::M12+238|50|K11|M12+239} (Replace H0 by the named symb itself)
+@2041+ >>>>> {M012R060::M12+239||J125|M12+240 [TALLY SUBSTITUTION COUNTER.;]} (Execute fn named by symb name itself)
+   .......... Calling J125 [TALLY 1 IN (0)]: (ARG0)=("K11")
+@2042+ >>>>> {M012R070::M12+240|51|W1|M12+241} (Replace H0 by the cell named in the H0 symb)
+@2043+ >>>>> {M012R080::M12+241|10|L4|M12+242} (Push the symb (name) itself on H0)
+@2044+ >>>>> {M012R090::M12+242||M63|M12+243 [GET A LIST OF FEASIBLE THEOREMS.;]} (Execute fn named by symb name itself)
+@2044+ >>>>> {M063R000::M63||J6|M63+908 [M63 CREATE A LIST OF TRUE;]} (Execute fn named by symb name itself)
+   .......... Calling J6 [REVERSE (0) and (1)] (No Args)
+@2045+ >>>>> {M063R010::M63+908||J81|M63+909 [    EXPRESSIONS FROM MAP (0) FOR;]} (Execute fn named by symb name itself)
+   .......... Calling J81 [FIND THE 1st (non-head) SYMBOL OF (0)]: (ARG0)=("*2")
+@2046+ >>>>> {M063R020::M63+909|70|M63+910|M62 [    FEASIBLE MATCH WITH TEX (1).;]} (Goto by H5: -symb|+link itself)
+@2047+ >>>>> {M062R000::M62||J45|M62+852 [M62 CREATE A LIST OF TRUE;]} (Execute fn named by symb name itself)
+   .......... Calling J45 [PRESERVE W0-W5] (No Args)
+@2048+ >>>>> {M062R010::M62+852|20|W0|M62+853 [    EXPRESSIONS FROM MAP (1) FOR;1W0=SEG]} (Move H0 to the named symbol itself and pop H0)
+@2049+ >>>>> {M062R020::M62+853|60|W1|M62+854 [    FEASIBLE MATCH WITH SEGMENT;1W1=MAP]} (Copy of (0) replaces S; S lost; H0 n.c.)
+@2050+ >>>>> {M062R030::M62+854|52|W1|M62+855 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
+@2051+ >>>>> {M062R040::M62+855||J73|M62+856} (Execute fn named by symb name itself)
+   .......... Calling J73 [Copy list]: (ARG0)=("0")
 
 
 |#
