@@ -1747,9 +1747,9 @@ current system.)
 	  (setf (cell-link prev-cell) next-cell-name)
 	  (setf prev-cell next-cell))
     (poph0 n)
-    (ipush "H0" head-name))
+    (ipush "H0" head-name)
     (!! :jdeep "            .....J9n created list: ~%")
-    (!! :jdeep (pl head-name)))
+    (!! :jdeep (pl head-name))))
 
 (defun J11-helper-add-to-dlist (dlist-head att val &key (if-aleady-exists :replace)) ;; :error :allow-multiple
   (!! :jdeep "             .....ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s~%" dlist-head att val)
@@ -2605,6 +2605,123 @@ current system.)
 @2051+ >>>>> {M062R040::M62+855||J73|M62+856} (Execute fn named by symb name itself)
    .......... Calling J73 [Copy list]: (ARG0)=("0")
 
+@2049+ >>>>> {M062R020::M62+853|60|W1|M62+854 [    FEASIBLE MATCH WITH SEGMENT;1W1=MAP]} (Copy of (0) replaces S; S lost; H0 n.c.)
+     -----> At INTERPRET-P w/P = 6, S="W1"
+      2: (IPOP "W1")
+      2: IPOP returned {W1|0|*2|0}
+   H0={H0|0|L4|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
+   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
+   W1={W1|0|L4|0} ++ ({|0|*2|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@2050+ >>>>> {M062R030::M62+854|52|W1|M62+855 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
+     -----> At INTERPRET-P w/P = 5, S="0"
+      2: (IPOP "H0")
+      2: IPOP returned {H0|0|L+2334|0}
+   H0={H0|0|0|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
+   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
+   W1={W1|0|L4|0} ++ ({|0|*2|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@2051+ >>>>> {M062R040::M62+855||J73|M62+856} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J73"
+   H0={H0|0|0|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
+   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
+   W1={W1|0|L4|0} ++ ({|0|*2|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+   .......... Calling J73 [Copy list]: (ARG0)=("0")
+
+Looks like this:
+
+@2050+ >>>>> {M062R030::M62+854|52|W1|M62+855 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
+
+is 2nd de-ref'ing to H0={H0|0|0|0} bcs here's L4, which you'll notice
+has no DL, and the 2nd de-ref is going through the list's DL!
+
++------------------------- "L4" {L004D000::L4||0|9+2264 [TRUE EXPRESSION MAPS;]} -------------------------+
+(0) {L004D000::L4||0|9+2264 [TRUE EXPRESSION MAPS;]}
+   (1) {9+2264||I0|9+2263}
+      (2) {I000D000::I0||I0+1841|0 [IMPLIES;]}
+         (3) {I000D010::I0+1841||0|I0+1842}
+            (4) {I000D020::I0+1842||Q14|I0+1843}
+...
++--------------------------End "L4" -------------------------------------------+
+
+So the L4 must be wrong (or L$ is fucked up) so why is W1 L4? 
+
+@2048+ >>>>> {M062R010::M62+852|20|W0|M62+853 [    EXPRESSIONS FROM MAP (1) FOR;1W0=SEG]} (Move H0 to the named symbol itself and pop H0)
+     -----> At INTERPRET-P w/P = 2, S="W0"
+   H0={H0|0|L4|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
+   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
+   W1={W1|0|*2|0} ++ ({|0|*2|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@2049+ >>>>> {M062R020::M62+853|60|W1|M62+854 [    FEASIBLE MATCH WITH SEGMENT;1W1=MAP]} (Copy of (0) replaces S; S lost; H0 n.c.)
+     -----> At INTERPRET-P w/P = 6, S="W1"
+   H0={H0|0|L4|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
+   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
+   W1={W1|0|L4|0} ++ ({|0|*2|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+
+Okay, so why was H0 L4 pre2048?
+
+@2046+ >>>>> {M063R020::M63+909|70|M63+910|M62 [    FEASIBLE MATCH WITH TEX (1).;]} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="M63+910"
+   H0={H0|0|L+2296|0} ++ ({|0|L4|0} {|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0})
+   W0={W0|0|L+2296|0} ++ ({|0|*2|0} {|0|*2|0} {|||} :EMPTY)
+   W1={W1|0|*2|0} ++ ({|||} :EMPTY)
+   W2={W2|||} ++ ({|||} :EMPTY)
+@2047+ >>>>> {M062R000::M62||J45|M62+852 [M62 CREATE A LIST OF TRUE;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J45"
+   H0={H0|0|L+2296|0} ++ ({|0|L4|0} {|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0})
+   W0={W0|0|L+2296|0} ++ ({|0|*2|0} {|0|*2|0} {|||} :EMPTY)
+   W1={W1|0|*2|0} ++ ({|||} :EMPTY)
+   W2={W2|||} ++ ({|||} :EMPTY)
+   .......... Calling J45 [PRESERVE W0-W5] (No Args)
+   H0={H0|0|L+2296|0} ++ ({|0|L4|0} {|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0})
+   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
+   W1={W1|0|*2|0} ++ ({|0|*2|0} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+
+The figure note at M062R040 (J73) says: "Copy list of theorems in head
+of map". If that means in the map DL, then the map is wrong. 
+
+So, this doesn't look right:
+
+@450- >>>>> {M054R240::M54+809||J10|M54+810 [FIND SUBMAPS LIST.;]} (Execute fn named by symb name itself)
+   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: (ARG0 ARG1)=("I0" "W1")
+
+W1 should be a map.... no?
+
+@448- >>>>> {M054R220::M54-9-102|10|W1|M54+808 [INPUT MAP HOLDER.;]} (Push the symb (name) itself on H0)
+     -----> At INTERPRET-P w/P = 1, S="W1"
+   H0={H0|0|W1|0} ++ ({|0|9+2230|0} {|0|9+2230|0} {|0|9+2230|0} {|0|9+2230|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|||} :EMPTY)
+   W1={W1||L4|} ++ ({|||} :EMPTY)
+   W2={W2|0|L+2245|0} ++ ({|||} :EMPTY)
+@449- >>>>> {M054R230::M54+808|12|W2|M54+809 [INPUT SEGMENT CONNECTIVE.;]} (Push 2nd deref on H0)
+     -----> At INTERPRET-P w/P = 1, S="I0"
+   H0={H0|0|I0|0} ++ ({|0|W1|0} {|0|9+2230|0} {|0|9+2230|0} {|0|9+2230|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|||} :EMPTY)
+   W1={W1||L4|} ++ ({|||} :EMPTY)
+   W2={W2|0|L+2245|0} ++ ({|||} :EMPTY)
+@450- >>>>> {M054R240::M54+809||J10|M54+810 [FIND SUBMAPS LIST.;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J10"
+   H0={H0|0|I0|0} ++ ({|0|W1|0} {|0|9+2230|0} {|0|9+2230|0} {|0|9+2230|0})
+   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|||} :EMPTY)
+   W1={W1||L4|} ++ ({|||} :EMPTY)
+   W2={W2|0|L+2245|0} ++ ({|||} :EMPTY)
+   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: (ARG0 ARG1)=("I0" "W1")
+             .....In J10 trying to find the value of "I0" in "W1"!
+
+FFF III NNN DD      III 000     III NNN     W W  1  
+F    I  N N D D      I  0 0      I  N N     W W 11  
+FFF  I  N N D D      I  0 0      I  N N     W W  1  
+F    I  N N D D      I  0 0      I  N N     WWW  1  
+F   III N N DD      III 000     III N N     WWW 111 
+
+I don't fucking understand this. How could anything work if 10W1 puts a W1 in:
+
+@448- >>>>> {M054R220::M54-9-102|10|W1|M54+808 [INPUT MAP HOLDER.;]} (Push the symb (name) itself on H0)
+
+Bcs J10 is expecting that to be the name of a list, which is what W1 actually has in it at the time.
 
 |#
 
@@ -2618,8 +2735,9 @@ current system.)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
   '(setf *trace-@orID-exprs*
-	'(
-	  (1800 (trace ipop) (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	'(;(440 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  ;(460 (break))
+	  ;(2040 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
