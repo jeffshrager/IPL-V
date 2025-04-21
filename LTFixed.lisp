@@ -337,7 +337,7 @@
 
 ;; M014 uses 9-1 as a de novo local, which confuses the interpreter,
 ;; so we're gonna help it out:
-("" "" "9-1" "" "0" "0" "0" "" "M014R630JEFF")
+;("" "" "9-1" "" "0" "0" "0" "" "M014R630JEFF")
 
 ("" "1" "" "" "" "" "" "" "    R")
 ("M15 BACKWARD CHAINING METHOD FOR" "" "M15" "" "" "J44" "" "" "M015R000")
@@ -1496,7 +1496,7 @@
 
 ;; M111 uses 9-10 as a de novo local, which confuses the interpreter,
 ;; so we're gonna help it out:
-("" "" "9-10" "" "0" "0" "0" "" "M111R730JEFF")
+;("" "" "9-10" "" "0" "0" "0" "" "M111R730JEFF")
 
 
 ("" "1" "" "" "" "" "" "" "    R")

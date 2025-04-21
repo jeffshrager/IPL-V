@@ -10,7 +10,7 @@ the 9- is at the head, which is NOT true (it could test for a 9- at
 the head, or a 9- anywhere, or a name + -9- ...) Maybe localization
 should be done by pure 9- gensym, but then it would be impossible to
 f'ing figure out what routine something is in. ... ??? This is going
-to come back to bite us!
+to come back to bite us! (see convert-local-symbols)
 
 FFF H3 cycle counter sometimes doesn't incremement. It's probably
 incf'ed in a slightly wrong place, but I'm not changing it now bcs I'm
@@ -531,7 +531,12 @@ current system.)
 				as symbol = (funcall getter cell)
 				if (local-symbol? symbol)
 				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
-      (convert-local-symbols cells local-symbols.new-names)
+      (let ((missing-local-symbols (convert-local-symbols cells local-symbols.new-names)))
+	(when (and missing-local-symbols (eq :code load-mode))
+	  (setf cells (append cells (loop for missymb in missing-local-symbols
+					  as new-name = (cdr (assoc missymb local-symbols.new-names :test #'string-equal))
+					  do (!! :load "WARNING: Cell ~s being added for missing local symbol ~s!~%" new-name missymb)
+					  collect (make-cell! :name new-name :pq "00" :symb "0" :link "0"))))))
       (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
       ;; Loop through the whole list and create a local symbol for every cell
@@ -559,13 +564,33 @@ current system.)
       (store-cells cells)
       )))
 
-(defun convert-local-symbols (cells local-symbols.new-names)
+;;; Convert-local-symbols goes trough all the instructions and changes
+;;; the card-based representation of symbols like "9-100" to a
+;;; generated one that has the name of the routine, like M123-9-100"
+;;; (see warning about this coming back to bite use at the top of the
+;;; module!) In addition, routines can use local symbols that are NOT
+;;; defined in the routine. We need to add these to the routine, but
+;;; that has to be done above this level, so in addition to the
+;;; conversion process, we return the name of any symbol that has no
+;;; local binding, and a cell gets created for each of these in the
+;;; caller.
+
+(defun convert-local-symbols (cells local-symbols.new-names &aux cell-names non-cell-names)
   (labels ((replace-symbols (cell accname.accessor)
-	     (let ((new-name (cdr (assoc (funcall (cdr accname.accessor) cell) local-symbols.new-names :test #'string-equal))))
-	       (when new-name (setf* (car accname.accessor) cell new-name)))))
+	     (let* ((accessor (cdr accname.accessor))
+		    (symbol (funcall accessor cell))
+		    (new-name (cdr (assoc symbol local-symbols.new-names :test #'string-equal))))
+	       (when new-name
+		 (if (eq accessor #'cell-name)
+		     (pushnew symbol cell-names :test #'string-equal)
+		     (pushnew symbol non-cell-names :test #'string-equal))
+		 (setf* (car accname.accessor) cell new-name)))))
     (loop for cell in cells
-	  do (loop for accname.accessor in *symbol-col-accessors*
-		   do (replace-symbols cell accname.accessor)))))
+	  do
+	  (loop for accname.accessor in *symbol-col-accessors*
+		do (replace-symbols cell accname.accessor))))
+  ;; Finally, return any symbols that are NOT in the found local symbols
+  (set-difference non-cell-names cell-names :test #'string-equal))
 			    
 ;;; This stupidity is needed because setf doesn't know how to set a value based
 ;;; on an arbitrary accessor.
@@ -2616,6 +2641,7 @@ cards assosiated with them. They are basically local data elements.
 
 (progn ;; LT 
   (set-default-tracing)
+  (push :load *!!*)
   '(trace convert-local-symbols)
   '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
