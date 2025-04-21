@@ -4,6 +4,14 @@
 
 #|
 
+www Local symbols in our case are ROUTINEID-9-... and get created at
+load time. Some of the code tests for a local symbol by knowing that
+the 9- is at the head, which is NOT true (it could test for a 9- at
+the head, or a 9- anywhere, or a name + -9- ...) Maybe localization
+should be done by pure 9- gensym, but then it would be impossible to
+f'ing figure out what routine something is in. ... ??? This is going
+to come back to bite us!
+
 FFF H3 cycle counter sometimes doesn't incremement. It's probably
 incf'ed in a slightly wrong place, but I'm not changing it now bcs I'm
 in the middle of debugging something.
@@ -2590,151 +2598,17 @@ current system.)
 
 #| Notes on the current problem:
 
-@2034- >>>>> {M001R070::M1+129|11|W0|M1+130} (Push cntnts of the cell named by symb, onto H0)
-@2035- >>>>> {M001R080::M1+130||M12|M1+131 [TRY SUBSTITUTION.;]} (Execute fn named by symb name itself)
-@2035- >>>>> {M012R000::M12||J43|M12+234 [M12 SUBSTITUTION METHOD FOR;]} (Execute fn named by symb name itself)
-   .......... Calling J43 [PRESERVE W0-W3] (No Args)
-@2036- >>>>> {M012R010::M12+234|60|W1|M12+235 [    PROBLEM (0). H5+ MEANS;1W1=PROB]} (Copy of (0) replaces S; S lost; H0 n.c.)
-@2037- >>>>> {M012R020::M12+235||J81|M12+236 [    OUTPUT (0) IS A SOLUTION;]} (Execute fn named by symb name itself)
-   .......... Calling J81 [FIND THE 1st (non-head) SYMBOL OF (0)]: (ARG0)=("*2")
-@2038+ >>>>> {M012R030::M12+236|70|J33|M12+237 [    H5- MEANS NO OUTPUT.;]} (Goto by H5: -symb|+link itself)
-@2039+ >>>>> {M012R040::M12+237|60|W0|M12+238 [;1W0=PRBMEX]} (Copy of (0) replaces S; S lost; H0 n.c.)
-@2040+ >>>>> {M012R050::M12+238|50|K11|M12+239} (Replace H0 by the named symb itself)
-@2041+ >>>>> {M012R060::M12+239||J125|M12+240 [TALLY SUBSTITUTION COUNTER.;]} (Execute fn named by symb name itself)
-   .......... Calling J125 [TALLY 1 IN (0)]: (ARG0)=("K11")
-@2042+ >>>>> {M012R070::M12+240|51|W1|M12+241} (Replace H0 by the cell named in the H0 symb)
-@2043+ >>>>> {M012R080::M12+241|10|L4|M12+242} (Push the symb (name) itself on H0)
-@2044+ >>>>> {M012R090::M12+242||M63|M12+243 [GET A LIST OF FEASIBLE THEOREMS.;]} (Execute fn named by symb name itself)
-@2044+ >>>>> {M063R000::M63||J6|M63+908 [M63 CREATE A LIST OF TRUE;]} (Execute fn named by symb name itself)
-   .......... Calling J6 [REVERSE (0) and (1)] (No Args)
-@2045+ >>>>> {M063R010::M63+908||J81|M63+909 [    EXPRESSIONS FROM MAP (0) FOR;]} (Execute fn named by symb name itself)
-   .......... Calling J81 [FIND THE 1st (non-head) SYMBOL OF (0)]: (ARG0)=("*2")
-@2046+ >>>>> {M063R020::M63+909|70|M63+910|M62 [    FEASIBLE MATCH WITH TEX (1).;]} (Goto by H5: -symb|+link itself)
-@2047+ >>>>> {M062R000::M62||J45|M62+852 [M62 CREATE A LIST OF TRUE;]} (Execute fn named by symb name itself)
-   .......... Calling J45 [PRESERVE W0-W5] (No Args)
-@2048+ >>>>> {M062R010::M62+852|20|W0|M62+853 [    EXPRESSIONS FROM MAP (1) FOR;1W0=SEG]} (Move H0 to the named symbol itself and pop H0)
-@2049+ >>>>> {M062R020::M62+853|60|W1|M62+854 [    FEASIBLE MATCH WITH SEGMENT;1W1=MAP]} (Copy of (0) replaces S; S lost; H0 n.c.)
-@2050+ >>>>> {M062R030::M62+854|52|W1|M62+855 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
-@2051+ >>>>> {M062R040::M62+855||J73|M62+856} (Execute fn named by symb name itself)
-   .......... Calling J73 [Copy list]: (ARG0)=("0")
-
-@2049+ >>>>> {M062R020::M62+853|60|W1|M62+854 [    FEASIBLE MATCH WITH SEGMENT;1W1=MAP]} (Copy of (0) replaces S; S lost; H0 n.c.)
-     -----> At INTERPRET-P w/P = 6, S="W1"
-      2: (IPOP "W1")
-      2: IPOP returned {W1|0|*2|0}
-   H0={H0|0|L4|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
-   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
-   W1={W1|0|L4|0} ++ ({|0|*2|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-@2050+ >>>>> {M062R030::M62+854|52|W1|M62+855 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
-     -----> At INTERPRET-P w/P = 5, S="0"
-      2: (IPOP "H0")
-      2: IPOP returned {H0|0|L+2334|0}
-   H0={H0|0|0|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
-   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
-   W1={W1|0|L4|0} ++ ({|0|*2|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-@2051+ >>>>> {M062R040::M62+855||J73|M62+856} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J73"
-   H0={H0|0|0|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
-   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
-   W1={W1|0|L4|0} ++ ({|0|*2|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-   .......... Calling J73 [Copy list]: (ARG0)=("0")
-
-Looks like this:
-
-@2050+ >>>>> {M062R030::M62+854|52|W1|M62+855 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
-
-is 2nd de-ref'ing to H0={H0|0|0|0} bcs here's L4, which you'll notice
-has no DL, and the 2nd de-ref is going through the list's DL!
-
-+------------------------- "L4" {L004D000::L4||0|9+2264 [TRUE EXPRESSION MAPS;]} -------------------------+
-(0) {L004D000::L4||0|9+2264 [TRUE EXPRESSION MAPS;]}
-   (1) {9+2264||I0|9+2263}
-      (2) {I000D000::I0||I0+1841|0 [IMPLIES;]}
-         (3) {I000D010::I0+1841||0|I0+1842}
-            (4) {I000D020::I0+1842||Q14|I0+1843}
-...
-+--------------------------End "L4" -------------------------------------------+
-
-So the L4 must be wrong (or L$ is fucked up) so why is W1 L4? 
-
-@2048+ >>>>> {M062R010::M62+852|20|W0|M62+853 [    EXPRESSIONS FROM MAP (1) FOR;1W0=SEG]} (Move H0 to the named symbol itself and pop H0)
-     -----> At INTERPRET-P w/P = 2, S="W0"
-   H0={H0|0|L4|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
-   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
-   W1={W1|0|*2|0} ++ ({|0|*2|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-@2049+ >>>>> {M062R020::M62+853|60|W1|M62+854 [    FEASIBLE MATCH WITH SEGMENT;1W1=MAP]} (Copy of (0) replaces S; S lost; H0 n.c.)
-     -----> At INTERPRET-P w/P = 6, S="W1"
-   H0={H0|0|L4|0} ++ ({|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0} {|0|9+2281|0})
-   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
-   W1={W1|0|L4|0} ++ ({|0|*2|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-
-Okay, so why was H0 L4 pre2048?
-
-@2046+ >>>>> {M063R020::M63+909|70|M63+910|M62 [    FEASIBLE MATCH WITH TEX (1).;]} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="M63+910"
-   H0={H0|0|L+2296|0} ++ ({|0|L4|0} {|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0})
-   W0={W0|0|L+2296|0} ++ ({|0|*2|0} {|0|*2|0} {|||} :EMPTY)
-   W1={W1|0|*2|0} ++ ({|||} :EMPTY)
-   W2={W2|||} ++ ({|||} :EMPTY)
-@2047+ >>>>> {M062R000::M62||J45|M62+852 [M62 CREATE A LIST OF TRUE;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J45"
-   H0={H0|0|L+2296|0} ++ ({|0|L4|0} {|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0})
-   W0={W0|0|L+2296|0} ++ ({|0|*2|0} {|0|*2|0} {|||} :EMPTY)
-   W1={W1|0|*2|0} ++ ({|||} :EMPTY)
-   W2={W2|||} ++ ({|||} :EMPTY)
-   .......... Calling J45 [PRESERVE W0-W5] (No Args)
-   H0={H0|0|L+2296|0} ++ ({|0|L4|0} {|0|L+2334|0} {|0|L+2334|0} {|0|9+2281|0})
-   W0={W0|0|L+2296|0} ++ ({|0|L+2296|0} {|0|*2|0} {|0|*2|0} {|||})
-   W1={W1|0|*2|0} ++ ({|0|*2|0} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-
-The figure note at M062R040 (J73) says: "Copy list of theorems in head
-of map". If that means in the map DL, then the map is wrong. 
-
-So, this doesn't look right:
-
-@450- >>>>> {M054R240::M54+809||J10|M54+810 [FIND SUBMAPS LIST.;]} (Execute fn named by symb name itself)
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: (ARG0 ARG1)=("I0" "W1")
-
-W1 should be a map.... no?
-
-@448- >>>>> {M054R220::M54-9-102|10|W1|M54+808 [INPUT MAP HOLDER.;]} (Push the symb (name) itself on H0)
-     -----> At INTERPRET-P w/P = 1, S="W1"
-   H0={H0|0|W1|0} ++ ({|0|9+2230|0} {|0|9+2230|0} {|0|9+2230|0} {|0|9+2230|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|||} :EMPTY)
-   W1={W1||L4|} ++ ({|||} :EMPTY)
-   W2={W2|0|L+2245|0} ++ ({|||} :EMPTY)
-@449- >>>>> {M054R230::M54+808|12|W2|M54+809 [INPUT SEGMENT CONNECTIVE.;]} (Push 2nd deref on H0)
-     -----> At INTERPRET-P w/P = 1, S="I0"
-   H0={H0|0|I0|0} ++ ({|0|W1|0} {|0|9+2230|0} {|0|9+2230|0} {|0|9+2230|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|||} :EMPTY)
-   W1={W1||L4|} ++ ({|||} :EMPTY)
-   W2={W2|0|L+2245|0} ++ ({|||} :EMPTY)
-@450- >>>>> {M054R240::M54+809||J10|M54+810 [FIND SUBMAPS LIST.;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J10"
-   H0={H0|0|I0|0} ++ ({|0|W1|0} {|0|9+2230|0} {|0|9+2230|0} {|0|9+2230|0})
-   W0={W0|0|*1|0} ++ ({|0|*1|0} {|0|*1|0} {|||} :EMPTY)
-   W1={W1||L4|} ++ ({|||} :EMPTY)
-   W2={W2|0|L+2245|0} ++ ({|||} :EMPTY)
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: (ARG0 ARG1)=("I0" "W1")
-             .....In J10 trying to find the value of "I0" in "W1"!
-
-FFF III NNN DD      III 000     III NNN     W W  1  
-F    I  N N D D      I  0 0      I  N N     W W 11  
-FFF  I  N N D D      I  0 0      I  N N     W W  1  
-F    I  N N D D      I  0 0      I  N N     WWW  1  
-F   III N N DD      III 000     III N N     WWW 111 
-
-I don't fucking understand this. How could anything work if 10W1 puts a W1 in:
-
-@448- >>>>> {M054R220::M54-9-102|10|W1|M54+808 [INPUT MAP HOLDER.;]} (Push the symb (name) itself on H0)
-
-Bcs J10 is expecting that to be the name of a list, which is what W1 actually has in it at the time.
+There's bunch of places (M111 M014) where they use undefined local
+symbols (9-10, 9-1, respectively) but the loader doesn't current
+handle this so I've had to create them by hand. This worked okay for
+M111 (although I'm about to fix the loader!) but M014 also seems to
+want to use this as a stackable, which is ... unfortunate. This is
+tricky bcs the local symbols in our case are ROUTINEID-9-... and get
+created at load time. Some of the code tests for a local symbol by
+knowing that the 9- is at the head, which is NOT true (it could test
+for a 9- at the head, or a 9- anywhere, or a name + -9- ...) So the
+loaded has to create dummy variables for these locals that don't have
+cards assosiated with them. They are basically local data elements.
 
 |#
 
@@ -2742,13 +2616,13 @@ Bcs J10 is expecting that to be the name of a list, which is what W1 actually ha
 
 (progn ;; LT 
   (set-default-tracing)
-  (trace copy-list-cell copy-list-structure copy-ipl-list copy-ipl-list-and-return-head)
+  '(trace convert-local-symbols)
   '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
    *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  (setf *trace-@orID-exprs*
+  '(setf *trace-@orID-exprs*
 	'(;(440 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ;(460 (break))
 	  (2000 (trace copy-list-cell copy-list-structure copy-ipl-list copy-ipl-list-and-return-head))
