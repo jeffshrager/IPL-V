@@ -2437,7 +2437,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :jdeep :jcalls) *cell-tracing-on* t)
@@ -2447,7 +2447,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2621,27 +2621,15 @@ current system.)
 
 |#
 
-#| Notes on the current problem:
-
-There's bunch of places (M111 M014) where they use undefined local
-symbols (9-10, 9-1, respectively) but the loader doesn't current
-handle this so I've had to create them by hand. This worked okay for
-M111 (although I'm about to fix the loader!) but M014 also seems to
-want to use this as a stackable, which is ... unfortunate. This is
-tricky bcs the local symbols in our case are ROUTINEID-9-... and get
-created at load time. Some of the code tests for a local symbol by
-knowing that the 9- is at the head, which is NOT true (it could test
-for a 9- at the head, or a 9- anywhere, or a name + -9- ...) So the
-loaded has to create dummy variables for these locals that don't have
-cards assosiated with them. They are basically local data elements.
+#| Current problem and issues:
 
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
-  (push :load *!!*)
+  '(push :load *!!*)
   '(trace convert-local-symbols)
   '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
