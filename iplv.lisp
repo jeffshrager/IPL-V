@@ -1958,7 +1958,6 @@ current system.)
 (defun copy-ipl-list-and-return-head (head)
   (setf *copy-list-head-collector* nil)
   (copy-ipl-list (cell head) head)
-  (print (list "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" *copy-list-head-collector*))
   *copy-list-head-collector*
  )
 
@@ -2217,8 +2216,10 @@ current system.)
        (4 (ipush S))                         ;; Preserve (push down) S
        ;; 5: REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
        (5 (ipop "H0") (ipush "H0" S))
-       ;; A copy of (0) is put in S; the current symbol in S is lost, and (0) is unaffected.
-       (6 (ipop S) (ipush S (cell-symb (H0)))) 
+       ;; A copy of (0) is put in S; the current symbol in S is lost,
+       ;; and (0) is unaffected.  Only need to do the pop if there's
+       ;; anything else on the stack (othewise the pop will fail).
+       (6 (when (stack S) (ipop S)) (ipush S (cell-symb (H0))))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
@@ -2447,7 +2448,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2627,15 +2628,15 @@ current system.)
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
   '(push :load *!!*)
   '(trace convert-local-symbols)
   '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
-   *!!* '(:jfns :run :jcalls)
-   *trace-cell-names* '("H0" "W0" "W1" "W2")
-   *cell-tracing-on* t)
+    *!!* '(:jfns :run :jcalls)
+    *trace-cell-names* '("H0" "W0" "W1" "W2")
+    *cell-tracing-on* t)
   '(setf *trace-@orID-exprs*
 	'(;(440 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ;(460 (break))

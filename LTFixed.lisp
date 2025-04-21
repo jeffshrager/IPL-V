@@ -334,11 +334,6 @@
 ("" "" "9-102" "" "30" "H0" "" "" "M014R600")
 ("ERASE SUBSTITUTION LIST." "" "9-101" "" "11" "W3" "" "" "M014R610")
 ("" "" "" "" "" "J72" "J4" "" "M014R620")
-
-;; M014 uses 9-1 as a de novo local, which confuses the interpreter,
-;; so we're gonna help it out:
-;("" "" "9-1" "" "0" "0" "0" "" "M014R630JEFF")
-
 ("" "1" "" "" "" "" "" "" "    R")
 ("M15 BACKWARD CHAINING METHOD FOR" "" "M15" "" "" "J44" "" "" "M015R000")
 ("   PROBLEM (0). ADDS NEW SUBPROBS" "" "" "" "60" "W1" "" "1W1=PROB" "M015R010")
@@ -1493,12 +1488,6 @@
 ("LOCATE NEXT SUBSEGMENT ON (1)" "" "" "" "" "J60" "" "" "M111R700")
 ("" "" "" "" "20" "W1" "" "" "M111R710")
 ("" "" "" "" "" "J5" "J31" "" "M111R720")
-
-;; M111 uses 9-10 as a de novo local, which confuses the interpreter,
-;; so we're gonna help it out:
-;("" "" "9-10" "" "0" "0" "0" "" "M111R730JEFF")
-
-
 ("" "1" "" "" "" "" "" "" "    R")
 ("M112 EXPAND SUBSTITUTION LIST (0)." "" "M112" "" "40" "H0" "" "" "M112R000")
 ("     REPLACE EXPRESSIONS WITH" "" "" "" "" "J51" "" "" "M112R010")
