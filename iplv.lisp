@@ -1185,7 +1185,7 @@ current system.)
 	;; the list from (0) on. (Nothing else is copied, not even the
 	;; description list of (0), if it exists.)  The name is local if the
 	;; input (0) is local; otherwise, it is internal.
-	(let* ((r (cell-name (copy-ipl-list-and-return-head (cell arg0)))))
+	(let* ((r (cell-name (copy-ipl-list-and-return-head arg0))))
 	  (poph0 1)
 	  (ipush "H0" r)))
 
@@ -1243,6 +1243,12 @@ current system.)
 		   (poph0 2)
 		   (ipush "H0" last-cell-in-l0)))))
 
+  (defj J78 (arg0) "TEST IF LIST (0) IS NOT EMPTY"
+	;; H5 is set - if LINK of (0) is a termination symbol, and set + if not.
+	(if (zero? (cell-link (cell arg0))) (H5-) (H5+))
+	(poph0 1)
+	)
+
   (defj J79 (arg0) "TEST IF CELL (0) IS NOTEMPTY"
 	;; H5 is set - if SYMB of (0) is 0, and set + otherwise. (Q of
 	;; (0) is ignored; thus, both cells holding internal zero and
@@ -1287,7 +1293,7 @@ current system.)
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
 	;; The output (0) is the name a the new list.
-	(let* ((name (newsym "L"))
+	(let* ((name (newsym))
 	       (cell (make-cell! :name name :pq "00" :symb "0" :link "0")))
 	  (!! :jdeep "            .....J90 creating blank list cell: ~s~%" cell)
 	  (ipush "H0" name)))
@@ -1737,7 +1743,7 @@ current system.)
   (let* ((head-name (newsym)) ;; Needed for tracing later
 	 (head (make-cell! :name head-name :pq "00" :symb "0" :link "0"))
 	 ;; The order is (n-1) first, (n-2) second, ... (0) last.
-	 (symbols `(,@(reverse (loop for hn in (H0+) as m below n collect (cell-symb hn))) (cell-symb (h0))))
+	 (symbols `(,@(reverse (loop for hn in (H0+) as m below n collect (cell-symb hn))) ,(cell-symb (h0))))
 	 )
     (loop for sym in symbols
 	  with prev-cell = head
@@ -1917,34 +1923,41 @@ current system.)
 (defvar *copy-list-collector* nil)
 
 (defun copy-ipl-list-and-return-head (head)
-  (setf *copy-list-collector* nil)
-  (copy-ipl-list (<=! head) (newsym))
-  (store-cells *copy-list-collector*)
-  (car (last *copy-list-collector*)))
+  (setf *copy-list-head-collector* nil)
+  (copy-ipl-list (cell head) head)
+  (print (list "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" *copy-list-head-collector*))
+  *copy-list-head-collector*
+ )
 
-(defun copy-ipl-list (cell-or-symb/link &optional new-cell-name)
+;;; The head symbol is used to tell when we need to store the new cell
+;;; because it's the new head for returning to the caller. (FFF %%%
+;;; UUU)
+
+(defun copy-ipl-list (cell-or-symb/link &optional head-symbol)
   (cond
     ;; If you're handed a cell, create a new one
     ((cell? cell-or-symb/link)
-     (let ((new-name (or new-cell-name (newsym))))
-       (push (make-cell! :name new-name
-			 :symb (copy-ipl-list (cell-symb cell-or-symb/link))
-			 :link (copy-ipl-list (cell-link cell-or-symb/link)))
-	     *copy-list-collector*)
+     (let* ((new-name (newsym))
+	    (new-cell (make-cell! :name new-name
+				  :symb (copy-ipl-list (cell-symb cell-or-symb/link))
+				  :link (copy-ipl-list (cell-link cell-or-symb/link)))))
+       (when head-symbol (setf *copy-list-head-collector* new-cell))
        new-name))
     ;; If you get a zero, just return it to get pluged back in.
     ((zero? cell-or-symb/link) "0")
     ;; If it's a local symbol, create a new cell with a new symbol and copy the cell,
     ;; recursing for the symb and links
     ((local-symbol? cell-or-symb/link)
-     (let ((new-name (newsym)))
-       (push (make-cell! :name new-name
-			 :symb (copy-ipl-list (cell-symb cell-or-symb/link))
-			 :link (copy-ipl-list (cell-link cell-or-symb/link)))
-	     *copy-list-collector*)
+     (let* ((cell (cell cell-or-symb/link))
+	    (new-name (newsym))
+	    (new-cell (make-cell! :name new-name
+				  :symb (copy-ipl-list (cell-symb cell))
+				  :link (copy-ipl-list (cell-link cell)))))
+       (when head-symbol (setf *copy-list-head-collector* new-cell))
        new-name))
-    ;; If we're handed a global symbol, just return it.
-    ((global-symbol? cell-or-symb/link)
+    ;; If we're handed a global symbol or a number, just return it.
+    ((or (numberp cell-or-symb/link)
+	 (global-symbol? cell-or-symb/link))
      cell-or-symb/link)
     (t (break "In copy-ipl-list got ~s which wasn't expected." cell-or-symb/link))))
 
@@ -2729,14 +2742,16 @@ Bcs J10 is expecting that to be the name of a list, which is what W1 actually ha
 
 (progn ;; LT 
   (set-default-tracing)
+  (trace copy-list-cell copy-list-structure copy-ipl-list copy-ipl-list-and-return-head)
   '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
    *!!* '(:jfns :run :jcalls)
    *trace-cell-names* '("H0" "W0" "W1" "W2")
    *cell-tracing-on* t)
-  '(setf *trace-@orID-exprs*
+  (setf *trace-@orID-exprs*
 	'(;(440 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ;(460 (break))
+	  (2000 (trace copy-list-cell copy-list-structure copy-ipl-list copy-ipl-list-and-return-head))
 	  ;(2040 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
