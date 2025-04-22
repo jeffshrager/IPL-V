@@ -2489,6 +2489,34 @@ current system.)
 
 #| Current problem and issues:
 
+@2135+ >>>>> {M062R020::M62+895|60|W1|M62+896 [    FEASIBLE MATCH WITH SEGMENT;1W1=MAP]} (Copy of (0) replaces S; S lost; H0 n.c.)
+     -----> At INTERPRET-P w/P = 6, S="W1"
+   H0={H0|0|L4|0} ++ ({|0|9+2376|0} {|0|9+2376|0} {|0|9+2323|0} {|0|9+2323|0})
+   W0={||9+2338|} ++ ({||9+2338|} {||*2|} {|0|*2|0} {|||})
+   W1={||L4|} ++ ({||*2|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+
+H0 is about to get a 0 as a second deref from W1, which has no DL (so WTF does it think it's trying to get?!)
+
+@2136+ >>>>> {M062R030::M62+896|52|W1|M62+897 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
+     -----> At INTERPRET-P w/P = 5, S="0"
+   H0={||0|} ++ ({|0|9+2376|0} {|0|9+2376|0} {|0|9+2323|0} {|0|9+2323|0})
+   W0={||9+2338|} ++ ({||9+2338|} {||*2|} {|0|*2|0} {|||})
+   W1={||L4|} ++ ({||*2|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@2137+ >>>>> {M062R040::M62+897||J73|M62+898} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J73"
+      2: (IPUSH "H1" #<FUNCTION (LAMBDA (ARG0) :IN SETUP-J-FNS) {535D98FB}>)
+      2: IPUSH returned
+           {H1|0|<FUNCTION (LAMBDA (ARG0) :IN SETUP-J-FNS) {535D98FB}>|0}
+   H0={||0|} ++ ({|0|9+2376|0} {|0|9+2376|0} {|0|9+2323|0} {|0|9+2323|0})
+   W0={||9+2338|} ++ ({||9+2338|} {||*2|} {|0|*2|0} {|||})
+   W1={||L4|} ++ ({||*2|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+   .......... Calling J73 [Copy list]: (ARG0)=("0")
+
+debugger invoked on a SIMPLE-CONDITION in thread #<THREAD "main thread" RUNNING {1001670003}>: In copy-ipl-list got NIL which wasn't expected.
+
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
@@ -2501,7 +2529,7 @@ current system.)
     *trace-cell-names* '("H0" "W0" "W1" "W2")
     *cell-tracing-on* t)
   '(setf *trace-@orID-exprs*
-	'((2134
+	'((2130
 	   (trace ipush ipop)
 	   (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ;(460 (break))
