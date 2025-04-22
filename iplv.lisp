@@ -2218,7 +2218,7 @@ current system.)
        (5 (force-replace "H0" S))
        ;; 6: A copy of (0) is put in S; the current symbol in S is lost,
        ;; and (0) is unaffected. 
-       (6 (force-replace S "H0"))
+       (6 (force-replace S (cell-symb (H0))))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
@@ -2456,7 +2456,7 @@ current system.)
   (load-ipl "F1.lisp")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2492,7 +2492,7 @@ current system.)
   (set-default-tracing)
   '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
-    *!!* '(:jfns :run :jcalls)
+    *!!* '(:jfns :run :jcalls :s)
     *trace-cell-names* '("H0" "W0" "W1" "W2")
     *cell-tracing-on* t)
   '(setf *trace-@orID-exprs*
