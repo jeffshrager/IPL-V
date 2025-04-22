@@ -272,9 +272,14 @@ current system.)
       ;; And replace it with whatever it appropriate given the input type.
       (cond ((or (stringp newval) (functionp newval))
 	     (data-set newmain :symb newval))
+	    ;; !!!!!!! This is fucked! It needs to put the name in order to stack on H1 but everywhere else needs to put the symbol!
 	    ((cell? newval)
 	     ;; Here we copy everything into it (except the name).
-	     (data-set newmain :sign (cell-sign newval) :pq (cell-pq newval) :symb (cell-name newval) :link (cell-link newval))
+	     (data-set newmain
+		       :sign (cell-sign newval)
+		       :pq (cell-pq newval)
+		       :symb (if (string-equal stack-name "H1") (cell-name newval) (cell-symb newval))
+		       :link (cell-link newval))
 	     (!! :run-full "iPushing a copy of data from ~s on ~a~%" newval stack-name))
 	    ((null newval)
 	     ;; This is just a push, and the copy has already been made.
@@ -2449,7 +2454,7 @@ current system.)
 (progn ;; F1 test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
-  ;(setf *!!* '(:run :jdeep :jcalls) *cell-tracing-on* t)
+  ;(setf *!!* '(:dr-memory :run :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
   ;(trace force-replace) 
   ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
@@ -2496,9 +2501,11 @@ current system.)
     *trace-cell-names* '("H0" "W0" "W1" "W2")
     *cell-tracing-on* t)
   '(setf *trace-@orID-exprs*
-	'(;(440 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	'((2134
+	   (trace ipush ipop)
+	   (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ;(460 (break))
-	  (2000 (trace copy-list-cell copy-list-structure copy-ipl-list copy-ipl-list-and-return-head))
+	  ;(2000 (trace copy-list-cell copy-list-structure copy-ipl-list copy-ipl-list-and-return-head))
 	  ;(2040 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
