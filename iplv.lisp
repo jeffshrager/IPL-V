@@ -2217,9 +2217,13 @@ current system.)
        ;; 5: REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
        (5 (ipop "H0") (ipush "H0" S))
        ;; A copy of (0) is put in S; the current symbol in S is lost,
-       ;; and (0) is unaffected.  Only need to do the pop if there's
-       ;; anything else on the stack (othewise the pop will fail).
-       (6 (when (stack S) (ipop S)) (ipush S (cell-symb (H0))))
+       ;; and (0) is unaffected. Per description in the manual, this
+       ;; is supposed to look like only the main entry was hacked. We
+       ;; do this by doing a push, and then hard-popping the thing on
+       ;; the top of the stack (which would be a copy of what had been
+       ;; in S before the push).
+       (6 (ipush S (cell-symb (H0)))
+	  (pop (stack S)))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
