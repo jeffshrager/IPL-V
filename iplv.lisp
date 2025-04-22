@@ -75,7 +75,7 @@ current system.)
 (defstruct (cell (:print-function print-cell))
   (comments "")
   (type "")
-  (name "")
+  (name "") ;; This field is actually not a part of the cell and maybe shouldn't exist??? FFF
   (sign "")
   (pq "")
   (symb "")
@@ -268,7 +268,7 @@ current system.)
 		     :link (cell-link topcell))
 	  (stack stack-name))
     ;; Now create another new cell, this time to replace the top cell. This one IS saved!
-    (let ((newmain (store (copy-cell topcell)))) ;; NNN WWW This will replace the top cell in the symbtab!
+    (let ((newmain (setf (gethash stack-name *symtab*) (copy-cell topcell)))) ;; NNN WWW This will replace the top cell in the symbtab!
       ;; And replace it with whatever it appropriate given the input type.
       (cond ((or (stringp newval) (functionp newval))
 	     (data-set newmain :symb newval))
@@ -1544,7 +1544,7 @@ current system.)
   ;; input/output buffer and it's used for all input and output.
 
   (defj J151 (arg0) "Print list (0)" ;; USED IN F1
-	(print-linear-list (cell arg0))
+	(print-linear-list arg0)
 	(PopH0 1)
 	)
 
@@ -2215,15 +2215,10 @@ current system.)
        (3 (ipop S))                         ;; Restore (pop up) S 
        (4 (ipush S))                         ;; Preserve (push down) S
        ;; 5: REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
-       (5 (ipop "H0") (ipush "H0" S))
-       ;; A copy of (0) is put in S; the current symbol in S is lost,
-       ;; and (0) is unaffected. Per description in the manual, this
-       ;; is supposed to look like only the main entry was hacked. We
-       ;; do this by doing a push, and then hard-popping the thing on
-       ;; the top of the stack (which would be a copy of what had been
-       ;; in S before the push).
-       (6 (ipush S (cell-symb (H0)))
-	  (pop (stack S)))
+       (5 (force-replace "H0" S))
+       ;; 6: A copy of (0) is put in S; the current symbol in S is lost,
+       ;; and (0) is unaffected. 
+       (6 (force-replace S "H0"))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
@@ -2282,6 +2277,15 @@ current system.)
      (when (string-equal (H5) "-") (setf link S) (go ADVANCE-W/FORCED-LINK))
      (go ADVANCE)
      ))
+
+;;; Note that this can't just replace the target, it has to make a
+;;; copy and put that in place, because someone is likely to be
+;;; holding the original.
+
+(defun force-replace (tosymb fromsymb)
+  (let* ((fromcell (cell fromsymb)))
+    (!! :dr-memory "Force replacing ~s with ~s: ~s~%" tosymb fromsymb fromcell)
+    (setf (gethash tosymb *symtab*) (make-cell :sign "" :pq "" :symb fromsymb :link ""))))
 
 (defun call-ipl-prim (symb)
   (break "!!!!!!!! UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
@@ -2447,7 +2451,7 @@ current system.)
   (setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
-  ;(trace functionp ipush ipop iset data-set)
+  ;(trace force-replace) 
   ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
@@ -2457,8 +2461,8 @@ current system.)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-@orID-exprs* '((9 (break))))
-  ;(setf *!!* '(:run :jdeep) *cell-tracing-on* t)
-  ;(trace ipop poph0)
+  ;(setf *!!* '(:s :run :jfns :jdeep) *cell-tracing-on* t)
+  ;(trace ipop poph0 ipush force-replace)
   (load-ipl "Ackermann.iplv" :adv-limit 25000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
@@ -2477,154 +2481,6 @@ current system.)
 ;;; trying to read more data after "normal" termination of the
 ;;; program.
 
-#|
-
-*1    ((AVA)IA)
-+------------------------- "*1" {*1||9+2233|9+2252} -------------------------+
-(0) {*1||9+2233|9+2252}
-   (dl suppressed)
-   (1) {9+2252||L+2245|0}
-      (2) {L+2245|02|I0|9+2249}
-         (3) {I000D000::I0||I0+1841|0 [IMPLIES;]}
-            (4) {I000D010::I0+1841||0|I0+1842}
-               (5) {I000D020::I0+1842||Q14|I0+1843}
-                  (6) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
-                     (7) "J10"
-                  (6) {I000D030::I0+1843||J4|I0+1844}
-                     (7) "J4"
-                     (7) {I000D040::I0+1844||Q7|I0+1845}
-                        (8) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-                           (9) "J10"
-                        (8) {I000D050::I0+1845||I0+1846|0}
-                           (9) {I000D060::I0+1846|21|I|}
-         (3) {9+2249||L+2246|9+2250}
-            (4) {L+2246|02|V0|9+2247}
-               (5) {V000D000::V0||V0+2031|0 [OR;]}
-                  (6) {V000D000::V0+2031||0|V0+2032}
-                     (7) {V000D010::V0+2032||Q14|V0+2033}
-                        (8) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
-                           (9) "J10"
-                        (8) {V000D020::V0+2033||J4|V0+2034}
-                           (9) "J4"
-                           (9) {V000D030::V0+2034||Q7|V0+2035}
-                              (10) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-                              [@11...]
-                              (10) {V000D040::V0+2035||V0+2036|0}
-                              [@11...]
-                              [@11...]
-               (5) {9+2247||A0|9+2248}
-                  (6) {A000D000::A0||A0+1782|0 [FREE VARIABLE A;]}
-                     (7) {A000D010::A0+1782||0|A0+1783}
-                        (8) {A000D020::A0+1783||Q5|A0+1784}
-                           (9) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                              (10) "J10"
-                           (9) {A000D030::A0+1784||Q5|A0+1785}
-                              (10) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                              [@11...]
-                              (10) {A000D040::A0+1785||Q6|A0+1786}
-                              [@11...]
-                              [@11...]
-                  (6) {9+2248||A0|0}
-                     (7) {A000D000::A0||A0+1782|0 [FREE VARIABLE A;]}
-                        (8) {A000D010::A0+1782||0|A0+1783}
-                           (9) {A000D020::A0+1783||Q5|A0+1784}
-                              (10) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                              [@11...]
-                              (10) {A000D030::A0+1784||Q5|A0+1785}
-                              [@11...]
-                              [@11...]
-            (4) {9+2250||A0|0}
-               (5) {A000D000::A0||A0+1782|0 [FREE VARIABLE A;]}
-                  (6) {A000D010::A0+1782||0|A0+1783}
-                     (7) {A000D020::A0+1783||Q5|A0+1784}
-                        (8) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                           (9) "J10"
-                        (8) {A000D030::A0+1784||Q5|A0+1785}
-                           (9) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                              (10) "J10"
-                           (9) {A000D040::A0+1785||Q6|A0+1786}
-                              (10) {Q006R000::Q6|10|Q6|J10 [ATTRIBUTE-FREE VARIABLE;]}
-                              [@11...]
-                              (10) {A000D050::A0+1786||Q6|A0+1787}
-                              [@11...]
-                              [@11...]
-+--------------------------End "*1" -------------------------------------------+
-
-
-
-*2    ((PVP)IP)
-+------------------------- "*2" {*2||9+2284|9+2303} -------------------------+
-(0) {*2||9+2284|9+2303}
-   (dl suppressed)
-   (1) {9+2303||L+2296|0}
-      (2) {L+2296|02|I0|9+2300}
-         (3) {I000D000::I0||I0+1841|0 [IMPLIES;]}
-            (4) {I000D010::I0+1841||0|I0+1842}
-               (5) {I000D020::I0+1842||Q14|I0+1843}
-                  (6) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
-                     (7) "J10"
-                  (6) {I000D030::I0+1843||J4|I0+1844}
-                     (7) "J4"
-                     (7) {I000D040::I0+1844||Q7|I0+1845}
-                        (8) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-                           (9) "J10"
-                        (8) {I000D050::I0+1845||I0+1846|0}
-                           (9) {I000D060::I0+1846|21|I|}
-         (3) {9+2300||L+2297|9+2301}
-            (4) {L+2297|02|V0|9+2298}
-               (5) {V000D000::V0||V0+2031|0 [OR;]}
-                  (6) {V000D000::V0+2031||0|V0+2032}
-                     (7) {V000D010::V0+2032||Q14|V0+2033}
-                        (8) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
-                           (9) "J10"
-                        (8) {V000D020::V0+2033||J4|V0+2034}
-                           (9) "J4"
-                           (9) {V000D030::V0+2034||Q7|V0+2035}
-                              (10) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-                              [@11...]
-                              (10) {V000D040::V0+2035||V0+2036|0}
-                              [@11...]
-                              [@11...]
-               (5) {9+2298||P0|9+2299}
-                  (6) {P000D000::P0||P0+1916|0 [VARIABLE P;]}
-                     (7) {P000D010::P0+1916||0|P0+1917}
-                        (8) {P000D020::P0+1917||Q5|P0+1918}
-                           (9) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                              (10) "J10"
-                           (9) {P000D030::P0+1918||Q5|P0+1919}
-                              (10) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                              [@11...]
-                              (10) {P000D033::P0+1919||Q9|P0+1920}
-                              [@11...]
-                              [@11...]
-                  (6) {9+2299||P0|0}
-                     (7) {P000D000::P0||P0+1916|0 [VARIABLE P;]}
-                        (8) {P000D010::P0+1916||0|P0+1917}
-                           (9) {P000D020::P0+1917||Q5|P0+1918}
-                              (10) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                              [@11...]
-                              (10) {P000D030::P0+1918||Q5|P0+1919}
-                              [@11...]
-                              [@11...]
-            (4) {9+2301||P0|0}
-               (5) {P000D000::P0||P0+1916|0 [VARIABLE P;]}
-                  (6) {P000D010::P0+1916||0|P0+1917}
-                     (7) {P000D020::P0+1917||Q5|P0+1918}
-                        (8) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                           (9) "J10"
-                        (8) {P000D030::P0+1918||Q5|P0+1919}
-                           (9) {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]}
-                              (10) "J10"
-                           (9) {P000D033::P0+1919||Q9|P0+1920}
-                              (10) {Q009R000::Q9|10|Q9|J10 [Q9 ATTRIBUTE--BOUND VARIABLE.;]}
-                              [@11...]
-                              (10) {P000D037::P0+1920||Q9|P0+1921}
-                              [@11...]
-                              [@11...]
-+--------------------------End "*2" -------------------------------------------+
-
-
-|#
 
 #| Current problem and issues:
 
@@ -2634,8 +2490,6 @@ current system.)
 
 (progn ;; LT 
   (set-default-tracing)
-  '(push :load *!!*)
-  '(trace convert-local-symbols)
   '(setf *!!* nil *cell-tracing-on* nil)
   '(setf 
     *!!* '(:jfns :run :jcalls)
