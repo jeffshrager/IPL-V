@@ -90,8 +90,12 @@ current system.)
 
 (defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "+"))))
 
-(defmacro make-cell! (&rest args)
-  `(store (make-cell ,@args)))
+(defun make-cell! (&rest args)
+  (let* ((name (getf args :name)))
+    (store 
+     (if name
+	 (apply #'make-cell args)
+	 (apply #'make-cell :name (newsym) args)))))
 
 (defmacro !! (key &rest args) 
   `(when (or (equal *!!* t)
@@ -1565,7 +1569,7 @@ current system.)
 	(W25-set 0))
 
   (defj J155 () "Print line"
-	(format t "~a~%" *W24-Line-Buffer*)
+	(format t ":::::::::::::::::::::::::::::::: ~a~%" *W24-Line-Buffer*)
 	)
 
   (defj J156 (arg0) "ENTER SYMBOL (0) LEFT-JUSTIFIED"
@@ -1885,9 +1889,7 @@ current system.)
 
 (defun w25-get () (numget (cell-symb (cell "W25"))))
 (defun w25-set (n) (numset (cell-symb (cell "W25")) n))
-(defun w25-init ()
-  (make-cell! :name "W25"
-	      :symb (cell-name (make-cell! :name (newsym "W25") :pq "12" :link 1))))
+(defun w25-init () (setf (cell-symb (cell "W25")) (cell-name (make-cell! :pq "12" :link 1))))
 
 ;;; These number things have to be given the name of what is supposed
 ;;; to be a numerical data cell, that is, one where the link is
@@ -2208,21 +2210,24 @@ current system.)
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
        )
-   INTERPRET-P 
+   INTERPRET-P ;; p. 160
      (!! :run-full "     -----> At INTERPRET-P w/P = ~s, S=~s~%" p S)
      (!! :s "     -----> At INTERPRET-P w/P = ~s, S=~s~%" p S) ;; FFF Allow the keys to be a list
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
-       (1 (ipush "H0" S))                    ;; Input S (after preserving HO)
-       (2
-	;; (!! :s "************************* (cell S) = ~s, (H0) = ~s~%" (cell s) (H0))
-	(setf (cell-symb (cell S)) (cell-symb (H0))) (ipop "H0")) ;; 2=Output to S (then restore HO)
-       (3 (ipop S))                         ;; Restore (pop up) S 
+       (1 (ipush "H0" S)) ;; Input S (after preserving HO)
+       ;; "A copy of (0) is put in cell S; then H0 is restored." (Note: No S push!)
+       (2 (force-replace S (cell-symb (H0))) (ipop "H0"))
+       ;; "A copy of the symbol most recently stored in the push down
+       ;; list of S is moved into S." (This is actually slightly
+       ;; ambiguous -- if it's name wasn't "RESTORE" it could be
+       ;; interpreted as COPYing the top of the S stack into S.)
+       (3 (ipop S)) 
        (4 (ipush S))                         ;; Preserve (push down) S
-       ;; 5: REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
+       ;; REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
        (5 (force-replace "H0" S))
-       ;; 6: A copy of (0) is put in S; the current symbol in S is lost,
-       ;; and (0) is unaffected. 
+       ;; "A copy of (0) is put in S; the current symbol in S is lost,
+       ;; and (0) is unaffected."
        (6 (force-replace S (cell-symb (H0))))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
@@ -2525,9 +2530,9 @@ debugger invoked on a SIMPLE-CONDITION in thread #<THREAD "main thread" RUNNING 
 (progn ;; LT 
   (set-default-tracing)
   '(setf *!!* nil *cell-tracing-on* nil)
-  '(setf 
+  (setf 
     *!!* '(:jfns :run :jcalls :s)
-    *trace-cell-names* '("H0" "W0" "W1" "W2")
+    *trace-cell-names* '("H0" "W0" "W1" "W2" "W25" "W30")
     *cell-tracing-on* t)
   '(setf *trace-@orID-exprs*
 	'((2130

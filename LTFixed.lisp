@@ -834,21 +834,21 @@
 ("" "" "" "" "" "J136" "" "" "M054R200")
 ("PLACE IN MAP HEAD AND QUIT." "" "" "" "21" "W1" "J33" "" "M054R210")
 
-;; This looks like it's WRONG. It should be 11 W0
-;; (Note that 10W1 is VERY RARE (4 uses in the whole code!)
-;;  whereas "11W1" is used 58 times!!!)
-;("INPUT MAP HOLDER." "" "9-102" "" "10" "W1" "" "" "M054R220")
-("INPUT MAP HOLDER." "" "9-102" "" "11" "W1" "" "" "M054R220")
+;;; This looks like it's WRONG. It probably should be 11 W0 (Note that
+;;; 10W1 is VERY RARE (4 uses in the whole code!)  whereas "11W1" is
+;;; used 58 times!!!)
+;;;("INPUT MAP HOLDER." "" "9-102" "" "11" "W1" "" "" "M054R220")
+("INPUT MAP HOLDER." "" "9-102" "" "10" "W1" "" "" "M054R220")
 
 ("INPUT SEGMENT CONNECTIVE." "" "" "" "12" "W2" "" "" "M054R230")
 ("FIND SUBMAPS LIST." "" "" "" "" "J10" "" "" "M054R240")
 ("   IF FOUND, CONTINUE." "" "" "" "70" "" "9-110" "" "M054R250")
 
-;; This looks like it's WRONG. It should be 11 W0
-;; (Note that 10W1 is VERY RARE (4 uses in the whole code!)
-;;  whereas "11W1" is used 58 times!!!)
-;("   IF NONE," "" "" "" "10" "W1" "" "" "M054R260")
-("   IF NONE," "" "" "" "11" "W1" "" "" "M054R260")
+;;; This looks like it's WRONG. It should be 11 W0
+;;; (Note that 10W1 is VERY RARE (4 uses in the whole code!)
+;;;  whereas "11W1" is used 58 times!!!)
+;;;("   IF NONE," "" "" "" "11" "W1" "" "" "M054R260")
+("   IF NONE," "" "" "" "10" "W1" "" "" "M054R260")
 
 ("" "" "" "" "" "J90" "" "" "M054R270")
 ("CREATE 1ST LOCAL SUBMAP." "" "" "" "" "J136" "" "" "M054R280")
