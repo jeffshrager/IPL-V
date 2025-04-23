@@ -97,6 +97,8 @@ current system.)
 	 (apply #'make-cell args)
 	 (apply #'make-cell :name (newsym) args)))))
 
+(defvar *!!* nil) 
+
 (defmacro !! (key &rest args) 
   `(when (or (equal *!!* t)
 	     (equal ,key t)
@@ -140,26 +142,28 @@ current system.)
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 (defvar *jfn-calls* (make-hash-table :test #'equal))
+(defvar *jfn-plists* (make-hash-table :test #'equal))
 
-(defun rj () ;; report on jfns
+;;; This throws an annoying warning and is a non-critical deugging tool
+'(defun rj () ;; report on jfns
   (let ((*print-length* nil))
-    (loop for (jname ncalls expl argcounts) in 
-	  (sort 
-	   (loop for jname being the hash-keys of *jfn-calls*
-		 using (hash-value args)
-		 as calls = (loop for al in (uniquify-list args)
-				  collect (cons (or al :noargs)
-						(count al args :test #'equal)))
-		 collect (list jname
-			       (reduce #'+ (mapcar #'cdr calls))
-			       (getf (gethash jname *jfn-plists*) 'explanation)
-			       (sort calls #'> :key #'cdr)))
-	   #'> :key #'second)
+    (loop for (jname ncalls expl argcounts) in
+	  (sort (loop for jname being the hash-keys of *jfn-calls*
+		      using (hash-value args)
+		      as calls = (loop for al in (uniquify-list args)
+				       collect (cons (or al :noargs)
+						     (count al args :test #'equal)))
+		      collect (list jname
+				    (reduce #'+ (mapcar #'cdr calls))
+				    (getf (gethash jname *jfn-plists*) 'explanation)
+				    (sort calls #'> :key #'cdr)))
+		#'> :key #'second)
 	  do (format t "~a ~a [~a]~%   ~a~%" ncalls jname expl argcounts))))
 
 (defvar *card-ids-executed* nil)
 (defvar *rxtbl* (make-hash-table :test #'equal))
-(defun rx () ;; report on execs (card ids executed)
+;;; This throws an annoying warning and is a non-critical deugging tool
+'(defun rx () ;; report on execs (card ids executed)
   (clrhash *rxtbl*)
   (loop for id in *card-ids-executed*
 	if (and (stringp id) (= 8 (length id)))
@@ -175,15 +179,14 @@ current system.)
 ;;; These will get eval'ed at the given id, for example:
 ;;;   ("P051R050" (print "hello"))
 ;;; or, more reasonably:
-;;; ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
+;;; ("P051R050" (setf *trace-cell-names-or-exprs* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
 ;;; If the ID is a number rather than a string, it refers to the value in (H3)
 (defvar *trace-@orID-exprs* nil) 
 (defvar *breaks* nil) ;; If this is set to t it breaks on every call
-(defvar *trace-cell-names* nil) 
+(defvar *trace-cell-names-or-exprs* nil) 
 
 ;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump 
 ;;; :deep-alerts :pq
-(defvar *!!* nil) 
 (defparameter *default-!!list* '(:run :jcalls))
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
@@ -331,13 +334,13 @@ current system.)
 (defvar *running?* nil)
 
 ;;; Example usage of *trace-@orID-exprs*
-;;;   ("P051R050" (setf *trace-cell-names* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
+;;;   ("P051R050" (setf *trace-cell-names-or-exprs* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
 ;;;   ("P051R050" (setf *!!* '(:run :run-full :jdeep)))
 ;;; Can also be a number in which case it refers to the H3 value (@), as:
 ;;;   (123 ...)
 ;;; (setf *trace-@orID-exprs*
 ;;;    '(("P052R040"
-;;;       (setf *trace-cell-names* '("W0" "W1" "H0") *cell-tracing-on* t)
+;;;       (setf *trace-cell-names-or-exprs* '("W0" "W1" "H0") *cell-tracing-on* t)
 ;;;       (trace symbolify ipl-string-equal ipl-string-equal))
 ;;;      (123 (trace) (setf *cell-tracing-on* nil *!!* *default-!!list*))
 ;;;      ))
@@ -351,8 +354,11 @@ current system.)
 			 (and (stringp key) (string-equal key id)))
 		  do (return exprs))))
   (when *cell-tracing-on*
-    (loop for name in *trace-cell-names* do
-	  (format t "   ~a=~s ++ ~s~%" name (cell name) (first-n 4 (gethash name *systacks*))))))
+    (loop for name-or-expr in *trace-cell-names-or-exprs* do
+	  (ignore-errors ;; In case there's no number, or some other f'up in the eval
+	    (if (listp name-or-expr)
+		(format t "   ~s=~s~%" name-or-expr (eval name-or-expr))
+	      (format t "   ~a=~s ++ ~s~%" name-or-expr (cell name-or-expr) (first-n 4 (gethash name-or-expr *systacks*))))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -380,6 +386,11 @@ current system.)
 
 ;;; This also checks to make sure that there isn't crap left on the
 ;;; stacks or in the cells and breaks if ther is. 
+
+(defparameter *system-cells* '("H0" "H1" "H3" "H5"))
+(defparameter *w-cells* (loop for w below 43 collect (format nil "W~a" w)))
+
+(defparameter *all-system-cells* (append *system-cells* *w-cells*))
 
 (defun report-system-cells (&optional (all? *report-all-system-cells?*))
   (format t "~%~%------ RUN REGISTERS ------~%")
@@ -626,8 +637,6 @@ current system.)
 	unless (member (car i) (cdr i) :test #'equal)
 	collect (car i)))
 
-(defvar *jfn-plists* (make-hash-table :test #'equal))
-
 (defun prettify-jexps-if-any (cell)
   (when (cell? cell)
     (let* ((symbexp (getf (gethash (cell-symb cell) *jfn-plists*) 'explanation))
@@ -650,10 +659,6 @@ current system.)
 ;;; on the stack.
 
 ;;; (WWW S is not a cell just a symbol.)
-
-(defparameter *system-cells* '("H0" "H1" "H3" "H5"))
-(defparameter *w-cells* (loop for w below 43 collect (format nil "W~a" w)))
-(defparameter *all-system-cells* (append *system-cells* *w-cells*))
 
 (defun create-system-cells ()
   (loop for name in *all-system-cells*
@@ -691,8 +696,8 @@ current system.)
 		  finally (setf (cdr s+) nil))))))
 
 ;;; Loaded code analysis:
-
-(defun report-col-vals ()
+;;; This throws an annoying warning and is a non-critical deugging tool
+'(defun report-col-vals ()
   (loop for col being the hash-keys of *col->vals*
 	using (hash-value vals)
 	collect (list col (sort (count-vals vals) #'> :key #'cdr))))
@@ -1084,6 +1089,7 @@ current system.)
 	       (new-cell-name (newsym))
 	       (list-cell-symbol (cell-symb list-cell))
 	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell))))
+	  (declare (ignore new-cell))
 	  (setf (cell-symb list-cell) new-symbol
 		(cell-link list-cell) new-cell-name))
 	(!! :jdeep "             .....*********************************************************~%")
@@ -1219,7 +1225,7 @@ current system.)
 	;; the list from the symtab.]
 	(PopH0 1))
 
-  (defj J73 (arg0) "Copy list -186-"
+  (defj J73 (arg0) "Copy list [186]"
 	;; COPYLIST (0). The output (0) names a new list, with the identical
 	;; symbols in the cells as are in the corresponding cells of list (0),
 	;; including the head. If (0) is the name of a list cell, rather that
@@ -1236,7 +1242,7 @@ current system.)
 	(let* ((new-cell
 		(if (zero? arg0)
 		    (let* ((new-cell (make-cell! :pq "00" :symb "0" :link "0")))
-		      (!! :jdeep "            .....J73 passed a '0' is creating a blank list cell: ~s~%" newcell)
+		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
 		      new-cell)
 		    (copy-ipl-list-and-return-head arg0))))
 	  (poph0 1)
@@ -1513,7 +1519,8 @@ current system.)
 	;; The output (0) is the input (0) with Q = 2. Since all
 	;; copies of this symbol carry along the Q value, if a symbol
 	;; is made local when created, it will be local in all its
-	;; occurrences. [I have no idea what his last sentence means!]
+	;; occurrences. [I have no idea what his last sentence means,
+	;; but I actually think that this doesn't matter.]  
 	;; (No pop bcs output is the input)
 	(let ((cell (<== H0)))
 	  (setf (cell-pq cell)
@@ -1547,10 +1554,12 @@ current system.)
 	;; as "unmake local symbol." [Whatever the f any of that
 	;; means! This is one of those confusing ones where it seems
 	;; to indicate that the symbol includes the PQ.]
-	(setf (cell-pq (H0)) (format "~a4" (aref (cell-pq (H0)) 0))))
+	(let ((cell (cell arg0)))
+	  (setf (cell-pq cell) (format nil "~a4" (aref (cell-pq cell) 0)))))
 
   (defj J147 (arg0) "MARK ROUTINE (O) TO TRACE"
 	;; FFF Maybe actually turn tracing on! :-)
+	(declare (ignore arg0))
 	(poph0 1))
 
   (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE." 	;; Pop????
@@ -1604,7 +1613,7 @@ current system.)
 	(!! :jdeep "             .....Print buffer is now:~%~s~%" *W24-Line-Buffer*)
 	)
 
-  (defj J157 (a0) "ENTER DATA TERM (0) LEFT-JUSTIFIED"
+  (defj J157 (a0) "ENTER DATA TERM (0) LEFT-JUSTIFIED [216]"
 	;; Data term (0) is entered in the current print line with its
 	;; leftmost character in print position 1W25, 1W25 is
 	;; advanced, and H5 is set + . If (0) exceeds the remaining
@@ -1621,7 +1630,7 @@ current system.)
 		  do (setf (aref *W24-Line-Buffer* i) c))
 	    (W25-set (+ l p))
 	    (H5+)
-	    (!! :jdeep "             .....Print buffer is now:~%~s (w25=~a)~%" *W24-Line-Buffer* (+ l p))
+	    (!! :jdeep "             .....Print buffer is now:~%~s (w25=~a)~%" *W24-Line-Buffer* (W25-get))
 	    )))
 
   (defj J160 (col) "TAB TO COL (0)"
@@ -1971,7 +1980,7 @@ current system.)
   (J2n=move-0-to-n-into-w0-wn n)
   )
 
-(defvar *copy-list-collector* nil)
+(defvar *copy-list-head-collector* nil)
 
 (defun copy-ipl-list-and-return-head (head)
   (setf *copy-list-head-collector* nil)
@@ -2113,10 +2122,6 @@ current system.)
 (defun w26-init ()
   (make-cell! :name "W26" :symb (cell-name (make-cell! :name (newsym "W26") :symb "0" :link "0"))))
 
-(defun pq-explain (cell)
-  (when (and (cell? cell) (stringp (cell-pq cell)))
-    (second (assoc (cell-pq cell) *pq-meanings* :test #'string-equal))))
-
 (defparameter *pq-meanings*
   '(
     ("" "Execute fn named by symb name itself")
@@ -2142,6 +2147,10 @@ current system.)
     ("64" "Copy of (0) replaces S; S lost; H0 n.c. (==60)")
     ("70" "Goto by H5: -symb|+link itself")
     ))
+
+(defun pq-explain (cell)
+  (when (and (cell? cell) (stringp (cell-pq cell)))
+    (second (assoc (cell-pq cell) *pq-meanings* :test #'string-equal))))
 
 ;;; !!! WWW There's this screw case for popping the H0 arg stack which
 ;;; is when the JFns use H0 per se as an argument, or if it is
@@ -2407,6 +2416,7 @@ current system.)
 	collect (cons let (mapcar #'(lambda (whimp) (substitute (char-upcase (aref let 0)) #\# whimp)) whomp))))
 
 (defun print-letters (text &optional (scale 1) (espace 2))
+  (declare (type integer scale))
   (let ((bigletters '()))
     ;; Get letter patterns for each character
     (loop for i across text
@@ -2424,7 +2434,9 @@ current system.)
                           (if (and j (< i (length j)))
                               (setf temp (nth i j))
                               (setf temp " "))
-                          (let ((line ""))
+                          (let ((line "")
+				(*iscale (floor (* i scale))))
+			    (declare (type fixnum *iscale))
                             ;; Scale horizontally
                             (loop for z across temp
                                   do (dotimes (s scale)
@@ -2434,13 +2446,13 @@ current system.)
                                                     (make-string (- (+ (* 3 scale) espace) (length line)) 
                                                                  :initial-element #\Space)))
                             ;; Append to output line
-                            (setf (nth (* i scale) output) 
-                                  (concatenate 'string (nth (* i scale) output) line))
+                            (setf (nth *iscale output)
+				  (concatenate 'string (nth *iscale output) line))
                             
                             ;; Create bold effect for scaling
                             (loop for bold from 1 below scale
-                                  do (setf (nth (+ (* i scale) bold) output)
-                                           (nth (* i scale) output)))))))
+                                  do (setf (nth (+ *iscale bold) output)
+                                           (nth *iscale output)))))))
       (format nil "~{~A~^~%~}" output))))
 
 (defun announce (fmt &rest args)
@@ -2456,7 +2468,7 @@ current system.)
 
 (defun set-default-tracing ()
   (untrace)
-  (setf *trace-cell-names* nil)
+  (setf *trace-cell-names-or-exprs* nil)
   (setf *breaks* nil) ;; If this is set to t (or '(t)) it break on every call
   (setf *stack-depth-limit* 25) ;; (Nb. must be much higher, ~100, for Ackermann!)
   (setf *!!* *default-!!list*) 
@@ -2474,14 +2486,14 @@ current system.)
   ;(setf *!!* '(:dr-memory :run :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
   ;(trace force-replace) 
-  ;(setf *trace-cell-names* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "F1.lisp")
   )
 
 (progn ;; Ackermann test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  ;(setf *trace-cell-names* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-@orID-exprs* '((9 (break))))
   ;(setf *!!* '(:s :run :jfns :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0 ipush force-replace)
@@ -2494,7 +2506,7 @@ current system.)
 
 '(progn ;; Test of call stack state machine.
   (set-default-tracing)
-  (setf *trace-cell-names* '("H0" "H1") *cell-tracing-on* t)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1") *cell-tracing-on* t)
   (load-ipl "T123.lisp" :adv-limit 100)
   )
 
@@ -2512,18 +2524,9 @@ current system.)
 
 (progn ;; LT 
   (set-default-tracing)
-  '(setf *!!* nil *cell-tracing-on* nil)
-  (setf 
-    *!!* '(:jfns :run :jcalls :s)
-    *trace-cell-names* '("H0" "W0" "W1" "W2" "W25" "W30")
-    *cell-tracing-on* t)
-  '(setf *trace-@orID-exprs*
-	'((2130
-	   (trace ipush ipop)
-	   (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
-	  ;(460 (break))
-	  ;(2000 (trace copy-list-cell copy-list-structure copy-ipl-list copy-ipl-list-and-return-head))
-	  ;(2040 (setf *!!* '(:s :jfns :run :jcalls :jdeep) *trace-cell-names* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+  (setf *trace-@orID-exprs*
+	'(("P050R000" (setf *!!* '(:jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  (349 (break))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )

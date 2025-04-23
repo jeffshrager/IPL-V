@@ -833,21 +833,11 @@
 ("CREATE LIST OF ONE NAME." "" "" "" "" "J91" "" "" "M054R190")
 ("" "" "" "" "" "J136" "" "" "M054R200")
 ("PLACE IN MAP HEAD AND QUIT." "" "" "" "21" "W1" "J33" "" "M054R210")
-
-;;; This looks like it's WRONG. It probably should be 11 W0 (Note that
-;;; 10W1 is VERY RARE (4 uses in the whole code!)  whereas "11W1" is
-;;; used 58 times!!!)
-;;;("INPUT MAP HOLDER." "" "9-102" "" "11" "W1" "" "" "M054R220")
 ("INPUT MAP HOLDER." "" "9-102" "" "10" "W1" "" "" "M054R220")
 
 ("INPUT SEGMENT CONNECTIVE." "" "" "" "12" "W2" "" "" "M054R230")
 ("FIND SUBMAPS LIST." "" "" "" "" "J10" "" "" "M054R240")
 ("   IF FOUND, CONTINUE." "" "" "" "70" "" "9-110" "" "M054R250")
-
-;;; This looks like it's WRONG. It should be 11 W0
-;;; (Note that 10W1 is VERY RARE (4 uses in the whole code!)
-;;;  whereas "11W1" is used 58 times!!!)
-;;;("   IF NONE," "" "" "" "11" "W1" "" "" "M054R260")
 ("   IF NONE," "" "" "" "10" "W1" "" "" "M054R260")
 
 ("" "" "" "" "" "J90" "" "" "M054R270")
@@ -1255,12 +1245,6 @@
 ("" "" "" "" "40" "H0" "" "" "M089R190")
 ("TEST IF REGIONAL." "" "" "" "" "J130" "" "" "M089R200")
 ("   IF NOT, RESET, GET NEXT." "" "" "" "70" "9-4" "" "" "M089R210")
-;;; The next three (seemingly out of sequence) lines were commented
-;;; out at one point in order to get around an apparent bug during
-;;; early reading. They appear to be a user error trap ... but I don't
-;;; think we need it (we just don't make that error!) But later, as
-;;; other things got fixed, these could be returned to the code and it
-;;; worked, so the problem was in the interpreter, not these lines.
 ("" "" "" "" "40" "H0" "" "" "M089R213")
 ("TEST IF NAME IS A CHARACTER SYMBOL." "" "" "" "" "P18" "" "" "M089R215")
 ("     IF YES, RESET, GET NEXT." "" "" "" "70" "9-4" "" "" "M089R217")
@@ -1835,15 +1819,8 @@
 ("QUIT, H5+ FOR GEN." "" "" "" "" "J66" "J4" "" "P031R100")
 ("" "1" "" "" "" "" "" "" "    R")
 ("P50 CONVERT LOGIC EXPRESSION (0) TO" "" "P50" "" "40" "H0" "" "" "P050R000")
-;;; Stash the name of the current expr's list in case we lose it later
-;;; (see LOSTEXPNAME comments below) [This is a hack that tried to
-;;; restore the external name of an expr bcs it appears to get lost
-;;; someplace in M88, but adding patches like this is probably just
-;;; revealing a problem with the emulator, so for the moment it's
-;;; out. Along with the latter stash recovery code.]
-; ("Stash the name in W4"                "" ""    "" "60" "W4" "" "LOSTEXPNAME" "P050R001Jeff")
 ("INTERNAL (TREE) FORM IF IN" "" "" "" "" "P15" "" "" "P050R010")
-("EXTERNAL (LIST) FORM. ENTIRE" "" "" "" "70" "" "J8" "" "P050R020") ;; Err!
+("EXTERNAL (LIST) FORM. ENTIRE" "" "" "" "70" "" "J8" "" "P050R020")
 ("EXPRESSION MUST BE ENCLOSED" "" "" "" "" "J41" "" "" "P050R030")
 ("IN PARENTHESES. NO OUTPUT." "" "" "" "60" "W0" "" "" "P050R040")
 ("H5- MEANS FAILURE." "" "" "" "" "P51" "" "" "P050R050")
@@ -2736,8 +2713,6 @@
 ("BAD INPUT ACTION." "" "9-100" "" "40" "H0" "" "" "X001R300")
 ("" "" "" "" "" "M88" "" "" "X001R310")
 ("" "" "" "" "40" "H0" "" "" "X001R320")
-;;; Pull the name of the current expr's list from the stash 
-; ("Pull the name from W4"                "" ""    "" "11" "W4" "" "LOSTEXPNAME" "X001R325Jeff")
 ("" "" "" "" "" "J15" "" "" "X001R330")
 ("" "" "" "" "" "J75" "J72" "" "X001R340")
 ("" "1" "" "" "" "" "" "" "R")
@@ -2783,7 +2758,7 @@
 ("" "" "X22" "" "" "0" "" "" "X022D000")
 ("DESCRIPTION LIST OF TRAP ACTIONS." "" "X23" "" "" "0" "" "" "X023D000")
 ;;; NB These order of these depends on what I was debugging at a given moment
-;;; This simple version is from Stefferud p.4
+;;; This simple version is from Stefferud p.4 Proof is on p. -89- (2.07)
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
 *1    ((AVA)IA)
 
