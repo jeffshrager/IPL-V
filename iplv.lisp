@@ -2447,7 +2447,8 @@ current system.)
   (setf *report-all-system-cells?* nil)
   (setf *cell-tracing-on* nil)
   (setf *trace-@orID-exprs* nil)
-  (trace ipl-eval))
+  '(trace ipl-eval)
+  )
 
 ;; Comment (or just ') progn blocks out as needed.
 
