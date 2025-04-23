@@ -272,12 +272,12 @@ current system.)
       ;; And replace it with whatever it appropriate given the input type.
       (cond ((or (stringp newval) (functionp newval))
 	     (data-set newmain :symb newval))
-	    ;; !!!!!!! This is fucked! It needs to put the name in order to stack on H1 but everywhere else needs to put the symbol!
 	    ((cell? newval)
 	     ;; Here we copy everything into it (except the name).
 	     (data-set newmain
 		       :sign (cell-sign newval)
 		       :pq (cell-pq newval)
+		       ;;  %%% FFF UUU This is an ugly compensatory hack from where it's called that should be unwound at some point! (see: "IPH1HACK")
 		       :symb (if (string-equal stack-name "H1") (cell-name newval) (cell-symb newval))
 		       :link (cell-link newval))
 	     (!! :run-full "iPushing a copy of data from ~s on ~a~%" newval stack-name))
@@ -2272,7 +2272,7 @@ current system.)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (setf *fname-hint* S)
-     (ipush "H1" (cell S))
+     (ipush "H1" (cell S)) ;; %%% FFF UUU This has an ugly compensatory hack in ipush that should be unwound at some point! (see: "IPH1HACK")
      (trace-cells)
      (go INTERPRET-Q)
    BRANCH
