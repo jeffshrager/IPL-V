@@ -1219,7 +1219,7 @@ current system.)
 	;; the list from the symtab.]
 	(PopH0 1))
 
-  (defj J73 (arg0) "Copy list"
+  (defj J73 (arg0) "Copy list -186-"
 	;; COPYLIST (0). The output (0) names a new list, with the identical
 	;; symbols in the cells as are in the corresponding cells of list (0),
 	;; including the head. If (0) is the name of a list cell, rather that
@@ -1227,9 +1227,20 @@ current system.)
 	;; the list from (0) on. (Nothing else is copied, not even the
 	;; description list of (0), if it exists.)  The name is local if the
 	;; input (0) is local; otherwise, it is internal.
-	(let* ((r (cell-name (copy-ipl-list-and-return-head arg0))))
+
+	;; This isn't in the manual, but for sometimes this is handed
+	;; a 0 -- e.g., we're trying to copy the DL of a list but
+	;; there's no DL. In this case we flag it and create a null
+	;; list, hoping that the caller might think it's what it's
+	;; looking for.
+	(let* ((new-cell
+		(if (zero? arg0)
+		    (let* ((new-cell (make-cell! :pq "00" :symb "0" :link "0")))
+		      (!! :jdeep "            .....J73 passed a '0' is creating a blank list cell: ~s~%" newcell)
+		      new-cell)
+		    (copy-ipl-list-and-return-head arg0))))
 	  (poph0 1)
-	  (ipush "H0" r)))
+	  (ipush "H0" (cell-name new-cell))))
 
   (defj J74 (arg0) "Copy List Structure"
 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
@@ -2493,35 +2504,7 @@ current system.)
 ;;; program.
 
 
-#| Current problem and issues:
-
-@2135+ >>>>> {M062R020::M62+895|60|W1|M62+896 [    FEASIBLE MATCH WITH SEGMENT;1W1=MAP]} (Copy of (0) replaces S; S lost; H0 n.c.)
-     -----> At INTERPRET-P w/P = 6, S="W1"
-   H0={H0|0|L4|0} ++ ({|0|9+2376|0} {|0|9+2376|0} {|0|9+2323|0} {|0|9+2323|0})
-   W0={||9+2338|} ++ ({||9+2338|} {||*2|} {|0|*2|0} {|||})
-   W1={||L4|} ++ ({||*2|} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-
-H0 is about to get a 0 as a second deref from W1, which has no DL (so WTF does it think it's trying to get?!)
-
-@2136+ >>>>> {M062R030::M62+896|52|W1|M62+897 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
-     -----> At INTERPRET-P w/P = 5, S="0"
-   H0={||0|} ++ ({|0|9+2376|0} {|0|9+2376|0} {|0|9+2323|0} {|0|9+2323|0})
-   W0={||9+2338|} ++ ({||9+2338|} {||*2|} {|0|*2|0} {|||})
-   W1={||L4|} ++ ({||*2|} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-@2137+ >>>>> {M062R040::M62+897||J73|M62+898} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J73"
-      2: (IPUSH "H1" #<FUNCTION (LAMBDA (ARG0) :IN SETUP-J-FNS) {535D98FB}>)
-      2: IPUSH returned
-           {H1|0|<FUNCTION (LAMBDA (ARG0) :IN SETUP-J-FNS) {535D98FB}>|0}
-   H0={||0|} ++ ({|0|9+2376|0} {|0|9+2376|0} {|0|9+2323|0} {|0|9+2323|0})
-   W0={||9+2338|} ++ ({||9+2338|} {||*2|} {|0|*2|0} {|||})
-   W1={||L4|} ++ ({||*2|} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-   .......... Calling J73 [Copy list]: (ARG0)=("0")
-
-debugger invoked on a SIMPLE-CONDITION in thread #<THREAD "main thread" RUNNING {1001670003}>: In copy-ipl-list got NIL which wasn't expected.
+#| Current issue:
 
 |#
 
