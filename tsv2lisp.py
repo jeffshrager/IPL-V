@@ -1,6 +1,6 @@
 # conda activate iplv
-# python3 tsv2lisp.py LT_IPL-V-CODE_129-170.tsv LT_IPL-V-DATA_171-182.tsv LT_IPL-V-CODE_183-184.tsv LT_IPL-V-Exec_Code_71-73.tsv LT.lisp
-# python3 tsv2lisp.py F1.tsv F1.lisp
+# python3 tsv2lisp.py LT_IPL-V-CODE_129-170.tsv LT_IPL-V-DATA_171-182.tsv LT_IPL-V-CODE_183-184.tsv LT_IPL-V-Exec_Code_71-73.tsv LT.liplv
+# python3 tsv2lisp.py F1.tsv F1.liplv
 
 # WWW FFF Need to also delete double quotes (") [Although I think that
 # through magical thinking, these worked correctly -- see, e.g.,

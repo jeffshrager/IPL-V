@@ -2516,7 +2516,7 @@ current system.)
   ;(push :run-full *!!*)
   ;(trace force-replace) 
   ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (load-ipl "F1.lisp")
+  (load-ipl "F1.liplv")
   )
 
 (progn ;; Ackermann test
@@ -2526,7 +2526,7 @@ current system.)
   ;(setf *trace-@orID-exprs* '((9 (break))))
   ;(setf *!!* '(:s :run :jfns :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0 ipush force-replace)
-  (load-ipl "Ackermann.iplv" :adv-limit 25000)
+  (load-ipl "Ackermann.liplv" :adv-limit 25000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
       (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
@@ -2536,7 +2536,7 @@ current system.)
 '(progn ;; Test of call stack state machine.
   (set-default-tracing)
   (setf *trace-cell-names-or-exprs* '("H0" "H1") *cell-tracing-on* t)
-  (load-ipl "T123.lisp" :adv-limit 100)
+  (load-ipl "T123.liplv" :adv-limit 100)
   )
 
 ;;; WWW If this ends early with a BAD EXPRESSION (or other "normal
@@ -2600,8 +2600,8 @@ Something's really f'ed up in the MAP!
 
 (progn ;; LT 
   (set-default-tracing)
-  (setf *trace-@orID-exprs*
+  '(setf *trace-@orID-exprs*
  	'((5 (setf *!!* '(:jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t))
 	  ))
-  (load-ipl "LTFixed.lisp" :adv-limit 5000)
+  (load-ipl "LTFixed.liplv" :adv-limit 5000)
   )
