@@ -2,7 +2,18 @@
 
 (setf *print-pretty* nil)
 
-#|
+#| Notes and issues:
+
+The ugly P=2 problem: (0) is put in cell S; then H0 is
+restored." (Note: No S push!)  It's actually unclear what the right
+way to do this is. Here are two hypotheses; One works, the other
+doesn't, but I'm not sure I understand why. It actually seems to me
+that it should be the other way around!  There's something really
+wrong here since these ought to be identical, except that the
+force-replace creates a new cell. So someone someplace is holding a
+cell struct that shouldn't be, but apparently needs to be. UUU WWW !!!
+This bodes poorly for the overall correctness and stability of the
+interpreter!
 
 www Local symbols in our case are ROUTINEID-9-... and get created at
 load time. Some of the code tests for a local symbol by knowing that
@@ -12,16 +23,18 @@ should be done by pure 9- gensym, but then it would be impossible to
 f'ing figure out what routine something is in. ... ??? This is going
 to come back to bite us! (see convert-local-symbols)
 
-FFF H3 cycle counter sometimes doesn't incremement. It's probably
-incf'ed in a slightly wrong place, but I'm not changing it now bcs I'm
-in the middle of debugging something.
+H3 cycle counter sometimes doesn't incremement. It's probably incf'ed
+in a slightly wrong place.
 
 WWW (from J136): "all copies of this symbol carry along the Q
-value..."!!!
+value..." .... This is going to come back to bite us because I do NOT
+do this!
 
 FFF Consider replacing system cells stacks with JUST symbols, thus
 avoiding entirely the mess of accidently sharing and destructive
-disasters.
+disasters. (I don't think we can do this -- see Q problem, as above. I
+think that the PQ is actually part of the symbol...or at least the Q
+is.)
 
 WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
 The weirdest example (so far) is that the symbol "P" is actually the
@@ -32,21 +45,17 @@ that P0 is really referring to "P". Ugh. (See manual p. 13 (prob. 4),
 to "fix" the singlton letters in the original code, so that the name,
 for example, A goes to A0.
 
-(Note the J8 error popping stack motif!)
+(Note the J8 stack stack popping motif upon a signaled error!)
 
 It seems that all JFns will remove their inputs, e.g., p.10: "...it is
 understood from the definition of TEST that J2 will remove both (0)
 and (1) from HO." UNLESS OTHERWISE STATED! See: (PopH0 n) FFF ???
-Maybe fold poph0, to the extent possible, into DefJ?
-
-WWW Noting handles multiply-nested dlists!
+Maybe fold poph0, to the extent possible, into DefJ? But this has to
+be handled on an indiviudal basis.
 
 WWW A lot of code assumes that a list isn't branching -- e.g., DLIST
-processing.
-
-??? Does anyone need W24 (read/print line) to be an actual cell?
-Right now it's a special global that can only process on line of I or
-O at a time.
+processing. Probably some of the JFns will need to be upgradded to
+handle complex lists.
 
 WWW WATCH OUT FOR memory leaks are that are leaving junk on the
 stacks (primarily H0) ... usually it's the Jfns that aren't cleaning
@@ -2235,9 +2244,29 @@ current system.)
      (!! :s "     -----> At INTERPRET-P w/P = ~s, S=~s~%" p S) ;; FFF Allow the keys to be a list
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
-       (1 (ipush "H0" S)) ;; Input S (after preserving HO)
-       ;; "A copy of (0) is put in cell S; then H0 is restored." (Note: No S push!)
-       (2 (force-replace S (cell-symb (H0))) (ipop "H0"))
+       (1 (ipush "H0" S)) ;; Input S (after preserving HO) "A copy of
+
+       (2 ;; Output to S (then restore HO)
+
+	;; ********************************************************
+	;; (0) is put in cell S; then H0 is restored." (Note: No S
+	;; push!)  It's actually unclear what the right way to do this
+	;; is. Here are two hypotheses; One works, the other doesn't,
+	;; but I'm not sure I understand why. It actually seems to me
+	;; that it should be the other way around!  There's something
+	;; really wrong here since these ought to be identical, except
+	;; that the force-replace creates a new cell. So someone
+	;; someplace is holding a cell struct that shouldn't be, but
+	;; apparently needs to be. UUU WWW !!! This bodes poorly for
+	;; the overall correctness and stability of the interpreter!
+
+	(setf (cell-symb (cell S)) (cell-symb (H0))) ;; THIS ONE WORKS!
+	;; (force-replace S (cell-symb (H0)))        ;; THIS ONE DOES NOT WORK!
+
+	(ipop "H0")
+	)
+	;; ******************************************************
+
        ;; "A copy of the symbol most recently stored in the push down
        ;; list of S is moved into S." (This is actually slightly
        ;; ambiguous -- if it's name wasn't "RESTORE" it could be
@@ -2518,6 +2547,53 @@ current system.)
 
 #| Current issue:
 
+Something's really f'ed up in the MAP!
+
++------------------------- "L4" {L004D000::L4||0|9+2320 [TRUE EXPRESSION MAPS;]} -------------------------+
+(0) {L004D000::L4||0|9+2320 [TRUE EXPRESSION MAPS;]}
+   (1) {9+2320||I0|9+2319}
+      (2) {I000D000::I0||I0+1897|0 [IMPLIES;]}
+         (3) {I000D010::I0+1897||0|I0+1898}
+            (4) {I000D020::I0+1898||Q14|I0+1899}
+               (5) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
+                  (6) "J10"
+               (5) {I000D030::I0+1899||J4|I0+1900}
+                  (6) "J4"
+                  (6) {I000D040::I0+1900||Q7|I0+1901}
+                     (7) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+                        (8) "J10"
+                     (7) {I000D050::I0+1901||I0+1902|0}
+                        (8) {I000D060::I0+1902|21|I|}
+      (2) {9+2319||9+2315|0}
+         (3) {9+2315|02|0|9+2316}
+            (4) {9+2316|02|W1|9+2317} <<<<<<<<<<<<<<<<<<<<<<<<<<< ???????????????????????????
+               (5) {W1||L4|}          <<<<<<<<<<<<<<<<<<<<<<<<<<< ???????????????????????????
+                  (6) {L004D000::L4||0|9+2320 [TRUE EXPRESSION MAPS;] <<<<<<<<<<<<<<<<<<<<<<<<<<< ???????????????????????????
+                     (7) {9+2320||I0|9+2319}
+                        (8) {I000D000::I0||I0+1897|0 [IMPLIES;]}
+                           (9) {I000D010::I0+1897||0|I0+1898}
+                              (10) {I000D020::I0+1898||Q14|I0+1899}
+                              [@11...]
+                              [@11...]
+                        (8) {9+2319||9+2315|0}
+                           (9) {9+2315|02|0|9+2316}
+                              (10) {9+2316|02|W1|9+2317}
+                              [@11...]
+                              [@11...]
+               (5) {9+2317|02|9+2313|9+2318}
+                  (6) {9+2313|02|9+2333|0}
+                     (7) {9+2333|02|0|9+2334}
+                        (8) {9+2334|02|9+2286|9+2335}
+                           (9) {9+2286|01||16}
+                           (9) {9+2335|02|*1|0}
+                              (10) {*1||9+2289|9+2308}
+                              [@11...]
+                              [@11...]
+                  (6) {9+2318|02|9+2314|0}
+                     (7) {9+2314|02|0|0}
++--------------------------End "L4" -------------------------------------------+
+
+
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
@@ -2525,8 +2601,7 @@ current system.)
 (progn ;; LT 
   (set-default-tracing)
   (setf *trace-@orID-exprs*
-	'(("P050R000" (setf *!!* '(:jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
-	  (349 (break))
+ 	'((5 (setf *!!* '(:jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.lisp" :adv-limit 5000)
   )
