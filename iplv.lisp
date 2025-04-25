@@ -1589,7 +1589,7 @@ current system.)
 	;; 4, SYMB = 0), and P set to be 1. Restoring (0) will return
 	;; (0) to its initial state. This will work even with data
 	;; terms. The output (0) is the input (0).
-	(poph0 1)
+	;(poph0 1)
 	(ipush l) ;; This will leave a copy in the main symtab.
 	(let ((newmain (cell l))) ;; This should be the NEW copy of the pushed head.
 	  ;; Now we mark the new main cell as indicated.
@@ -2596,7 +2596,7 @@ current system.)
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
-  (setf *trace-@orID-exprs*
+  '(setf *trace-@orID-exprs*
 	'((20000 (setf *!!* '(:run) *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t))
 	  ;(20000 (break))
 	))
