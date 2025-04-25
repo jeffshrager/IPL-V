@@ -184,10 +184,9 @@ current system.)
     "Q013" "Q014" "Q015" "Q016" "Q017" "Q018" "Q019"
     "X001" "Q004" "Q003" "P030" "P028" "M116" "M115"
     "M114" "M110" "M088" "M082" "M080" "M078" "M077"
-    "M076" "M071"))
+    "M076" "M071" "M071" "P014" "M112" "M113"))
 
-
-'(defun rx () ;; report on execs (card ids executed)   (clrhash *rxtbl*)
+(defun rx () ;; report on execs (card ids executed)   (clrhash *rxtbl*)
   (loop for id in *card-ids-executed*
 	if (and (stringp id) (= 8 (length id)))
 	do (incf (gethash (subseq id 0 4) *rxtbl* 0)))
@@ -2596,8 +2595,8 @@ current system.)
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
-  '(setf *trace-@orID-exprs*
-	'((20000 (setf *!!* '(:run) *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t))
+  (setf *trace-@orID-exprs*
+	'((23000 (setf *!!* '(:run) *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t))
 	  ;(20000 (break))
 	))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
