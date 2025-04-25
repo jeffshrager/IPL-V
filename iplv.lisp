@@ -184,7 +184,8 @@ current system.)
     "Q013" "Q014" "Q015" "Q016" "Q017" "Q018" "Q019"
     "X001" "Q004" "Q003" "P030" "P028" "M116" "M115"
     "M114" "M110" "M088" "M082" "M080" "M078" "M077"
-    "M076" "M071" "M071" "P014" "M112" "M113"))
+    "M076" "M071" "M071" "P014" "M112" "M113" "P024"
+    "P017" "P013"))
 
 (defun rx () ;; report on execs (card ids executed)   (clrhash *rxtbl*)
   (loop for id in *card-ids-executed*
@@ -665,7 +666,9 @@ current system.)
 ;;; Things like 9-xxx are local, everything else is global.
 
 (defun global-symbol? (name)
-  (and (not (zerop (length name)))
+  (and (stringp name)
+       (not (zerop (length name)))
+       ;; ??? Might want to look at -9- or 9+ or other details ???
        (not (char-equal #\9 (aref name 0)))))
 
 (defun local-symbol? (name)
@@ -1289,7 +1292,7 @@ current system.)
 	  (poph0 1)
 	  (ipush "H0" (cell-name new-cell))))
 
-  (defj J74 (arg0) "Copy List Structure"
+  (defj J74 (arg0) "Copy List Structure [186]"
 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
 	;; which are in one-to-one correspondence with the cells of list structure
 	;; (0). All the regional and internal symbols in the cells will be identical
@@ -1301,9 +1304,15 @@ current system.)
 	;; remains unaffected. The output (0) names the new list structure. It is
 	;; local if the input (0) is local; It is internal otherwise.
 	(!! :jdeep "             .....J74 is copying list: ~s~%" (H0))
-	(let* ((r (copy-list-structure arg0)))
+	;; ???????????????????? I don't get the difference between this and J73 ????????????????????????????/
+	(let* ((new-cell
+		(if (zero? arg0)
+		    (let* ((new-cell (make-cell! :pq "00" :symb "0" :link "0")))
+		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
+		      new-cell)
+		    (copy-ipl-list-and-return-head arg0))))
 	  (poph0 1)
-	  (ipush "H0" r)))
+	  (ipush "H0" (cell-name new-cell))))
 
   (defj J75 (arg0) "DIVIDE LIST AFTER LOCATION (0)"
 	;; (0) is assumed to be the name of a cell on a list. A
@@ -2067,23 +2076,6 @@ current system.)
      cell-or-symb/link)
     (t (break "In copy-ipl-list got ~s which wasn't expected." cell-or-symb/link))))
 
-(defun copy-list-structure (l)
-  (if (zero? l) l ;; End of sublist, just return the EOsL "0"
-      (let ((new-name (newsym)))
-	(setf (gethash new-name *symtab*) (mapcar #'copy-list-cell l))
-	new-name)))
-
-(defun copy-list-cell (cell)
-  (if (zero? cell) cell ;; End of sublist, just return the EOsL "0"
-      (let* ((new-cell (copy-cell cell)))
-	(setf (cell-name new-cell) (newsym))
-	;; WWW ??? This has the problem that it's going to copy whole functions
-	;; into copied lists, which is probably not what is intended. Maybe
-	;; things that are defined in the load process shouldn't be copied? 
-	(setf (cell-symb new-cell) (copy-list-structure (cell-symb cell)))
-	(setf (cell-link new-cell) (copy-list-structure (cell-link cell)))
-	)))
-	
 (defun last-cell-of-linear-list (l)
   (cond ((zero? (cell-link l)) l)
 	(t (last-cell-of-linear-list (cell (cell-link l))))))
@@ -2596,7 +2588,7 @@ current system.)
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
   (setf *trace-@orID-exprs*
-	'((23000 (setf *!!* '(:run) *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t))
+	'((24000 (setf *!!* '(:run) *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t))
 	  ;(20000 (break))
 	))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
