@@ -172,17 +172,31 @@ current system.)
 (defvar *card-ids-executed* nil)
 (defvar *rxtbl* (make-hash-table :test #'equal))
 ;;; This throws an annoying warning and is a non-critical deugging tool
-'(defun rx () ;; report on execs (card ids executed)
-  (clrhash *rxtbl*)
+
+(defparameter *checked-routines*
+  '(
+    "M001" "M002" "M003" "M012" "M042" "M043" "M050"
+    "M054" "M062" "M063" "M070" "M072" "M073" "M074"
+    "M079" "M089" "M111" "P004" "P006" "P007" "P008"
+    "P009" "P015" "P018" "P019" "P027" "P029" "P031"
+    "P050" "P051" "P052" "P055" "Q001" "Q002" "Q005"
+    "Q006" "Q007" "Q008" "Q009" "Q010" "Q011" "Q012"
+    "Q013" "Q014" "Q015" "Q016" "Q017" "Q018" "Q019"
+    "X001" "Q004" "Q003" "P030" "P028" "M116" "M115"
+    "M114" "M110" "M088" "M082" "M080" "M078" "M077"
+    "M076" "M071"))
+
+
+'(defun rx () ;; report on execs (card ids executed)   (clrhash *rxtbl*)
   (loop for id in *card-ids-executed*
 	if (and (stringp id) (= 8 (length id)))
 	do (incf (gethash (subseq id 0 4) *rxtbl* 0)))
-  (mapcar #'print
-	  (sort 
-	   (loop for rname being the hash-keys of *rxtbl*
+  (let ((callstats (loop for rname being the hash-keys of *rxtbl*
 		 using (hash-value nx)
-		 collect (cons rname nx))
-	   #'string< :key #'car)))
+		 collect (cons rname nx))))
+    (mapcar #'print (sort callstats #'string< :key #'car))
+    (format t "Unchecked calls:~%")
+    (mapcar #'print (SET-DIFFERENCE (mapcar #'car callstats) *checked-routines* :TEST #'STRING-EQUAL))))
 
 (defvar *cell-tracing-on* nil)
 ;;; These will get eval'ed at the given id, for example:
@@ -2566,15 +2580,45 @@ current system.)
 
 #| Current issue:
 
+@23067+ >>>>> {M062R500::M62+951||J100|M62+952 [GENERATE '(0)' TO UNMARK MARKED.;]} (Execute fn named by symb name itself)
+   H0={H0|0|M62-9-300|0} ++ ({|0|P27-9-200|0} {|0|P27-9-200|0} {|0|9+3371|0} {|0|J137|0})
+   W0={W0||9+2630|} ++ ({||9+2628|} {||9+2628|} {||*207|} {|0|*207|0})
+   W1={W1||9+2307|} ++ ({||L4|} {||*207|} {|||} :EMPTY)
+   .......... Calling J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]: (ARG0 ARG1)=("M62-9-300" "P27-9-200")
+             .....J100 GENERATE SYMBOLS FROM LIST "P27-9-200" FOR SUBPROCESS "M62-9-300"
+             .....J100: cell-name="J8", cell=NIL
+
+debugger invoked on a TYPE-ERROR @535D2633 in thread #<THREAD "main thread" RUNNING {1001680003}>: The value #<FUNCTION (LAMBDA NIL :IN SETUP-J-FNS) {535DBDAB}> is not of type COMMON-LISP-USER::CELL
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
+
+((LAMBDA (ARG0 ARG1) :IN SETUP-J-FNS) "M62-9-300" "P27-9-200")
+; Using form offset instead of character position.
+
+The "P27-9-200" is clearly wrong. Here are all the other J100 calls:
+
+34 J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]
+(((J157 T20) . 3) ((J157 T21) . 3) ((J157 T22) . 2) ((M62-9-300 P27-9-200) . 1) ((M62-9-200 9+3422) . 1)
+ ((M42-9-200 9+3410) . 1) ((Q2-9-100 9+2630) . 1) ((Q2-9-100 9+2628) . 1) ((P27-9-200 9+3371) . 1)
+ ((P27-9-100 L2) . 1) ((J137 9+3371) . 1) ((J157 T23) . 1) ((J157 T9) . 1) ((J157 T8) . 1) ((J157 T7) . 1)
+ ((J157 T4) . 1) ((J157 T3) . 1) ((J157 T1) . 1) ((J157 T2) . 1) ((M12-9-100 9+3356) . 1)
+ ((M62-9-300 9+3353) . 1) ((M62-9-200 9+3357) . 1) ((M42-9-200 9+3353) . 1)
+ ((Q2-9-100 9+2605) . 1) ((M2-9-100 L3) . 1) ((M79 *203) . 1) ((J157 T24) . 1) ((J148 X22) . 1) ((J147 X21) . 1))
+
 |#
 
-;;; debugging tools: (pl cell) (pll cell) (rj) :c (rx)
+;;; debugging tools: (pl cell) (pll cell) (rj) :c
+;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
+;;; (rx) analyzes routine call stats
+;;; *!!* <= :jdeep :jfns :run :jcalls :dr-memory :s :run-full :deep-alerts :load
 
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
-  '(setf *trace-@orID-exprs*
-	'((470 (break))
-	  (450 (setf *!!* '(:jdeep :jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t))))
+  (setf *trace-@orID-exprs*
+	'((22500 (setf *!!* '(:jdeep :jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t))))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )
