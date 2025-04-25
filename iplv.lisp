@@ -207,6 +207,23 @@ current system.)
 	do (print (list key val)))
   (format t "~%~%") :done)
 
+;; ;;; Search a list (given the head cell's name) for a specific symbol,
+;; ;;; and eval the action when it's found. This is usually used to throw
+;; ;;; breaks when something weird gets put into a list.
+
+;; (defun act-on-symbol-in-list (action symbol head-name)
+;;   (when (search-ipl-list-for head-name symbol)
+;;     (eval action)))
+
+;; (defun search-ipl-list-for (cell-name symbol &optional (depth 0))
+;;   (when (and (< depth 50) (stringp cell-name) (not (zero? cell-name)))
+;;     (let* ((cell (<== cell-name))
+;; 	   (symb (cell-symb cell)))
+;;       (print (list cell-name cell symb))
+;;       (cond ((and (stringp symb) (string-equal symbol symb)) t)
+;; 	    (t (search-ipl-list-for symb symbol (1+ depth))
+;; 	       (search-ipl-list-for (cell-link cell) symbol (1+ depth)))))))
+
 ;;; =========================================================================
 ;;; ACCESSORS
 
@@ -366,7 +383,8 @@ current system.)
     (loop for name-or-expr in *trace-cell-names-or-exprs* do
 	  (ignore-errors ;; In case there's no number, or some other f'up in the eval
 	    (if (listp name-or-expr)
-		(format t "   ~s=~s~%" name-or-expr (eval name-or-expr))
+		(let ((r (eval name-or-expr)))
+		  (when r (format t "   ~s => ~s~%" name-or-expr r)))
 	      (format t "   ~a=~s ++ ~s~%" name-or-expr (cell name-or-expr) (first-n 4 (gethash name-or-expr *systacks*))))))))
 
 (defun store-cells (cells)
@@ -1814,8 +1832,9 @@ current system.)
   (let* ((head-name (newsym)) ;; Needed for tracing later
 	 (head (make-cell! :name head-name :pq "00" :symb "0" :link "0"))
 	 ;; The order is (n-1) first, (n-2) second, ... (0) last.
-	 (symbols `(,@(reverse (loop for hn in (H0+) as m below n collect (cell-symb hn))) ,(cell-symb (h0))))
+	 (symbols `(,@(reverse (loop for hn in (H0+) as m from 1 to (1- n) collect (cell-symb hn))) ,(cell-symb (h0))))
 	 )
+    (!! :jdeep "            .....J9n creating a list @~s from: ~s ~%" head symbols)
     (loop for sym in symbols
 	  with prev-cell = head
 	  as next-cell-name = (newsym)
@@ -2601,7 +2620,7 @@ Something's really f'ed up in the MAP!
 (progn ;; LT 
   (set-default-tracing)
   '(setf *trace-@orID-exprs*
- 	'((5 (setf *!!* '(:jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t))
-	  ))
+	'((470 (break))
+	  (450 (setf *!!* '(:jdeep :jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t))))
   (load-ipl "LTFixed.liplv" :adv-limit 5000)
   )
