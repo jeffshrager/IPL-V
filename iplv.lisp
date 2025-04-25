@@ -1,4 +1,4 @@
-;;; (load (compile-file "iplv.lisp"))
+`;;; (load (compile-file "iplv.lisp"))
 
 (setf *print-pretty* nil)
 
@@ -191,11 +191,12 @@ current system.)
   (loop for id in *card-ids-executed*
 	if (and (stringp id) (= 8 (length id)))
 	do (incf (gethash (subseq id 0 4) *rxtbl* 0)))
+  (format t "~%~%All call stats:~%")
   (let ((callstats (loop for rname being the hash-keys of *rxtbl*
 		 using (hash-value nx)
 		 collect (cons rname nx))))
     (mapcar #'print (sort callstats #'string< :key #'car))
-    (format t "Unchecked calls:~%")
+    (format t "~%~%Unchecked calls:~%")
     (mapcar #'print (SET-DIFFERENCE (mapcar #'car callstats) *checked-routines* :TEST #'STRING-EQUAL))))
 
 (defvar *cell-tracing-on* nil)
@@ -1419,7 +1420,10 @@ current system.)
 	      (setf cell (cell cell-name))
 	      ;; Setup: arg->H0 and H5=+
 	      (let* ((r (cell-symb cell)))
-		;; This only pops the 2 inputs on the first call-down! Be afraid...be very afraid!
+		;; This only pops the 2 inputs on the first call-down!
+		;; Be afraid...be very afraid!  See! I told you to be
+		;; afraid! If this call doens't happen, the args get
+		;; left on the stack .. see FINALLY fix, below.
 		(unless inputs-popped (poph0 2) (setf inputs-popped t))
 		(ipush "H0" r))
 	      (H5+)
@@ -1427,6 +1431,7 @@ current system.)
 	      (ipl-eval exec-symb)
 	      (setf cell-name (cell-link cell))
 	      (!! :jdeep "             .....J100 returned, H5=~s, next cell-name=~s~%" (H5) cell-name)
+	      finally (unless inputs-popped (poph0 2)) ;; In case NOTHING is called still need to do the pops!!
 	      ))
 
   (defj J110 (arg0 arg1 arg2) "(1) + (2) = (O)" 
@@ -1472,6 +1477,7 @@ current system.)
 	;; identical contents to (0). The name is local if the input
 	;; (0) is local; otherwise, it is internal.
 	;; (No pop bcs H0 is replaced -- Maybe pop and push?)
+	;; (?? Can this be replaced with FORCE-REPLACE ??)
 	(let ((old-cell (cell arg0)))
 	  (setf (h0) ;; This is probably redundant since the make-cell! set it in the symtab
 		(make-cell!
@@ -2580,34 +2586,6 @@ current system.)
 
 #| Current issue:
 
-@23067+ >>>>> {M062R500::M62+951||J100|M62+952 [GENERATE '(0)' TO UNMARK MARKED.;]} (Execute fn named by symb name itself)
-   H0={H0|0|M62-9-300|0} ++ ({|0|P27-9-200|0} {|0|P27-9-200|0} {|0|9+3371|0} {|0|J137|0})
-   W0={W0||9+2630|} ++ ({||9+2628|} {||9+2628|} {||*207|} {|0|*207|0})
-   W1={W1||9+2307|} ++ ({||L4|} {||*207|} {|||} :EMPTY)
-   .......... Calling J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]: (ARG0 ARG1)=("M62-9-300" "P27-9-200")
-             .....J100 GENERATE SYMBOLS FROM LIST "P27-9-200" FOR SUBPROCESS "M62-9-300"
-             .....J100: cell-name="J8", cell=NIL
-
-debugger invoked on a TYPE-ERROR @535D2633 in thread #<THREAD "main thread" RUNNING {1001680003}>: The value #<FUNCTION (LAMBDA NIL :IN SETUP-J-FNS) {535DBDAB}> is not of type COMMON-LISP-USER::CELL
-
-Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
-
-restarts (invokable by number or by possibly-abbreviated name):
-  0: [ABORT] Exit debugger, returning to top level.
-
-((LAMBDA (ARG0 ARG1) :IN SETUP-J-FNS) "M62-9-300" "P27-9-200")
-; Using form offset instead of character position.
-
-The "P27-9-200" is clearly wrong. Here are all the other J100 calls:
-
-34 J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]
-(((J157 T20) . 3) ((J157 T21) . 3) ((J157 T22) . 2) ((M62-9-300 P27-9-200) . 1) ((M62-9-200 9+3422) . 1)
- ((M42-9-200 9+3410) . 1) ((Q2-9-100 9+2630) . 1) ((Q2-9-100 9+2628) . 1) ((P27-9-200 9+3371) . 1)
- ((P27-9-100 L2) . 1) ((J137 9+3371) . 1) ((J157 T23) . 1) ((J157 T9) . 1) ((J157 T8) . 1) ((J157 T7) . 1)
- ((J157 T4) . 1) ((J157 T3) . 1) ((J157 T1) . 1) ((J157 T2) . 1) ((M12-9-100 9+3356) . 1)
- ((M62-9-300 9+3353) . 1) ((M62-9-200 9+3357) . 1) ((M42-9-200 9+3353) . 1)
- ((Q2-9-100 9+2605) . 1) ((M2-9-100 L3) . 1) ((M79 *203) . 1) ((J157 T24) . 1) ((J148 X22) . 1) ((J147 X21) . 1))
-
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c
@@ -2619,6 +2597,8 @@ The "P27-9-200" is clearly wrong. Here are all the other J100 calls:
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
   (setf *trace-@orID-exprs*
-	'((22500 (setf *!!* '(:jdeep :jfns :run :jcalls) *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t))))
+	'((20000 (setf *!!* '(:run) *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t))
+	  ;(20000 (break))
+	))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )
