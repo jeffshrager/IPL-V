@@ -12,12 +12,17 @@
 
 To run LT you'll want to be sure that there's no qoute on this line near the end:
 
-   (progn ;; LT
-    ....
+```
+(progn ;; LT
+    ...
+```
 
 That is, it look like the above, not:
 
-     '(progn ;; LT
+```
+'(progn ;; LT
+```
+
 
 (The single quote in
 Lisp blocks execution, so it acts like commenting out a whole block
@@ -26,7 +31,9 @@ of code.)
 If you want to run the ackermann function instead, or in addition to
 this, that call is somewhat above:
 
-    (progn ;; Ackermann test
+```
+(progn ;; Ackermann test
+```
 
 Just make sure that that one doesn't have a quote.
 
@@ -106,6 +113,7 @@ path...?)
 
 See examples at the end of iplv.lisp for the moment. You probably at
 least want to be running with:
+
 ```
 (setf *!!* '(:run :jfns)) 
 ```
@@ -118,7 +126,7 @@ Other options include: :jdeep :jfns :run :jcalls :dr-memory :s :run-full :deep-a
 @24528+ >>>>> {P055R170::P55-9-2||J60|P55+1676 [SET UP CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
 ```
 
-The @.... is the value of H3 -- the interpreter cycle counter. The +
+The @nnn is the value of H3 -- the interpreter cycle counter. The +
 (or -) immediately after the cycle count is the value of H5 (the test
 result register). The >>> is just so you can find these lines, and the
 {...} is the print out of the cell. The [...] is the comment from the
@@ -160,9 +168,11 @@ at a given card ID, for example:
      ))
 ```
 
-In the above, the string "ID" (as "P052R270") can be a number
-instead, in which case it takes place when the (H3) cycle counter hits
-the indicated value (as the 123 example, above).
+In the above, the string "ID" (as "P052R270") can be a number instead,
+in which case it takes place when the (H3) cycle counter hits the
+indicated value (as the 123 example, above). Note that (trace) is just
+a call to the Lisp TRACE function, so you can strategically turn
+on/off lisp tracing at specific machine cycles. 
 
 There are several shorthand convenience fuctions and symbol macros
 that dump various info:
