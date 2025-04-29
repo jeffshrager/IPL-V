@@ -1430,7 +1430,7 @@ current system.)
 	      (let* ((r (cell-symb cell)))
 		;; This only pops the 2 inputs on the first call-down!
 		;; Be afraid...be very afraid!  See! I told you to be
-		;; afraid! If this call doens't happen, the args get
+		;; afraid! If this call doesn't happen, the args get
 		;; left on the stack .. see FINALLY fix, below.
 		(unless inputs-popped (poph0 2) (setf inputs-popped t))
 		(ipush "H0" r))
@@ -2182,7 +2182,7 @@ current system.)
     ("50" "Replace H0 by the named symb itself")
     ("51" "Replace H0 by the cell named in the H0 symb")
     ("52" "Replace H0 2nd deref")
-    ("60" "Copy of (0) replaces S; S lost; H0 n.c.") ;; Was (wrongly?): Set the symb name itself to H0")
+    ("60" "Copy of (0) replaces S; S lost; H0 n.c.")
     ("64" "Copy of (0) replaces S; S lost; H0 n.c. (==60)")
     ("70" "Goto by H5: -symb|+link itself")
     ))
@@ -2539,7 +2539,7 @@ current system.)
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:dr-memory :run :jdeep :jcalls) *cell-tracing-on* t)
@@ -2549,14 +2549,14 @@ current system.)
   (load-ipl "F1.liplv")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-default-tracing)
-  (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
+  '(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-@orID-exprs* '((9 (break))))
   ;(setf *!!* '(:s :run :jfns :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0 ipush force-replace)
-  (load-ipl "Ackermann.liplv" :adv-limit 25000)
+  (load-ipl "Ackermann.liplv" :adv-limit 250)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
       (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
@@ -2577,6 +2577,46 @@ current system.)
 
 #| Current issue:
 
+@23797+ >>>>> {P055R170::P55-9-2||J60|P55+1676 [SET UP CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3367|0} ++ ({||9+3391|} {|||} :EMPTY)
+   W1={||9+3353|} ++ ({||9+3428|} {||9+3411|} {|0|*208|0} {||*901|})
+   W2={W2|0|*901|0} ++ ({|0|*901|0} {|0|*901|0} {||*208|} {|||})
+   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: (ARG0)=("9+3367")
+             .....In J60, this-cell = {9+3367||9+3366|0}, link = "0"
+             .....In J60 no next cell!
+   H0={H0|0|9+3367|0} ++ ({||9+3391|} {|||} :EMPTY)
+   W1={||9+3353|} ++ ({||9+3428|} {||9+3411|} {|0|*208|0} {||*901|})
+   W2={W2|0|*901|0} ++ ({|0|*901|0} {|0|*901|0} {||*208|} {|||})
+@23798- >>>>> {P055R180::P55+1676|70|J7|J31} (Goto by H5: -symb|+link itself)
+   .......... Calling J7 [HALT, PROCEED ON GO] (No Args)
+
+9+3367 points to a number, not a list!
+
++------------------------- "9+3367" {9+3367||9+3366|0} -------------------------+
+(0) {9+3367||9+3366|0}
+   (1) {9+3366|12||2}
++--------------------------End "9+3367" -------------------------------------------+
+
+maybe it meant:
+
+(pl "9+3353")
+(pl "9+3353")
+
++------------------------- "9+3353" {9+3353|02|9+3365|9+3367} -------------------------+
+(0) {9+3353|02|9+3365|9+3367}
+   (1) {9+3365|02|9+3371|9+3373}
+      (2) {9+3371|02|0|0}
+      (2) {9+3373||9+3372|0}
+         (3) {9+3372|02|0|2}
+   (1) {9+3367||9+3366|0}
+      (2) {9+3366|12||2}
++--------------------------End "9+3353" -------------------------------------------+
+
+
+debugger invoked on a SIMPLE-CONDITION in thread
+#<THREAD "main thread" RUNNING {1001680003}>:
+  J7: Processor halted ... use :C to continue.
+
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c
@@ -2588,8 +2628,8 @@ current system.)
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
   (setf *trace-@orID-exprs*
-	'((24000 (setf *!!* '(:run) *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t))
-	  ;(20000 (break))
+	'((23750 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  '(2000 (break))
 	))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )
