@@ -12,12 +12,12 @@
 
 To run LT you'll want to be sure that there's no qoute on this line near the end:
 
-(progn ;; LT
+   (progn ;; LT
     ....
 
 That is, it look like the above, not:
 
-'(progn ;; LT
+     '(progn ;; LT
 
 (The single quote in
 Lisp blocks execution, so it acts like commenting out a whole block
@@ -107,11 +107,13 @@ path...?)
 See examples at the end of iplv.lisp for the moment. You probably at
 least want to be running with:
 ```
-(setf *!!list* '(:run :jfns)) 
+(setf *!!* '(:run :jfns)) 
 ```
+
 Other options include: :jdeep :jfns :run :jcalls :dr-memory :s :run-full :deep-alerts :load
 
 :run output looks like this:
+
 ```
 @24528+ >>>>> {P055R170::P55-9-2||J60|P55+1676 [SET UP CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
 ```
@@ -120,7 +122,8 @@ The @.... is the value of H3 -- the interpreter cycle counter. The +
 (or -) immediately after the cycle count is the value of H5 (the test
 result register). The >>> is just so you can find these lines, and the
 {...} is the print out of the cell. The [...] is the comment from the
-instruction. 
+instruction. The thing at the end is a convenience that tells you what
+the PQ means. This comes from the PQ table below.
 
 There's are other probably overly-complex debugging tools like a cell
 tracer and breaking and stepping facilities.
@@ -148,12 +151,12 @@ at a given card ID, for example:
 	  (2000 (break))
 	  ("P052R040"
 	    (setf *trace-cell-names* '("W0" "W1" "H0") *cell-tracing-on* t)
-            (setf *!!list* '(:run :jfns))
+            (setf *!!* '(:run :jfns))
             (trace symbolify ipl-meta-string-equal ipl-string-equal)
            )	     
-          ("P052R200" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
-          ("P052R270" (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
-          (123 (trace) (setf *cell-tracing-on* nil *!!list* *default-!!list*))
+          ("P052R200" (trace) (setf *cell-tracing-on* nil *!!* *default-!!list*))
+          ("P052R270" (trace) (setf *cell-tracing-on* nil *!!* *default-!!list*))
+          (123 (trace) (setf *cell-tracing-on* nil *!!* *default-!!list*))
      ))
 ```
 
