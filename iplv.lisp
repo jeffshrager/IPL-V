@@ -477,6 +477,11 @@ current system.)
 			   (string-equal target-sym cell-symb))
 		 do (format t "  ~a(~a): ~s~%" stack-name depth cell))))
 
+(defun ??? (&aux (*cell-tracing-on* t) (*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "W2")))
+  (format t "H5=~a, H3(cycles)=~a~%" (cell "H5") (h3-cycles))
+  (format t "*W24-Line-Buffer*=~s~%" *W24-Line-Buffer*)
+  (trace-cells))
+(define-symbol-macro ?? (???))
 
 ;;; ===================================================================
 ;;; Loader (loads from files converted by tsv2lisp.py)
@@ -1078,13 +1083,19 @@ current system.)
 	;; cell on the list, and H5 is set -. No test is made to see
 	;; that (0) is not a data term, and J60 will attempt to
 	;; interpret a data term as a standard IPL cell.  !!! Must pop
-	;; late (if at all) !!!
+	;; late (if at all) !!! Note that per p. 8, J60 produces a - 
+	;; when it has returned the last cell NOT when it gets a zero
+	;; as input! AND it produces the last symbol!
 	(let* ((this-cell (cell arg0))
 	       (link (cell-link this-cell)))
 	  (!! :jdeep "             .....In J60, this-cell = ~s, link = ~s~%" this-cell link)
 	  (if (zero? link)
-	      ;; Notice that we don't pop on eol!
-	      (progn (!! :jdeep "             .....In J60 no next cell!~%") (H5-))
+	      (progn (!! :jdeep "             .....In J60 no next cell; Setting H5- and producing ~s!~%" (cell-symb this-cell))
+		     ;; Nothing left, return last symbol and -
+		     (PopH0 1)
+		     (H5-)
+		     (ipush "H0" (cell-symb this-cell))
+		     )
 	      (progn (!! :jdeep "             .....In J60 next cell is ~s!~%" link)
 		     (PopH0 1)
 		     (H5+)
@@ -2622,13 +2633,14 @@ debugger invoked on a SIMPLE-CONDITION in thread
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c
 ;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
 ;;; (rx) analyzes routine call stats
+;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
 ;;; *!!* <= :jdeep :jfns :run :jcalls :dr-memory :s :run-full :deep-alerts :load
 
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
   (setf *trace-@orID-exprs*
-	'((23750 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	'((24500 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
 	  '(2000 (break))
 	))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
