@@ -185,7 +185,7 @@ current system.)
     "X001" "Q004" "Q003" "P030" "P028" "M116" "M115"
     "M114" "M110" "M088" "M082" "M080" "M078" "M077"
     "M076" "M071" "M071" "P014" "M112" "M113" "P024"
-    "P017" "P013"))
+    "P017" "P013")) 
 
 (defun rx () ;; report on execs (card ids executed)   (clrhash *rxtbl*)
   (loop for id in *card-ids-executed*
@@ -1083,9 +1083,7 @@ current system.)
 	;; cell on the list, and H5 is set -. No test is made to see
 	;; that (0) is not a data term, and J60 will attempt to
 	;; interpret a data term as a standard IPL cell.  !!! Must pop
-	;; late (if at all) !!! Note that per p. 8, J60 produces a - 
-	;; when it has returned the last cell NOT when it gets a zero
-	;; as input! AND it produces the last symbol!
+	;; late (if at all) 
 	(let* ((this-cell (cell arg0))
 	       (link (cell-link this-cell)))
 	  (!! :jdeep "             .....In J60, this-cell = ~s, link = ~s~%" this-cell link)
@@ -2030,6 +2028,7 @@ current system.)
   (loop for nn from 0 to n 
 	as wcell-name in *w-cells*
 	as HCell = (let ((top (H0))) (ipop "H0") top)
+	;; FFF ??? Could use FORCE-REPLACE?
 	do (ipop wcell-name) (ipush wcell-name (cell-symb HCell))))
 
 (defun J3n=restore-wn (n)
@@ -2584,45 +2583,15 @@ current system.)
 
 #| Current issue:
 
-@23797+ >>>>> {P055R170::P55-9-2||J60|P55+1676 [SET UP CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3367|0} ++ ({||9+3391|} {|||} :EMPTY)
-   W1={||9+3353|} ++ ({||9+3428|} {||9+3411|} {|0|*208|0} {||*901|})
-   W2={W2|0|*901|0} ++ ({|0|*901|0} {|0|*901|0} {||*208|} {|||})
-   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: (ARG0)=("9+3367")
-             .....In J60, this-cell = {9+3367||9+3366|0}, link = "0"
-             .....In J60 no next cell!
-   H0={H0|0|9+3367|0} ++ ({||9+3391|} {|||} :EMPTY)
-   W1={||9+3353|} ++ ({||9+3428|} {||9+3411|} {|0|*208|0} {||*901|})
-   W2={W2|0|*901|0} ++ ({|0|*901|0} {|0|*901|0} {||*208|} {|||})
+KEEP THIS HERE BCS IT'S POTENTIALLY GOING TO BE A PROBLEM IN THE FUTURE:
+
 @23798- >>>>> {P055R180::P55+1676|70|J7|J31} (Goto by H5: -symb|+link itself)
    .......... Calling J7 [HALT, PROCEED ON GO] (No Args)
 
-9+3367 points to a number, not a list!
-
-+------------------------- "9+3367" {9+3367||9+3366|0} -------------------------+
-(0) {9+3367||9+3366|0}
-   (1) {9+3366|12||2}
-+--------------------------End "9+3367" -------------------------------------------+
-
-maybe it meant:
-
-(pl "9+3353")
-(pl "9+3353")
-
-+------------------------- "9+3353" {9+3353|02|9+3365|9+3367} -------------------------+
-(0) {9+3353|02|9+3365|9+3367}
-   (1) {9+3365|02|9+3371|9+3373}
-      (2) {9+3371|02|0|0}
-      (2) {9+3373||9+3372|0}
-         (3) {9+3372|02|0|2}
-   (1) {9+3367||9+3366|0}
-      (2) {9+3366|12||2}
-+--------------------------End "9+3353" -------------------------------------------+
-
-
-debugger invoked on a SIMPLE-CONDITION in thread
-#<THREAD "main thread" RUNNING {1001680003}>:
-  J7: Processor halted ... use :C to continue.
+I REPLACED THIS IN LTFixed with J31 (pops the Ws at the end of the
+routine) BECAUSE IT LOOKS LIKE H0 MIGHT BE CORRECT, JUST TO PUSH
+THROUGH. THIS LOOKS LIKE IT WAS A LEFT OVER DEBUGGING THING...BUT IT
+MIGHT HAVE HAD TO BE SOMETHING OTHER THAN J7.
 
 |#
 
@@ -2635,9 +2604,10 @@ debugger invoked on a SIMPLE-CONDITION in thread
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
-  (setf *trace-@orID-exprs*
-	'((24500 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
-	  '(2000 (break))
+  '(setf *trace-@orID-exprs*
+	'((24515 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "W2") *cell-tracing-on* t)
+	   (trace J3n=restore-wn))
+	  (25000 (break))
 	))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )
