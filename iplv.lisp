@@ -160,7 +160,7 @@ current system.)
 ;;; Find every reference to a given symbol in either the symtab or in
 ;;; lists (FFF add stack search):
 
-(defun fsym (sym)
+(defun fsym (sym &key (print-lists? nil) &aux inlists)
   (format t "*symtab* and list-embedded references to ~s:~%" sym)
   (loop for name being the hash-keys of *symtab*
 	using (hash-value cell)
@@ -170,7 +170,14 @@ current system.)
 		     (string-equal! sym (cell-symb cell))
 		     (string-equal! sym (cell-link cell)))
 		  (format t "  ~s -> ~s~%" name cell))
-		 ((in-list? sym cell cell) (pl (cell-name cell))))))
+		 ((in-list? sym cell cell) (push cell inlists))))
+  (if print-lists? 
+      (progn (format t "Also in these lists: ~%~%")
+	     (mapcar #'(lambda (cell) (pl (cell-name cell))) inlists))
+      (progn (format t "Also in these lists (add :print-lists? t to see them pl'ed): ~%~%")
+	     (mapcar #'print inlists)))
+  t)
+
 	
 (defun in-list? (sym cell top-cell &optional (limit 50))
   (cond ((zerop limit) (format t "WARNING! ~s seems to head an infinite list!~%" top-cell))
