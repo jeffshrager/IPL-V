@@ -205,7 +205,7 @@ current system.)
 		#'> :key #'second)
 	  do (format t "~a ~a [~a]~%   ~a~%" ncalls jname expl argcounts))))
 
-(defvar *card-ids-executed* nil)
+(defvar *card-cycles.ids-executed* nil)
 (defvar *rxtbl* (make-hash-table :test #'equal))
 ;;; This throws an annoying warning and is a non-critical deugging tool
 
@@ -223,9 +223,16 @@ current system.)
     "M076" "M071" "M071" "P014" "M112" "M113" "P024"
     "P017" "P013")) 
 
-(defun rx () ;; report on execs (card ids executed)   (clrhash *rxtbl*)
-  (loop for id in *card-ids-executed*
-	if (and (stringp id) (= 8 (length id)))
+(defun rx () ;; report on execs (card ids executed)
+  (loop for entry in (reverse *card-cycles.ids-executed*)
+	with indent = 0
+	do
+	(if (listp entry) (format t "~vT~s~%" indent entry)
+	    (if (eq :descend entry) (incf indent 3) (decf indent 3))))
+  (clrhash *rxtbl*)
+  (loop for entry in *card-cycles.ids-executed*
+	as id = (when (listp entry) (cdr entry))
+	if (and id (stringp id) (= 8 (length id)))
 	do (incf (gethash (subseq id 0 4) *rxtbl* 0)))
   (format t "~%~%All call stats:~%")
   (let ((callstats (loop for rname being the hash-keys of *rxtbl*
@@ -2299,6 +2306,7 @@ current system.)
 	     (setf *fname-hint* nil)
 	     )
 	   (apply fn args))
+	 (push :ascend *card-cycles.ids-executed*)
 	 (ipop "H1") ;; Remove the JFn call
 	 (go ADVANCE)
 	 ))
@@ -2407,9 +2415,11 @@ current system.)
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
+     (push :ascend *card-cycles.ids-executed*)
      (ipop "H1")
      (go ADVANCE)
    DESCEND 
+     (push :descend *card-cycles.ids-executed*)
      (!! :run-full "-----> At DESCEND w/S = ~s~%" S)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
@@ -2465,11 +2475,11 @@ current system.)
 	using (hash-value value)
 	do (format t "~s => ~s~%" key value)))
 
-(defun maybe-break? (s)
-  (push s *card-ids-executed*)
+(defun maybe-break? (s &aux (cycles (H3-cycles)))
+  (push (cons cycles s) *card-cycles.ids-executed*)
   (when (or (equal t *breaks*)
 	    (member t *breaks*)
-	    (member (H3-cycles) *breaks* :test #'equal)
+	    (member cycles *breaks* :test #'equal)
 	    (member s *breaks* :test #'equal))
     (break "************************** Break called by user at ~s (BEFORE execution!)~%[Switching to STEP! mode -- use :C to step or (free!)+:C to run free." s)
     (step!)
@@ -2720,7 +2730,8 @@ Note that it's in 3446, so I think that @26379 wanted to run the J60 on 3446 may
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
   (setf *trace-@orID-exprs*
-	'((26000 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+	'((1000 (break))
+	  (26000 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 	   (untrace))
 	 ; (26340 (break))
 	  )
