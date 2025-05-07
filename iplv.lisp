@@ -123,6 +123,10 @@ current system.)
   
 (defun zero? (what) (if (stringp what) (member what '("" "0") :test #'string-equal)))
 
+(defun string-equal! (a b) ;; No-fail S-Eq ... a stupid impl. detail of CL!
+  (when (and (stringp a) (stringp b))
+    (string-equal a b)))
+
 (defun blank? (what)
   (string-equal "" what))
 
@@ -146,12 +150,37 @@ current system.)
 (defstruct gentry fn wn wnames +-) 
 
 ;;; =========================================================================
-;;; DEBUGGING UTILS
+;;; DEBUGGING TOOLS
 
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 (defvar *jfn-calls* (make-hash-table :test #'equal))
 (defvar *jfn-plists* (make-hash-table :test #'equal))
+
+;;; Find every reference to a given symbol in either the symtab or in
+;;; lists (FFF add stack search):
+
+(defun fsym (sym)
+  (format t "*symtab* and list-embedded references to ~s:~%" sym)
+  (loop for name being the hash-keys of *symtab*
+	using (hash-value cell)
+	when (cell? cell)
+	do (cond ((or (string-equal! sym name)
+		     (string-equal! sym (cell-name cell))
+		     (string-equal! sym (cell-symb cell))
+		     (string-equal! sym (cell-link cell)))
+		  (format t "  ~s -> ~s~%" name cell))
+		 ((in-list? sym cell cell) (pl (cell-name cell))))))
+	
+(defun in-list? (sym cell top-cell &optional (limit 50))
+  (cond ((zerop limit) (format t "WARNING! ~s seems to head an infinite list!~%" top-cell))
+	((global-symbol? cell) nil) ;; Don't chase global symbs
+	((zero? cell) nil)
+	((string-equal! sym cell) t)
+	(t (let ((cell (<== cell)))
+	     (and (cell? cell)
+		  (or (in-list? sym (cell-symb cell) top-cell (1- limit))
+		      (in-list? sym (cell-link cell) top-cell (1- limit))))))))
 
 ;;; This throws an annoying warning and is a non-critical deugging tool
 '(defun rj () ;; report on jfns
@@ -342,9 +371,11 @@ current system.)
 ;;; Warning: Pop has to create a new cell in the head otherwise anyone
 ;;; holding the old value might have it destroyed. (Actually, I think
 ;;; that this is safe bcs all pushes create new cells, but better
-;;; clean than worry.)
+;;; clean than worry.) Also, the result of ipop needs to be made into
+;;; a new cell, which is why you can suppress it if you don't need
+;;; the result, to save space.
 
-(defun ipop (stack-name)
+(defun ipop (stack-name &key (make-me-a-new-copy-of-the-popped-cell t))
   (let* ((popped-cell (pop (stack stack-name)))
 	 (new-cell (make-cell!
 		    :name stack-name
@@ -353,8 +384,15 @@ current system.)
 		    :link (cell-link popped-cell)
 		    :id (cell-id popped-cell))))
     (!! :dr-memory "IPOP created new cell: ~s on ~a, popping ~s~%" new-cell stack-name popped-cell)
-    new-cell
-    ))
+    ;; The 
+    (if make-me-a-new-copy-of-the-popped-cell
+	;; This one isn't saved!
+	(make-cell :pq (cell-pq popped-cell)
+		   :symb (cell-symb popped-cell)
+		   :link (cell-link popped-cell)
+		   :id (cell-id popped-cell))
+	:someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it
+	)))
 
 ;;; This is used in JFns to deref args H0
 
@@ -981,6 +1019,7 @@ current system.)
 	;; superroutine-subprocess context. 6. Records H5, the
 	;; communication of the sub-process to the generator (see
 	;; J19), in one of the hideout cells.
+	(!! :jdeep "             J18: entry:~%") (!! :jdeep (trace-cells))
 	(let* ((gentry (first *genstack*))
 	       (fn (gentry-fn gentry))
 	       (wn (gentry-wn gentry))
@@ -992,6 +1031,8 @@ current system.)
 			    as wcell = (cell wname)
 			    do (ipop wname)
 			    collect wcell)))
+	  (!! :jdeep "             J18: collected wvals = ~s~%" wvals)
+	  (!! :jdeep "             J18: After Wn ipops:~%") (!! :jdeep (trace-cells))
 	  (!! :jdeep "             J18: *genstack* = ~s~%" *genstack*)
 	  (!! :jdeep "             .....J18 (fn=~s, wn=~s)~%" fn wn)
 	  ;; This seems redundant with the one in J19, but that one is
@@ -1003,13 +1044,17 @@ current system.)
 	    (!! :jdeep "             .....J18 holding ~s off the genstack...~%" held-genstack-entry)
 	    (!! :jdeep "             .....*genstack* is now: ~s~%" *genstack*)
 	    (!! :jdeep "             .....J18 Executing ~s~%" fn)
+	    (!! :jdeep "             J18: Just before IPL-EVAL:~%") (!! :jdeep (trace-cells))
 	    (ipl-eval fn)
+	    (!! :jdeep "             J18: Just after IPL-EVAL:~%") (!! :jdeep (trace-cells))
 	    (!! :jdeep "             .....J18 ~s returned with H5=~a~%" fn (H5))
 	    ;; Now we put it back
 	    (push held-genstack-entry *genstack*))
+	  (!! :jdeep "             J18: replaced wvals (should be the same as collected, above!)= ~s~%" wvals)
 	  (loop for wname in wnames
 		as wval in wvals
 		do (ipush wname wval))
+	  (!! :jdeep "             J18: Just before return:~%") (!! :jdeep (trace-cells))
 	  (setf (gentry-+- gentry) (H5))
 	  ))
 
@@ -2593,6 +2638,69 @@ routine) BECAUSE IT LOOKS LIKE H0 MIGHT BE CORRECT, JUST TO PUSH
 THROUGH. THIS LOOKS LIKE IT WAS A LEFT OVER DEBUGGING THING...BUT IT
 MIGHT HAVE HAD TO BE SOMETHING OTHER THAN J7.
 
+-----------------------------
+
+[P55 LOCATE SUBLIST FOLLOWING;]
+[DATA TERM (0) ON LIST (1));]
+Okay, except that 0 is a data term but 1 (3445) ain't a list!
+"9+3388" is L6 FWIW
+So where did 3445 come from?
+
+@26376+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3533|0} ++ ({|0|9+3445|0} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3533|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+   .......... Calling J41 [PRESERVE W0-W1] (No Args)
+   H0={H0|0|9+3533|0} ++ ({|0|9+3445|0} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3500|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
+   W1={||9+3533|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+@26377+ >>>>> {P055R010::P55+1662|20|W0|P55-9-3 [DATA TERM (0) ON LIST (1));]} (Move H0 to the named symbol itself and pop H0)
+
+So this all fails here:
+
+@26377+ >>>>> {P055R010::P55+1662|20|W0|P55-9-3 [DATA TERM (0) ON LIST (1));]} (Move H0 to the named symbol itself and pop H0)
+   H0={H0|0|9+3445|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+   W0={W0||9+3533|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
+   W1={||9+3533|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+@26378+ >>>>> {P055R020::P55-9-3|60|W1|P55+1663 [H5+ MEANS PUTPUT (0) IS;]} (Copy of (0) replaces S; S lost; H0 n.c.)
+   H0={H0|0|9+3445|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+   W0={W0||9+3533|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
+   W1={||9+3445|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+@26379+ >>>>> {P055R030::P55+1663||J60|P55+1664 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3445|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+   W0={W0||9+3533|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
+   W1={||9+3445|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: (ARG0)=("9+3445")
+             .....In J60, this-cell = {9+3445|12||1}, link = 1
+             .....In J60 next cell is 1!
+   H0={H0|12||1} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+   W0={W0||9+3533|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
+   W1={||9+3445|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+
+So where did 3445 come from:
+
+@26129+ >>>>> {M042R240::M42+718|70|M42+719|J80} (Goto by H5: -symb|+link itself)
+   H0={H0|0|9+3446|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+   W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={W1||9+3527|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+   .......... Calling J80 [FIND THE HEAD SYMBOL OF (0)]: (ARG0)=("9+3446")
+   H0={H0|0|9+3445|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+   W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={W1||9+3527|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+
+Note that it's in 3446, so I think that @26379 wanted to run the J60 on 3446 maybe?
+
+
+
+
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c
@@ -2604,10 +2712,11 @@ MIGHT HAVE HAD TO BE SOMETHING OTHER THAN J7.
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
-  '(setf *trace-@orID-exprs*
-	'((24515 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "W2") *cell-tracing-on* t)
-	   (trace J3n=restore-wn))
-	  (25000 (break))
-	))
+  (setf *trace-@orID-exprs*
+	'((26000 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+	   (untrace))
+	 ; (26340 (break))
+	  )
+	)
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )
