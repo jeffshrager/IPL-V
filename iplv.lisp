@@ -23,6 +23,11 @@ should be done by pure 9- gensym, but then it would be impossible to
 f'ing figure out what routine something is in. ... ??? This is going
 to come back to bite us! (see convert-local-symbols)
 
+??? FFF I think that the whole thing could work w/o the names being in
+the cell, because they're in the hash key in the symtab (like the
+memory addresses in the IPL machine!) The names in the cell are just
+confusing (altbeit sometimes useful in debugging.)
+
 H3 cycle counter sometimes doesn't incremement. It's probably incf'ed
 in a slightly wrong place.
 
@@ -431,8 +436,9 @@ current system.)
 ;;;   ("P051R050" (setf *!!* '(:run :run-full :jdeep)))
 ;;; Can also be a number in which case it refers to the H3 value (@), as:
 ;;;   (123 ...)
+;;; WWWWWWW Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
 ;;; (setf *trace-@orID-exprs*
-;;;    '(("P052R040"
+;;;    '(("P052R040" ;; NOTE: This can be partial, as "P052R" it uses search **************
 ;;;       (setf *trace-cell-names-or-exprs* '("W0" "W1" "H0") *cell-tracing-on* t)
 ;;;       (trace symbolify ipl-string-equal ipl-string-equal))
 ;;;      (123 (trace) (setf *cell-tracing-on* nil *!!* *default-!!list*))
@@ -444,8 +450,11 @@ current system.)
     (mapcar #'eval
 	    (loop for (key . exprs) in *trace-@orID-exprs*
 		  if (or (and (numberp key) (= key cycle))
-			 (and (stringp key) (string-equal key id)))
+			 (and (stringp key) (search key id :test #'char-equal)))
 		  do (return exprs))))
+  (trace-cell-safe-for-trace-expr) ;; Avoid recursion when called from a trace expr
+  )
+(defun trace-cell-safe-for-trace-expr ()
   (when *cell-tracing-on*
     (loop for name-or-expr in *trace-cell-names-or-exprs* do
 	  (ignore-errors ;; In case there's no number, or some other f'up in the eval
@@ -532,7 +541,7 @@ current system.)
 (defun ??? (&aux (*cell-tracing-on* t) (*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "W2")))
   (format t "H5=~a, H3(cycles)=~a~%" (cell "H5") (h3-cycles))
   (format t "*W24-Line-Buffer*=~s~%" *W24-Line-Buffer*)
-  (trace-cells))
+  (trace-cell-safe-for-trace-expr))
 (define-symbol-macro ?? (???))
 
 ;;; ===================================================================
@@ -1230,7 +1239,7 @@ current system.)
 	(!! :jdeep "             .....Here is the target list, after:~%")
 	(!! :jdeep (pl list-cell-name))
 	(!! :jdeep "             .....=========================================================~%")
-	(poph0 2)
+	;(poph0 2)
 	)
 
   ;; WWW If this tries to work with numeric data there's gonna be a
@@ -2655,14 +2664,53 @@ routine) BECAUSE IT LOOKS LIKE H0 MIGHT BE CORRECT, JUST TO PUSH
 THROUGH. THIS LOOKS LIKE IT WAS A LEFT OVER DEBUGGING THING...BUT IT
 MIGHT HAVE HAD TO BE SOMETHING OTHER THAN J7.
 
+Hmmmmmmm. Later exploration leads this to halt later:
+
+:::::::::::::::::::::::::::::::: 2.08    AIA                                                                     
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.07    PI(0PVP)0                                                               
+
+debugger invoked on a SIMPLE-CONDITION in thread
+#<THREAD "main thread" RUNNING {1001688003}>:
+  J7: Processor halted ... use :C to continue.
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [CONTINUE] Return from BREAK.
+  1: [ABORT   ] Exit debugger, returning to top level.
+
+((LAMBDA NIL :IN SETUP-J-FNS))
+; Using form offset instead of character position.
+
+   source: (BREAK "J7: Processor halted ... use :C to continue.")
+0] ??
+??
+H5={H5||-|}, H3(cycles)=24529
+*W24-Line-Buffer*="2.07    PI(0PVP)0                                                               "
+   H0={H0|0|9+3349|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+   H1={H1||J7|P55+1662} ++ ({|64|M42+717|M42+717} {||M42+705|M42+696}
+                            {||M43+753|M43+729} {||M19+639|M19+625})
+   W0={W0||9+3437|} ++ ({||9+3410|} {||9+3410|} {|0|M11|0} {||9+2571|})
+   W1={||9+3336|} ++ ({||9+3437|} {||9+3415|} {|0|*208|0} {||*207|})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
+
+
 -----------------------------
+
+Here's what P55 (in the M42 context) is supposed to be doing: "In
+order to reduce search time in M42, the found problems list is kept in
+a structured form. The structure is based on the number of levels
+{Q2), number of distinct variables {Q3), and the number of variable
+places (Q4) in the problems stored. Only problems with identical
+values for Q2, Q3, and Q4 are put through a full match
+test (M40)." (S.33)
 
 [P55 LOCATE SUBLIST FOLLOWING;]
 [DATA TERM (0) ON LIST (1));]
 Okay, except that 0 is a data term but 1 (3445) ain't a list!
 "9+3388" is L6 FWIW
 So where did 3445 come from?
-
 @26376+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
    H0={H0|0|9+3533|0} ++ ({|0|9+3445|0} {||9+3388|} {|0|*207|0} {|||})
    W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
@@ -2675,47 +2723,104 @@ So where did 3445 come from?
    W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
 @26377+ >>>>> {P055R010::P55+1662|20|W0|P55-9-3 [DATA TERM (0) ON LIST (1));]} (Move H0 to the named symbol itself and pop H0)
 
-So this all fails here:
+I think (from evidence of prior calls to P55) that it's trying to pass "L11" in:
 
-@26377+ >>>>> {P055R010::P55+1662|20|W0|P55-9-3 [DATA TERM (0) ON LIST (1));]} (Move H0 to the named symbol itself and pop H0)
-   H0={H0|0|9+3445|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
-   W0={W0||9+3533|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
-   W1={||9+3533|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
-   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
-@26378+ >>>>> {P055R020::P55-9-3|60|W1|P55+1663 [H5+ MEANS PUTPUT (0) IS;]} (Copy of (0) replaces S; S lost; H0 n.c.)
-   H0={H0|0|9+3445|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
-   W0={W0||9+3533|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
-   W1={||9+3445|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
-   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
-@26379+ >>>>> {P055R030::P55+1663||J60|P55+1664 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3445|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
-   W0={W0||9+3533|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
-   W1={||9+3445|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
-   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
-   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: (ARG0)=("9+3445")
-             .....In J60, this-cell = {9+3445|12||1}, link = 1
-             .....In J60 next cell is 1!
-   H0={H0|12||1} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
-   W0={W0||9+3533|} ++ ({||9+3500|} {||9+3500|} {|0|M11|0} {||9+2571|})
-   W1={||9+3445|} ++ ({||9+3533|} {||9+3505|} {|0|*11|0} {||*207|})
-   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
+@20144+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3273|0} ++ ({||L11|} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3273|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
 
-So where did 3445 come from:
+Sometimes (1) seems like it's correctly a list, but usually not!
 
-@26129+ >>>>> {M042R240::M42+718|70|M42+719|J80} (Goto by H5: -symb|+link itself)
-   H0={H0|0|9+3446|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+Even the first call to p55 that doesn't pass L11 is broken:
+
+@20297+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+H5={H5||+|}, H3(cycles)=20297
+*W24-Line-Buffer*="                                                                                "
+   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
+   H1={H1|0|<FUNCTION (LAMBDA () :IN SETUP-J-FNS) {535DBB5B}>|0} ++ ({||P55|P55+1662}
+                                                                      {|64|M42+717|M42+717}
+                                                                      {||M42+705|M42+696}
+                                                                      {||M43+753|M43+729})
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
+
++------------------------- "9+3284" {9+3284|12||1} -------------------------+
+(0) {9+3284|12||1}
++--------------------------End "9+3284" -------------------------------------------+
+
++------------------------- "9+3280" {9+3280|02|0|0} -------------------------+
+(0) {9+3280|02|0|0}
++--------------------------End "9+3280" -------------------------------------------+
+   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
+
+Here are all the p55 calls:
+
+@20144+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3273|0} ++ ({||L11|} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3273|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@20297+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
+@20472+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3293|0} ++ ({|0|9+3290|0} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3293|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={||9+3290|} ++ ({|||} {|||} :EMPTY)
+@21896+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3327|0} ++ ({||L11|} {|||} :EMPTY)
+   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
+   W1={||9+3327|} ++ ({||9+2571|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@22137+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3341|0} ++ ({|0|9+3336|0} {|||} :EMPTY)
+   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
+   W1={||9+3341|} ++ ({||9+2571|} {|||} :EMPTY)
+   W2={W2||9+3336|} ++ ({|||} {|||} :EMPTY)
+@22398+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3350|0} ++ ({|0|9+3347|0} {|||} :EMPTY)
+   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
+   W1={||9+3350|} ++ ({||9+2571|} {|||} :EMPTY)
+   W2={||9+3347|} ++ ({|||} {|||} :EMPTY)
+@24274+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3427|0} ++ ({||L11|} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3427|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
+@24516+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3437|0} ++ ({|0|9+3336|0} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3437|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
+@24786+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3447|0} ++ ({|0|9+3443|0} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3447|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
+   W2={||9+3443|} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
+@25872+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3517|0} ++ ({||L11|} {||9+3388|} {|0|*207|0} {|||})
    W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
-   W1={W1||9+3527|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
+   W1={||9+3517|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
    W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
-   .......... Calling J80 [FIND THE HEAD SYMBOL OF (0)]: (ARG0)=("9+3446")
-   H0={H0|0|9+3445|0} ++ ({||9+3388|} {|0|*207|0} {|||} :EMPTY)
+@26114+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3527|0} ++ ({|0|9+3336|0} {||9+3388|} {|0|*207|0} {|||})
    W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
-   W1={W1||9+3527|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
+   W1={||9+3527|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
    W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
-
-Note that it's in 3446, so I think that @26379 wanted to run the J60 on 3446 maybe?
-
-
+@26376+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3533|0} ++ ({|0|9+3445|0} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3533|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*11|} {|||})
 
 
 |#
@@ -2729,12 +2834,11 @@ Note that it's in 3446, so I think that @26379 wanted to run the J60 on 3446 may
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* nil *cell-tracing-on* nil)
-  (setf *trace-@orID-exprs*
-	'((1000 (break))
-	  (26000 (setf *!!* '(:run :jcalls :jfns :jdeep) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
-	   (untrace))
-	 ; (26340 (break))
-	  )
-	)
+  '(setf *trace-@orID-exprs*
+	'(;; NOTE: The key can be partial, as "P052R" it uses (search ...).
+	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
+	  ("M042R" (setf *!!* '(:run :jcalls :jfns) *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t))
+	  ("P055R000" (???) (pl (cell-symb (H0))) (pl (cell-symb (car (H0+)))))
+	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )

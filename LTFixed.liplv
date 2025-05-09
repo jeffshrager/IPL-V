@@ -1952,7 +1952,8 @@
 
 ;; This is weird.  Was J7 (halt) see notes in spreadsheet bcs it
 ;; breaks out has to call J31 - bcs of a 70!
-("" "" "" "" "70" "J31" "J31" "" "P055R180") 
+;;("" "" "" "" "70" "J31" "J31" "" "P055R180") 
+("" "" "" "" "70" "J7" "J31" "" "P055R180") 
 
 ("" "1" "" "" "" "" "" "" "    R")
 ("01 FIND CONNECTIVE OF SEGMENT (0)." "" "Q1" "" "" "J80" "" "" "Q001R000")
