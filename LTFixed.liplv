@@ -1949,12 +1949,7 @@
 ("SET UP CELL TO INSERT AFTER." "" "9-1" "" "51" "W1" "" "" "P055R150")
 ("" "" "" "" "" "J3" "J31" "" "P055R160")
 ("SET UP CELL HOLDING SUBLIST." "" "9-2" "" "" "J60" "" "" "P055R170")
-
-;; This is weird.  Was J7 (halt) see notes in spreadsheet bcs it
-;; breaks out has to call J31 - bcs of a 70!
-;;("" "" "" "" "70" "J31" "J31" "" "P055R180") 
 ("" "" "" "" "70" "J7" "J31" "" "P055R180") 
-
 ("" "1" "" "" "" "" "" "" "    R")
 ("01 FIND CONNECTIVE OF SEGMENT (0)." "" "Q1" "" "" "J80" "" "" "Q001R000")
 ("" "" "" "" "70" "0" "" "" "Q001R010")
