@@ -226,14 +226,15 @@ current system.)
     "X001" "Q004" "Q003" "P030" "P028" "M116" "M115"
     "M114" "M110" "M088" "M082" "M080" "M078" "M077"
     "M076" "M071" "M071" "P014" "M112" "M113" "P024"
-    "P017" "P013")) 
+    "P017" "P013" "P016" "P000" "M041" "M040" "M019"
+    "M017" "M016" "M014" "P022")) 
 
 (defun rx () ;; report on execs (card ids executed)
-  (loop for entry in (reverse *card-cycles.ids-executed*)
-	with indent = 0
-	do
-	(if (listp entry) (format t "~vT~s~%" indent entry)
-	    (if (eq :descend entry) (incf indent 3) (decf indent 3))))
+  ;; (loop for entry in (reverse *card-cycles.ids-executed*)
+  ;; 	with indent = 0
+  ;; 	do
+  ;; 	(if (listp entry) (format t "~vT~s~%" indent entry)
+  ;; 	    (if (eq :descend entry) (incf indent 3) (decf indent 3))))
   (clrhash *rxtbl*)
   (loop for entry in *card-cycles.ids-executed*
 	as id = (when (listp entry) (cdr entry))
@@ -2658,8 +2659,95 @@ current system.)
 
 #| Current issue:
 
-I think I was wrong about the problem with J64. I'm reverting that
-repair and returning to the drawing board. Sigh.
+H5={H5||-|}, H3(cycles)=24529
+
+I think (from evidence of prior calls to P55) that it's trying to pass "L11" in (1):
+
+@20144+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3273|0} ++ ({||L11|} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3273|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+
+Sometimes (1) seems like it's correctly a list, but usually not!
+
+Even the first call to p55 that doesn't pass L11 is broken:
+
+@20297+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+H5={H5||+|}, H3(cycles)=20297
+*W24-Line-Buffer*="                                                                                "
+   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
+   H1={H1|0|<FUNCTION (LAMBDA () :IN SETUP-J-FNS) {535DBB5B}>|0} ++ ({||P55|P55+1662}
+                                                                      {|64|M42+717|M42+717}
+                                                                      {||M42+705|M42+696}
+                                                                      {||M43+753|M43+729})
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
+
++------------------------- "9+3284" {9+3284|12||1} -------------------------+
+(0) {9+3284|12||1}
++--------------------------End "9+3284" -------------------------------------------+
+
++------------------------- "9+3280" {9+3280|02|0|0} -------------------------+
+(0) {9+3280|02|0|0}
++--------------------------End "9+3280" -------------------------------------------+
+   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
+
+Here are all the p55 calls:
+
+@20144+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3273|0} ++ ({||L11|} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3273|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@20297+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
+@20472+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3293|0} ++ ({|0|9+3290|0} {|||} :EMPTY)
+   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
+   W1={||9+3293|} ++ ({||9+2548|} {|||} :EMPTY)
+   W2={||9+3290|} ++ ({|||} {|||} :EMPTY)
+@21896+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3327|0} ++ ({||L11|} {|||} :EMPTY)
+   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
+   W1={||9+3327|} ++ ({||9+2571|} {|||} :EMPTY)
+   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+@22137+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3341|0} ++ ({|0|9+3336|0} {|||} :EMPTY)
+   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
+   W1={||9+3341|} ++ ({||9+2571|} {|||} :EMPTY)
+   W2={W2||9+3336|} ++ ({|||} {|||} :EMPTY)
+@22398+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3350|0} ++ ({|0|9+3347|0} {|||} :EMPTY)
+   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
+   W1={||9+3350|} ++ ({||9+2571|} {|||} :EMPTY)
+   W2={||9+3347|} ++ ({|||} {|||} :EMPTY)
+@24274+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3427|0} ++ ({||L11|} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3427|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
+@24516+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3437|0} ++ ({|0|9+3336|0} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3437|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
+   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
+@24786+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3447|0} ++ ({|0|9+3443|0} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3447|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
+   W2={||9+3443|} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
+@25872+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
+   H0={H0|0|9+3517|0} ++ ({||L11|} {||9+3388|} {|0|*207|0} {|||})
+   W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
+   W1={||9+3517|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
 
 |#
 
@@ -2671,14 +2759,13 @@ repair and returning to the drawing board. Sigh.
 
 (progn ;; LT 
   (set-default-tracing)
-  (setf *!!* nil *cell-tracing-on* nil)
-  '(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" (w25-get)) *cell-tracing-on* t)
-  '(setf *!!* '(:run :jcalls :io) *cell-tracing-on* t)
-  '(setf *trace-@orID-exprs*
+  (setf *!!* '() *cell-tracing-on* nil)
+  (setf *trace-@orID-exprs*
 	'(;; NOTE: The key can be partial, as "P052R" it uses (search ...).
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
-	  ;(291 (ipush "H0" "*11"))
-	  (292 (pl "*11") (break))
+	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; <<<<<<<<<<<<<<<<<<<<<<<< THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
+	  ;(27000 (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" (w25-get)) *cell-tracing-on* t
+		;  *!!* '(:run :jcalls :io) *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )
