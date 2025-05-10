@@ -2,83 +2,7 @@
 
 (setf *print-pretty* nil)
 
-#| Notes and issues:
-
-The ugly P=2 problem: (0) is put in cell S; then H0 is
-restored." (Note: No S push!)  It's actually unclear what the right
-way to do this is. Here are two hypotheses; One works, the other
-doesn't, but I'm not sure I understand why. It actually seems to me
-that it should be the other way around!  There's something really
-wrong here since these ought to be identical, except that the
-force-replace creates a new cell. So someone someplace is holding a
-cell struct that shouldn't be, but apparently needs to be. UUU WWW !!!
-This bodes poorly for the overall correctness and stability of the
-interpreter!
-
-www Local symbols in our case are ROUTINEID-9-... and get created at
-load time. Some of the code tests for a local symbol by knowing that
-the 9- is at the head, which is NOT true (it could test for a 9- at
-the head, or a 9- anywhere, or a name + -9- ...) Maybe localization
-should be done by pure 9- gensym, but then it would be impossible to
-f'ing figure out what routine something is in. ... ??? This is going
-to come back to bite us! (see convert-local-symbols)
-
-??? FFF I think that the whole thing could work w/o the names being in
-the cell, because they're in the hash key in the symtab (like the
-memory addresses in the IPL machine!) The names in the cell are just
-confusing (altbeit sometimes useful in debugging.)
-
-H3 cycle counter sometimes doesn't incremement. It's probably incf'ed
-in a slightly wrong place.
-
-WWW (from J136): "all copies of this symbol carry along the Q
-value..." .... This is going to come back to bite us because I do NOT
-do this!
-
-FFF Consider replacing system cells stacks with JUST symbols, thus
-avoiding entirely the mess of accidently sharing and destructive
-disasters. (I don't think we can do this -- see Q problem, as above. I
-think that the PQ is actually part of the symbol...or at least the Q
-is.)
-
-WARNING WARNING WARNING! THIS LANGUAGE HAS SO MANY RANDOM POTHOLES!!!
-The weirdest example (so far) is that the symbol "P" is actually the
-0th cell in the P zone, so is really "P0", so that all the code that
-handles things like finding the list P needs to be able to understand
-that P0 is really referring to "P". Ugh. (See manual p. 13 (prob. 4),
-215, and 237 (J186). UGH UGH UGH. (The way I get around this is
-to "fix" the singlton letters in the original code, so that the name,
-for example, A goes to A0.
-
-(Note the J8 stack stack popping motif upon a signaled error!)
-
-It seems that all JFns will remove their inputs, e.g., p.10: "...it is
-understood from the definition of TEST that J2 will remove both (0)
-and (1) from HO." UNLESS OTHERWISE STATED! See: (PopH0 n) FFF ???
-Maybe fold poph0, to the extent possible, into DefJ? But this has to
-be handled on an indiviudal basis.
-
-WWW A lot of code assumes that a list isn't branching -- e.g., DLIST
-processing. Probably some of the JFns will need to be upgradded to
-handle complex lists.
-
-WWW WATCH OUT FOR memory leaks are that are leaving junk on the
-stacks (primarily H0) ... usually it's the Jfns that aren't cleaning
-up after themselves, and/or not absorbing their inputs. Also WATCH OUT
-FOR accidental pointer sharing -- failing to copy. AVOID SETF'inf into
-cells -- use ipop and ipush almost always!
-
-WWW There's a hack for true blanks in both symb and link in
-LT:/016D070 to avoid the load-time trap. Eventually (FFF) test for
-data mode 21 to allow both blanks.
-
-WWW If J65 tries to insert numeric data there's gonna be a problem bcs
-PQ will be wrong. (I don't deeply understand the numerical data
-representation. For example, there NO handling of floats in the
-current system.)
-
-|#
-
+;;; See notes.txt
 
 ;;; WWW Leaves these at high debug etc or things break for unknown reasons.
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
@@ -775,19 +699,18 @@ current system.)
   (loop for name in *all-system-cells*
 	do
 	(make-cell! :name name)
-	(setf (gethash name *systacks*) (list :empty))
+	(setf (gethash name *systacks*) (list (make-cell :symb "**EMPTY**")))
 	(!! :dr-memory "Created system cell: ~s and its stack.~%" name))
   (setf (cell "S") "S-is-null")
   )
 
-;;; If any var becomes nil, there's something wrong!  (:EMPTY is okay
+;;; If any var becomes nil, there's something wrong!  (**EMPTY** is okay
 ;;; at the very end of the process.)
 
 (defun check-for-overpopping ()
   (loop for name in *all-system-cells*
 	as val = (gethash name *symtab*)
 	if (null val)
-	;; if (and (atom val) (or (eq :empty val) (null val)))
 	do (break "**** Oops! ~s is ~s, which is oughtn't be!" name val)))
 
 ;;; This is needed because of H0 memory leaks, probably from JFNS.
@@ -799,7 +722,7 @@ current system.)
     (loop for key being the hash-keys of *systacks*
 	  using (hash-value stack)
 	  as depth = (length stack)
-	  do
+	  do 
 	  (when (> depth *stack-depth-limit*)
 	    (!! :dr-memory "Tailing stack ~a, now ~a deep, to ~a. [mem]~%" key depth *stack-depth-limit*)
 	    (loop for s+ on stack
@@ -2657,97 +2580,78 @@ current system.)
 ;;; program.
 
 
-#| Current issue:
+#| Current issue (see notes.txt for the issue stack):
 
-H5={H5||-|}, H3(cycles)=24529
+W1 losses the tune here:
 
-I think (from evidence of prior calls to P55) that it's trying to pass "L11" in (1):
+    608:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+    612:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+    616:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+    621:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+    625:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+    629:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+    633:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+    637:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
 
-@20144+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3273|0} ++ ({||L11|} {|||} :EMPTY)
-   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
-   W1={||9+3273|} ++ ({||9+2548|} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
+Here's the trace:
 
-Sometimes (1) seems like it's correctly a list, but usually not!
+@30892+ >>>>> {M111R000::M111||J90|M111+1264 [M111 MATCH SEGMENTS (0) AND (1),;]} (Execute fn named by symb name itself)
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   .......... Calling J90 [Create a blank cell on H0] (No Args)
+   H0={H0|0|9+3684|0} ++ ({|0|A0|0} {|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+@30893+ >>>>> {M111R010::M111+1264|20|M111-9-10|M111+1265 [   H5+ MEANS OUTPUT (0) IS LIST;]} (Move H0 to the named symbol itself and pop H0)
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+@30894+ >>>>> {M111R020::M111+1265||M111-9-100|M111+1266 [    OF PAIRS--1ST IS FREE VAR.,;]} (Execute fn named by symb name itself)
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
 
-Even the first call to p55 that doesn't pass L11 is broken:
+Here's where it gets lost. The problem is that  (1) = {|||} (Top of H0 stack) So looks like that got lost above!
 
-@20297+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-H5={H5||+|}, H3(cycles)=20297
-*W24-Line-Buffer*="                                                                                "
-   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
-   H1={H1|0|<FUNCTION (LAMBDA () :IN SETUP-J-FNS) {535DBB5B}>|0} ++ ({||P55|P55+1662}
-                                                                      {|64|M42+717|M42+717}
-                                                                      {||M42+705|M42+696}
-                                                                      {||M43+753|M43+729})
-   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
-   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
-   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
+@30894+ >>>>> {M111R050::M111-9-100|04|J51|M111-9-104 [9-100 MATCH SUBPROCESS;]} (Execute fn named in symb name itself (==00))
+(Unimplemented monitor action in {M111R050::M111-9-100|04|J51|M111-9-104 [9-100 MATCH SUBPROCESS;]}; Executing w/o monitor!)
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   .......... Calling J51 [PRESERVE W0-W1 THEN MOVE(0)-(1) into W0-W1] (No Args)
+   H0={H0||**EMPTY**|} ++ NIL
+   W0={W0|0|A0|0} ++ ({||9+3668|} {|0|*207|0} {||*207|} {|0|*207|0})
+   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+@30895+ >>>>> {M111R060::M111-9-104|11|W0|M111+1268 [    (EXPECTS FREE VARIABLES DISJOIN;]} (Push cntnts of the cell named by symb, onto H0)
+   H0={H0|0|A0|0} ++ ({||**EMPTY**|})
+   W0={W0|0|A0|0} ++ ({||9+3668|} {|0|*207|0} {||*207|} {|0|*207|0})
+   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
 
-+------------------------- "9+3284" {9+3284|12||1} -------------------------+
-(0) {9+3284|12||1}
-+--------------------------End "9+3284" -------------------------------------------+
+My guess is that it's here:
+@30880- >>>>> {P028R080::P28+1528|70|J19|P28+1529} (Goto by H5: -symb|+link itself)
+   .......... Calling J19 [GENERATOR CLEANUP] (No Args)
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
 
-+------------------------- "9+3280" {9+3280|02|0|0} -------------------------+
-(0) {9+3280|02|0|0}
-+--------------------------End "9+3280" -------------------------------------------+
-   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
-   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
-   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
-   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
+Here's where that gets setup:
 
-Here are all the p55 calls:
+@30839- >>>>> {P028R010::P28+1522||J17|P28+1523 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
+   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2573|0} {|0|*208|0} {|||})
+   W0={||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   .......... Calling J17 [GENERATOR SETUP]: (WN-SYMB FN)=("W0" "J18")
+   H0={H0|0|9+2573|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
+   W0={||9+2576|} ++ ({||9+2576|} {|0|9+3683|0} {|0|*208|0} {||9+3668|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+@30840- >>>>> {P028R020::P28+1523|60|W0|P28+1524 [FOR PROCESS (0).;]} (Copy of (0) replaces S; S lost; H0 n.c.)
+   H0={H0|0|9+2573|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
+   W0={||9+2573|} ++ ({||9+2576|} {|0|9+3683|0} {|0|*208|0} {||9+3668|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
 
-@20144+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3273|0} ++ ({||L11|} {|||} :EMPTY)
-   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
-   W1={||9+3273|} ++ ({||9+2548|} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-@20297+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3284|0} ++ ({|0|9+3280|0} {|||} :EMPTY)
-   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
-   W1={||9+3284|} ++ ({||9+2548|} {|||} :EMPTY)
-   W2={W2||9+3280|} ++ ({|||} {|||} :EMPTY)
-@20472+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3293|0} ++ ({|0|9+3290|0} {|||} :EMPTY)
-   W0={W0||*208|} ++ ({||*208|} {||*208|} {|0|*208|0} {|||})
-   W1={||9+3293|} ++ ({||9+2548|} {|||} :EMPTY)
-   W2={||9+3290|} ++ ({|||} {|||} :EMPTY)
-@21896+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3327|0} ++ ({||L11|} {|||} :EMPTY)
-   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
-   W1={||9+3327|} ++ ({||9+2571|} {|||} :EMPTY)
-   W2={W2|||} ++ ({|||} {|||} :EMPTY)
-@22137+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3341|0} ++ ({|0|9+3336|0} {|||} :EMPTY)
-   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
-   W1={||9+3341|} ++ ({||9+2571|} {|||} :EMPTY)
-   W2={W2||9+3336|} ++ ({|||} {|||} :EMPTY)
-@22398+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3350|0} ++ ({|0|9+3347|0} {|||} :EMPTY)
-   W0={W0||*207|} ++ ({||*207|} {||*207|} {|0|*207|0} {|||})
-   W1={||9+3350|} ++ ({||9+2571|} {|||} :EMPTY)
-   W2={||9+3347|} ++ ({|||} {|||} :EMPTY)
-@24274+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3427|0} ++ ({||L11|} {||9+3388|} {|0|*207|0} {|||})
-   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
-   W1={||9+3427|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
-   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
-@24516+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3437|0} ++ ({|0|9+3336|0} {||9+3388|} {|0|*207|0} {|||})
-   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
-   W1={||9+3437|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
-   W2={W2|0|*207|0} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
-@24786+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3447|0} ++ ({|0|9+3443|0} {||9+3388|} {|0|*207|0} {|||})
-   W0={W0||9+3410|} ++ ({||9+3410|} {|0|M11|0} {||9+2571|} {|0|*207|0})
-   W1={||9+3447|} ++ ({||9+3415|} {|0|*208|0} {||*207|} {|||})
-   W2={||9+3443|} ++ ({|0|*207|0} {|0|*207|0} {||*208|} {|||})
-@25872+ >>>>> {P055R000::P55||J41|P55+1662 [P55 LOCATE SUBLIST FOLLOWING;]} (Execute fn named by symb name itself)
-   H0={H0|0|9+3517|0} ++ ({||L11|} {||9+3388|} {|0|*207|0} {|||})
-   W0={W0||9+3500|} ++ ({||9+3500|} {|0|M11|0} {||9+2571|} {|0|*207|0})
-   W1={||9+3517|} ++ ({||9+3505|} {|0|*11|0} {||*207|} {|||})
+
+
 
 |#
 
@@ -2760,12 +2664,13 @@ Here are all the p55 calls:
 (progn ;; LT 
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
+  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   (setf *trace-@orID-exprs*
 	'(;; NOTE: The key can be partial, as "P052R" it uses (search ...).
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
 	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; <<<<<<<<<<<<<<<<<<<<<<<< THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
-	  ;(27000 (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" (w25-get)) *cell-tracing-on* t
-		;  *!!* '(:run :jcalls :io) *cell-tracing-on* t))
+	  (30800 (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t
+		  *!!* '(:run :jcalls :io) *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )
