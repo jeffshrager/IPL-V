@@ -76,7 +76,7 @@
 ;;; manual and below where J17-19 are defj'ed.
 
 (defvar *genstack* nil)
-(defstruct gentry fn wn wnames +-) 
+(defstruct gentry fn wn wnames +- gentag)
 
 ;;; =========================================================================
 ;;; DEBUGGING TOOLS
@@ -328,15 +328,16 @@
 		    :link (cell-link popped-cell)
 		    :id (cell-id popped-cell))))
     (!! :dr-memory "IPOP created new cell: ~s on ~a, popping ~s~%" new-cell stack-name popped-cell)
-    ;; The 
     (if make-me-a-new-copy-of-the-popped-cell
 	;; This one isn't saved!
-	(make-cell :pq (cell-pq popped-cell)
-		   :symb (cell-symb popped-cell)
-		   :link (cell-link popped-cell)
-		   :id (cell-id popped-cell))
-	:someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it
-	)))
+	(let ((new-cell (make-cell :pq (cell-pq popped-cell)
+			   :symb (cell-symb popped-cell)
+			   :link (cell-link popped-cell)
+			   :id (cell-id popped-cell))))
+	  (!! :deep-alerts "       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN ~s TO THE CALLER!~%" new-cell)
+	  new-cell)
+	  :someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it)
+    ))
 
 ;;; This is used in JFns to deref args H0
 
@@ -588,7 +589,7 @@
 	(when (and missing-local-symbols (eq :code load-mode))
 	  (setf cells (append cells (loop for missymb in missing-local-symbols
 					  as new-name = (cdr (assoc missymb local-symbols.new-names :test #'string-equal))
-					  do (!! :load "WARNING: Cell ~s being added for missing local symbol ~s!~%" new-name missymb)
+					  do (format t "WARNING: Cell ~s is being added for missing local symbol ~s!~%" new-name missymb)
 					  collect (make-cell! :name new-name :pq "00" :symb "0" :link "0"))))))
       (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
@@ -911,49 +912,67 @@
   ;; ==================================================================
   ;; GENERATOR FUNCTIONALITY
   
-  ;; Just as a reminder: (defvar *genstack* nil) (defstruct gentry fn wn :wnames +-)
+  ;; Just as a reminder: (defvar *genstack* nil) (defstruct gentry fn wn :wnames +- gentag)
 
   (defj J17 (wn-symb fn) "GENERATOR SETUP" 
-	;; Has two inputs: (0) = Wn, the name of the highest W that will be
-	;; used for working storage, e.g., (0) = W6, if cells WO through W6
-	;; will be used. (1) = The name of the subprocess to be executed by
-	;; generator. J17 does three things (and has no output):
-	;; 1. Preserves the cells WO through Wn, thereby preserving the
-	;; superroutine-subprocess context. 2. Stores Wn and the name of the
-	;; subprocess in storage cells and preserves a third cell for the
-	;; output sign of H5 (these three storage cells are called the
-	;; generator hideout). 3. Obtains the trace mode of the
-	;; superroutine, and records it in one of the hideout cells (see §
-	;; 15.0, MONITOR SYSTEM).
-	(poph0 2) ;; Safe -- never passed H0
+	(let ((gentag (gensym "GEN-")))
+	  (!! :gentrace "    >>>>>>>>>> J17 [Gen Setup @~a] ~s ~s tag=~s >>>>>>>>>>~%"  (H3-cycles) wn-symb fn gentag)
+	  (!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
+			      (*cell-tracing-on* t))
+			  (format t "Cell trace before:~%")
+			  (trace-cells)))
+	  ;; Has two inputs: (0) = Wn, the name of the highest W that will be
+	  ;; used for working storage, e.g., (0) = W6, if cells WO through W6
+	  ;; will be used. (1) = The name of the subprocess to be executed by
+	  ;; generator. J17 does three things (and has no output):
+	  ;; 1. Preserves the cells WO through Wn, thereby preserving the
+	  ;; superroutine-subprocess context. 2. Stores Wn and the name of the
+	  ;; subprocess in storage cells and preserves a third cell for the
+	  ;; output sign of H5 (these three storage cells are called the
+	  ;; generator hideout). 3. Obtains the trace mode of the
+	  ;; superroutine, and records it in one of the hideout cells (see §
+	  ;; 15.0, MONITOR SYSTEM).
+	  (poph0 2) ;; Safe -- never passed H0
 
-	;; This is an ugly hack that grabs the previous generator processing fn, if 
-	;; J18 is passed as the process function. ... At the moment it's been undone
-	;; bcs instead I've made J18 actually remove the top entry from the genstack
-	;; before IPL-EVAL re-entry, which has sort of the same effect, albeit cleaner.
-	;; (!! :Jdeep "             J17 called with wn:~s and fn:~s~%" wn-symb fn)
-	;; (when (string-equal fn "J18")
-	;;   (setf fn (gentry-fn (car *genstack*)))
-	;;   (!! :jdeep "             .....J18 HACK!! is replacing subFn with ~s~%" fn))
+	  ;; This is an ugly hack that grabs the previous generator processing fn, if 
+	  ;; J18 is passed as the process function. ... At the moment it's been undone
+	  ;; bcs instead I've made J18 actually remove the top entry from the genstack
+	  ;; before IPL-EVAL re-entry, which has sort of the same effect, albeit cleaner.
+	  ;; (!! :Jdeep "             J17 called with wn:~s and fn:~s~%" wn-symb fn)
+	  ;; (when (string-equal fn "J18")
+	  ;;   (setf fn (gentry-fn (car *genstack*)))
+	  ;;   (!! :jdeep "             .....J18 HACK!! is replacing subFn with ~s~%" fn))
 
-	(let* ((wn (parse-integer (subseq wn-symb 1 2))))
-	  (J4n=preserve-wn wn)
-	  (push (make-gentry :fn fn
-			     :wn wn :wnames (first-n (1+ wn) *w-cells*)
-			     ;; ??? There's an open issue of what
-			     ;; happens if J19 is called before any of
-			     ;; the cycles have executed. This could
-			     ;; happen if the generating list or fn
-			     ;; has no elements at all. My theory in
-			     ;; this case is that the generator
-			     ;; actually completed, although it
-			     ;; completed running through a null list,
-			     ;; so we return a +.
-			     :+- "+")
-		*genstack*))
-	(!! :jdeep "             .....J17 *genstack* push: ~s~%" (car *genstack*)))
+	  (let* ((wn (parse-integer (subseq wn-symb 1 2))))
+	    (J4n=preserve-wn wn)
+	    (push (make-gentry :fn fn
+			       :wn wn :wnames (first-n (1+ wn) *w-cells*)
+			       ;; ??? There's an open issue of what
+			       ;; happens if J19 is called before any of
+			       ;; the cycles have executed. This could
+			       ;; happen if the generating list or fn
+			       ;; has no elements at all. My theory in
+			       ;; this case is that the generator
+			       ;; actually completed, although it
+			       ;; completed running through a null list,
+			       ;; so we return a +.
+			       :+- "+"
+			       :gentag gentag)
+		  *genstack*))
+	  (!! :gentrace "             .....J17 *genstack* push: ~s~%" (car *genstack*))
+	  (!! :gentrace "              *genstack*=~s~%"  *genstack*)
+	  (!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
+			      (*cell-tracing-on* t))
+			  (format t "Cell trace after:~%")
+			  (trace-cells)))
+	  ))
 
   (defj J18 () "EXECUTE SUBPROCESS" 
+	(!! :gentrace "         <><><><><> J18 [Gen Exec @~a] <><><><><>~%" (H3-cycles))
+	(!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
+			    (*cell-tracing-on* t))
+			(format t "Cell trace before:~%")
+			(trace-cells)))
 	;; Has no input. It does six things: 1. Restores the symbols
 	;; in WO through Wn (generator context), thereby returning the
 	;; previous context of symbols to the top of the W's
@@ -966,10 +985,11 @@
 	;; superroutine-subprocess context. 6. Records H5, the
 	;; communication of the sub-process to the generator (see
 	;; J19), in one of the hideout cells.
-	(!! :jdeep "             J18: entry:~%") (!! :jdeep (trace-cells))
+	(!! :gentrace "             J18: entry:~%") (!! :gentrace (trace-cells))
 	(let* ((gentry (first *genstack*))
 	       (fn (gentry-fn gentry))
 	       (wn (gentry-wn gentry))
+	       (gentag (gentry-gentag gentry))
 	       (wnames (gentry-wnames gentry))
 	       ;; WVALS is the generator context, held by the lisp
 	       ;; stack. (So we don't need a special stack for the
@@ -978,50 +998,65 @@
 			    as wcell = (cell wname)
 			    do (ipop wname)
 			    collect wcell)))
-	  (!! :jdeep "             J18: collected wvals = ~s~%" wvals)
-	  (!! :jdeep "             J18: After Wn ipops:~%") (!! :jdeep (trace-cells))
-	  (!! :jdeep "             J18: *genstack* = ~s~%" *genstack*)
-	  (!! :jdeep "             .....J18 (fn=~s, wn=~s)~%" fn wn)
+	  (!! :gentrace "             J18 (tag=~s): collected wvals = ~s~%" gentag wvals)
+	  (!! :gentrace "             J18: After Wn ipops:~%") (!! :gentrace (trace-cells))
+	  (!! :gentrace "             J18: *genstack* = ~s~%" *genstack*)
+	  (!! :gentrace "             .....J18 (fn=~s, wn=~s)~%" fn wn)
 	  ;; This seems redundant with the one in J19, but that one is
 	  ;; restoring the caller context, whereas this one is
 	  ;; restoring the generator context.
 	  ;; (J3n=restore-wn wn) !!! This was causing double poppage ~ 20250415
 	  ;; We also temporarily pull the top of the genstack to reveal what's underneath in case there is a recursive generator in use. 
 	  (let ((held-genstack-entry (pop *genstack*)))
-	    (!! :jdeep "             .....J18 holding ~s off the genstack...~%" held-genstack-entry)
-	    (!! :jdeep "             .....*genstack* is now: ~s~%" *genstack*)
-	    (!! :jdeep "             .....J18 Executing ~s~%" fn)
-	    (!! :jdeep "             J18: Just before IPL-EVAL:~%") (!! :jdeep (trace-cells))
+	    (!! :gentrace "             .....J18 (tag=~s) holding ~s off the genstack...~%" gentag held-genstack-entry)
+	    (!! :gentrace "             .....*genstack* is now: ~s~%" *genstack*)
+	    (!! :gentrace "             .....J18 Executing ~s~%" fn)
+	    (!! :gentrace "             J18: Just before IPL-EVAL:~%") (!! :gentrace (trace-cells))
 	    (ipl-eval fn)
-	    (!! :jdeep "             J18: Just after IPL-EVAL:~%") (!! :jdeep (trace-cells))
-	    (!! :jdeep "             .....J18 ~s returned with H5=~a~%" fn (H5))
+	    (!! :gentrace "             J18: Just after IPL-EVAL:~%") (!! :gentrace (trace-cells))
+	    (!! :gentrace "             .....J18 ~s returned with H5=~a~%" fn (H5))
 	    ;; Now we put it back
 	    (push held-genstack-entry *genstack*))
-	  (!! :jdeep "             J18: replaced wvals (should be the same as collected, above!)= ~s~%" wvals)
+	  (!! :gentrace "             J18: replaced wvals (should be the same as collected, above!)= ~s~%" wvals)
 	  (loop for wname in wnames
 		as wval in wvals
 		do (ipush wname wval))
-	  (!! :jdeep "             J18: Just before return:~%") (!! :jdeep (trace-cells))
+	  (!! :gentrace "             J18 (tag=~s): Just before return:~%" gentag) (!! :gentrace (trace-cells))
 	  (setf (gentry-+- gentry) (H5))
+	  (!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
+			      (*cell-tracing-on* t))
+			  (format t "Cell trace after:~%")
+			  (trace-cells)))
 	  ))
 
   (defj J19 () "GENERATOR CLEANUP"
+	(!! :gentrace "    <<<<<<<<<< J19 [Gen Cleanup @~a] <<<<<<<<<<~%" (H3-cycles)) 
+	(!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
+			    (*cell-tracing-on* t))
+			(format t "Cell trace before:~%")
+			(trace-cells)))
 	;; Has no input. Does three things: 1. Restores WO through
 	;; Wn. 2. Restores all the cells of the hideout. 3. Places in
 	;; H5. the recorded sign, which will be + if the generator went to
 	;; completion (last subprocess communicated + ), and - if the
 	;; generator was stopped (last subprocess communicated - ).
 	(let* ((gentry (pop *genstack*))
+	       (gentag (gentry-gentag gentry))
 	       (wn (gentry-wn gentry))
 	       (+- (gentry-+- gentry)))
-	  (!! :jdeep "             .....J19 popping gentry: ~s~%" gentry)
+	  (!! :gentrace "             .....J19 (tag=~s) popping gentry: ~s~%" gentag gentry)
 	  ;; This seems redundant with the one in J18, but that one is
 	  ;; restoring the generator context, whereas this one is
 	  ;; restoring the caller context.
 	  (J3n=restore-wn wn) 
 	  (if (string-equal +- "+") (H5+)
 	      (if (string-equal +- "-") (H5-)
-		  (break "In J19 +- is ~s" +-)))))
+		  (break "In J19 +- is ~s" +-))))
+	  (!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
+			      (*cell-tracing-on* t))
+			  (format t "Cell trace after:~%")
+			  (trace-cells)))
+	)
 
   ;; ==================================================================
 
@@ -1983,7 +2018,7 @@
   (let* ((data-cell (cell sym)))
     (unless (numberp (cell-link data-cell))
       (!! :deep-alerts
-	  "WARNING: NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link.~%"
+	  "       *** ALERT !!! NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link.~%"
 	  data-cell sym))
     (setf (cell-link data-cell) n)))
 
@@ -2248,7 +2283,6 @@
 	 (go ADVANCE)
 	 ))
      (setq cell (cell (cell-symb (H1)))) ;; This shouldn't be needed since we're operating all in cell now.
-     ;(!! :run "@~a~a >>>>> ~s (~a) ~a~%" (H3-cycles) (H5) cell (pq-explain cell) (prettify-jexps-if-any cell))
      (!! :run "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
@@ -2637,6 +2671,11 @@ My guess is that it's here:
 
 Here's where that gets setup:
 
+@30838- >>>>> {P028R000::P28|10|W0|P28+1522 [GENERATE LOCATIONS OF FREE;]} (Push the symb (name) itself on H0)
+   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2573|0} {|0|*208|0} {|||})
+   W0={||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+
 @30839- >>>>> {P028R010::P28+1522||J17|P28+1523 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
    H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2573|0} {|0|*208|0} {|||})
    W0={||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
@@ -2650,6 +2689,150 @@ Here's where that gets setup:
    W0={||9+2573|} ++ ({||9+2576|} {|0|9+3683|0} {|0|*208|0} {||9+3668|})
    W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
 
+This M111 call is f'ed:
+
+@30892+ >>>>> {M111R000::M111||J90|M111+1264 [M111 MATCH SEGMENTS (0) AND (1),;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J90"
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+
+Here's how we got to the M111R000, which should have passed 2 values:
+
+@30888+ >>>>> {P014R010::P14+1419|70|0|J82} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="0"
+   H0={H0|0|9+2548|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+   .......... Calling J82 [FIND THE 2nd (non-head0 SYMBOL OF (0)]: (ARG0)=("9+2548")
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+@30890+ >>>>> {M015R260::M15+406|70|J4|M15+407} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="J4"
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+@30891+ >>>>> {M015R270::M15+407|60|M15-9-1|M15+408 [INPUT PROB RIGHT.;]} (Copy of (0) replaces S; S lost; H0 n.c.)
+     -----> At INTERPRET-P w/P = 6, S="M15-9-1"
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+@30892+ >>>>> {M015R280::M15+408||M113|M15+409 [MATCH, OUTPUT LIST OF SUBSTITUTIONS;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="M113"
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+@30892+ >>>>> {M113R000::M113||M111|M113+1358 [MATCH SEGMENTS (0) AND (1) FOR;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="M111"
+   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+
+Hmmm. 9+3683 is: 
++------------------------- "9+3683" {9+3683|02|0|0} -------------------------+
+(0) {9+3683|02|0|0}
++--------------------------End "9+3683" -------------------------------------------+
+
+Which dosn't look like a list going in here:
+
+@30884+ >>>>> {M116R100::M116+1392||J78|M116+1393 [TEST IF ANY FREE VARS.;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J78"
+   H0={H0|0|9+3683|0} ++ ({|0|9+3683|0} {|0|*208|0} {|||} {||**EMPTY**|})
+   W0={W0|0|*208|0} ++ ({||9+3668|} {|0|*207|0} {||*207|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
+   .......... Calling J78 [TEST IF LIST (0) IS NOT EMPTY]: (ARG0)=("9+3683")
+   H0={H0|0|9+3683|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
+   W0={W0|0|*208|0} ++ ({||9+3668|} {|0|*207|0} {||*207|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
+
+I guess it COULD be an empty list, but the 12 suggests a number!
+
+Earlier, this J19 (gen cleanup) removes a reasonable-seeming
+list (9+2576) from W0 (which soon becomes H0!). I wonder if that cleanup is right?
+
+@30880- >>>>> {P028R080::P28+1528|70|J19|P28+1529} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="J19"
+   .......... Calling J19 [GENERATOR CLEANUP] (No Args)
+    <<<<<<<<<< J19 [Gen Cleanup @30880] <<<<<<<<<<
+Cell trace before:
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   H1={H1|10|J19|P28+1522} ++ ({||M116+1389|M116+1385} {||M110+1209|M110+1207} {|0|M15+404|0} {|0|exit|0})
+   W0={W0||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+             .....J19 popping gentry: #S(GENTRY :FN "M116-9-100" :WN 0 :WNAMES ("W0") :+- "+")
+Cell trace after:
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   H1={H1|10|J19|P28+1522} ++ ({||M116+1389|M116+1385} {||M110+1209|M110+1207} {|0|M15+404|0} {|0|exit|0})
+   W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
+
+@30839- >>>>> {P028R010::P28+1522||J17|P28+1523 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J17"
+   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2591|0} {|0|*208|0} {|||})
+   W0={||9+2594|} ++ ({|0|9+3817|0} {|0|*208|0} {||9+3798|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
+   .......... Calling J17 [GENERATOR SETUP]: (WN-SYMB FN)=("W0" "J18")
+    >>>>>>>>>> J17 [Gen Setup @30839] "W0" "J18" tag=#:GEN-3819 >>>>>>>>>>
+Cell trace before:
+   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2591|0} {|0|*208|0} {|||})
+   H1={H1|0|#<FUNCTION (LAMBDA (WN-SYMB FN) :IN SETUP-J-FNS) {535DF28B}>|0} ++ ({|10|P28+1522|P28+1522} {|10|P28+1538|P28+1522} {||M116+1389|M116+1385} {||M110+1209|M110+1207})
+   W0={||9+2594|} ++ ({|0|9+3817|0} {|0|*208|0} {||9+3798|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+             .....J17 *genstack* push: #S(GENTRY :FN "J18" :WN 0 :WNAMES ("W0") :+- "+" :GENTAG #:GEN-3819)
+              *genstack*=(#S(GENTRY :FN "J18" :WN 0 :WNAMES ("W0") :+- "+" :GENTAG #:GEN-3819) #S(GENTRY :FN "M116-9-100" :WN 0 :WNAMES ("W0") :+- "+" :GENTAG #:GEN-3818))
+Cell trace after:
+   H0={H0|0|9+2591|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
+   H1={H1|0|#<FUNCTION (LAMBDA (WN-SYMB FN) :IN SETUP-J-FNS) {535DF28B}>|0} ++ ({|10|P28+1522|P28+1522} {|10|P28+1538|P28+1522} {||M116+1389|M116+1385} {||M110+1209|M110+1207})
+   W0={||9+2594|} ++ ({||9+2594|} {|0|9+3817|0} {|0|*208|0} {||9+3798|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   H0={H0|0|9+2591|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
+   W0={||9+2594|} ++ ({||9+2594|} {|0|9+3817|0} {|0|*208|0} {||9+3798|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
+
+...
+
+@30880- >>>>> {P028R080::P28+1528|70|J19|P28+1529} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="J19"
+   .......... Calling J19 [GENERATOR CLEANUP] (No Args)
+    <<<<<<<<<< J19 [Gen Cleanup @30880] <<<<<<<<<<
+Cell trace before:
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   H1={H1|10|J19|P28+1522} ++ ({||M116+1389|M116+1385} {||M110+1209|M110+1207} {|0|M15+404|0} {|0|exit|0})
+   W0={W0||9+2594|} ++ ({|0|9+3817|0} {|0|*208|0} {||9+3798|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+             .....J19 (tag=#:GEN-3818) popping gentry: #S(GENTRY :FN "M116-9-100" :WN 0 :WNAMES ("W0") :+- "+" :GENTAG #:GEN-3818)
+
+So, it comes out (just above) with W0=9+2594;9+3817
+
+But then appears to pop W0 once more??!! Is there an extra Wn pop going on in J19?
+
+Cell trace after:
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   H1={H1|10|J19|P28+1522} ++ ({||M116+1389|M116+1385} {||M110+1209|M110+1207} {|0|M15+404|0} {|0|exit|0})
+   W0={W0|0|9+3817|0} ++ ({|0|*208|0} {||9+3798|} {|0|*207|0} {||*207|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0|0|9+3817|0} ++ ({|0|*208|0} {||9+3798|} {|0|*207|0} {||*207|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
+
+
 
 
 
@@ -2659,7 +2842,7 @@ Here's where that gets setup:
 ;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
 ;;; (rx) analyzes routine call stats
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
-;;; *!!* <= :jdeep :jfns :run :jcalls :dr-memory :s :run-full :deep-alerts :load
+;;; *!!* <= :jdeep :jfns :run :jcalls :dr-memory :s :run-full :deep-alerts :load :gentrace
 
 (progn ;; LT 
   (set-default-tracing)
@@ -2669,8 +2852,12 @@ Here's where that gets setup:
 	'(;; NOTE: The key can be partial, as "P052R" it uses (search ...).
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
 	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; <<<<<<<<<<<<<<<<<<<<<<<< THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
-	  (30800 (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t
-		  *!!* '(:run :jcalls :io) *cell-tracing-on* t))
+	  (30000
+	   (setf *!!* '(:gentrace :s :run :jcalls :jdeep) *cell-tracing-on* t)
+	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+	   )
+	  ;; (20825 (breaK))
+	  ;; (1 (setf *!!* '(:gentrace) *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )

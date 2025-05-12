@@ -1,6 +1,57 @@
 =========================================================
+Notes on the current issue:
+================================================
+
+@30805+ >>>>> {P028R010::P28+1522||J17|P28+1523 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
+   H0={H0|0|W0|0} ++ ({|0|M116-9-100|0} {|0|9+2571|0} {|0|*208|0} {|||})
+   W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   .......... Calling J17 [GENERATOR SETUP]: (WN-SYMB FN)=("W0" "M116-9-100")
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {|0|M116-9-100|0} TO THE CALLER!
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {|0|9+2571|0} TO THE CALLER!
+             .....J17 *genstack* push: #S(GENTRY :FN "M116-9-100" :WN 0 :WNAMES ("W0") :+- "+")
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {|10|P28+1522|P28+1522} TO THE CALLER!
+   H0={H0|0|9+2571|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
+   W0={W0|0|9+3683|0} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+
+@30839- >>>>> {P028R010::P28+1522||J17|P28+1523 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
+   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2573|0} {|0|*208|0} {|||})
+   W0={||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   .......... Calling J17 [GENERATOR SETUP]: (WN-SYMB FN)=("W0" "J18")
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {|0|J18|0} TO THE CALLER!
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {|0|9+2573|0} TO THE CALLER!
+             .....J17 *genstack* push: #S(GENTRY :FN "J18" :WN 0 :WNAMES ("W0") :+- "+")
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {|10|P28+1522|P28+1522} TO THE CALLER!
+   H0={H0|0|9+2573|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
+   W0={||9+2576|} ++ ({||9+2576|} {|0|9+3683|0} {|0|*208|0} {||9+3668|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+
+@30875- >>>>> {P028R080::P28+1528|70|J19|P28+1529} (Goto by H5: -symb|+link itself)
+   .......... Calling J19 [GENERATOR CLEANUP] (No Args)
+             .....J19 popping gentry: #S(GENTRY :FN "J18" :WN 0 :WNAMES ("W0") :+- "+")
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {||9+2576|} TO THE CALLER!
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {|10|P28+1538|P28+1522} TO THE CALLER!
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+
+@30880- >>>>> {P028R080::P28+1528|70|J19|P28+1529} (Goto by H5: -symb|+link itself)
+   .......... Calling J19 [GENERATOR CLEANUP] (No Args)
+             .....J19 popping gentry: #S(GENTRY :FN "M116-9-100" :WN 0 :WNAMES ("W0") :+- "+")
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {|0|9+3683|0} TO THE CALLER!
+       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN {||M116+1389|M116+1385} TO THE CALLER!
+   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
+   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+
+
+=========================================================
 Intersesting observations:
 ================================================
+
+P28 recursive use of J18
 
 P28 is an Apply!
 
