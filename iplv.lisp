@@ -26,7 +26,7 @@
 (defvar *symtab* (make-hash-table :test #'equal))
 (defvar *systacks* (make-hash-table :test #'equal))
 
-(defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "+"))))
+(defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "-"))))
 
 (defun make-cell! (&rest args)
   (let* ((name (getf args :name)))
@@ -1301,7 +1301,94 @@
 	;; the list from the symtab.]
 	(PopH0 1))
 
+;; =======================
+;;; ;;; IPL-V List Copying Functions (Updated to Handle Q=2 Local Symbols)
+
+;;; ;; In IPL-V, the Q=2 designation used to mark a symbol as "local" does not modify the symbol itself
+;;; ;; or the cell it names. Instead, it is a property of the IPL word (cell) that contains the symbol in
+;;; ;; its SYMB field. When the Q field of such a word is set to 2, it signals to the loader or copier
+;;; ;; (e.g., during J74) that the symbol should be treated as local—meaning it will be replaced with a
+;;; ;; newly generated, unique name. This ensures the symbol is localized to the copied context and avoids
+;;; ;; naming collisions. This behavior is described explicitly on:
+;;; ;;   - Page 200, under J136: "The output (0) is the input (0) with Q = 2..."
+;;; ;;   - Page 148: "If the SYMB field of a word is marked with Q=2, the loader recognizes it as a local symbol."
+;;; ;;   - Page 29: "To create a local symbol... set Q=2 in the cell in which the name appears."
+
+;;; (defvar *remap* (make-hash-table :test 'eq))
+
+;;; (defun q2-symbol-p (cell)
+;;;   "Returns T if the cell has Q=2 and a symbol in SYMB."
+;;;   (and (symbolp (symb cell)) (= (q cell) 2)))
+
+;;; (defun remap-symbol (symbol)
+;;;   "Return remapped symbol if present; otherwise return symbol."
+;;;   (gethash symbol *remap* symbol))
+
+;;; (defun find-or-create-local-symbol (symbol)
+;;;   (or (gethash symbol *remap*)
+;;;       (setf (gethash symbol *remap*) (newsym))))
+
+;;; (defun copy-cell (cell)
+;;;   "Shallow copy of a single IPL word, remapping Q=2 symbols."
+;;;   (let* ((new-cell (make-word))
+;;;          (sym (symb cell))
+;;;          (qval (q cell))
+;;;          (new-sym (if (and (symbolp sym) (= qval 2))
+;;;                       (find-or-create-local-symbol sym)
+;;;                       sym)))
+;;;     (setf (symb new-cell) new-sym
+;;;           (q new-cell) 0 ;; copied symbols are naked
+;;;           (p new-cell) (p cell)
+;;;           (link new-cell) nil)
+;;;     new-cell))
+
+;;; (defun walk-list (head)
+;;;   "Return a list of cells from HEAD to the end of the LINK chain."
+;;;   (let (result)
+;;;     (loop while head do
+;;;       (push head result)
+;;;       (setf head (link head)))
+;;;     (nreverse result)))
+
+;;; (defun list-header-p (sym)
+;;;   "Returns T if SYM names a valid IPL-V list header cell."
+;;;   (let ((cell (get-cell sym)))
+;;;     (and cell (link cell))))
+
+;;; (DEFJ J73 (args)
+;;;   "Shallow copy of list (J73)."
+;;;   (clrhash *remap*)
+;;;   (let* ((original (car args))
+;;;          (copy-head nil)
+;;;          (copy-tail nil))
+;;;     (dolist (cell (walk-list original))
+;;;       (let ((copy (copy-cell cell)))
+;;;         (when copy-tail
+;;;           (setf (link copy-tail) copy))
+;;;         (unless copy-head (setf copy-head copy))
+;;;         (setf copy-tail copy)))
+;;;     copy-head))
+
+;;; (defun copy-structure-rec (cell)
+;;;   "Recursively copy structure rooted at CELL, respecting Q=2."
+;;;   (when (null cell) (return-from copy-structure-rec nil))
+;;;   (let* ((copy (copy-cell cell))
+;;;          (sym (symb cell)))
+;;;     ;; If SYMB points to a list, copy it too
+;;;     (when (list-header-p sym)
+;;;       (setf (symb copy) (copy-structure-rec (get-cell sym))))
+;;;     ;; Recurse on link
+;;;     (setf (link copy) (copy-structure-rec (link cell)))
+;;;     copy))
+
+;;; (DEFJ J74 (args)
+;;;   "Deep structure copy (J74)."
+;;;   (clrhash *remap*)
+;;;   (let ((original (car args)))
+;;;     (copy-structure-rec original)))
+
   (defj J73 (arg0) "Copy list [186]"
+	(print (list (h3-cycles) "*************** 77777777777777777333333333333333333 " arg0))
 	;; COPYLIST (0). The output (0) names a new list, with the identical
 	;; symbols in the cells as are in the corresponding cells of list (0),
 	;; including the head. If (0) is the name of a list cell, rather that
@@ -1325,6 +1412,7 @@
 	  (ipush "H0" (cell-name new-cell))))
 
   (defj J74 (arg0) "Copy List Structure [186]"
+	(print (list (h3-cycles) "*************** 777777777777777774444444444444444444 " arg0))
 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
 	;; which are in one-to-one correspondence with the cells of list structure
 	;; (0). All the regional and internal symbols in the cells will be identical
@@ -1435,7 +1523,7 @@
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
 	;; The output (0) is the name a the new list.
 	(let* ((name (newsym))
-	       (cell (make-cell! :name name :pq "00" :symb "0" :link "0")))
+	       (cell (make-cell! :name name :symb "0" :link "0")))
 	  (!! :jdeep "            .....J90 creating blank list cell: ~s~%" cell)
 	  (ipush "H0" name)))
 
@@ -1603,12 +1691,21 @@
 	      (H5+) (H5-))))
 
   (defj J136 (H0) "MAKE SYMBOL (O) LOCAL."
+	(print (list (h3-cycles) "*************** 111111333333336666666666 " h0))
+
+	;; SEE NOTES AT J73/74!!
+
 	;; The output (0) is the input (0) with Q = 2. Since all
 	;; copies of this symbol carry along the Q value, if a symbol
 	;; is made local when created, it will be local in all its
 	;; occurrences. [I have no idea what his last sentence means,
-	;; but I actually think that this doesn't matter.]  
-	;; (No pop bcs output is the input)
+	;; but I actually think that this doesn't matter.]  (No pop
+	;; bcs output is the input). 20250514: Experiments show that
+	;; this is always called on a symb that's already local (as in
+	;; it starts with 9-) so although this does set the Q of the
+	;; target cell to 2, it probably doesn't actually do anything
+	;; useful. Note long complex converstions with Claude and
+	;; ChatGPT about this in notes.txt.]
 	(let ((cell (<== H0)))
 	  (setf (cell-pq cell)
 		(let* ((pq (cell-pq cell))
@@ -1616,7 +1713,9 @@
 		  (case l
 		    (0 "02")
 		    (1 (!! :jdeep "             !!!!!Warning: J136 assuming ~s is q-only!~%" H0) "02")
-		    (2 (setf (aref pq 1) #\2) pq)
+		    (2 (setf (cell-pq cell)
+			     (let ((newpq (copy-seq pq)))
+			       (setf (aref newpq 1) #\2) newpq)))
 		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))))
 
   ;; This is deeply upsetting -- it pushes a non-system element -- the
@@ -1641,8 +1740,14 @@
 	;; as "unmake local symbol." [Whatever the f any of that
 	;; means! This is one of those confusing ones where it seems
 	;; to indicate that the symbol includes the PQ.]
-	(let ((cell (cell arg0)))
-	  (setf (cell-pq cell) (format nil "~a4" (aref (cell-pq cell) 0)))))
+	(let* ((cell (cell arg0))
+	       (pq (cell-pq cell))
+	       (pq (if (stringp pq)
+		       (if (member pq '("" "0" "00") :test #'string-equal)
+			   (copy-seq "00")
+			   pq)
+		       (copy-seq "00"))))
+	  (setf (cell-pq cell) (format nil "~a4" (aref pq 0)))))
 
   (defj J147 (arg0) "MARK ROUTINE (O) TO TRACE"
 	;; FFF Maybe actually turn tracing on! :-)
@@ -1797,7 +1902,7 @@
 	;; completed with blanks on the right, if necessary. If the
 	;; specified field exceeds five columns, the rightmost five
 	;; columns are taken as the field. In composing decimal and
-	;; octal integer data terms, non-numerical charac-ters are
+	;; octal integer data terms, non-numerical characters are
 	;; ignored. If the resulting information exceeds the capacity
 	;; of the data term, the rightmost digits are retained. If the
 	;; read line field is entirely blank (or non-numerical, for
@@ -1978,9 +2083,11 @@
 	(t (j62-helper-search-list-for-symb target (cell inlink) (cell-link incell)))
 	))
 
+;;; WWW DESTRUCTIVE!!!!!!!!!!
+
 (defun j181-helper-remove-non-numeric-except-first (s)
   (let* ((r (copy-seq " ")))
-    (setf (aref r 0) (aref s 0))
+    (setf (aref r 0) (aref s 0)) ;; WWWWWWWWWWWWWWWWWWW
     (loop as p from 1 to (1- (length s))
 	  as c = (aref s p)
 	  do (if (numchar? c)
@@ -2618,221 +2725,53 @@
 
 W1 losses the tune here:
 
-    608:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-    612:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-    616:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-    621:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-    625:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
-    629:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
-    633:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
-    637:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   2107:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   2113:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   2120:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   2126:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   2132:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   2138:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
 
-Here's the trace:
-
-@30892+ >>>>> {M111R000::M111||J90|M111+1264 [M111 MATCH SEGMENTS (0) AND (1),;]} (Execute fn named by symb name itself)
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   .......... Calling J90 [Create a blank cell on H0] (No Args)
-   H0={H0|0|9+3684|0} ++ ({|0|A0|0} {|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-@30893+ >>>>> {M111R010::M111+1264|20|M111-9-10|M111+1265 [   H5+ MEANS OUTPUT (0) IS LIST;]} (Move H0 to the named symbol itself and pop H0)
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-@30894+ >>>>> {M111R020::M111+1265||M111-9-100|M111+1266 [    OF PAIRS--1ST IS FREE VAR.,;]} (Execute fn named by symb name itself)
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-
-Here's where it gets lost. The problem is that  (1) = {|||} (Top of H0 stack) So looks like that got lost above!
+Which comes from here:
 
 @30894+ >>>>> {M111R050::M111-9-100|04|J51|M111-9-104 [9-100 MATCH SUBPROCESS;]} (Execute fn named in symb name itself (==00))
-(Unimplemented monitor action in {M111R050::M111-9-100|04|J51|M111-9-104 [9-100 MATCH SUBPROCESS;]}; Executing w/o monitor!)
    H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W0={W0|0|*208|0} ++ ({||9+3798|} {|0|*207|0} {||*207|} {|0|*207|0})
    W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+   9+3817={9+3817||0|0} ++ NIL
    .......... Calling J51 [PRESERVE W0-W1 THEN MOVE(0)-(1) into W0-W1] (No Args)
    H0={H0||**EMPTY**|} ++ NIL
-   W0={W0|0|A0|0} ++ ({||9+3668|} {|0|*207|0} {||*207|} {|0|*207|0})
+   W0={W0|0|A0|0} ++ ({|0|*208|0} {||9+3798|} {|0|*207|0} {||*207|})
    W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
-@30895+ >>>>> {M111R060::M111-9-104|11|W0|M111+1268 [    (EXPECTS FREE VARIABLES DISJOIN;]} (Push cntnts of the cell named by symb, onto H0)
-   H0={H0|0|A0|0} ++ ({||**EMPTY**|})
-   W0={W0|0|A0|0} ++ ({||9+3668|} {|0|*207|0} {||*207|} {|0|*207|0})
-   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+   9+3817={9+3817||0|0} ++ NIL
 
-My guess is that it's here:
-@30880- >>>>> {P028R080::P28+1528|70|J19|P28+1529} (Goto by H5: -symb|+link itself)
-   .......... Calling J19 [GENERATOR CLEANUP] (No Args)
-   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
+So somehow (1) got blanked:
 
-Here's where that gets setup:
-
-@30838- >>>>> {P028R000::P28|10|W0|P28+1522 [GENERATE LOCATIONS OF FREE;]} (Push the symb (name) itself on H0)
-   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2573|0} {|0|*208|0} {|||})
-   W0={||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-
-@30839- >>>>> {P028R010::P28+1522||J17|P28+1523 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
-   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2573|0} {|0|*208|0} {|||})
-   W0={||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   .......... Calling J17 [GENERATOR SETUP]: (WN-SYMB FN)=("W0" "J18")
-   H0={H0|0|9+2573|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
-   W0={||9+2576|} ++ ({||9+2576|} {|0|9+3683|0} {|0|*208|0} {||9+3668|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-@30840- >>>>> {P028R020::P28+1523|60|W0|P28+1524 [FOR PROCESS (0).;]} (Copy of (0) replaces S; S lost; H0 n.c.)
-   H0={H0|0|9+2573|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
-   W0={||9+2573|} ++ ({||9+2576|} {|0|9+3683|0} {|0|*208|0} {||9+3668|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-
-This M111 call is f'ed:
-
-@30892+ >>>>> {M111R000::M111||J90|M111+1264 [M111 MATCH SEGMENTS (0) AND (1),;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J90"
    H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+                      ^^^^^
+
+And that seems to have been whacked above here:
+
+@30792- >>>>> {M015R290::M15+409|70|J4|M15+410 [WILL MAKE THM LIKE PROB IF CAN.;]} (Goto by H5: -symb|+link itself)
+   .......... Calling J4 [SET H5 +] (No Args)
+   H0={H0|||} ++ ({||**EMPTY**|})
+   W0={W0||9+3798|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
    W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-
-Here's how we got to the M111R000, which should have passed 2 values:
-
-@30888+ >>>>> {P014R010::P14+1419|70|0|J82} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="0"
-   H0={H0|0|9+2548|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-   .......... Calling J82 [FIND THE 2nd (non-head0 SYMBOL OF (0)]: (ARG0)=("9+2548")
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-@30890+ >>>>> {M015R260::M15+406|70|J4|M15+407} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="J4"
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-@30891+ >>>>> {M015R270::M15+407|60|M15-9-1|M15+408 [INPUT PROB RIGHT.;]} (Copy of (0) replaces S; S lost; H0 n.c.)
-     -----> At INTERPRET-P w/P = 6, S="M15-9-1"
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-@30892+ >>>>> {M015R280::M15+408||M113|M15+409 [MATCH, OUTPUT LIST OF SUBSTITUTIONS;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="M113"
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-@30892+ >>>>> {M113R000::M113||M111|M113+1358 [MATCH SEGMENTS (0) AND (1) FOR;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="M111"
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3668|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-
-Hmmm. 9+3683 is: 
-+------------------------- "9+3683" {9+3683|02|0|0} -------------------------+
-(0) {9+3683|02|0|0}
-+--------------------------End "9+3683" -------------------------------------------+
-
-Which dosn't look like a list going in here:
-
-@30884+ >>>>> {M116R100::M116+1392||J78|M116+1393 [TEST IF ANY FREE VARS.;]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J78"
-   H0={H0|0|9+3683|0} ++ ({|0|9+3683|0} {|0|*208|0} {|||} {||**EMPTY**|})
-   W0={W0|0|*208|0} ++ ({||9+3668|} {|0|*207|0} {||*207|} {|0|*207|0})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
-   .......... Calling J78 [TEST IF LIST (0) IS NOT EMPTY]: (ARG0)=("9+3683")
-   H0={H0|0|9+3683|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
-   W0={W0|0|*208|0} ++ ({||9+3668|} {|0|*207|0} {||*207|} {|0|*207|0})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
-
-I guess it COULD be an empty list, but the 12 suggests a number!
-
-Earlier, this J19 (gen cleanup) removes a reasonable-seeming
-list (9+2576) from W0 (which soon becomes H0!). I wonder if that cleanup is right?
-
-@30880- >>>>> {P028R080::P28+1528|70|J19|P28+1529} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="J19"
-   .......... Calling J19 [GENERATOR CLEANUP] (No Args)
-    <<<<<<<<<< J19 [Gen Cleanup @30880] <<<<<<<<<<
-Cell trace before:
+   W2={W2||*13|} ++ ({|||} {||**EMPTY**|})
+   9+3817=NIL ++ NIL
+Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+             .....J100 returned, H5="+", next cell-name="9+3799"
+             .....J100: cell-name="9+3799", cell={9+3805||*13|9+3799}
+             .....J100: Exec'ing "M15-9-100" on "*208"
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at "M15-9-100"
+@30793+ >>>>> {M015R210::M15-9-100|60|W2|M15+402 [9-100 SUBPROCESS, TRY RIGHT SIDES.;1W2=THM]} (Copy of (0) replaces S; S lost; H0 n.c.)
    H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
-   H1={H1|10|J19|P28+1522} ++ ({||M116+1389|M116+1385} {||M110+1209|M110+1207} {|0|M15+404|0} {|0|exit|0})
-   W0={W0||9+2576|} ++ ({|0|9+3683|0} {|0|*208|0} {||9+3668|} {|0|*207|0})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-             .....J19 popping gentry: #S(GENTRY :FN "M116-9-100" :WN 0 :WNAMES ("W0") :+- "+")
-Cell trace after:
-   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
-   H1={H1|10|J19|P28+1522} ++ ({||M116+1389|M116+1385} {||M110+1209|M110+1207} {|0|M15+404|0} {|0|exit|0})
-   W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
-
-@30839- >>>>> {P028R010::P28+1522||J17|P28+1523 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
-     -----> At INTERPRET-P w/P = 0, S="J17"
-   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2591|0} {|0|*208|0} {|||})
-   W0={||9+2594|} ++ ({|0|9+3817|0} {|0|*208|0} {||9+3798|} {|0|*207|0})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
-   .......... Calling J17 [GENERATOR SETUP]: (WN-SYMB FN)=("W0" "J18")
-    >>>>>>>>>> J17 [Gen Setup @30839] "W0" "J18" tag=#:GEN-3819 >>>>>>>>>>
-Cell trace before:
-   H0={H0|0|W0|0} ++ ({|0|J18|0} {|0|9+2591|0} {|0|*208|0} {|||})
-   H1={H1|0|#<FUNCTION (LAMBDA (WN-SYMB FN) :IN SETUP-J-FNS) {535DF28B}>|0} ++ ({|10|P28+1522|P28+1522} {|10|P28+1538|P28+1522} {||M116+1389|M116+1385} {||M110+1209|M110+1207})
-   W0={||9+2594|} ++ ({|0|9+3817|0} {|0|*208|0} {||9+3798|} {|0|*207|0})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-             .....J17 *genstack* push: #S(GENTRY :FN "J18" :WN 0 :WNAMES ("W0") :+- "+" :GENTAG #:GEN-3819)
-              *genstack*=(#S(GENTRY :FN "J18" :WN 0 :WNAMES ("W0") :+- "+" :GENTAG #:GEN-3819) #S(GENTRY :FN "M116-9-100" :WN 0 :WNAMES ("W0") :+- "+" :GENTAG #:GEN-3818))
-Cell trace after:
-   H0={H0|0|9+2591|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
-   H1={H1|0|#<FUNCTION (LAMBDA (WN-SYMB FN) :IN SETUP-J-FNS) {535DF28B}>|0} ++ ({|10|P28+1522|P28+1522} {|10|P28+1538|P28+1522} {||M116+1389|M116+1385} {||M110+1209|M110+1207})
-   W0={||9+2594|} ++ ({||9+2594|} {|0|9+3817|0} {|0|*208|0} {||9+3798|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   H0={H0|0|9+2591|0} ++ ({|0|*208|0} {|||} {||**EMPTY**|})
-   W0={||9+2594|} ++ ({||9+2594|} {|0|9+3817|0} {|0|*208|0} {||9+3798|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
-
-...
-
-@30880- >>>>> {P028R080::P28+1528|70|J19|P28+1529} (Goto by H5: -symb|+link itself)
-     -----> At INTERPRET-P w/P = 7, S="J19"
-   .......... Calling J19 [GENERATOR CLEANUP] (No Args)
-    <<<<<<<<<< J19 [Gen Cleanup @30880] <<<<<<<<<<
-Cell trace before:
-   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
-   H1={H1|10|J19|P28+1522} ++ ({||M116+1389|M116+1385} {||M110+1209|M110+1207} {|0|M15+404|0} {|0|exit|0})
-   W0={W0||9+2594|} ++ ({|0|9+3817|0} {|0|*208|0} {||9+3798|} {|0|*207|0})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-             .....J19 (tag=#:GEN-3818) popping gentry: #S(GENTRY :FN "M116-9-100" :WN 0 :WNAMES ("W0") :+- "+" :GENTAG #:GEN-3818)
-
-So, it comes out (just above) with W0=9+2594;9+3817
-
-But then appears to pop W0 once more??!! Is there an extra Wn pop going on in J19?
-
-Cell trace after:
-   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
-   H1={H1|10|J19|P28+1522} ++ ({||M116+1389|M116+1385} {||M110+1209|M110+1207} {|0|M15+404|0} {|0|exit|0})
-   W0={W0|0|9+3817|0} ++ ({|0|*208|0} {||9+3798|} {|0|*207|0} {||*207|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0|0|9+3817|0} ++ ({|0|*208|0} {||9+3798|} {|0|*207|0} {||*207|})
-   W1={W1|0|*207|0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   W2={||*208|} ++ ({||*208|} {|||} {||**EMPTY**|})
-
-
+   W0={W0||9+3798|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
+   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
+   W2={||*208|} ++ ({|||} {||**EMPTY**|})
+   9+3817=NIL ++ NIL
 
 
 
@@ -2851,12 +2790,16 @@ Cell trace after:
   (setf *trace-@orID-exprs*
 	'(;; NOTE: The key can be partial, as "P052R" it uses (search ...).
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
-	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; <<<<<<<<<<<<<<<<<<<<<<<< THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
-	  (30000
-	   (setf *!!* '(:gentrace :s :run :jcalls :jdeep) *cell-tracing-on* t)
-	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+	  ;; !!!!!!!!!!!!!!! THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
+	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) 
+	  (30900
+	   (setf *!!* '(:jdeep :gentrace :run :jcalls) *cell-tracing-on* t)
+	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "9+3817") *cell-tracing-on* t)
 	   )
-	  ;; (20825 (breaK))
+	  ;(30881 (ipush "W0" "9+2594")) ;; WARNING!!!!!! THIS CELL'S NUMBER MIGHT CHANGE!!!!!!!
+	  ;(30895 (ipop "W1"))
+	  ;;                    ^^^^ Check it from the value before this cycle
+	  ;; (30805 (break))
 	  ;; (1 (setf *!!* '(:gentrace) *cell-tracing-on* t))
 	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
