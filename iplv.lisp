@@ -788,6 +788,9 @@
 
 (defun setup-j-fns ()
 
+  (defj JP055R015JEFF () "Hack to force H0 to L11"
+	(setf (cell-symb (car (H0+))) "L11"))
+
   ;; THERE'S A TIMING PROBLEM WITH POPPING THE H0 STACK BEFORE CALLING
   ;; THE FUNCTION, WHICH IS THAT IF "H0" IS THE ARG, POPPING BEFORE THE
   ;; ACTION WILL GIVE YOU THE WRONG RESULT!!
@@ -2723,57 +2726,15 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-W1 losses the tune here:
+(20484 "*************** 111111333333336666666666 " "9-3321") :::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.08    PIP                                                                     
 
-   2107:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   2113:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   2120:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   2126:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   2132:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   2138:   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+Ruh Roh!!!!
 
-Which comes from here:
+(20615 "*************** 77777777777777777333333333333333333 " "0")  <<<<<<<<<<<< ????????????????
 
-@30894+ >>>>> {M111R050::M111-9-100|04|J51|M111-9-104 [9-100 MATCH SUBPROCESS;]} (Execute fn named in symb name itself (==00))
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0|0|*208|0} ++ ({||9+3798|} {|0|*207|0} {||*207|} {|0|*207|0})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-   9+3817={9+3817||0|0} ++ NIL
-   .......... Calling J51 [PRESERVE W0-W1 THEN MOVE(0)-(1) into W0-W1] (No Args)
-   H0={H0||**EMPTY**|} ++ NIL
-   W0={W0|0|A0|0} ++ ({|0|*208|0} {||9+3798|} {|0|*207|0} {||*207|})
-   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
-   9+3817={9+3817||0|0} ++ NIL
-
-So somehow (1) got blanked:
-
-   H0={H0|0|A0|0} ++ ({|||} {||**EMPTY**|})
-                      ^^^^^
-
-And that seems to have been whacked above here:
-
-@30792- >>>>> {M015R290::M15+409|70|J4|M15+410 [WILL MAKE THM LIKE PROB IF CAN.;]} (Goto by H5: -symb|+link itself)
-   .......... Calling J4 [SET H5 +] (No Args)
-   H0={H0|||} ++ ({||**EMPTY**|})
-   W0={W0||9+3798|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={W2||*13|} ++ ({|||} {||**EMPTY**|})
-   9+3817=NIL ++ NIL
-Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^
-             .....J100 returned, H5="+", next cell-name="9+3799"
-             .....J100: cell-name="9+3799", cell={9+3805||*13|9+3799}
-             .....J100: Exec'ing "M15-9-100" on "*208"
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at "M15-9-100"
-@30793+ >>>>> {M015R210::M15-9-100|60|W2|M15+402 [9-100 SUBPROCESS, TRY RIGHT SIDES.;1W2=THM]} (Copy of (0) replaces S; S lost; H0 n.c.)
-   H0={H0|0|*208|0} ++ ({|||} {||**EMPTY**|})
-   W0={W0||9+3798|} ++ ({|0|*207|0} {||*207|} {|0|*207|0} {|||})
-   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
-   W2={||*208|} ++ ({|||} {||**EMPTY**|})
-   9+3817=NIL ++ NIL
-
-
+(20638 "*************** 77777777777777777333333333333333333 " "9-2257") 
+(20669 "*************** 77777777777777777333333333333333333 " "9-2259") ::::::::::::::::::::::::::::::::                                                                                 
 
 |#
 
@@ -2792,7 +2753,7 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at "M15-9-100"
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
 	  ;; !!!!!!!!!!!!!!! THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
 	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) 
-	  (30900
+	  (999999
 	   (setf *!!* '(:jdeep :gentrace :run :jcalls) *cell-tracing-on* t)
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "9+3817") *cell-tracing-on* t)
 	   )
