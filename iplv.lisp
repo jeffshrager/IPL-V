@@ -10,18 +10,18 @@
 ;;; ===================================================================
 ;;; Cell, Storage, and Special Symbols
 
-(defstruct (cell (:print-function print-cell))
+(defstruct (cell (:print-function print-cell) (:predicate cell?))
   (comments "")
   (type "")
   (name "") ;; This field is actually not a part of the cell and maybe shouldn't exist??? FFF
   (sign "")
-  (pq "")
+  (p 0)
+  (q 0)
   (symb "")
   (link "")
   (comments.1 "")
   (id "")
   )
-(defun cell? (cell?) (eq 'cell (type-of cell?)))
 
 (defvar *symtab* (make-hash-table :test #'equal))
 (defvar *systacks* (make-hash-table :test #'equal))
@@ -61,10 +61,11 @@
 
 (defun print-cell (cell s d)
   (declare (ignore d))
-  (format s "{~a~a|~a|~a|~a~a}"
+  (format s "{~a~a|~a~a|~a|~a~a}"
 	  (if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
 	  (cell-name cell)
-	  (cell-pq cell)
+	  (cell-p cell)
+	  (cell-q cell)
 	  (cell-symb cell)
 	  (cell-link cell)
 	  (if (and (zero? (cell-comments cell)) (zero? (cell-comments.1 cell))) 
@@ -168,7 +169,7 @@
   (let ((callstats (loop for rname being the hash-keys of *rxtbl*
 		 using (hash-value nx)
 		 collect (cons rname nx))))
-    (mapcar #'print (sort callstats #'string< :key #'car))
+    ;(mapcar #'print (sort callstats #'string< :key #'car))
     (format t "~%~%Unchecked calls:~%")
     (mapcar #'print (SET-DIFFERENCE (mapcar #'car callstats) *checked-routines* :TEST #'STRING-EQUAL))))
 
@@ -262,10 +263,11 @@
 ;;; CONTENTS of the system cell.
 
 ;;; WWW DESTRUCTIVE!!! MAKE SURE YOU'RE DOING IT TO A CLEAN CELL!!!
-(defun data-set (curcell &key (sign "0") (pq "0") (symb "") (link "0") (id ""))
+(defun data-set (curcell &key (sign "0") (p 0) (q 0) (symb "") (link "0") (id ""))
   (!! :dr-memory "WWW DATA-SET IS DESTRUCTIVELY HACKING ~s " curcell)
   (setf (cell-sign curcell) sign
-	(cell-pq curcell) pq
+	(cell-p curcell) p
+	(cell-q curcell) q
 	(cell-symb curcell) symb
 	(cell-id curcell) id
 	(cell-link curcell) link
@@ -284,7 +286,8 @@
   ;; the main cell into it. NOTE THAT THIS IS NOT SAVED!
   (let* ((topcell (cell stack-name))) 
     (push (make-cell :sign (cell-sign topcell)
-		     :pq (cell-pq topcell)
+		     :p (cell-p topcell)
+		     :q (cell-q topcell)
 		     :symb (cell-symb topcell)
 		     :link (cell-link topcell))
 	  (stack stack-name))
@@ -297,7 +300,8 @@
 	     ;; Here we copy everything into it (except the name).
 	     (data-set newmain
 		       :sign (cell-sign newval)
-		       :pq (cell-pq newval)
+		       :p (cell-p newval)
+		       :q (cell-q newval)
 		       ;;  %%% FFF UUU This is an ugly compensatory hack from where it's called that should be unwound at some point! (see: "IPH1HACK")
 		       :symb (if (string-equal stack-name "H1") (cell-name newval) (cell-symb newval))
 		       :link (cell-link newval))
@@ -307,7 +311,7 @@
 	     (!! :run-full "iPushing ~a~%" stack-name))
 	    ((numberp newval)
 	     (!! :run-full "iPushing (the number) ~s on ~a~%" newval stack-name)
-	     (data-set newmain :pq "12" :link newval))
+	     (data-set newmain :p 1 :q 2 :link newval))
 	    (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))
       (!! :dr-memory "IPUSH pushew new cell: ~s (WWW NOT STORED!) on ~s~%" newmain stack-name)
       newmain)))
@@ -323,15 +327,18 @@
   (let* ((popped-cell (pop (stack stack-name)))
 	 (new-cell (make-cell!
 		    :name stack-name
-		    :pq (cell-pq popped-cell)
+		    :p (cell-p popped-cell)
+		    :q (cell-q popped-cell)
 		    :symb (cell-symb popped-cell)
 		    :link (cell-link popped-cell)
 		    :id (cell-id popped-cell))))
     (!! :dr-memory "IPOP created new cell: ~s on ~a, popping ~s~%" new-cell stack-name popped-cell)
     (if make-me-a-new-copy-of-the-popped-cell
 	;; This one isn't saved!
-	(let ((new-cell (make-cell :pq (cell-pq popped-cell)
-			   :symb (cell-symb popped-cell)
+	(let ((new-cell (make-cell
+			 :p (cell-p popped-cell)
+			 :q (cell-q popped-cell)
+			 :symb (cell-symb popped-cell)
 			   :link (cell-link popped-cell)
 			   :id (cell-id popped-cell))))
 	  (!! :deep-alerts "       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN ~s TO THE CALLER!~%" new-cell)
@@ -474,7 +481,7 @@
 ;;; Loader (loads from files converted by tsv2lisp.py)
 
 ;;; FFF Note that the dumper puts multiple header lines in (:comments :type :name
-;;; :sign :pq :symb :link :comments.1 :id). Prob. need code to ignore them
+;;; :sign :p :q :symb :link :comments.1 :id). Prob. need code to ignore them
 ;;; rather than just skipping the first line.
 
 (defvar *col->vals* (make-hash-table :test #'equal))
@@ -509,7 +516,8 @@
 			:type (nth (incf p) read-row)
 			:name (nth (incf p) read-row)
 			:sign (nth (incf p) read-row)
-			:pq (nth (incf p) read-row)
+			:p (decode-pq :p (nth (incf p) read-row) read-row)
+			:q (decode-pq :q (nth p read-row) read-row)
 			:symb (nth (incf p) read-row)
 			:link (nth (incf p) read-row)
 			:comments.1 (nth (incf p) read-row)
@@ -534,12 +542,12 @@
 			  (save-cells (reverse cells) load-mode)
 			  (setf cells nil)
 			  (run (cell-symb cell) :adv-limit adv-limit))
-			(if (member (cell-pq cell) '("1" "01") :test #'string-equal)
+			(if (and (zerop (cell-p cell)) (= (cell-q cell) 1))
 			    (progn
 			      (save-cells (reverse cells) load-mode) (setf cells nil)
 			      (!! :load "Switching to DATA load mode.~%")
 			      (setf load-mode :data))
-			    (if (member (cell-pq cell) '("0" "00" "") :test #'string-equal)
+			    (if (and (zerop (cell-p cell)) (zerop (cell-q cell)))
 				(progn
 				  (!! :load "Switching to CODE load mode.~%")
 				  (save-cells (reverse cells) load-mode) (setf cells nil)
@@ -548,6 +556,14 @@
 	  finally (save-cells (reverse cells) load-mode)
 	  )))
 
+(defun decode-pq (pq? val hint)
+  (if (= 1 (length val))
+      (let ((q (parse-integer val)))
+	(format t "*** WARNING: PQ ~s (in ~s) is ambugious and intepreted as p=0, q=~a" val hint q)
+	(case pq? (:p 0) (:q q)))
+      (if (string-equal "" val) 0
+	  (case pq? (:p (parse-integer (subseq val 0 1))) (:q (parse-integer (subseq val 1 2)))))))
+
 (defparameter *symbol-col-accessors* `((cell-name . ,#'cell-name) (cell-symb . ,#'cell-symb) (cell-link . ,#'cell-link)))
 
 (defun save-cells (cells load-mode)
@@ -555,14 +571,12 @@
   ;; accord with the PQ.
   (when (eq load-mode :data)
     (loop for cell in cells
-	  as pq = (cell-pq cell)
-	  do (cond ((member pq '("1" "01") :test #'string-equal)
-		    (setf (cell-link cell) (parse-integer (cell-link cell))))
-		   ((string-equal pq "11")
-		    (break "Floating point is not implemented: ~s" cell))
-		   ((string-equal pq "21")) ;; Alpha -- just leave the symb as is
-		   ((not (string-equal pq ""))
-		    (break "Invalid PQ in ~s" cell)))))
+	  as p = (cell-p cell)
+	  as q = (cell-q cell)
+	  do (cond ((and (zerop p) (= q 1)) (setf (cell-link cell) (parse-integer (cell-link cell))))
+		   ((and (= p 1) (= q 1)) (break "Floating point is not implemented: ~s" cell))
+		   ((and (= p 2) (= q 1)) :noop) ;; Alpha -- just leave the symb as is
+		   ((not (and (zerop p) (zerop q))) (break "Invalid PQ in ~s" cell)))))
   ;; Once we have the thing completely in hand, we change the local
   ;; symbols to FN_9-... and save those as separate symtab
   ;; entries. This allows the code to branch, and also run through,
@@ -590,7 +604,7 @@
 	  (setf cells (append cells (loop for missymb in missing-local-symbols
 					  as new-name = (cdr (assoc missymb local-symbols.new-names :test #'string-equal))
 					  do (format t "WARNING: Cell ~s is being added for missing local symbol ~s!~%" new-name missymb)
-					  collect (make-cell! :name new-name :pq "00" :symb "0" :link "0"))))))
+					  collect (make-cell! :name new-name :p 0 :q 0 :symb "0" :link "0"))))))
       (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
       ;; Loop through the whole list and create a local symbol for every cell
@@ -1407,7 +1421,7 @@
 	;; looking for.
 	(let* ((new-cell
 		(if (zero? arg0)
-		    (let* ((new-cell (make-cell! :pq "00" :symb "0" :link "0")))
+		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
 		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
 		      new-cell)
 		    (copy-ipl-list-and-return-head arg0))))
@@ -1430,7 +1444,7 @@
 	;; ???????????????????? I don't get the difference between this and J73 ????????????????????????????/
 	(let* ((new-cell
 		(if (zero? arg0)
-		    (let* ((new-cell (make-cell! :pq "00" :symb "0" :link "0")))
+		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
 		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
 		      new-cell)
 		    (copy-ipl-list-and-return-head arg0))))
@@ -1615,7 +1629,8 @@
 		 :name "H0"
 		 :symb (cell-name 
 			(make-cell! :name (newsym)
-				    :pq (cell-pq old-cell)
+				    :p (cell-p old-cell)
+				    :q (cell-q old-cell)
 				    :symb (cell-symb old-cell)
 				    :link (cell-link old-cell)))))))
   
@@ -1655,7 +1670,7 @@
 	;; the head). If (0) = H2, J126 will count the available space
 	;; list. This is the only place where H2 can be used safely by
 	;; the programmer. [Nb. H2 is not passed to COUNT LIST in LT]
-	(let* ((count-cell (make-cell! :name (newsym) :pq "12" :link 0))
+	(let* ((count-cell (make-cell! :name (newsym) :p 1 :q 2 :link 0))
 	       (count-cell-name (cell-name count-cell))
 	       (list-head (cell arg0))
 	       (next-cell-name (cell-link list-head))
@@ -1687,17 +1702,13 @@
 	;; marked processed. 
 	(poph0 1)
 	(let* ((l (<== l))
-	       (pq (cell-pq l))
-	       (q (getpq :q pq))
-	       (p (getpq :p pq)))
+	       (p (cell-p l))
+	       (q (cell-q l)))
 	  (if (and (= p 1) (member q '(0 2 3 4 6 7)))
 	      (H5+) (H5-))))
 
   (defj J136 (H0) "MAKE SYMBOL (O) LOCAL."
-	;;(print (list (h3-cycles) "*************** 111111333333336666666666 " h0))
-
-	;; SEE NOTES AT J73/74!!
-
+	;; !!! SEE NOTES AT J73/74 !!!
 	;; The output (0) is the input (0) with Q = 2. Since all
 	;; copies of this symbol carry along the Q value, if a symbol
 	;; is made local when created, it will be local in all its
@@ -1710,16 +1721,7 @@
 	;; useful. Note long complex converstions with Claude and
 	;; ChatGPT about this in notes.txt.]
 	(let ((cell (<== H0)))
-	  (setf (cell-pq cell)
-		(let* ((pq (cell-pq cell))
-		      (l (length pq)))
-		  (case l
-		    (0 "02")
-		    (1 (!! :jdeep "             !!!!!Warning: J136 assuming ~s is q-only!~%" H0) "02")
-		    (2 (setf (cell-pq cell)
-			     (let ((newpq (copy-seq pq)))
-			       (setf (aref newpq 1) #\2) newpq)))
-		    (t (Error "In J136 got ~s for pq in ~s" pq cell)))))))
+	  (setf (cell-q cell) 2)))
 
   ;; This is deeply upsetting -- it pushes a non-system element -- the
   ;; head of a list, meaning that any named cell can be pushed and
@@ -1735,7 +1737,7 @@
 	(ipush l) ;; This will leave a copy in the main symtab.
 	(let ((newmain (cell l))) ;; This should be the NEW copy of the pushed head.
 	  ;; Now we mark the new main cell as indicated.
-	  (setf (cell-pq newmain) "14" (cell-symb newmain) "0")
+	  (setf (cell-q newmain) 4 (cell-symb newmain) "0")
 	  ))
 
   (defj J138 (arg0) "J138 MAKE SYMBOL (O) INTERNAL"
@@ -1743,14 +1745,7 @@
 	;; as "unmake local symbol." [Whatever the f any of that
 	;; means! This is one of those confusing ones where it seems
 	;; to indicate that the symbol includes the PQ.]
-	(let* ((cell (cell arg0))
-	       (pq (cell-pq cell))
-	       (pq (if (stringp pq)
-		       (if (member pq '("" "0" "00") :test #'string-equal)
-			   (copy-seq "00")
-			   pq)
-		       (copy-seq "00"))))
-	  (setf (cell-pq cell) (format nil "~a4" (aref pq 0)))))
+	(setf (cell-q (<== arg0)) 4))
 
   (defj J147 (arg0) "MARK ROUTINE (O) TO TRACE"
 	;; FFF Maybe actually turn tracing on! :-)
@@ -2002,7 +1997,7 @@
 
 (defun J9n-helper (n)
   (let* ((head-name (newsym)) ;; Needed for tracing later
-	 (head (make-cell! :name head-name :pq "00" :symb "0" :link "0"))
+	 (head (make-cell! :name head-name :p 0 :q 0 :symb "0" :link "0"))
 	 ;; The order is (n-1) first, (n-2) second, ... (0) last.
 	 (symbols `(,@(reverse (loop for hn in (H0+) as m from 1 to (1- n) collect (cell-symb hn))) ,(cell-symb (h0))))
 	 )
@@ -2010,7 +2005,7 @@
     (loop for sym in symbols
 	  with prev-cell = head
 	  as next-cell-name = (newsym)
-	  as next-cell = (make-cell! :name next-cell-name :pq "00" :symb sym :link "0")
+	  as next-cell = (make-cell! :name next-cell-name :p 0 :q 0 :symb sym :link "0")
 	  do 
 	  (setf (cell-link prev-cell) next-cell-name)
 	  (setf prev-cell next-cell))
@@ -2111,7 +2106,7 @@
 
 (defun w25-get () (numget (cell-symb (cell "W25"))))
 (defun w25-set (n) (numset (cell-symb (cell "W25")) n))
-(defun w25-init () (setf (cell-symb (cell "W25")) (cell-name (make-cell! :pq "12" :link 1))))
+(defun w25-init () (setf (cell-symb (cell "W25")) (cell-name (make-cell! :p 1 :q 2 :link 1))))
 
 ;;; These number things have to be given the name of what is supposed
 ;;; to be a numerical data cell, that is, one where the link is
@@ -2296,7 +2291,7 @@
   (setf *running?* nil)
   (create-system-cells) ;; See above in storage section
   (H5+) ;; Init H5 +
-  (setf (H3-cycles) 0 (cell-pq (cell "H3")) "01") ;; Init H3 Cycle-Counter
+  (setf (H3-cycles) 0 (cell-p (cell "H3")) 0 (cell-q (cell "H3")) 1) ;; Init H3 Cycle-Counter
   (setf *W24-Line-Buffer* (Blank80)) ;; Init Read Line buffer
   (w25-init) ;; I/O pointer
   (w26-init) ;; Trap action list (actually ignored, but needed for most complex code to work.)
@@ -2335,8 +2330,9 @@
     ))
 
 (defun pq-explain (cell)
-  (when (and (cell? cell) (stringp (cell-pq cell)))
-    (second (assoc (cell-pq cell) *pq-meanings* :test #'string-equal))))
+  (when (and (cell? cell) 
+	     (second (assoc (format nil "~a~a" (cell-p cell) (cell-q cell))
+			    *pq-meanings* :test #'string-equal)))))
 
 ;;; !!! WWW There's this screw case for popping the H0 arg stack which
 ;;; is when the JFns use H0 per se as an argument, or if it is
@@ -2357,7 +2353,7 @@
 
 (defun ipl-eval (start-symb &aux s)
   (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s~%" start-symb)
-  (prog (cell pq q p symb link)
+  (prog (cell q p symb link)
      (ipush "H1" "exit")
      (ipush "H1" start-symb) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
@@ -2396,9 +2392,8 @@
      (!! :run "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
-     (setf pq (cell-pq cell)
-	   q (getpq :q pq)
-	   p (getpq :p pq)
+     (setf p (cell-p cell)
+	   q (cell-q cell)
 	   symb (cell-symb cell)
 	   link (cell-link cell)
 	   )
@@ -2523,27 +2518,10 @@
 (defun force-replace (tosymb fromsymb)
   (let* ((fromcell (cell fromsymb)))
     (!! :dr-memory "Force replacing ~s with ~s: ~s~%" tosymb fromsymb fromcell)
-    (setf (gethash tosymb *symtab*) (make-cell :sign "" :pq "" :symb fromsymb :link ""))))
+    (setf (gethash tosymb *symtab*) (make-cell :sign "" :p 0 :q 0 :symb fromsymb :link ""))))
 
 (defun call-ipl-prim (symb)
   (break "!!!!!!!! UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
-
-;;; Getting the P and Q is a little tricky because they can be blank. Blank is
-;;; interpreted as zero, and if they're both blank ("") it's not a problem --
-;;; both zero, but if only one is blank it can be ambiguous because these didn't
-;;; come from cells. This isn't suppose to happen, so if it does, we raise a
-;;; warning, and intepret it as if P is blank (0). So, for example, technically
-;;; they could have entered "9_" instead of "_9", but we can't tell the
-;;; difference. We should always code these as with 90 or 09 to disambiguate.
-
-(defun getpq (pq? val &aux (l (length val)))
-  (unless (stringp val) (error "GETPQ was passed VAL = ~s" val))
-  (if (> l 2)
-      (error "In GETPQ, val = ~s, which shouldn't happen!" val)
-      (if (zerop l) 0
-	  (if (= 1 l)
-	      (case pq? (:p 0) (:q (parse-integer val)))
-	      (parse-integer (case pq? (:p (subseq val 0 1)) (:q (subseq val 1 2))))))))
 
 ;;; =========================================================================
 ;;; Utilities
