@@ -1391,7 +1391,7 @@
 ;;;     (copy-structure-rec original)))
 
   (defj J73 (arg0) "Copy list [186]"
-	(print (list (h3-cycles) "*************** 77777777777777777333333333333333333 " arg0))
+	;;(print (list (h3-cycles) "*************** 77777777777777777333333333333333333 " arg0))
 	;; COPYLIST (0). The output (0) names a new list, with the identical
 	;; symbols in the cells as are in the corresponding cells of list (0),
 	;; including the head. If (0) is the name of a list cell, rather that
@@ -1415,7 +1415,7 @@
 	  (ipush "H0" (cell-name new-cell))))
 
   (defj J74 (arg0) "Copy List Structure [186]"
-	(print (list (h3-cycles) "*************** 777777777777777774444444444444444444 " arg0))
+	;;(print (list (h3-cycles) "*************** 777777777777777774444444444444444444 " arg0))
 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
 	;; which are in one-to-one correspondence with the cells of list structure
 	;; (0). All the regional and internal symbols in the cells will be identical
@@ -1694,7 +1694,7 @@
 	      (H5+) (H5-))))
 
   (defj J136 (H0) "MAKE SYMBOL (O) LOCAL."
-	(print (list (h3-cycles) "*************** 111111333333336666666666 " h0))
+	;;(print (list (h3-cycles) "*************** 111111333333336666666666 " h0))
 
 	;; SEE NOTES AT J73/74!!
 
@@ -2726,15 +2726,26 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-(20484 "*************** 111111333333336666666666 " "9-3321") :::::::::::::::::::::::::::::::: TO PROVE                                                                        
-:::::::::::::::::::::::::::::::: 2.08    PIP                                                                     
+debugger invoked on a TYPE-ERROR @535E1540 in thread #<THREAD "main thread" RUNNING {1001688003}>: The value NIL is not of type COMMON-LISP-USER::CELL
 
-Ruh Roh!!!!
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
 
-(20615 "*************** 77777777777777777333333333333333333 " "0")  <<<<<<<<<<<< ????????????????
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
 
-(20638 "*************** 77777777777777777333333333333333333 " "9-2257") 
-(20669 "*************** 77777777777777777333333333333333333 " "9-2259") ::::::::::::::::::::::::::::::::                                                                                 
+((LAMBDA (ARG0 ARG1) :IN SETUP-J-FNS) "Q5" "")
+; Using form offset instead of character position.
+
+   source: (CELL-SYMB LIST-HEAD)
+0] ??
+??
+H5={H5||-|}, H3(cycles)=30935
+*W24-Line-Buffer*="2.07    PI(0PVP)0                                                               "
+   H0={H0|0||0} ++ ({|0|M111-9-10|0} {||**EMPTY**|})
+   H1={H1|10|J10|J10} ++ ({||P8|P8-1416} {|04|M111-1280|M111-9-104} {||M111-1265|M111-1264} {||M113|M113-1358})
+   W0={W0|0|A0|0} ++ ({||9-3799|} {|0|*207|0} {||*207|} {|0|*207|0})
+   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
+   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
 
 |#
 
@@ -2753,11 +2764,13 @@ Ruh Roh!!!!
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
 	  ;; !!!!!!!!!!!!!!! THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
 	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) 
-	  (999999
-	   (setf *!!* '(:jdeep :gentrace :run :jcalls) *cell-tracing-on* t)
+	  (1000   (trace local-symbol? copy-ipl-list copy-ipl-list-and-return-head))
+	  (30750
+	   (setf *!!* '( :run :jcalls :jdeep :gentrace) *cell-tracing-on* t)
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "9+3817") *cell-tracing-on* t)
 	   )
-	  ;(30881 (ipush "W0" "9+2594")) ;; WARNING!!!!!! THIS CELL'S NUMBER MIGHT CHANGE!!!!!!!
+	  ;; WARNING!!!!!! THIS CELL'S NUMBER MIGHT CHANGE!!!!!!!
+	  (30881 (print '(list ***************************** (ipush "W0" "9+2594") ??????????????????????????)))
 	  ;(30895 (ipop "W1"))
 	  ;;                    ^^^^ Check it from the value before this cycle
 	  ;; (30805 (break))

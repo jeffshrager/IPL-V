@@ -51,11 +51,8 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at "M15-9-100"
    W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
    W2={||*208|} ++ ({|||} {||**EMPTY**|})
    9+3817=NIL ++ NIL
-
-
 -------------------------------------------------------------
-
-
+Generator track:
 @30805+ >>>>> {P028R010::P28+1522||J17|P28+1523 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
    H0={H0|0|W0|0} ++ ({|0|M116-9-100|0} {|0|9+2571|0} {|0|*208|0} {|||})
    W0={W0|0|9+3683|0} ++ ({|0|*208|0} {||9+3668|} {|0|*207|0} {||*207|})
