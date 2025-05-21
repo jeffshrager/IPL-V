@@ -559,7 +559,7 @@
 (defun decode-pq (pq? val hint)
   (if (= 1 (length val))
       (let ((q (parse-integer val)))
-	(format t "*** WARNING: PQ ~s (in ~s) is ambugious and intepreted as p=0, q=~a" val hint q)
+	(format t "*** WARNING: PQ ~s (in ~s) is ambugious and intepreted as p=0, q=~a~%" val hint q)
 	(case pq? (:p 0) (:q q)))
       (if (string-equal "" val) 0
 	  (case pq? (:p (parse-integer (subseq val 0 1))) (:q (parse-integer (subseq val 1 2)))))))
@@ -1318,138 +1318,62 @@
 	;; the list from the symtab.]
 	(PopH0 1))
 
-;; =======================
-;;; ;;; IPL-V List Copying Functions (Updated to Handle Q=2 Local Symbols)
+  ;; =======================
+  ;; IPL-V List Copying Functions (Updated to Handle Q=2 Local Symbols)
 
-;;; ;; In IPL-V, the Q=2 designation used to mark a symbol as "local" does not modify the symbol itself
-;;; ;; or the cell it names. Instead, it is a property of the IPL word (cell) that contains the symbol in
-;;; ;; its SYMB field. When the Q field of such a word is set to 2, it signals to the loader or copier
-;;; ;; (e.g., during J74) that the symbol should be treated as local—meaning it will be replaced with a
-;;; ;; newly generated, unique name. This ensures the symbol is localized to the copied context and avoids
-;;; ;; naming collisions. This behavior is described explicitly on:
-;;; ;;   - Page 200, under J136: "The output (0) is the input (0) with Q = 2..."
-;;; ;;   - Page 148: "If the SYMB field of a word is marked with Q=2, the loader recognizes it as a local symbol."
-;;; ;;   - Page 29: "To create a local symbol... set Q=2 in the cell in which the name appears."
+  ;; In IPL-V, the Q=2 designation used to mark a symbol as "local" does not modify the symbol itself
+  ;; or the cell it names. Instead, it is a property of the IPL word (cell) that contains the symbol in
+  ;; its SYMB field. When the Q field of such a word is set to 2, it signals to the loader or copier
+  ;; (e.g., during J74) that the symbol should be treated as local—meaning it will be replaced with a
+  ;; newly generated, unique name. This ensures the symbol is localized to the copied context and avoids
+  ;; naming collisions. This behavior is described explicitly on:
+  ;;   - Page 200, under J136: "The output (0) is the input (0) with Q = 2..."
+  ;;   - Page 148: "If the SYMB field of a word is marked with Q=2, the loader recognizes it as a local symbol."
+  ;;   - Page 29: "To create a local symbol... set Q=2 in the cell in which the name appears."
 
-;;; (defvar *remap* (make-hash-table :test 'eq))
+  ;; (defj J73 (arg0) "Copy list [186]"
+  ;; 	;; COPYLIST (0). The output (0) names a new list, with the identical
+  ;; 	;; symbols in the cells as are in the corresponding cells of list (0),
+  ;; 	;; including the head. If (0) is the name of a list cell, rather that
+  ;; 	;; [sic: than] a head, the output (0) will be a copy of the remainder of
+  ;; 	;; the list from (0) on. (Nothing else is copied, not even the
+  ;; 	;; description list of (0), if it exists.)  The name is local if the
+  ;; 	;; input (0) is local; otherwise, it is internal.
 
-;;; (defun q2-symbol-p (cell)
-;;;   "Returns T if the cell has Q=2 and a symbol in SYMB."
-;;;   (and (symbolp (symb cell)) (= (q cell) 2)))
+  ;; 	;; This isn't in the manual, but for sometimes this is handed
+  ;; 	;; a 0 -- e.g., we're trying to copy the DL of a list but
+  ;; 	;; there's no DL. In this case we flag it and create a null
+  ;; 	;; list, hoping that the caller might think it's what it's
+  ;; 	;; looking for.
+  ;; 	(let* ((new-cell
+  ;; 		(if (zero? arg0)
+  ;; 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
+  ;; 		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
+  ;; 		      new-cell)
+  ;; 		    (copy-ipl-list-and-return-head arg0))))
+  ;; 	  (poph0 1)
+  ;; 	  (ipush "H0" (cell-name new-cell))))
 
-;;; (defun remap-symbol (symbol)
-;;;   "Return remapped symbol if present; otherwise return symbol."
-;;;   (gethash symbol *remap* symbol))
-
-;;; (defun find-or-create-local-symbol (symbol)
-;;;   (or (gethash symbol *remap*)
-;;;       (setf (gethash symbol *remap*) (newsym))))
-
-;;; (defun copy-cell (cell)
-;;;   "Shallow copy of a single IPL word, remapping Q=2 symbols."
-;;;   (let* ((new-cell (make-word))
-;;;          (sym (symb cell))
-;;;          (qval (q cell))
-;;;          (new-sym (if (and (symbolp sym) (= qval 2))
-;;;                       (find-or-create-local-symbol sym)
-;;;                       sym)))
-;;;     (setf (symb new-cell) new-sym
-;;;           (q new-cell) 0 ;; copied symbols are naked
-;;;           (p new-cell) (p cell)
-;;;           (link new-cell) nil)
-;;;     new-cell))
-
-;;; (defun walk-list (head)
-;;;   "Return a list of cells from HEAD to the end of the LINK chain."
-;;;   (let (result)
-;;;     (loop while head do
-;;;       (push head result)
-;;;       (setf head (link head)))
-;;;     (nreverse result)))
-
-;;; (defun list-header-p (sym)
-;;;   "Returns T if SYM names a valid IPL-V list header cell."
-;;;   (let ((cell (get-cell sym)))
-;;;     (and cell (link cell))))
-
-;;; (DEFJ J73 (args)
-;;;   "Shallow copy of list (J73)."
-;;;   (clrhash *remap*)
-;;;   (let* ((original (car args))
-;;;          (copy-head nil)
-;;;          (copy-tail nil))
-;;;     (dolist (cell (walk-list original))
-;;;       (let ((copy (copy-cell cell)))
-;;;         (when copy-tail
-;;;           (setf (link copy-tail) copy))
-;;;         (unless copy-head (setf copy-head copy))
-;;;         (setf copy-tail copy)))
-;;;     copy-head))
-
-;;; (defun copy-structure-rec (cell)
-;;;   "Recursively copy structure rooted at CELL, respecting Q=2."
-;;;   (when (null cell) (return-from copy-structure-rec nil))
-;;;   (let* ((copy (copy-cell cell))
-;;;          (sym (symb cell)))
-;;;     ;; If SYMB points to a list, copy it too
-;;;     (when (list-header-p sym)
-;;;       (setf (symb copy) (copy-structure-rec (get-cell sym))))
-;;;     ;; Recurse on link
-;;;     (setf (link copy) (copy-structure-rec (link cell)))
-;;;     copy))
-
-;;; (DEFJ J74 (args)
-;;;   "Deep structure copy (J74)."
-;;;   (clrhash *remap*)
-;;;   (let ((original (car args)))
-;;;     (copy-structure-rec original)))
-
-  (defj J73 (arg0) "Copy list [186]"
-	;;(print (list (h3-cycles) "*************** 77777777777777777333333333333333333 " arg0))
-	;; COPYLIST (0). The output (0) names a new list, with the identical
-	;; symbols in the cells as are in the corresponding cells of list (0),
-	;; including the head. If (0) is the name of a list cell, rather that
-	;; [sic: than] a head, the output (0) will be a copy of the remainder of
-	;; the list from (0) on. (Nothing else is copied, not even the
-	;; description list of (0), if it exists.)  The name is local if the
-	;; input (0) is local; otherwise, it is internal.
-
-	;; This isn't in the manual, but for sometimes this is handed
-	;; a 0 -- e.g., we're trying to copy the DL of a list but
-	;; there's no DL. In this case we flag it and create a null
-	;; list, hoping that the caller might think it's what it's
-	;; looking for.
-	(let* ((new-cell
-		(if (zero? arg0)
-		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
-		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
-		      new-cell)
-		    (copy-ipl-list-and-return-head arg0))))
-	  (poph0 1)
-	  (ipush "H0" (cell-name new-cell))))
-
-  (defj J74 (arg0) "Copy List Structure [186]"
-	;;(print (list (h3-cycles) "*************** 777777777777777774444444444444444444 " arg0))
-	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
-	;; which are in one-to-one correspondence with the cells of list structure
-	;; (0). All the regional and internal symbols in the cells will be identical
-	;; to the symbols in the corresponding cells of (0), as will the contents of
-	;; data terms. There will be new local symbols, since these are the names of
-	;; the sublists of the new structure. Description lists will be copied, if
-	;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
-	;; the copy will be produced in main storage. In all cases, list structure (0)
-	;; remains unaffected. The output (0) names the new list structure. It is
-	;; local if the input (0) is local; It is internal otherwise.
-	(!! :jdeep "             .....J74 is copying list: ~s~%" (H0))
-	;; ???????????????????? I don't get the difference between this and J73 ????????????????????????????/
-	(let* ((new-cell
-		(if (zero? arg0)
-		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
-		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
-		      new-cell)
-		    (copy-ipl-list-and-return-head arg0))))
-	  (poph0 1)
-	  (ipush "H0" (cell-name new-cell))))
+  ;; (defj J74 (arg0) "Copy List Structure [186]"
+  ;; 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
+  ;; 	;; which are in one-to-one correspondence with the cells of list structure
+  ;; 	;; (0). All the regional and internal symbols in the cells will be identical
+  ;; 	;; to the symbols in the corresponding cells of (0), as will the contents of
+  ;; 	;; data terms. There will be new local symbols, since these are the names of
+  ;; 	;; the sublists of the new structure. Description lists will be copied, if
+  ;; 	;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
+  ;; 	;; the copy will be produced in main storage. In all cases, list structure (0)
+  ;; 	;; remains unaffected. The output (0) names the new list structure. It is
+  ;; 	;; local if the input (0) is local; It is internal otherwise.
+  ;; 	(!! :jdeep "             .....J74 is copying list: ~s~%" (H0))
+  ;; 	(let* ((new-cell
+  ;; 		(if (zero? arg0)
+  ;; 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
+  ;; 		      (!! :jdeep "            .....j74 passed a '0' is creating a blank list cell: ~s~%" new-cell)
+  ;; 		      new-cell)
+  ;; 		    (copy-ipl-list-and-return-head arg0))))
+  ;; 	  (poph0 1)
+  ;; 	  (ipush "H0" (cell-name new-cell))))
 
   (defj J75 (arg0) "DIVIDE LIST AFTER LOCATION (0)"
 	;; (0) is assumed to be the name of a cell on a list. A
@@ -1692,6 +1616,13 @@
 	;; at the symbol and make sure it starts with a letter.]
 	(if 
 	 (regional-symbol? arg0)
+	 (H5+) (H5-))
+	(poph0 1))
+
+  (defj J132 (arg0) "TEST IF (O) IS LOCAL SYMBOL"
+	;; Tests if Q = 2 in arg0's cell. 
+	(if 
+	 (= 2 (cell-q (<== arg0)))
 	 (H5+) (H5-))
 	(poph0 1))
 
@@ -2737,15 +2668,16 @@ H5={H5||-|}, H3(cycles)=30935
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
+  ;; (It's been over-riden by LTFixed code.)
   (setf *trace-@orID-exprs*
 	'(;; NOTE: The key can be partial, as "P052R" it uses (search ...).
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
 	  ;; !!!!!!!!!!!!!!! THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
 	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) 
-	  (1000   (trace local-symbol? copy-ipl-list copy-ipl-list-and-return-head))
-	  (30750
-	   (setf *!!* '( :run :jcalls :jdeep :gentrace) *cell-tracing-on* t)
-	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "9+3817") *cell-tracing-on* t)
+	  (100000000  (trace local-symbol? copy-ipl-list copy-ipl-list-and-return-head))
+	  (100000000
+	   (setf *!!* '(:run :jcalls) *cell-tracing-on* t)
+	   ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "9+3817") *cell-tracing-on* t)
 	   )
 	  ;; WARNING!!!!!! THIS CELL'S NUMBER MIGHT CHANGE!!!!!!!
 	  (30881 (print '(list ***************************** (ipush "W0" "9+2594") ??????????????????????????)))
