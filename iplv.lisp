@@ -152,7 +152,8 @@
     "M114" "M110" "M088" "M082" "M080" "M078" "M077"
     "M076" "M071" "M071" "P014" "M112" "M113" "P024"
     "P017" "P013" "P016" "P000" "M041" "M040" "M019"
-    "M017" "M016" "M014" "P022")) 
+    "M017" "M016" "M014" "P022" "J73"  "J74"  "M008"
+    "M013" "M007" "M011")) 
 
 (defun rx () ;; report on execs (card ids executed)
   ;; (loop for entry in (reverse *card-cycles.ids-executed*)
@@ -1331,28 +1332,28 @@
   ;;   - Page 148: "If the SYMB field of a word is marked with Q=2, the loader recognizes it as a local symbol."
   ;;   - Page 29: "To create a local symbol... set Q=2 in the cell in which the name appears."
 
-  ;; (defj J73 (arg0) "Copy list [186]"
-  ;; 	;; COPYLIST (0). The output (0) names a new list, with the identical
-  ;; 	;; symbols in the cells as are in the corresponding cells of list (0),
-  ;; 	;; including the head. If (0) is the name of a list cell, rather that
-  ;; 	;; [sic: than] a head, the output (0) will be a copy of the remainder of
-  ;; 	;; the list from (0) on. (Nothing else is copied, not even the
-  ;; 	;; description list of (0), if it exists.)  The name is local if the
-  ;; 	;; input (0) is local; otherwise, it is internal.
+  (defj J73 (arg0) "Copy list [186]"
+	;; COPYLIST (0). The output (0) names a new list, with the identical
+	;; symbols in the cells as are in the corresponding cells of list (0),
+	;; including the head. If (0) is the name of a list cell, rather that
+	;; [sic: than] a head, the output (0) will be a copy of the remainder of
+	;; the list from (0) on. (Nothing else is copied, not even the
+	;; description list of (0), if it exists.)  The name is local if the
+	;; input (0) is local; otherwise, it is internal.
 
-  ;; 	;; This isn't in the manual, but for sometimes this is handed
-  ;; 	;; a 0 -- e.g., we're trying to copy the DL of a list but
-  ;; 	;; there's no DL. In this case we flag it and create a null
-  ;; 	;; list, hoping that the caller might think it's what it's
-  ;; 	;; looking for.
-  ;; 	(let* ((new-cell
-  ;; 		(if (zero? arg0)
-  ;; 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
-  ;; 		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
-  ;; 		      new-cell)
-  ;; 		    (copy-ipl-list-and-return-head arg0))))
-  ;; 	  (poph0 1)
-  ;; 	  (ipush "H0" (cell-name new-cell))))
+	;; This isn't in the manual, but for sometimes this is handed
+	;; a 0 -- e.g., we're trying to copy the DL of a list but
+	;; there's no DL. In this case we flag it and create a null
+	;; list, hoping that the caller might think it's what it's
+	;; looking for.
+	(let* ((new-cell
+		(if (zero? arg0)
+		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
+		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
+		      new-cell)
+		    (copy-ipl-list-and-return-head arg0))))
+	  (poph0 1)
+	  (ipush "H0" (cell-name new-cell))))
 
   ;; (defj J74 (arg0) "Copy List Structure [186]"
   ;; 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
@@ -2663,6 +2664,7 @@ H5={H5||-|}, H3(cycles)=30935
 ;;; (rx) analyzes routine call stats
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
 ;;; *!!* <= :jdeep :jfns :run :jcalls :dr-memory :s :run-full :deep-alerts :load :gentrace
+;;; (fsym "symbol")
 
 (progn ;; LT 
   (set-default-tracing)
@@ -2675,9 +2677,9 @@ H5={H5||-|}, H3(cycles)=30935
 	  ;; !!!!!!!!!!!!!!! THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
 	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) 
 	  (100000000  (trace local-symbol? copy-ipl-list copy-ipl-list-and-return-head))
-	  (100000000
+	  (24000
 	   (setf *!!* '(:run :jcalls) *cell-tracing-on* t)
-	   ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "9+3817") *cell-tracing-on* t)
+	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 	   )
 	  ;; WARNING!!!!!! THIS CELL'S NUMBER MIGHT CHANGE!!!!!!!
 	  (30881 (print '(list ***************************** (ipush "W0" "9+2594") ??????????????????????????)))
