@@ -28,6 +28,11 @@
 
 (defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "-"))))
 
+(defun store (cell &optional (name (cell-name cell)))
+  ;;(!! :dr-memory "== Store ==> ~s [mem]" cell) Causes compiler race condition
+  (setf (gethash name *symtab*) cell)
+  cell)
+  
 (defun make-cell! (&rest args)
   (let* ((name (getf args :name)))
     (store 
@@ -35,21 +40,6 @@
 	 (apply #'make-cell args)
 	 (apply #'make-cell :name (newsym) args)))))
 
-(defvar *!!* nil) 
-
-(defmacro !! (key &rest args) 
-  `(when (or (equal *!!* t)
-	     (equal ,key t)
-	     (member ,key *!!*))
-     ,(if (stringp (car args))
-	  `(format t ,(car args) ,@(cdr args))
-	  `(progn ,@args))))
-
-(defun store (cell &optional (name (cell-name cell)))
-  (!! :dr-memory "== Store ==> ~s [mem]~%" cell)
-  (setf (gethash name *symtab*) cell)
-  cell)
-  
 (defun zero? (what) (if (stringp what) (member what '("" "0") :test #'string-equal)))
 
 (defun string-equal! (a b) ;; No-fail S-Eq ... a stupid impl. detail of CL!
@@ -137,7 +127,6 @@
 
 (defvar *card-cycles.ids-executed* nil)
 (defvar *rxtbl* (make-hash-table :test #'equal))
-;;; This throws an annoying warning and is a non-critical deugging tool
 
 (defparameter *checked-routines*
   '(
@@ -170,6 +159,7 @@
   (let ((callstats (loop for rname being the hash-keys of *rxtbl*
 		 using (hash-value nx)
 		 collect (cons rname nx))))
+    ;; This throws an annoying warning and is a non-critical deugging tool
     ;(mapcar #'print (sort callstats #'string< :key #'car))
     (format t "~%~%Unchecked calls:~%")
     (mapcar #'print (SET-DIFFERENCE (mapcar #'car callstats) *checked-routines* :TEST #'STRING-EQUAL))))
@@ -184,9 +174,9 @@
 (defvar *breaks* nil) ;; If this is set to t it breaks on every call
 (defvar *trace-cell-names-or-exprs* nil) 
 
-;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump 
-;;; :deep-alerts :pq
-(defparameter *default-!!list* '(:run :jcalls))
+;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump :run>
+;;; :alerts :pq :warnings
+(defparameter *default-!!list* '(:run> :jcalls))
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! (&optional next-breaks) (setf *breaks* next-breaks) "Use :c to run free.")
@@ -217,31 +207,6 @@
 ;;; =========================================================================
 ;;; ACCESSORS
 
-;;; Cell dereferencing: Used when you need a cell. <=! is more
-;;; powerful in that it can create the cell if it's not found, and is
-;;; slightly heuristic. <== should be used where possible, and only
-;;; use <=! when you need the heuristication and/or auto-creation.
-
-(defun <== (cell-or-symb)
-  (!! :dr-memory "<== retreiving ~s~%" cell-or-symb)
-  (if (cell? cell-or-symb) cell-or-symb (gethash cell-or-symb *symtab*)))
-
-(defun <=! (cell-or-symb &key create-if-does-not-exist?) ;; cell-or-symb can be a cell or a name
-  (!! :dr-memory "<=! retreiving ~s~%" cell-or-symb)
-  (or (<== cell-or-symb)
-      (if (stringp cell-or-symb)
-	  (if create-if-does-not-exist?
-	      (let ((new-cell (make-cell! :name cell-or-symb)))
-		(!! :dr-memory "<=! created ~s~%" new-cell)
-		new-cell)
-	      (error "In <=! ~s isn't a cell and you didn't ask to create it!"
-		     cell-or-symb)))))
-
-(defmacro cell-name% (cell-or-symb)
-  `(cell-name (<== ,cell-or-symb)))
-(defmacro cell-symb% (cell-or-symb)
-  `(cell-symb (<== ,cell-or-symb)))
-
 ;;; Dereferencing versions of cell struct accessors. Cell is macro for
 ;;; stacked symbols, like H0 and W0, used where there isn't a special
 ;;; macro for common ones.  WWW Note the convention of adding + when
@@ -251,6 +216,46 @@
 
 (defmacro cell (symb) `(gethash ,symb *symtab*))
 (defmacro stack (symb) `(gethash ,symb *systacks*)) ;; Only system cells have stacks
+
+(defvar *!!* nil) 
+
+(defmacro H3-cycles () `(cell-link (cell "H3")))
+
+(defmacro !! (key &rest args) 
+  `(when (or (equal *!!* t)
+	     (equal ,key t)
+	     (member ,key *!!*))
+     ;; There's a special hack here for :run> just to make it slightly prettier
+     ,(if (stringp (car args))
+	  (if (eq :run> key)
+	      `(format t ,(car args) ,@(cdr args)) ;; Run already puts this info out
+	      `(format t (concatenate 'string  ,(car args) " @~a[~a]~%") ,@(cdr args) (h3-cycles) ,key))
+	  `(progn ,@args))))
+
+;;; Cell dereferencing: Used when you need a cell. <=! is more
+;;; powerful in that it can create the cell if it's not found, and is
+;;; slightly heuristic. <== should be used where possible, and only
+;;; use <=! when you need the heuristication and/or auto-creation.
+
+(defun <== (cell-or-symb)
+  (!! :dr-memory "<== retreiving ~s" cell-or-symb)
+  (if (cell? cell-or-symb) cell-or-symb (gethash cell-or-symb *symtab*)))
+
+(defun <=! (cell-or-symb &key create-if-does-not-exist?) ;; cell-or-symb can be a cell or a name
+  (!! :dr-memory "<=! retreiving ~s" cell-or-symb)
+  (or (<== cell-or-symb)
+      (if (stringp cell-or-symb)
+	  (if create-if-does-not-exist?
+	      (let ((new-cell (make-cell! :name cell-or-symb)))
+		(!! :dr-memory "<=! created ~s" new-cell)
+		new-cell)
+	      (error "In <=! ~s isn't a cell and you didn't ask to create it!"
+		     cell-or-symb)))))
+
+(defmacro cell-name% (cell-or-symb)
+  `(cell-name (<== ,cell-or-symb)))
+(defmacro cell-symb% (cell-or-symb)
+  `(cell-symb (<== ,cell-or-symb)))
 
 ;;; Important values have special macros (these are like (H0) = (0) in
 ;;; the IPL-V manual). The ...+ fns return the whole stack. (Note that
@@ -273,7 +278,7 @@
 	(cell-id curcell) id
 	(cell-link curcell) link
 	)
-  (!! :dr-memory " TO: ~s~%" curcell)
+  (!! :dr-memory " TO: ~s" curcell)
   curcell)
 
 ;;; WWW *** Note that the stacked cells are NOT stored in the symbtab
@@ -282,7 +287,7 @@
 ;;; separate the load from the cell name?)
 
 (defun ipush (stack-name &optional newval)
-  (!! :dr-memory "IPUSH wants to put ~s on ~a~%" (or newval "[nil: No newval]") stack-name)
+  (!! :dr-memory "IPUSH wants to put ~s on ~a" (or newval "[nil: No newval]") stack-name)
   ;; Start by creating a new cell on the stack and copy everything from
   ;; the main cell into it. NOTE THAT THIS IS NOT SAVED!
   (let* ((topcell (cell stack-name))) 
@@ -306,15 +311,15 @@
 		       ;;  %%% FFF UUU This is an ugly compensatory hack from where it's called that should be unwound at some point! (see: "IPH1HACK")
 		       :symb (if (string-equal stack-name "H1") (cell-name newval) (cell-symb newval))
 		       :link (cell-link newval))
-	     (!! :run-full "iPushing a copy of data from ~s on ~a~%" newval stack-name))
+	     (!! :run-full "iPushing a copy of data from ~s on ~a" newval stack-name))
 	    ((null newval)
 	     ;; This is just a push, and the copy has already been made.
-	     (!! :run-full "iPushing ~a~%" stack-name))
+	     (!! :run-full "iPushing ~a" stack-name))
 	    ((numberp newval)
-	     (!! :run-full "iPushing (the number) ~s on ~a~%" newval stack-name)
+	     (!! :run-full "iPushing (the number) ~s on ~a" newval stack-name)
 	     (data-set newmain :p 1 :q 2 :link newval))
 	    (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))
-      (!! :dr-memory "IPUSH pushew new cell: ~s (WWW NOT STORED!) on ~s~%" newmain stack-name)
+      (!! :dr-memory "IPUSH pushew new cell: ~s (WWW NOT STORED!) on ~s" newmain stack-name)
       newmain)))
 
 ;;; Warning: Pop has to create a new cell in the head otherwise anyone
@@ -333,7 +338,7 @@
 		    :symb (cell-symb popped-cell)
 		    :link (cell-link popped-cell)
 		    :id (cell-id popped-cell))))
-    (!! :dr-memory "IPOP created new cell: ~s on ~a, popping ~s~%" new-cell stack-name popped-cell)
+    (!! :dr-memory "IPOP created new cell: ~s on ~a, popping ~s" new-cell stack-name popped-cell)
     (if make-me-a-new-copy-of-the-popped-cell
 	;; This one isn't saved!
 	(let ((new-cell (make-cell
@@ -342,7 +347,7 @@
 			 :symb (cell-symb popped-cell)
 			   :link (cell-link popped-cell)
 			   :id (cell-id popped-cell))))
-	  (!! :deep-alerts "       *** ALERT !!! IPOP WAS EXPLICILY ASKED TO RETURN ~s TO THE CALLER!~%" new-cell)
+	  (!! :warnings "       Warning: IPOP WAS EXPLICILY ASKED TO RETURN ~s TO THE CALLER!" new-cell)
 	  new-cell)
 	  :someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it)
     ))
@@ -357,8 +362,6 @@
 (defmacro H5 () `(cell-symb (cell "H5")))
 (defmacro H5+ () `(setf (H5) "+"))
 (defmacro H5- () `(setf (H5) "-"))
-
-(defmacro H3-cycles () `(cell-link (cell "H3")))
 
 ;;; This can trace strings, or any element (name/symb/link) of a cell
 ;;; incl. stackables.
@@ -501,16 +504,16 @@
       (i file)
     (setf *card-number* 0)
     (setf *input-stream* i) ;; For reads inside the program executor
-    (!! :load "Loading IPL file: ~s~%" file)
+    (!! :load "Loading IPL file: ~s" file)
     ;; First line is assumed to be the header which we just check
     (if (equal *cols* (read i))
-	(!! :load "Header okay!~%")
+	(!! :load "Header okay!")
 	(error "No valid header on ~s" file)
 	)
     (loop for read-row = (read i nil nil)
 	  with cells = nil
 	  until (null read-row)
-	  do (!! :load "Reading card number ~a: ~s~%" (incf *card-number*) read-row)
+	  do (!! :load "Reading card number ~a: ~s" (incf *card-number*) read-row)
 	  (let* ((p -1)
 		 (cell (make-cell
 			:comments (nth (incf p) read-row)
@@ -533,27 +536,27 @@
 	    (if (zero? (cell-type cell))
 		(progn 
 		  (when (global-symbol? name)
-		    (!! :load "Loading global name: ~s~%" name)
+		    (!! :load "Loading global name: ~s" name)
 		    (save-cells (reverse cells) load-mode) (setf cells nil))
 	      	  (push cell cells))
 		(if (string-equal "5" (cell-type cell))
 		    (if (global-symbol? (cell-symb cell))
 			(progn
-			  (!! :run "** Execution start at ~s **~%" (cell-symb cell))
+			  (!! :run "** Execution start at ~s **" (cell-symb cell))
 			  (save-cells (reverse cells) load-mode)
 			  (setf cells nil)
 			  (run (cell-symb cell) :adv-limit adv-limit))
 			(if (and (zerop (cell-p cell)) (= (cell-q cell) 1))
 			    (progn
 			      (save-cells (reverse cells) load-mode) (setf cells nil)
-			      (!! :load "Switching to DATA load mode.~%")
+			      (!! :load "Switching to DATA load mode.")
 			      (setf load-mode :data))
 			    (if (and (zerop (cell-p cell)) (zerop (cell-q cell)))
 				(progn
-				  (!! :load "Switching to CODE load mode.~%")
+				  (!! :load "Switching to CODE load mode.")
 				  (save-cells (reverse cells) load-mode) (setf cells nil)
 				  (setf load-mode :code))
-				(!! :load "Ignoring: ~s~%" read-row)))))))
+				(!! :load "Ignoring: ~s" read-row)))))))
 	  finally (save-cells (reverse cells) load-mode)
 	  )))
 
@@ -607,7 +610,7 @@
 					  do (format t "WARNING: Cell ~s is being added for missing local symbol ~s!~%" new-name missymb)
 					  collect (make-cell! :name new-name :p 0 :q 0 :symb "0" :link "0"))))))
       (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
-      (!! :load "Saved: ~s~%" (cell-name (car cells)))
+      (!! :load "Saved: ~s" (cell-name (car cells)))
       ;; Loop through the whole list and create a local symbol for every cell
       ;; that doesn't already have one. 
       (loop for (this-cell next-cell) on cells
@@ -716,7 +719,7 @@
 	do
 	(make-cell! :name name)
 	(setf (gethash name *systacks*) (list (make-cell :symb "**EMPTY**")))
-	(!! :dr-memory "Created system cell: ~s and its stack.~%" name))
+	(!! :dr-memory "Created system cell: ~s and its stack." name))
   (setf (cell "S") "S-is-null")
   )
 
@@ -740,7 +743,7 @@
 	  as depth = (length stack)
 	  do 
 	  (when (> depth *stack-depth-limit*)
-	    (!! :dr-memory "Tailing stack ~a, now ~a deep, to ~a. [mem]~%" key depth *stack-depth-limit*)
+	    (!! :dr-memory "Tailing stack ~a, now ~a deep, to ~a. [mem]" key depth *stack-depth-limit*)
 	    (loop for s+ on stack
 		  as d below *stack-depth-limit*
 		  finally (setf (cdr s+) nil))))))
@@ -855,7 +858,7 @@
 
   (defj J9 () "ERASE CELL (0)"
 	;; Maybe remhash the name from the symtab? FFF
-	(!! :jdeep "             .....J9 just pops H0; We don't need to do our own GC.~%")
+	(!! :jdeep "             .....J9 just pops H0; We don't need to do our own GC.")
 	(poph0 1))
 
   (defj J10 (arg0 arg1) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)" ;; USED IN LT
@@ -865,30 +868,32 @@
 	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
 	;; by a search and test of all attributes on the description list.) 
 	(PopH0 2) ;; I think pre-popping is safe here because H0 won't ever be a list head.
-	(!! :jdeep "             .....In J10 trying to find the value of ~s in ~s!~%" arg0 arg1)
+	(!! :jdeep "             .....In J10 trying to find the value of ~s in ~s!" arg0 arg1)
 	(!! :jdeep (announce "Find ~a in ~a" arg0 arg1))
 	(let* ((list-head (cell arg1))
 	       (dlist-name (cell-symb list-head))
 	       (target arg0))
-	  (!! :jdeep "             .....In J10 list-head = ~s, dlist-name = ~s, target = ~s~%" list-head dlist-name target)
+	  (!! :jdeep "             .....In J10 list-head = ~s
+                     dlist-name = ~s
+                     target = ~s" list-head dlist-name target)
 	  (if (zero? dlist-name)
-	      (progn (!! :jdeep "             .....In J10 -- no dl, so we're done with H5-~%") (H5-))
+	      (progn (!! :jdeep "             .....In J10 -- no dl, so we're done with H5-") (H5-))
 	      (loop with dl-attribute-cell = (cell (cell-link (cell dlist-name)))
 		    do ;; Note we're skipping the dl of the dl if any
 		    ;; The first could be the last. This is sort of messy. FFF Unduplicate code %%%
 		    (if (null dl-attribute-cell)
-			(progn (!! :jdeep "             .....J10 failed (a) to find ~s.~%" target) (H5-) (return nil)))
-		    (!! :jdeep "             .....In J10 dl-attribute-cell = ~s~%" dl-attribute-cell)
+			(progn (!! :jdeep "             .....J10 failed (a) to find ~s." target) (H5-) (return nil)))
+		    (!! :jdeep "             .....In J10 dl-attribute-cell = ~s" dl-attribute-cell)
 		    (if (ipl-string-equal target (cell-symb dl-attribute-cell))
 			(let* ((cell (cell (cell-link dl-attribute-cell))))
-			  (!! :jdeep "             .....J10 found ~s at ~s, returning ~s~%" target dl-attribute-cell (cell-symb cell))
+			  (!! :jdeep "             .....J10 found ~s at ~s, returning ~s" target dl-attribute-cell (cell-symb cell))
 			  (H5+)
 			  (ipush "H0" (cell-symb cell))
 			  (return t))
 			(let* ((next-att-link (cell-link dl-attribute-cell)))
 			  (if (zero? next-att-link)
 			      (progn
-				(!! :jdeep "             .....J10 failed (b) to find ~s.~%" target)
+				(!! :jdeep "             .....J10 failed (b) to find ~s." target)
 				(H5-) (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 
@@ -907,7 +912,7 @@
 	       (list-head (cell arg2))
 	       (maybe-dl-head (cell-symb list-head))
 	       (dl-head (if (not (zero? maybe-dl-head)) (cell maybe-dl-head)
-			    (progn (!! :jdeep "             .....In J11 no dlist yet for ~s so I'm creating one!~%" list-head)
+			    (progn (!! :jdeep "             .....In J11 no dlist yet for ~s so I'm creating one!" list-head)
 				   (make-cell! :name (newsym) :symb "0" :link "0"))))
 	       )
 	  ;; Either get the DL for the list, or create one if it doesn't exist.
@@ -922,7 +927,7 @@
 	;; The description list of list (0) is erased as a list
 	;; structure (J72), and the head of (0) is set empty.
 	(let ((lhead (<== arg0)))
-	  (!! :jdeep "             .....J15 clearing the dl of ~s (~s)~%" arg0 lhead)
+	  (!! :jdeep "             .....J15 clearing the dl of ~s (~s)" arg0 lhead)
 	  (setf (cell-symb lhead) "0"))
 	(poph0 1)
 	)
@@ -934,10 +939,10 @@
 
   (defj J17 (wn-symb fn) "GENERATOR SETUP" 
 	(let ((gentag (gensym "GEN-")))
-	  (!! :gentrace "    >>>>>>>>>> J17 [Gen Setup @~a] ~s ~s tag=~s >>>>>>>>>>~%"  (H3-cycles) wn-symb fn gentag)
+	  (!! :gentrace "    >>>>>>>>>> J17 [Gen Setup @~a] ~s ~s tag=~s >>>>>>>>>>"  (H3-cycles) wn-symb fn gentag)
 	  (!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
 			      (*cell-tracing-on* t))
-			  (format t "Cell trace before:~%")
+			  (format t "Cell trace before:")
 			  (trace-cells)))
 	  ;; Has two inputs: (0) = Wn, the name of the highest W that will be
 	  ;; used for working storage, e.g., (0) = W6, if cells WO through W6
@@ -956,10 +961,10 @@
 	  ;; J18 is passed as the process function. ... At the moment it's been undone
 	  ;; bcs instead I've made J18 actually remove the top entry from the genstack
 	  ;; before IPL-EVAL re-entry, which has sort of the same effect, albeit cleaner.
-	  ;; (!! :Jdeep "             J17 called with wn:~s and fn:~s~%" wn-symb fn)
+	  ;; (!! :Jdeep "             J17 called with wn:~s and fn:~s" wn-symb fn)
 	  ;; (when (string-equal fn "J18")
 	  ;;   (setf fn (gentry-fn (car *genstack*)))
-	  ;;   (!! :jdeep "             .....J18 HACK!! is replacing subFn with ~s~%" fn))
+	  ;;   (!! :jdeep "             .....J18 HACK!! is replacing subFn with ~s" fn))
 
 	  (let* ((wn (parse-integer (subseq wn-symb 1 2))))
 	    (J4n=preserve-wn wn)
@@ -977,19 +982,19 @@
 			       :+- "+"
 			       :gentag gentag)
 		  *genstack*))
-	  (!! :gentrace "             .....J17 *genstack* push: ~s~%" (car *genstack*))
-	  (!! :gentrace "              *genstack*=~s~%"  *genstack*)
+	  (!! :gentrace "             .....J17 *genstack* push: ~s" (car *genstack*))
+	  (!! :gentrace "              *genstack*=~s"  *genstack*)
 	  (!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
 			      (*cell-tracing-on* t))
-			  (format t "Cell trace after:~%")
+			  (format t "Cell trace after:")
 			  (trace-cells)))
 	  ))
 
   (defj J18 () "EXECUTE SUBPROCESS" 
-	(!! :gentrace "         <><><><><> J18 [Gen Exec @~a] <><><><><>~%" (H3-cycles))
+	(!! :gentrace "         <><><><><> J18 [Gen Exec @~a] <><><><><>" (H3-cycles))
 	(!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
 			    (*cell-tracing-on* t))
-			(format t "Cell trace before:~%")
+			(format t "Cell trace before:")
 			(trace-cells)))
 	;; Has no input. It does six things: 1. Restores the symbols
 	;; in WO through Wn (generator context), thereby returning the
@@ -1003,7 +1008,7 @@
 	;; superroutine-subprocess context. 6. Records H5, the
 	;; communication of the sub-process to the generator (see
 	;; J19), in one of the hideout cells.
-	(!! :gentrace "             J18: entry:~%") (!! :gentrace (trace-cells))
+	(!! :gentrace "             J18: entry:") (!! :gentrace (trace-cells))
 	(let* ((gentry (first *genstack*))
 	       (fn (gentry-fn gentry))
 	       (wn (gentry-wn gentry))
@@ -1016,42 +1021,42 @@
 			    as wcell = (cell wname)
 			    do (ipop wname)
 			    collect wcell)))
-	  (!! :gentrace "             J18 (tag=~s): collected wvals = ~s~%" gentag wvals)
-	  (!! :gentrace "             J18: After Wn ipops:~%") (!! :gentrace (trace-cells))
-	  (!! :gentrace "             J18: *genstack* = ~s~%" *genstack*)
-	  (!! :gentrace "             .....J18 (fn=~s, wn=~s)~%" fn wn)
+	  (!! :gentrace "             J18 (tag=~s): collected wvals = ~s" gentag wvals)
+	  (!! :gentrace "             J18: After Wn ipops:") (!! :gentrace (trace-cells))
+	  (!! :gentrace "             J18: *genstack* = ~s" *genstack*)
+	  (!! :gentrace "             .....J18 (fn=~s, wn=~s)" fn wn)
 	  ;; This seems redundant with the one in J19, but that one is
 	  ;; restoring the caller context, whereas this one is
 	  ;; restoring the generator context.
 	  ;; (J3n=restore-wn wn) !!! This was causing double poppage ~ 20250415
 	  ;; We also temporarily pull the top of the genstack to reveal what's underneath in case there is a recursive generator in use. 
 	  (let ((held-genstack-entry (pop *genstack*)))
-	    (!! :gentrace "             .....J18 (tag=~s) holding ~s off the genstack...~%" gentag held-genstack-entry)
-	    (!! :gentrace "             .....*genstack* is now: ~s~%" *genstack*)
-	    (!! :gentrace "             .....J18 Executing ~s~%" fn)
-	    (!! :gentrace "             J18: Just before IPL-EVAL:~%") (!! :gentrace (trace-cells))
+	    (!! :gentrace "             .....J18 (tag=~s) holding ~s off the genstack..." gentag held-genstack-entry)
+	    (!! :gentrace "             .....*genstack* is now: ~s" *genstack*)
+	    (!! :gentrace "             .....J18 Executing ~s" fn)
+	    (!! :gentrace "             J18: Just before IPL-EVAL:") (!! :gentrace (trace-cells))
 	    (ipl-eval fn)
-	    (!! :gentrace "             J18: Just after IPL-EVAL:~%") (!! :gentrace (trace-cells))
-	    (!! :gentrace "             .....J18 ~s returned with H5=~a~%" fn (H5))
+	    (!! :gentrace "             J18: Just after IPL-EVAL:") (!! :gentrace (trace-cells))
+	    (!! :gentrace "             .....J18 ~s returned with H5=~a" fn (H5))
 	    ;; Now we put it back
 	    (push held-genstack-entry *genstack*))
-	  (!! :gentrace "             J18: replaced wvals (should be the same as collected, above!)= ~s~%" wvals)
+	  (!! :gentrace "             J18: replaced wvals (should be the same as collected, above!)= ~s" wvals)
 	  (loop for wname in wnames
 		as wval in wvals
 		do (ipush wname wval))
-	  (!! :gentrace "             J18 (tag=~s): Just before return:~%" gentag) (!! :gentrace (trace-cells))
+	  (!! :gentrace "             J18 (tag=~s): Just before return:" gentag) (!! :gentrace (trace-cells))
 	  (setf (gentry-+- gentry) (H5))
 	  (!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
 			      (*cell-tracing-on* t))
-			  (format t "Cell trace after:~%")
+			  (format t "Cell trace after:")
 			  (trace-cells)))
 	  ))
 
   (defj J19 () "GENERATOR CLEANUP"
-	(!! :gentrace "    <<<<<<<<<< J19 [Gen Cleanup @~a] <<<<<<<<<<~%" (H3-cycles)) 
+	(!! :gentrace "    <<<<<<<<<< J19 [Gen Cleanup @~a] <<<<<<<<<<" (H3-cycles)) 
 	(!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
 			    (*cell-tracing-on* t))
-			(format t "Cell trace before:~%")
+			(format t "Cell trace before:")
 			(trace-cells)))
 	;; Has no input. Does three things: 1. Restores WO through
 	;; Wn. 2. Restores all the cells of the hideout. 3. Places in
@@ -1062,7 +1067,7 @@
 	       (gentag (gentry-gentag gentry))
 	       (wn (gentry-wn gentry))
 	       (+- (gentry-+- gentry)))
-	  (!! :gentrace "             .....J19 (tag=~s) popping gentry: ~s~%" gentag gentry)
+	  (!! :gentrace "             .....J19 (tag=~s) popping gentry: ~s" gentag gentry)
 	  ;; This seems redundant with the one in J18, but that one is
 	  ;; restoring the generator context, whereas this one is
 	  ;; restoring the caller context.
@@ -1072,7 +1077,7 @@
 		  (break "In J19 +- is ~s" +-))))
 	  (!! :gentrace (let ((*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1"))
 			      (*cell-tracing-on* t))
-			  (format t "Cell trace after:~%")
+			  (format t "Cell trace after:")
 			  (trace-cells)))
 	)
 
@@ -1131,11 +1136,11 @@
 	;; late (if at all) 
 	(let* ((this-cell (cell arg0))
 	       (link (cell-link this-cell)))
-	  (!! :jdeep "             .....In J60, this-cell = ~s, link = ~s~%" this-cell link)
+	  (!! :jdeep "             .....In J60, this-cell = ~s, link = ~s" this-cell link)
 	  (if (zero? link)
 	      ;; Notice that we don't pop on eol!
-	      (progn (!! :jdeep "             .....In J60 no next cell!~%") (H5-))
-	      (progn (!! :jdeep "             .....In J60 next cell is ~s!~%" link)
+	      (progn (!! :jdeep "             .....In J60 no next cell!") (H5-))
+	      (progn (!! :jdeep "             .....In J60 next cell is ~s!" link)
 		     (PopH0 1)
 		     (H5+)
 		     (ipush "H0" link)))))
@@ -1164,7 +1169,7 @@
       ;; pre-pop.
       (let* ((target arg0)
 	     (list-head (cell arg1)))
-	(!! :jdeep "             .....J62 trying to locate target:~s in linear list starting with cell ~s~%" target list-head)
+	(!! :jdeep "             .....J62 trying to locate target:~s in linear list starting with cell ~s" target list-head)
 	;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
 	(let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
 	  (poph0 2) 
@@ -1176,9 +1181,9 @@
 	;; moved into the new cell, and (0) is put into (1). The end
 	;; result is that (0) occurs in the list before the symbol
 	;; that was originally in cell (1).
-	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!~%")
-	(!! :jdeep "             .....=========================================================~%J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
-	(!! :jdeep "             .....Here are the lists before:~%")
+	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!")
+	(!! :jdeep "             .....=========================================================J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
+	(!! :jdeep "             .....Here are the lists before:")
 	(let* ((list-cell (cell list-cell-name))
 	       (new-cell-name (newsym))
 	       (list-cell-symbol (cell-symb list-cell))
@@ -1186,10 +1191,10 @@
 	  (declare (ignore new-cell))
 	  (setf (cell-symb list-cell) new-symbol
 		(cell-link list-cell) new-cell-name))
-	(!! :jdeep "             .....*********************************************************~%")
-	(!! :jdeep "             .....Here is the target list, after:~%")
+	(!! :jdeep "             .....*********************************************************")
+	(!! :jdeep "             .....Here is the target list, after:")
 	(!! :jdeep (pl list-cell-name))
-	(!! :jdeep "             .....=========================================================~%")
+	(!! :jdeep "             .....=========================================================")
 	(poph0 2)
 	)
 
@@ -1201,9 +1206,9 @@
 	;; insert after.) [WWW???!!! I dunno WTF this is talking
 	;; about! And it's prob. gonna break at list ends because
 	;; ... see above!] 
-	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!~%")
-	(!! :jdeep "             .....=========================================================~%J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
-	(!! :jdeep "             .....Here are the lists before:~%")
+	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!")
+	(!! :jdeep "             .....=========================================================J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
+	(!! :jdeep "             .....Here are the lists before:")
 	(!! :jdeep (pl new-symbol) (pl list-cell-name))
 	(let* ((list-cell (cell list-cell-name)))
 	  (if (and (zero? (cell-symb list-cell)) (zero? (cell-link list-cell)))
@@ -1212,10 +1217,10 @@
 		    (cell-name (make-cell! :name (newsym)
 					   :symb new-symbol
 					   :link (cell-link list-cell))))))
-	(!! :jdeep "             .....*********************************************************~%")
-	(!! :jdeep "             .....Here is the target list, after:~%")
+	(!! :jdeep "             .....*********************************************************")
+	(!! :jdeep "             .....Here is the target list, after:")
 	(!! :jdeep (pl list-cell-name))
-	(!! :jdeep "             .....=========================================================~%")
+	(!! :jdeep "             .....=========================================================")
 	(poph0 2)
 	)
 
@@ -1225,23 +1230,23 @@
 	(!! :jdeep (announce "~a =++ ~a" arg0 arg1))
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
-	(!! :jdeep "             .....=========================================================~%J65 trying to append ~s to ~s~%" arg0 arg1)
-	(!! :jdeep "             .....Here are the lists before:~%")
+	(!! :jdeep "             .....=========================================================J65 trying to append ~s to ~s~%" arg0 arg1)
+	(!! :jdeep "             .....Here are the lists before:")
 	(!! :jdeep (pl arg0) (pl arg1))
 	(loop with list-cell = (cell arg1)
 	      with symb = arg0
 	      with new-cell = (make-cell! :name (newsym) :symb symb :link "0")
 	      do
 	      (cond ((zero? (cell-link list-cell))
-		     (!! :jdeep "             .....J65 hit end, adding ~s to the list at ~s!~%" new-cell list-cell)
+		     (!! :jdeep "             .....J65 hit end, adding ~s to the list at ~s!" new-cell list-cell)
 		     (setf (cell-link list-cell) (cell-name new-cell))
 		     (return t)))
 	      ;; Move to next cell if nothing above returned out
 	      (setf list-cell (cell (cell-link list-cell))))
-	(!! :jdeep "             .....*********************************************************~%")
-	(!! :jdeep "             .....Here is the target list, after:~%")
+	(!! :jdeep "             .....*********************************************************")
+	(!! :jdeep "             .....Here is the target list, after:")
 	(!! :jdeep (pl arg1))
-	(!! :jdeep "             .....=========================================================~%")
+	(!! :jdeep "             .....=========================================================")
 	(PopH0 2)
 	)
 	
@@ -1254,15 +1259,15 @@
 	;; the list, as in J65. [Nb. This can't do anything sensible
 	;; with a branching list!]
 	(let ((target arg0))
-	  (!! :jdeep "             .....J66 trying to insert ~s in ~s~%" target arg1)
+	  (!! :jdeep "             .....J66 trying to insert ~s in ~s" target arg1)
 	  (loop with list-cell = (<=! arg1)
 		as link = (cell-link list-cell)
 		do
 		(cond ((string-equal (cell-symb list-cell) target)
-		       (!! :jdeep "             .....J66 found ~s in the list already. No action!~%" target)
+		       (!! :jdeep "             .....J66 found ~s in the list already. No action!" target)
 		       (PopH0 2) (return nil))
 		      ((zero? link)
-		       (!! :jdeep "             .....J66 hit end, adding ~s to the end of the list!~%" target)
+		       (!! :jdeep "             .....J66 hit end, adding ~s to the end of the list!" target)
 		       (setf (cell-link list-cell)
 			     (cell-name (make-cell! :name (newsym) :symb target :link "0")))
 		       (PopH0 2) (return t)))
@@ -1283,11 +1288,11 @@
 	(let* ((this-cell (<== arg0)) ;; was <=!
 	       (next-cell-name (cell-link this-cell)))
 	  (if (zero? next-cell-name)
-	      (progn (!! "J68 hit the end of the list.~%")
+	      (progn (!! "J68 hit the end of the list.")
 		     (H5-))
 	      ;; Here's the complex work. Ugh!
 	      (let* ((next-cell (cell next-cell-name)))
-		(!! "J68 Moving symbol in ~s to ~s and deleting ~s.~%"
+		(!! "J68 Moving symbol in ~s to ~s and deleting ~s."
 		    next-cell this-cell next-cell)
 		(setf (cell-symb this-cell) (cell-symb next-cell)
 		      (cell-link this-cell) (cell-link next-cell)))))
@@ -1349,7 +1354,7 @@
 	(let* ((new-cell
 		(if (zero? arg0)
 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
-		      (!! :jdeep "            .....j73 passed a '0' is creating a blank list cell: ~s~%" new-cell)
+		      (!! :alerts "            .....j73 passed a '0' is creating a blank list cell: ~s" new-cell)
 		      new-cell)
 		    (copy-ipl-list-and-return-head arg0))))
 	  (poph0 1)
@@ -1366,11 +1371,11 @@
   ;; 	;; the copy will be produced in main storage. In all cases, list structure (0)
   ;; 	;; remains unaffected. The output (0) names the new list structure. It is
   ;; 	;; local if the input (0) is local; It is internal otherwise.
-  ;; 	(!! :jdeep "             .....J74 is copying list: ~s~%" (H0))
+  ;; 	(!! :jdeep "             .....J74 is copying list: ~s" (H0))
   ;; 	(let* ((new-cell
   ;; 		(if (zero? arg0)
   ;; 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
-  ;; 		      (!! :jdeep "            .....j74 passed a '0' is creating a blank list cell: ~s~%" new-cell)
+  ;; 		      (!! :jdeep "            .....j74 passed a '0' is creating a blank list cell: ~s" new-cell)
   ;; 		      new-cell)
   ;; 		    (copy-ipl-list-and-return-head arg0))))
   ;; 	  (poph0 1)
@@ -1385,7 +1390,7 @@
 	(let* ((split-cell (<== arg0))
 	       (new-head (make-cell! :name (newsym) :link (cell-link split-cell))))
 	  (setf (cell-link split-cell) "0")
-	  (!! :jdeep "             .....J75 splitting a list: New tail: ~s, New head (H0): ~s~%" split-cell new-head)
+	  (!! :jdeep "             .....J75 splitting a list: New tail: ~s, New head (H0): ~s" split-cell new-head)
 	  (let* ((r (cell-name new-head)))
 	    (poph0 1)
 	    (ipush "H0" r))))
@@ -1466,7 +1471,7 @@
 	;; The output (0) is the name a the new list.
 	(let* ((name (newsym))
 	       (cell (make-cell! :name name :symb "0" :link "0")))
-	  (!! :jdeep "            .....J90 creating blank list cell: ~s~%" cell)
+	  (!! :jdeep "            .....J90 creating blank list cell: ~s" cell)
 	  (ipush "H0" name)))
 
   (defj J91 () "Create a list of 1 entry" (J9n-helper 1))
@@ -1479,14 +1484,14 @@
 	;; (1) as input. The order is the order on the list, starting with the first
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
-	(!! :jdeep "             .....J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s~%" arg1 arg0)
+	(!! :jdeep "             .....J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s" arg1 arg0)
 	(loop with cell-name = (cell-link (cell arg1))
 	      with cell = nil
 	      with exec-symb = arg0
 	      with inputs-popped = nil
 	      until (zero? cell-name)
 	      do 
-	      (!! :jdeep "             .....J100: cell-name=~s, cell=~s~%" cell-name cell)
+	      (!! :jdeep "             .....J100: cell-name=~s, cell=~s" cell-name cell)
 	      (setf cell (cell cell-name))
 	      ;; Setup: arg->H0 and H5=+
 	      (let* ((r (cell-symb cell)))
@@ -1497,10 +1502,10 @@
 		(unless inputs-popped (poph0 2) (setf inputs-popped t))
 		(ipush "H0" r))
 	      (H5+)
-	      (!! :jdeep "             .....J100: Exec'ing ~s on ~s~%" exec-symb (cell-symb (h0)))
+	      (!! :jdeep "             .....J100: Exec'ing ~s on ~s" exec-symb (cell-symb (h0)))
 	      (ipl-eval exec-symb)
 	      (setf cell-name (cell-link cell))
-	      (!! :jdeep "             .....J100 returned, H5=~s, next cell-name=~s~%" (H5) cell-name)
+	      (!! :jdeep "             .....J100 returned, H5=~s, next cell-name=~s" (H5) cell-name)
 	      finally (unless inputs-popped (poph0 2)) ;; In case NOTHING is called still need to do the pops!!
 	      ))
 
@@ -1510,7 +1515,7 @@
 	(let* ((n1 (numget arg1))
 	       (n2 (numget arg2))
 	       (r (+ n1 n2)))
-	  (!! :jdeep "             .....J110: ~a + ~a = ~a~%" n1 n2 r)
+	  (!! :jdeep "             .....J110: ~a + ~a = ~a" n1 n2 r)
 	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
 	  (numset arg0 r)))
 
@@ -1520,7 +1525,7 @@
 	(let* ((n1 (numget arg1))
 	       (n2 (numget arg2))
 	       (r (- n1 n2)))
-	  (!! :jdeep "             .....J111: ~a - ~a = ~a~%" n1 n2 r)
+	  (!! :jdeep "             .....J111: ~a - ~a = ~a" n1 n2 r)
 	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
 	  (numset arg0 r)))
 
@@ -1538,7 +1543,7 @@
 
   (defj J117 (arg0) "TEST IF (0) = 0." ;; USED IN ACKERMAN
 	(let* ((n (numget arg0)))
-	  (!! :jdeep "             .....J117: Testing if ~s (~s: ~s) = 0?~%" arg0 (<=! arg0) n)
+	  (!! :jdeep "             .....J117: Testing if ~s (~s: ~s) = 0?" arg0 (<=! arg0) n)
 	  (if (zerop n) (H5+) (H5-)))
 	(poph0 1))
 
@@ -1571,7 +1576,7 @@
 	;; term, it is made an integer data term=0. If a number, its
 	;; type, integer, or floating point, is unaffected. It is left
 	;; as the output (0).  (NO POP!?!?)
-	(!! :jdeep "             .....J124: Clear (H0): ~s~%" arg0)
+	(!! :jdeep "             .....J124: Clear (H0): ~s" arg0)
 	(numset arg0 0))
 
 ;************************************* 
@@ -1583,10 +1588,10 @@
 	;; set the number to 1"
 	;; NO POP! "It is left as the output (0)." !!
 	(let* ((curval (numget arg0)))
-	  (!! :jdeep "             .....J125: Tally (0) currently: ~s~%" arg0)
+	  (!! :jdeep "             .....J125: Tally (0) currently: ~s" arg0)
 	  (numset arg0
 		  (if (not (numberp curval))
-		      (progn (!! :jdeep "             .....Warning! J125 was sent a non-number: ~s, setting result to 1~%" curval) 1)
+		      (progn (!! :jdeep "             .....Warning! J125 was sent a non-number: ~s, setting result to 1" curval) 1)
 		      (1+ curval)))))
 
   (defj J126 (arg0) "COUNT LIST (0)"
@@ -1600,14 +1605,14 @@
 	       (list-head (cell arg0))
 	       (next-cell-name (cell-link list-head))
 	       (count 0))
-	  (!! :jdeep "             J126 counting ~a:~%" arg0)
+	  (!! :jdeep "             J126 counting ~a:" arg0)
 	  (!! :jdeep (pll (cell arg0)))
 	  (loop until (zero? next-cell-name)
 		do (incf count)
 		(setf next-cell-name (cell-link (cell next-cell-name)))
 		finally (progn (poph0 1)
 			       (numset count-cell-name count)
-			       (!! :jdeep "             J126 result is ~s:~%" count-cell)
+			       (!! :jdeep "             J126 result is ~s:" count-cell)
 			       (ipush "H0" count-cell-name))
 		)))
 
@@ -1724,7 +1729,7 @@
 	(let* ((s (cell-symb (<=! arg0)))
 	       (l (length s))
 	       (p (W25-get)))
-	  (!! :io "             .....J156 trying to add ~s at pos ~a in print butter.~%" s p)
+	  (!! :io "             .....J156 trying to add ~s at pos ~a in print butter." s p)
 	  (if (<= (+ p l) 80)
 	      (loop for m from p by 1
 		    as c across s
@@ -1732,7 +1737,7 @@
 		    finally (progn (W25-set (+ l p))
 				   (H5+)))
 	      (H5-)))
-	(!! :io "             .....Print buffer is now:~%~s~%" *W24-Line-Buffer*)
+	(!! :io "             .....Print buffer is now:~s~%" *W24-Line-Buffer*)
 	)
 
   (defj J157 (a0) "ENTER DATA TERM (0) LEFT-JUSTIFIED [216]"
@@ -1745,20 +1750,20 @@
 	  (let* ((s (cell-symb (cell a0)))
 		 (l (length s))
 		 (p (W25-get)))
-	    (!! :io "             .....J157 called on ~s, string: ~s (w25=~a)~%" a0 s p)
+	    (!! :io "             .....J157 called on ~s, string: ~s (w25=~a)" a0 s p)
 	    (when (> (+ l p) 80) (H5-) (return-from J157A nil)) ;; (Sadly, J157 isn't a DEFUN'ed block)
 	    (loop for c across s
 		  as i from p by 1
 		  do (setf (aref *W24-Line-Buffer* i) c))
 	    (W25-set (+ l p))
 	    (H5+)
-	    (!! :io "             .....Print buffer is now:~%~s (w25=~a)~%" *W24-Line-Buffer* (W25-get))
+	    (!! :io "             .....Print buffer is now:~s (w25=~a)~%" *W24-Line-Buffer* (W25-get))
 	    )))
 
   (defj J160 (col) "TAB TO COL (0)"
 	(poph0 1)
 	(let ((col (numget col)))
-	  (!! :io "             .....Tabbing to ~a~%" col)
+	  (!! :io "             .....Tabbing to ~a" col)
 	  (W25-set col)))
 
   (defj J161 (a0) "INCREMENT COLUMN BY (0)"
@@ -1766,12 +1771,12 @@
 	;; entry column, 1W25, is set equal to 1W25 + (0).
 	(poph0 1)
 	(let ((r (+ (cell-link (cell a0)) (W25-get))))
-	  (!! :io "             .....New col is ~a~%" r)
+	  (!! :io "             .....New col is ~a" r)
 	  (W25-set r)))
   
   (defj J166 () "SAVE ON UNIT (O) FOR RESTART"
 	(PopH0 0)
-	(!! :jdeep "             .....Yeah, I'm gonna pass on implementing J166 (Save for restart)!~%")
+	(!! :jdeep "             .....Yeah, I'm gonna pass on implementing J166 (Save for restart)!")
 	)
 
   (defj J180 () "READ LINE J180 READLINE"
@@ -1783,7 +1788,7 @@
 	;; global single-line store: *W24-Line-Buffer*. Also, we set W25, the read
 	;; position to numerical 1.]
 	(let ((line (read-line *input-stream* nil nil)))
-	  (!! :io "             .....J180 Read: ~s~%" line)
+	  (!! :io "             .....J180 Read: ~s" line)
 	  (H5+)
 	  (if line (scan-input-into-*W24-Line-Buffer* line) (H5-))
 	  (W25-set 0)
@@ -1807,16 +1812,16 @@
 	  ;; characters except in the first column are ignored." So we
 	  ;; need a special scraping step to carry this out.
 	  (setf string (j181-helper-remove-non-numeric-except-first string))
-	  (!! :jdeep "             .....J181 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a]~%" string start end *W24-Line-Buffer* w25p w30n)
+	  (!! :jdeep "             .....J181 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a]" string start end *W24-Line-Buffer* w25p w30n)
 	  (W25-set (+ (W25-get) w30n))
 	  (if (regional-symbol? string)
 	      (progn
-		(!! :jdeep "             .....J181 decided that ~s IS a regional symbol, so we're installing it.~%" string)
+		(!! :jdeep "             .....J181 decided that ~s IS a regional symbol, so we're installing it." string)
 		(make-cell! :name string :symb "0" :link "0")
 		(ipush "H0" string)
 		(H5+))
 	      (progn
-		(!! :jdeep "             .....J181 decided that ~s is NOT a regional symbol.~%" string)
+		(!! :jdeep "             .....J181 decided that ~s is NOT a regional symbol." string)
 		(ipush "H0" string)
 		(H5-)))))
 
@@ -1847,7 +1852,7 @@
 	  ;; WWW Assumes that the target is alpha, which could be wrong in future applications!
 	  (setf (cell-symb (cell arg0)) string) 
 	  (W25-set (+ (W25-get) w30n))
-	  (!! :jdeep "             .....J182 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a] and jammed it into ~s~%"
+	  (!! :jdeep "             .....J182 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a] and jammed it into ~s"
 	      string start end *W24-Line-Buffer* w25p w30n arg0)
 	))
 
@@ -1880,7 +1885,7 @@
 	;; there is no input and H5 is set - In either case, 1W25 is
 	;; not advanced.
 	(let* ((c (aref *W24-Line-Buffer* (1- (w25-get)))))
-	  (!! :jdeep "             .....J186 read ~s~%" c)
+	  (!! :jdeep "             .....J186 read ~s" c)
 	  (if (char-equal #\space c)
 	      (H5-)
 	      (progn
@@ -1933,7 +1938,7 @@
 	 ;; The order is (n-1) first, (n-2) second, ... (0) last.
 	 (symbols `(,@(reverse (loop for hn in (H0+) as m from 1 to (1- n) collect (cell-symb hn))) ,(cell-symb (h0))))
 	 )
-    (!! :jdeep "            .....J9n creating a list @~s from: ~s ~%" head symbols)
+    (!! :jdeep "            .....J9n creating a list @~s from: ~s " head symbols)
     (loop for sym in symbols
 	  with prev-cell = head
 	  as next-cell-name = (newsym)
@@ -1943,11 +1948,11 @@
 	  (setf prev-cell next-cell))
     (poph0 n)
     (ipush "H0" head-name)
-    (!! :jdeep "            .....J9n created list: ~%")
+    (!! :jdeep "            .....J9n created list: ")
     (!! :jdeep (pl head-name))))
 
 (defun J11-helper-add-to-dlist (dlist-head att val &key (if-aleady-exists :replace)) ;; :error :allow-multiple
-  (!! :jdeep "             .....ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s~%" dlist-head att val)
+  (!! :jdeep "             .....ADD-TO-DLIST entry: dlisthead = ~s, att=~s, val=~s" dlist-head att val)
   (loop with next-att-cell = (cell-link dlist-head)
 	with last-val-cell = dlist-head ;; In case we fall through immediately
 	with next-val-cell = nil	;; gets set below
@@ -1955,11 +1960,11 @@
 	do
 	(setf next-att-cell (cell next-att-cell)) ;; Can't do this above bcs need zero? check
 	(setf next-val-cell (cell (cell-link next-att-cell)))
-	(!! :jdeep "             .....ADD-TO-DLIST is checking next-att-cell=~s, last-val-cell=~s~%" next-att-cell last-val-cell)
+	(!! :jdeep "             .....ADD-TO-DLIST is checking next-att-cell=~s, last-val-cell=~s" next-att-cell last-val-cell)
 	(if (ipl-string-equal att (cell-symb next-att-cell))
 	    (case if-aleady-exists
 	      (:replace
-	       (!! :jdeep "             .....In J11 (helper) replacing ~s symbol with ~s~%" next-val-cell val)
+	       (!! :jdeep "             .....In J11 (helper) replacing ~s symbol with ~s" next-val-cell val)
 	       (setf (cell-symb next-val-cell) val) (H5+) (return t))
 	      (:error (error "In ADD-TO-DLIST, att ~a already exits in ~s" att dlist-head))
 	      (:allow-multiple nil) ;; When we get to the end we'll add a new one.
@@ -1975,7 +1980,7 @@
 	(let*
 	    ((new-val-cell (make-cell! :name (newsym) :symb val :link "0"))
 	     (new-att-cell (make-cell! :name (newsym) :symb att :link (cell-name new-val-cell))))
-	  (!! :jdeep "             .....ADD-TO-DLIST taking the finally option: last-val-cell=~s, new-att-cell = ~s, new-val-cell=~s~%"
+	  (!! :jdeep "             .....ADD-TO-DLIST taking the finally option: last-val-cell=~s, new-att-cell = ~s, new-val-cell=~s"
 	      last-val-cell new-att-cell new-val-cell)
 	  (setf (cell-link last-val-cell) (cell-name new-att-cell))
 	  (H5+)
@@ -2054,8 +2059,8 @@
 (defun numset (sym n)
   (let* ((data-cell (cell sym)))
     (unless (numberp (cell-link data-cell))
-      (!! :deep-alerts
-	  "       *** ALERT !!! NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link.~%"
+      (!! :alerts
+	  "       *** ALERT !!! NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link."
 	  data-cell sym))
     (setf (cell-link data-cell) n)))
 
@@ -2066,7 +2071,7 @@
   ;; NO POP H0! ("...leave (0)")
   (let* ((counter arg0)
 	 (w25p (W25-get)))
-    (!! :jdeep "             .....Starting in J183/4-Scanner: counter = ~s, w25p = ~a~%" counter w25p)
+    (!! :jdeep "             .....Starting in J183/4-Scanner: counter = ~s, w25p = ~a" counter w25p)
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
     (H5-)
     (incf w25p) ;; Start at W25+1 (per manual)
@@ -2074,7 +2079,7 @@
 	  ;; WWW OBIWON !!! The only place I should have to correct this is here (I hope!) 
 	  as char = (aref *W24-Line-Buffer* (1- w25p))
 	  do 
-	  (!! :run-full "Deep in J183/4-Scanner: w25p = ~a, char = ~s~%" w25p char)
+	  (!! :run-full "Deep in J183/4-Scanner: w25p = ~a, char = ~s" w25p char)
 	  (when (case mode
 		  (:blank (char-equal char #\space))
 		  (:non-blank (not (char-equal char #\space)))
@@ -2090,7 +2095,7 @@
   (loop for c across line
 	as p from 0 by 1
 	do (setf (aref *W24-Line-Buffer* p) c))
-  (!! :jdeep "             .....Read into *W24-Line-Buffer*: ~s~%" *W24-Line-Buffer*))
+  (!! :jdeep "             .....Read into *W24-Line-Buffer*: ~s" *W24-Line-Buffer*))
 
 (defun J2n=move-0-to-n-into-w0-wn (n)
   (loop for nn from 0 to n 
@@ -2212,7 +2217,7 @@
 
 (defun run (start-symb &key (adv-limit 1000))
   (initialize-machine)
-  (!! :run "********** Starting run at ~a with adv-limit = ~a **********~%" start-symb adv-limit)
+  (!! :run "********** Starting run at ~a with adv-limit = ~a **********" start-symb adv-limit)
   (setf *adv-limit* adv-limit)
   (setf *running?* t)
   (ipl-eval start-symb)
@@ -2262,9 +2267,10 @@
     ))
 
 (defun pq-explain (cell)
-  (when (and (cell? cell) 
-	     (second (assoc (format nil "~a~a" (cell-p cell) (cell-q cell))
-			    *pq-meanings* :test #'string-equal)))))
+  (or (and (cell? cell)
+	   (second (assoc (format nil "~a~a" (cell-p cell) (cell-q cell))
+			  *pq-meanings* :test #'string-equal)))
+      ""))
 
 ;;; !!! WWW There's this screw case for popping the H0 arg stack which
 ;;; is when the JFns use H0 per se as an argument, or if it is
@@ -2284,13 +2290,13 @@
   args)
 
 (defun ipl-eval (start-symb &aux s)
-  (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s~%" start-symb)
+  (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-symb)
   (prog (cell q p symb link)
      (ipush "H1" "exit")
      (ipush "H1" start-symb) ;; Where we're headed this time in.
      ;; Indicates (local) top of stack for hard exit (perhaps to recursive call)
    INTERPRET-Q 
-     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (*fname-hint* = ~s)~%" (H1) *fname-hint*)
+     (!! :run-full "---> At INTERPRET-Q w/H1 = ~s! (*fname-hint* = ~s)" (H1) *fname-hint*)
      ;; H1's symb contains the name of the cell holding the
      ;; instruction to be interpreted. At this point it could be a
      ;; symbol or a list. If it's a symbol, we need to de-reference it
@@ -2321,7 +2327,7 @@
 	 (go ADVANCE)
 	 ))
      (setq cell (cell (cell-symb (H1)))) ;; This shouldn't be needed since we're operating all in cell now.
-     (!! :run "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
+     (!! :run> "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf p (cell-p cell)
@@ -2329,7 +2335,7 @@
 	   symb (cell-symb cell)
 	   link (cell-link cell)
 	   )
-     (!! :run-full "-----> At INTERPRET-Q: CELL =~s~%      Q = ~s, symb=~s~%" cell q symb)
+     (!! :run-full "-----> At INTERPRET-Q: CELL =~s      Q = ~s, symb=~s~%" cell q symb)
      (case q
        ;; 0 take the symbol itself
        (0 (setf S symb) (go INTERPRET-P))
@@ -2337,15 +2343,15 @@
        (1 (setf S (cell-symb (cell symb))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to 
        (2 (setf S (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
-       (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf S symb) (go INTERPRET-P))
-       (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)~%" cell) (setf S symb) (go INTERPRET-P))
+       (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)" cell) (setf S symb) (go INTERPRET-P))
+       (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)" cell) (setf S symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
        )
    INTERPRET-P ;; p. 160
-     (!! :run-full "     -----> At INTERPRET-P w/P = ~s, S=~s~%" p S)
-     (!! :s "     -----> At INTERPRET-P w/P = ~s, S=~s~%" p S) ;; FFF Allow the keys to be a list
+     (!! :run-full "     -----> At INTERPRET-P w/P = ~s, S=~s" p S)
+     (!! :s "     -----> At INTERPRET-P w/P = ~s, S=~s" p S) ;; FFF Allow the keys to be a list
      (case p
        (0 (go TEST-FOR-PRIMITIVE))
        (1 (ipush "H0" S)) ;; Input S (after preserving HO) "A copy of
@@ -2388,24 +2394,24 @@
    TEST-FOR-PRIMITIVE 
      ;; Q of S: - Q = 5: Transfer machine control to SYMB of S (executing
      ;; primitive); go to ADVANCE. - Q ~= 5: Go to DESCEND
-     (!! :run-full "-----> At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~s, symb=~s~%" S q symb)
+     (!! :run-full "-----> At TEST-FOR-PRIMITIVE w/S = ~s, Q = ~s, symb=~s" S q symb)
      (case q 
        (5 (setf link S) (go ADVANCE))
        (t (go DESCEND)))
    ADVANCE (!! :run-full "-----> At ADVANCE")
      (trace-cells)
      (if (and *adv-limit* (zerop (decf *adv-limit*)))
-	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!~%"))
+	 (break " !!!!!!!!!!!!!! IPL-EVAL hit *adv-limit* !!!!!!!!!!!!!!"))
      (incf (H3-cycles))
      (when (string-equal (cell-symb (h1)) "exit")
        (ipop "H1") ;; Remove the exit flag
-       (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^~%")
+       (!! :run "Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^")
        (return))
      ;; Interpret LINK: - LINK= 0: Termination; go to ASCEND. LINK ~= 0: LINK is
      ;; the name of the cell containing the next instruction; put LINK in H1; go
      ;; to INTERPRET-Q.
      (setf link (cell-link (cell (cell-symb (H1))))) ;; !!!!!!!! UGH !!!!!!!!
-   ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK (link=~s)~%" link)
+   ADVANCE-W/FORCED-LINK (!! :run-full "-----> At ADVANCE-W/FORCED-LINK (link=~s)" link)
      (setf *fname-hint* link)
      (clean-stacks)
      ;; If link is nil ("") in the middle of a function, go next cell, else ascend.
@@ -2419,7 +2425,7 @@
      (setf (cell-symb (h1)) link)
      (go INTERPRET-Q)
    ASCEND 
-     (!! :run-full "-----> At ASCEND w/H1 = ~s~%" (h1))
+     (!! :run-full "-----> At ASCEND w/H1 = ~s" (h1))
      ;; Restore H1 (returning to H1 the name of the cell holding the current
      ;; instruction, one level up); restore auxiliary region if required (not!);
      ;; go to ADVANCE.
@@ -2428,7 +2434,7 @@
      (go ADVANCE)
    DESCEND 
      (push :descend *card-cycles.ids-executed*)
-     (!! :run-full "-----> At DESCEND w/S = ~s~%" S)
+     (!! :run-full "-----> At DESCEND w/S = ~s" S)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (setf *fname-hint* S)
@@ -2436,7 +2442,7 @@
      (trace-cells)
      (go INTERPRET-Q)
    BRANCH
-     (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s~%" (H5) S)
+     (!! :run-full "-----> At BRANCH w/H5 = ~s, S= ~s" (H5) S)
      ;; Interpret Sign in H5: - H5-: Put S as LINK (control transfers to S); go
      ;; to ADVANCE. - H5+: Go to ADVANCE
      (when (string-equal (H5) "-") (setf link S) (go ADVANCE-W/FORCED-LINK))
@@ -2449,7 +2455,7 @@
 
 (defun force-replace (tosymb fromsymb)
   (let* ((fromcell (cell fromsymb)))
-    (!! :dr-memory "Force replacing ~s with ~s: ~s~%" tosymb fromsymb fromcell)
+    (!! :dr-memory "Force replacing ~s with ~s: ~s" tosymb fromsymb fromcell)
     (setf (gethash tosymb *symtab*) (make-cell :sign "" :p 0 :q 0 :symb fromsymb :link ""))))
 
 (defun call-ipl-prim (symb)
@@ -2663,7 +2669,7 @@ H5={H5||-|}, H3(cycles)=30935
 ;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
 ;;; (rx) analyzes routine call stats
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
-;;; *!!* <= :jdeep :jfns :run :jcalls :dr-memory :s :run-full :deep-alerts :load :gentrace
+;;; *!!* <= :jdeep :jfns :run :run> :jcalls :dr-memory :s :run-full :alerts :load :gentrace :warnings
 ;;; (fsym "symbol")
 
 (progn ;; LT 
@@ -2671,22 +2677,23 @@ H5={H5||-|}, H3(cycles)=30935
   (setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
+  ;(setf *!!* '(:alerts) *cell-tracing-on* t)
   (setf *trace-@orID-exprs*
-	'(;; NOTE: The key can be partial, as "P052R" it uses (search ...).
-	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
-	  ;; !!!!!!!!!!!!!!! THIS HAS TO STAY! !!!!!!!!!!!!!!!!!!!
-	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) 
-	  (100000000  (trace local-symbol? copy-ipl-list copy-ipl-list-and-return-head))
-	  (24000
-	   (setf *!!* '(:run :jcalls) *cell-tracing-on* t)
+	'(
+	  ;; NOTE: The key can be partial, as "P052R"; uses (search...)
+
+	  ;; Basic tracer:
+
+  	  (24000
+	   (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts) *cell-tracing-on* t)
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 	   )
-	  ;; WARNING!!!!!! THIS CELL'S NUMBER MIGHT CHANGE!!!!!!!
-	  (30881 (print '(list ***************************** (ipush "W0" "9+2594") ??????????????????????????)))
-	  ;(30895 (ipop "W1"))
-	  ;;                    ^^^^ Check it from the value before this cycle
-	  ;; (30805 (break))
-	  ;; (1 (setf *!!* '(:gentrace) *cell-tracing-on* t))
+
+	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
+	  ;; trace cells otherwise messy recusion cycle ensues
+	  
+	  ;;("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; L11 problem Patched in LTFixed
+
 	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
   )
