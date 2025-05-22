@@ -2,6 +2,9 @@
 
 (setf *print-pretty* nil)
 
+;;; FFF Do something to simplify the various make-cells and
+;;; cell-cell!s all over the place with different args.
+
 ;;; See notes.txt
 
 ;;; WWW Leaves these at high debug etc or things break for unknown reasons.
@@ -297,8 +300,10 @@
 		     :symb (cell-symb topcell)
 		     :link (cell-link topcell))
 	  (stack stack-name))
-    ;; Now create another new cell, this time to replace the top cell. This one IS saved!
-    (let ((newmain (setf (gethash stack-name *symtab*) (copy-cell topcell)))) ;; NNN WWW This will replace the top cell in the symbtab!
+    ;; Now create another new cell, this time to replace the top
+    ;; cell. This one IS saved!  NNN WWW This will replace the top
+    ;; cell in the symbtab!
+    (let ((newmain (setf (gethash stack-name *symtab*) (copy-cell topcell)))) 
       ;; And replace it with whatever it appropriate given the input type.
       (cond ((or (stringp newval) (functionp newval))
 	     (data-set newmain :symb newval))
@@ -601,7 +606,7 @@
 	     (loop for cell in cells
 		   append (loop for (nil . getter) in *symbol-col-accessors*
 				as symbol = (funcall getter cell)
-				if (local-symbol? symbol)
+				if (local-symbol-by-name? symbol)
 				collect (cons symbol (format nil "~a-~a" top-name symbol)))))))
       (let ((missing-local-symbols (convert-local-symbols cells local-symbols.new-names)))
 	(when (and missing-local-symbols (eq :code load-mode))
@@ -681,10 +686,34 @@
        ;; ??? Might want to look at -9- or 9+ or other details ???
        (not (char-equal #\9 (aref name 0)))))
 
-(defun local-symbol? (name)
+;;; WWW There are two completely different meanings of "local"
+;;; symbol. The one implemented here is by name -- that is, any name
+;;; that begins with "9" is local, and all others are global. The
+;;; other sense is regarding a cell, where Q=2. This is implemented at
+;;; te JFn level and is primarily used for marking graphs. See
+;;; discussions with ChatBots in etc/ dir, as well as J74, J132, and J136
+;;; https://chatgpt.com/share/6824cf31-9afc-8008-bd37-847e5b738ea1
+
+(defun local-symbol-by-name? (name)
   (if (numberp name) nil
       (and (not (zerop (length name)))
 	   (char-equal #\9 (aref name 0)))))
+
+;;; This looks like it should be just (not (local-symbol-by-name? ...)) but
+;;; there's this weirdness to make sure that the rest is all numbers.
+;;; (This is barely ever used anyway. I think it's only used in line
+;;; input.)
+
+(defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
+
+(defun regional-symbol? (string)
+  (and (find (aref string 0) *LT-Regional-Chars*)
+       (loop for p from 1 by 1
+	     with lim = (1- (length string))
+	     until (= p lim)
+	     if (not (find (aref string p) "0123456789"))
+	     do (return nil)
+	     finally (return t))))
 
 (defun uniquify-list (l)
   (loop for i on l
@@ -1338,27 +1367,29 @@
   ;;   - Page 29: "To create a local symbol... set Q=2 in the cell in which the name appears."
 
   (defj J73 (arg0) "Copy list [186]"
-	;; COPYLIST (0). The output (0) names a new list, with the identical
-	;; symbols in the cells as are in the corresponding cells of list (0),
-	;; including the head. If (0) is the name of a list cell, rather that
-	;; [sic: than] a head, the output (0) will be a copy of the remainder of
-	;; the list from (0) on. (Nothing else is copied, not even the
-	;; description list of (0), if it exists.)  The name is local if the
-	;; input (0) is local; otherwise, it is internal.
-
-	;; This isn't in the manual, but for sometimes this is handed
-	;; a 0 -- e.g., we're trying to copy the DL of a list but
-	;; there's no DL. In this case we flag it and create a null
-	;; list, hoping that the caller might think it's what it's
-	;; looking for.
-	(let* ((new-cell
+	(print (list "****************************************" arg0))
+	;; COPYLIST (0). The output (0) names a new list, with the
+	;; identical symbols in the cells as are in the corresponding
+	;; cells of list (0), including the head. If (0) is the name
+	;; of a list cell, rather that [sic: than] a head, the output
+	;; (0) will be a copy of the remainder of the list from (0)
+	;; on. (Nothing else is copied, not even the description list
+	;; of (0), if it exists.)  The name is local if the input (0)
+	;; is local; otherwise, it is internal.  [This isn't in the
+	;; manual, but for sometimes this is handed a 0 -- e.g., we're
+	;; trying to copy the DL of a list but there's no DL. In this
+	;; case we flag it and create a null list, hoping that the
+	;; caller might think it's what it's looking for. FFF ??? It's
+	;; actually pretty likely that a bug in my code is sending
+	;; these 0s, and this hack is covering up for that.]
+	(let* ((new-head
 		(if (zero? arg0)
 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
 		      (!! :alerts "            .....j73 passed a '0' is creating a blank list cell: ~s" new-cell)
 		      new-cell)
-		    (copy-ipl-list-and-return-head arg0))))
+		    (J73-copy-list-backbone arg0))))
 	  (poph0 1)
-	  (ipush "H0" (cell-name new-cell))))
+	  (ipush "H0" new-head)))
 
   ;; (defj J74 (arg0) "Copy List Structure [186]"
   ;; 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
@@ -1617,11 +1648,9 @@
 		)))
 
   (defj J130 (arg0) "TEST IF (O) IS REGIONAL SYMBOL"
-	;; Tests if Q = 0 in arg0. [WWW ??? We might want this to
-	;; actually do something a little more un-IPL-ish, like look
-	;; at the symbol and make sure it starts with a letter.]
+	;; Tests if Q = 0 in arg0.
 	(if 
-	 (regional-symbol? arg0)
+	 (= 0 (cell-q (<== arg0)))
 	 (H5+) (H5-))
 	(poph0 1))
 
@@ -1917,8 +1946,6 @@
 
 (defun PopH0 (n) (dotimes (i (abs n)) (if (< n 0) (pop (H0+)) (ipop "H0"))))
 
-(defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
-
 ;;; This version of equal understands various special features of
 ;;; strings and numbers that are specific to IPL-V, esp. that right
 ;;; blanks (and zeros!) are irrelevant in string equality. (Per Manual
@@ -2032,15 +2059,6 @@
 (defun numchar? (c)
   (find c "0123456789"))
 
-(defun regional-symbol? (string)
-  (and (find (aref string 0) *LT-Regional-Chars*)
-       (loop for p from 1 by 1
-	     with lim = (1- (length string))
-	     until (= p lim)
-	     if (not (find (aref string p) "0123456789"))
-	     do (return nil)
-	     finally (return t))))
-
 (defun w25-get () (numget (cell-symb (cell "W25"))))
 (defun w25-set (n) (numset (cell-symb (cell "W25")) n))
 (defun w25-init () (setf (cell-symb (cell "W25")) (cell-name (make-cell! :p 1 :q 2 :link 1))))
@@ -2115,6 +2133,49 @@
   (J2n=move-0-to-n-into-w0-wn n)
   )
 
+(defun J73-copy-list-backbone (link)
+  ;; This version doesn't honor Q=2
+  (if (zero? link) link
+      (let* ((old-cell (print (<== link)))
+	     (new-cell (make-cell!
+			:p (cell-p old-cell)
+			:q (cell-q old-cell)
+			:symb (cell-symb old-cell)
+			:link (J73-copy-list-backbone (cell-link old-cell))
+			:id (cell-id old-cell))))
+	(cell-name new-cell))))
+
+#| Version that honors Q=2:
+
+;;; If we hit a Q=2 indicated cell we have to create a new symbol in
+;;; that cell, even though that symbol doesn't point to anything! That
+;;; is, J73 creates a new local name even though it does not
+;;; immediately create the cell that the name will eventually refer
+;;; to. This seems wrong, but I don't see how it could be otherwise
+;;; because But how could J73 copy the backbone and new a new local
+;;; symbol when it hits a cell with Q=2? Suppose the symbol in the Q=2
+;;; symb field is "SYM1" and Q is 2, we're saying that it would create
+;;; a local (starting with "9") gensym, say "9-1234" to replace SYM1
+;;; in the new list cell, but that doesn't point to anything unless we
+;;; also create a new cell called 9-1234, but then that wouldn't be
+;;; the right head of the sublist, but that's J74's job!
+
+(defun J73-copy-list-backbone (link)
+  (if (zero? link) link
+      (let* ((old-cell (print (<== link)))
+	     (oldq (cell-q old-cell))
+	     (new-cell (make-cell!
+			:p (cell-p old-cell)
+			:q (if (= 2 oldq) ;; Clear a Q=2
+			       (setf (cell-q old-cell) 0) ;; This will return a zero here as well.
+			       oldq) 
+			:symb (if (= 2 oldq) (newsym) (cell-symb old-cell))
+			:link (J73-copy-list-backbone (cell-link old-cell))
+			:id (cell-id old-cell))))
+	(cell-name new-cell))))
+
+|#
+
 (defvar *copy-list-head-collector* nil)
 
 (defun copy-ipl-list-and-return-head (head)
@@ -2141,7 +2202,7 @@
     ((zero? cell-or-symb/link) "0")
     ;; If it's a local symbol, create a new cell with a new symbol and copy the cell,
     ;; recursing for the symb and links
-    ((local-symbol? cell-or-symb/link)
+    ((local-symbol-by-name? cell-or-symb/link)
      (let* ((cell (cell cell-or-symb/link))
 	    (new-name (newsym))
 	    (new-cell (make-cell! :name new-name
@@ -2678,13 +2739,14 @@ H5={H5||-|}, H3(cycles)=30935
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
+  ;(trace J73-copy-list-backbone)
   (setf *trace-@orID-exprs*
 	'(
 	  ;; NOTE: The key can be partial, as "P052R"; uses (search...)
 
 	  ;; Basic tracer:
 
-  	  (24000
+  	  (20700
 	   (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts) *cell-tracing-on* t)
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
 	   )
