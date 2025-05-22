@@ -1366,7 +1366,7 @@
   ;;   - Page 148: "If the SYMB field of a word is marked with Q=2, the loader recognizes it as a local symbol."
   ;;   - Page 29: "To create a local symbol... set Q=2 in the cell in which the name appears."
 
-  (defj J73 (arg0) "Copy list [186]"
+  (defj J73 (arg0) "(Shallow) Copy list [186]"
 	(print (list "****************************************" arg0))
 	;; COPYLIST (0). The output (0) names a new list, with the
 	;; identical symbols in the cells as are in the corresponding
@@ -1382,35 +1382,37 @@
 	;; caller might think it's what it's looking for. FFF ??? It's
 	;; actually pretty likely that a bug in my code is sending
 	;; these 0s, and this hack is covering up for that.]
+	(!! :jdeep "             .....J73 is shallow copying list: ~s" (H0))
 	(let* ((new-head
 		(if (zero? arg0)
 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
 		      (!! :alerts "            .....j73 passed a '0' is creating a blank list cell: ~s" new-cell)
 		      new-cell)
-		    (J73-copy-list-backbone arg0))))
+		    (J73-shallow-copy-ipl-list arg0))))
 	  (poph0 1)
 	  (ipush "H0" new-head)))
 
-  ;; (defj J74 (arg0) "Copy List Structure [186]"
-  ;; 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
-  ;; 	;; which are in one-to-one correspondence with the cells of list structure
-  ;; 	;; (0). All the regional and internal symbols in the cells will be identical
-  ;; 	;; to the symbols in the corresponding cells of (0), as will the contents of
-  ;; 	;; data terms. There will be new local symbols, since these are the names of
-  ;; 	;; the sublists of the new structure. Description lists will be copied, if
-  ;; 	;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
-  ;; 	;; the copy will be produced in main storage. In all cases, list structure (0)
-  ;; 	;; remains unaffected. The output (0) names the new list structure. It is
-  ;; 	;; local if the input (0) is local; It is internal otherwise.
-  ;; 	(!! :jdeep "             .....J74 is copying list: ~s" (H0))
-  ;; 	(let* ((new-cell
-  ;; 		(if (zero? arg0)
-  ;; 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
-  ;; 		      (!! :jdeep "            .....j74 passed a '0' is creating a blank list cell: ~s" new-cell)
-  ;; 		      new-cell)
-  ;; 		    (copy-ipl-list-and-return-head arg0))))
-  ;; 	  (poph0 1)
-  ;; 	  (ipush "H0" (cell-name new-cell))))
+  (defj J74 (arg0) "(Deep) Copy List Structure [186]"
+	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
+	;; which are in one-to-one correspondence with the cells of list structure
+	;; (0). All the regional and internal symbols in the cells will be identical
+	;; to the symbols in the corresponding cells of (0), as will the contents of
+	;; data terms. There will be new local symbols, since these are the names of
+	;; the sublists of the new structure. Description lists will be copied, if
+	;; their names are local. If (0) is in auxiliary storage (Q of (0) = 6 or 7),
+	;; the copy will be produced in main storage. In all cases, list structure (0)
+	;; remains unaffected. The output (0) names the new list structure. It is
+	;; local if the input (0) is local; It is internal otherwise.
+	(!! :jdeep "             .....J74 is deep copying list: ~s" (H0))
+	(clrhash *j74tbl*)
+	(let* ((new-head
+		(if (zero? arg0)
+		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
+		      (!! :alerts "            .....j73 passed a '0' is creating a blank list cell: ~s" new-cell)
+		      new-cell)
+		    (J74-deep-copy-ipl-list arg0))))
+	  (poph0 1)
+	  (ipush "H0" new-head)))
 
   (defj J75 (arg0) "DIVIDE LIST AFTER LOCATION (0)"
 	;; (0) is assumed to be the name of a cell on a list. A
@@ -2133,7 +2135,7 @@
   (J2n=move-0-to-n-into-w0-wn n)
   )
 
-(defun J73-copy-list-backbone (link)
+(defun J73-shallow-copy-ipl-list (link)
   ;; This version doesn't honor Q=2
   (if (zero? link) link
       (let* ((old-cell (print (<== link)))
@@ -2141,9 +2143,35 @@
 			:p (cell-p old-cell)
 			:q (cell-q old-cell)
 			:symb (cell-symb old-cell)
-			:link (J73-copy-list-backbone (cell-link old-cell))
+			:link (J73-shallow-copy-ipl-list (cell-link old-cell))
 			:id (cell-id old-cell))))
 	(cell-name new-cell))))
+
+;;; This Is almost the same as J73 but *does* honor Q=2, and keeps a
+;;; table of new names in case it comes across them again (although it
+;;; shouldn't bcs then the list will be self-referential, which,
+;;; although possible is, I think, generally avoided. See ChatGPT
+;;; dicsussion.) More importantly, it recurses into the sublists.
+
+(defvar *j74tbl* (make-hash-table :test #'equal))
+
+(defun J74-deep-copy-ipl-list (link)
+  (if (regional-symbol? link) link ;; Things like V0 don't get replicated.
+      (if (zero? link) link
+	  (let* ((old-cell (print (<== link)))
+		 (q (cell-q old-cell))
+		 (name (cell-name old-cell))
+		 (symb (cell-symb old-cell))
+		 (new-cell (make-cell!
+			    :name (or (gethash name *j74tbl*) name)
+			    :p (cell-p old-cell)
+			    :q (if (= q 2) 0 (cell-q old-cell))
+			    :symb (or (gethash symb *j74tbl*)
+				      (if (= q 2) (setf (gethash symb *j74tbl*) (newsym)) symb)
+				      symb)
+			    :link (J74-deep-copy-ipl-list (cell-link old-cell))
+			    :id (cell-id old-cell))))
+	    (cell-name new-cell)))))
 
 #| Version that honors Q=2:
 
@@ -2739,17 +2767,17 @@ H5={H5||-|}, H3(cycles)=30935
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
-  ;(trace J73-copy-list-backbone)
+  (trace J73-shallow-copy-ipl-list J74-deep-copy-ipl-list)
   (setf *trace-@orID-exprs*
 	'(
 	  ;; NOTE: The key can be partial, as "P052R"; uses (search...)
 
 	  ;; Basic tracer:
 
-  	  (20700
-	   (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts) *cell-tracing-on* t)
-	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
-	   )
+  	  ;; (20700
+	  ;;  (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts) *cell-tracing-on* t)
+	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+	  ;;  )
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
