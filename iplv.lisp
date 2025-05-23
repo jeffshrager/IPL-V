@@ -54,16 +54,21 @@
 
 (defun print-cell (cell s d)
   (declare (ignore d))
-  (format s "{~a~a|~a~a|~a|~a~a}"
-	  (if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
-	  (cell-name cell)
-	  (cell-p cell)
-	  (cell-q cell)
-	  (cell-symb cell)
-	  (cell-link cell)
-	  (if (and (zero? (cell-comments cell)) (zero? (cell-comments.1 cell))) 
-	      ""
-	      (format nil " [~a;~a]" (cell-comments cell) (cell-comments.1 cell)))))
+  (let ((p (cell-p cell)) (q (cell-q cell)))
+    (if (and (zerop p) (zerop q))
+	(format s "{~a~a||~a|~a~a}"
+		(if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
+		(cell-name cell) (cell-symb cell) (cell-link cell)
+		(format-cell-comments-for-printing cell))
+	(format s "{~a~a|~a~a|~a|~a~a}"
+		(if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
+		(cell-name cell) p q (cell-symb cell) (cell-link cell)
+		(format-cell-comments-for-printing cell)))))
+
+(defun format-cell-comments-for-printing (cell)
+  (if (and (zero? (cell-comments cell)) (zero? (cell-comments.1 cell))) 
+      "" (format nil " [~a;~a]" (cell-comments cell) (cell-comments.1 cell))))
+
 
 ;;; The generator triplex. The generator system maintains its own
 ;;; private stack, which is the "generator hideout" referred to in the
@@ -806,6 +811,8 @@
 (defvar *jfn->name* (make-hash-table :test #'equal))
 (clrhash *jfn->name*) ;; In case we're reloading
 
+(defvar *j74tbl* (make-hash-table :test #'equal))
+
 (defmacro defj (name args explanation &rest forms)
   `(let ((uname ,(string-upcase (format nil "~a" name))))
      (setf (gethash uname *jfn-plists*) '(explanation ,explanation))
@@ -1367,7 +1374,6 @@
   ;;   - Page 29: "To create a local symbol... set Q=2 in the cell in which the name appears."
 
   (defj J73 (arg0) "(Shallow) Copy list [186]"
-	(print (list "****************************************" arg0))
 	;; COPYLIST (0). The output (0) names a new list, with the
 	;; identical symbols in the cells as are in the corresponding
 	;; cells of list (0), including the head. If (0) is the name
@@ -2153,8 +2159,6 @@
 ;;; although possible is, I think, generally avoided. See ChatGPT
 ;;; dicsussion.) More importantly, it recurses into the sublists.
 
-(defvar *j74tbl* (make-hash-table :test #'equal))
-
 (defun J74-deep-copy-ipl-list (link)
   (if (regional-symbol? link) link ;; Things like V0 don't get replicated.
       (if (zero? link) link
@@ -2165,12 +2169,17 @@
 		 (new-cell (make-cell!
 			    :name (or (gethash name *j74tbl*) name)
 			    :p (cell-p old-cell)
-			    :q (if (= q 2) 0 (cell-q old-cell))
+			    :q (if (= q 2)
+				   (setf (cell-q old-cell) 0) ;; This will also return the 0
+				   (cell-q old-cell))
 			    :symb (or (gethash symb *j74tbl*)
-				      (if (= q 2) (setf (gethash symb *j74tbl*) (newsym)) symb)
+				      (if (= q 2)
+					  (setf (gethash symb *j74tbl*) (newsym)) ;; Make and record new symbol
+					  symb)
 				      symb)
 			    :link (J74-deep-copy-ipl-list (cell-link old-cell))
 			    :id (cell-id old-cell))))
+	    (J74-deep-copy-IPL-list symb) ;; Recurse down the symbol as well
 	    (cell-name new-cell)))))
 
 #| Version that honors Q=2:
@@ -2731,26 +2740,131 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-debugger invoked on a TYPE-ERROR @535E1540 in thread #<THREAD "main thread" RUNNING {1001688003}>: The value NIL is not of type COMMON-LISP-USER::CELL
+Note L4 (Map) described in Sefferud pp.38+
 
-Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+Obviously, cell (1) isn't a cell!
 
-restarts (invokable by number or by possibly-abbreviated name):
-  0: [ABORT] Exit debugger, returning to top level.
+@20743- >>>>> {M062R420::M62-890||J76|M62-9-1 [LEAVE RESULT AS 1W2.;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="J76" @20743[S]
+   H0={H0||9-3329|0} ++ ({||0|0} {|||} {||**EMPTY**|})
+   W0={W0||9-2567|} ++ ({||9-2567|} {||*208|} {||*208|0} {|||})
+   W1={W1||L4|} ++ ({||*208|} {|||} {||**EMPTY**|})
+   W2={W2||0|} ++ ({|||} {|||} {||**EMPTY**|})
+   W3={||9-2569|} ++ ({|||} {|||} {||**EMPTY**|})
+   W4={W4||9-2255|} ++ ({|||} {||**EMPTY**|})
+   W5={W5||9-3329|} ++ ({|||} {||**EMPTY**|})
+   .......... Calling J76 [INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL]: (ARG0 ARG1)=("9-3329" "0")
 
-((LAMBDA (ARG0 ARG1) :IN SETUP-J-FNS) "Q5" "")
-; Using form offset instead of character position.
+debugger invoked on a SIMPLE-ERROR in thread #<THREAD "main thread" RUNNING {1001670003}>: In <=! "0" isn't a cell and you didn't ask to create it!
 
-   source: (CELL-SYMB LIST-HEAD)
-0] ??
-??
-H5={H5||-|}, H3(cycles)=30935
-*W24-Line-Buffer*="2.07    PI(0PVP)0                                                               "
-   H0={H0|0||0} ++ ({|0|M111-9-10|0} {||**EMPTY**|})
-   H1={H1|10|J10|J10} ++ ({||P8|P8-1416} {|04|M111-1280|M111-9-104} {||M111-1265|M111-1264} {||M113|M113-1358})
-   W0={W0|0|A0|0} ++ ({||9-3799|} {|0|*207|0} {||*207|} {|0|*207|0})
-   W1={W1|0||0} ++ ({||*207|} {|||} {||**EMPTY**|})
-   W2={W2||*208|} ++ ({|||} {||**EMPTY**|})
+(1) came from:
+
+Back here, 1W2 is the thmlst:
+
+@20699+ >>>>> {M062R050::M62-856|60|W2|M62-857 [SAVE COPY OF LIST IN MAP HEAD.;1W2=THMLST]} (Copy of (0) replaces S; S lost; H0 n.c.)
+     -----> At INTERPRET-P w/P = 6, S="W2" @20699[S]
+   H0={H0||9-3332|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||P0|} ++ ({||9-2567|} {||9-2567|} {||*208|} {||*208|0})
+   W1={||9-2252|} ++ ({||L4|} {||*208|} {|||} {||**EMPTY**|})
+   W2={||9-3332|} ++ ({||0|} {|||} {|||} {||**EMPTY**|})
+   W3={||9-2569|} ++ ({||9-2569|} {|||} {|||} {||**EMPTY**|})
+   W4={||9-2255|} ++ ({||9-2255|} {|||} {||**EMPTY**|})
+   W5={||9-3329|} ++ ({||9-3329|} {|||} {||**EMPTY**|})
+
+(and 9-3329 is full of stuff!)
+
+But when we get here:
+
+@20741- >>>>> {M062R400::M62-9-2|11|W2|M62-889 [FIX OUTPUT - - -;]} (Push cntnts of the cell named by symb, onto H0)
+     -----> At INTERPRET-P w/P = 1, S="0" @20741[S]
+   H0={||0|0} ++ ({||9-3329|} {|||} {||**EMPTY**|})
+   W0={W0||9-2567|} ++ ({||9-2567|} {||*208|} {||*208|0} {|||})
+   W1={W1||L4|} ++ ({||*208|} {|||} {||**EMPTY**|})
+   W2={W2||0|} ++ ({|||} {|||} {||**EMPTY**|})
+   W3={||9-2569|} ++ ({|||} {|||} {||**EMPTY**|})
+   W4={W4||9-2255|} ++ ({|||} {||**EMPTY**|})
+   W5={W5||9-3329|} ++ ({|||} {||**EMPTY**|})
+
+W2 is a zero. -- not even a list head (although maybe a list head)
+
+it gets smashed by this restore:
+
+@20705+ >>>>> {M062R080::M62-859|70|M62-860|J35 [    IF YES, QUIT WITH OUTPUT.;]} (Goto by H5: -symb|+link itself)
+     -----> At INTERPRET-P w/P = 7, S="M62-860" @20705[S]
+   H0={H0||9-3332|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||P0|} ++ ({||9-2567|} {||9-2567|} {||*208|} {||*208|0})
+   W1={||9-2252|} ++ ({||L4|} {||*208|} {|||} {||**EMPTY**|})
+   W2={||9-3332|} ++ ({||0|} {|||} {|||} {||**EMPTY**|})
+   W3={||9-2569|} ++ ({||9-2569|} {|||} {|||} {||**EMPTY**|})
+   W4={||9-2255|} ++ ({||9-2255|} {|||} {||**EMPTY**|})
+   W5={||9-3329|} ++ ({||9-3329|} {|||} {||**EMPTY**|})
+   .......... Calling J35 [RESTORE W0-W5] (No Args)
+   H0={H0||9-3332|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9-2567|} ++ ({||9-2567|} {||*208|} {||*208|0} {|||})
+   W1={W1||L4|} ++ ({||*208|} {|||} {||**EMPTY**|})
+   W2={W2||0|} ++ ({|||} {|||} {||**EMPTY**|})
+   W3={W3||9-2569|} ++ ({|||} {|||} {||**EMPTY**|})
+   W4={W4||9-2255|} ++ ({|||} {||**EMPTY**|})
+   W5={W5||9-3329|} ++ ({|||} {||**EMPTY**|})
+
+But that's a return, to a call from here:
+
+@20707+ >>>>> {M062R380::M62-888||M62-9-100|M62-9-4 [AND' RESULT WITH LIST 1W5, LOOP.;]} (Execute fn named by symb name itself)
+     -----> At INTERPRET-P w/P = 0, S="M62-9-100" @20707[S]
+   H0={H0||9-3332|0} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9-2567|} ++ ({||9-2567|} {||*208|} {||*208|0} {|||})
+   W1={W1||L4|} ++ ({||*208|} {|||} {||**EMPTY**|})
+   W2={W2||0|} ++ ({|||} {|||} {||**EMPTY**|})
+   W3={W3||9-2569|} ++ ({|||} {|||} {||**EMPTY**|})
+   W4={W4||9-2255|} ++ ({|||} {||**EMPTY**|})
+   W5={W5||9-3329|} ++ ({|||} {||**EMPTY**|})
+
+Boy, M62 is really spaghetti code!!! I'm pretty convinced that something's broken in it!
+
+L4 seems to be messed up bcs at the final moment, that 0 comes from:
+
+@20740- >>>>> {M062R390::M62-9-3|51|W5|M62-9-2} (Replace H0 by the cell named in the H0 symb)
+     -----> At INTERPRET-P w/P = 5, S="9-3329" @20740[S]
+   H0={||9-3329|} ++ ({|||} {||**EMPTY**|})
+   W0={W0||9-2567|} ++ ({||9-2567|} {||*208|} {||*208|0} {|||})
+   W1={W1||L4|} ++ ({||*208|} {|||} {||**EMPTY**|})
+   W2={W2||0|} ++ ({|||} {|||} {||**EMPTY**|})
+   W3={||9-2569|} ++ ({|||} {|||} {||**EMPTY**|})
+   W4={W4||9-2255|} ++ ({|||} {||**EMPTY**|})
+   W5={W5||9-3329|} ++ ({|||} {||**EMPTY**|})
+@20741- >>>>> {M062R400::M62-9-2|11|W2|M62-889 [FIX OUTPUT - - -;]} (Push cntnts of the cell named by symb, onto H0)
+     -----> At INTERPRET-P w/P = 1, S="0" @20741[S]
+   H0={||0|0} ++ ({||9-3329|} {|||} {||**EMPTY**|})
+   W0={W0||9-2567|} ++ ({||9-2567|} {||*208|} {||*208|0} {|||})
+   W1={W1||L4|} ++ ({||*208|} {|||} {||**EMPTY**|})
+   W2={W2||0|} ++ ({|||} {|||} {||**EMPTY**|})
+   W3={||9-2569|} ++ ({|||} {|||} {||**EMPTY**|})
+   W4={W4||9-2255|} ++ ({|||} {||**EMPTY**|})
+   W5={W5||9-3329|} ++ ({|||} {||**EMPTY**|})
+
+And although 3329 is a list:
+
++------------------------- "9-3329" {9-3329|02|0|9-3328} -------------------------+
+(0) {9-3329|02|0|9-3328}
+   (1) {9-3328||*13|9-3327}
+      (2) {*13|04|0|9-2325}
+         (3) {9-2325||9-2318|0}
+            (4) {9-2318|02|I0|9-2319}
+               (5) {I000D000::I0||I0-1841|0 [IMPLIES;]}
+
+a 51 on it implies getting it's DL, which is BLANK! ... Now ... the 02
+worries me! I worry that that might have been supposed to be a DL, but
+instead of the DL (3328) we have the list header (3329).
+
+This:
+
+@20666+ >>>>> {M062R030::M62-854|52|W1|M62-855 [    (0).  OUTPUT MAY BE EMPTY.;]} (Replace H0 2nd deref)
+     -----> At INTERPRET-P w/P = 5, S="9-2258" @20666[S]
+   H0={||9-2258|} ++ ({|||} {||**EMPTY**|})
+   W0={||P0|} ++ ({||9-2567|} {||9-2567|} {||*208|} {||*208|0})
+   W1={||9-2251|} ++ ({||L4|} {||*208|} {|||} {||**EMPTY**|})
+
+The 52 on W1 is a double indirect, but it appears ....
 
 |#
 
@@ -2774,10 +2888,12 @@ H5={H5||-|}, H3(cycles)=30935
 
 	  ;; Basic tracer:
 
-  	  ;; (20700
-	  ;;  (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts) *cell-tracing-on* t)
-	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
-	  ;;  )
+	  (20668 (break))
+
+  	  ("M002"
+	   (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts :s) *cell-tracing-on* t)
+	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t)
+	   )
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues

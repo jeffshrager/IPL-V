@@ -2,6 +2,26 @@
 Notes on the current issue:
 ================================================
 
+================================
+
+Around 20250523:
+
+The map head (L4's dlist) is a zero when we get here!
+
+146 SAVE COPY OF LIST IN MAP HEAD.  60 W2 1W2=THMLST M062R050 Copy (0)
+to S (direct) [Work cell 2] ... hmmm.
+
+M50 is who add expressions to the map. That's called from M2.
+
+There's this weird R0 at M002R070:
+
+130 10 R0 M002R070 Input S (direct) to H0, after pushing H0
+
+I temp suppressed this by turning off remembering (K30=X)
+
+=================================
+
+
 W1 losses the tune here:
 
    2107:   W1={W1||*207|} ++ ({|||} {||**EMPTY**|})
