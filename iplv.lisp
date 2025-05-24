@@ -2888,9 +2888,9 @@ The 52 on W1 is a double indirect, but it appears ....
 
 	  ;; Basic tracer:
 
-	  (20668 (break))
+	  ;; (20668 (break))
 
-  	  ("M002"
+  	  (20500
 	   (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts :s) *cell-tracing-on* t)
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t)
 	   )
