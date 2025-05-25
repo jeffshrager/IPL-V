@@ -2193,8 +2193,8 @@
   ;; does't mattere much.)
 
   (if (or (zero? link) ;; has to go first bcs could be "" which screw regional-symbol?
-	  (regional-symbol? link) ;; This will have been replaced above if it was tagged q=2 (in theory!)
-	  (functionp (gethash link *symtab*)))
+	  (functionp (gethash link *symtab*))
+	  (regional-symbol? link)) ;; This will have been replaced above if it was tagged q=2 (in theory!)
       link
 
       ;; Okay, so we actually have a cell that needs to be
@@ -2203,6 +2203,7 @@
       ;; through it's link, and, if q=2, it's symb.
 
       (let* ((old-cell (<== link))
+	     (old-name (cell-name old-cell))
 	     (old-p (cell-p old-cell))
 	     (old-q (cell-q old-cell))
 	     (old-symb (cell-symb old-cell))
@@ -2237,14 +2238,17 @@
 				 :name new-subhead-name
 				 :p (cell-p old-sub-head)
 				 :q (cell-q old-sub-head)
-				 :symb (cell-symb old-sub-head)
+				 :symb (cell-symb old-sub-head) ;; This will get checked on the recursion below.
 				 :link (cell-link old-sub-head)
 				 :id (cell-id old-sub-head))))
 	      ;; Okay, so all we should have to do now is set this as
 	      ;; the sym of the new-cell, and recursively copy from it.
 
 	      ;; ??? Something seems wrong here. It's gonna start from
-	      ;; the new cell it just created.
+	      ;; the new cell it just created. As a result, we're at
+	      ;; least going to copy that cell TWICE...is this really
+	      ;; necessary?! Could this recursion take place in the
+	      ;; :symb set above??
 
 	      (setf (cell-symb new-cell)
 		    (j74-deep-copy-ipl-list new-subhead-name))
@@ -2758,7 +2762,7 @@
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
-  ;(trace j8n-helper J73-shallow-copy-ipl-list J74-deep-copy-ipl-list)
+  (trace j8n-helper J73-shallow-copy-ipl-list J74-deep-copy-ipl-list)
   (setf *trace-exprs*
 	'(
 	  ;; NOTE: The key can be partial, as "P052R"; uses (search...)
