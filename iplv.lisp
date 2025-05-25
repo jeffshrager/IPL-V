@@ -80,6 +80,11 @@
 ;;; =========================================================================
 ;;; DEBUGGING TOOLS
 
+(defun ptbl (tbl)
+  (loop for key being the hash-keys of tbl
+	using (hash-value val)
+	do (format t "~s :: ~s~%" key val)))
+
 (defvar *trace-instruction* nil) ;; Used in error traps, so need to declare early.
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 (defvar *jfn-calls* (make-hash-table :test #'equal))
@@ -180,7 +185,7 @@
 ;;; or, more reasonably:
 ;;; ("P051R050" (setf *trace-cell-names-or-exprs* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
 ;;; If the ID is a number rather than a string, it refers to the value in (H3)
-(defvar *trace-@orID-exprs* nil) 
+(defvar *trace-exprs* nil) 
 (defvar *breaks* nil) ;; If this is set to t it breaks on every call
 (defvar *trace-cell-names-or-exprs* nil) 
 
@@ -380,25 +385,28 @@
 
 (defvar *running?* nil)
 
-;;; Example usage of *trace-@orID-exprs*
+;;; Example usage of *trace-exprs*
 ;;;   ("P051R050" (setf *trace-cell-names-or-exprs* '("W0" "W1" "H0" "H5") *cell-tracing-on* t))
 ;;;   ("P051R050" (setf *!!* '(:run :run-full :jdeep)))
 ;;; Can also be a number in which case it refers to the H3 value (@), as:
 ;;;   (123 ...)
 ;;; WWWWWWW Must call (trace-cell-safe-for-trace-expr) or (???) to trace cells otherwise messy recusion cycle ensues
-;;; (setf *trace-@orID-exprs*
+;;; (setf *trace-exprs*
 ;;;    '(("P052R040" ;; NOTE: This can be partial, as "P052R" it uses search **************
 ;;;       (setf *trace-cell-names-or-exprs* '("W0" "W1" "H0") *cell-tracing-on* t)
 ;;;       (trace symbolify ipl-string-equal ipl-string-equal))
 ;;;      (123 (trace) (setf *cell-tracing-on* nil *!!* *default-!!list*))
 ;;;      ))
+;;; The key can be a partial string (it uses search) a number (indicating H3 cycles)
+;;; or a list which is simple evaled
 
 (defun trace-cells ()
   (let* ((cycle (h3-cycles))
 	 (id (cell-id *trace-instruction*)))
     (mapcar #'eval
-	    (loop for (key . exprs) in *trace-@orID-exprs*
-		  if (or (and (numberp key) (= key cycle))
+	    (loop for (key . exprs) in *trace-exprs*
+		  if (or (and (listp key) (eval key))
+			 (and (numberp key) (= key cycle))
 			 (and (stringp key) (search key id :test #'char-equal)))
 		  do (return exprs))))
   (trace-cell-safe-for-trace-expr) ;; Avoid recursion when called from a trace expr
@@ -716,12 +724,13 @@
 
 (defun regional-symbol? (string)
   (and (find (aref string 0) *LT-Regional-Chars*)
-       (loop for p from 1 by 1
-	     with lim = (1- (length string))
-	     until (= p lim)
-	     if (not (find (aref string p) "0123456789"))
-	     do (return nil)
-	     finally (return t))))
+       (or (= 1 (length string)) ;; case of single char symbols
+	   (loop for p from 1 by 1
+		 with lim = (1- (length string))
+		 until (= p lim)
+		 if (not (find (aref string p) "0123456789"))
+		 do (return nil)
+		 finally (return t)))))
 
 (defun uniquify-list (l)
   (loop for i on l
@@ -2165,27 +2174,44 @@
 ;;; dicsussion.) More importantly, it recurses into the sublists.
 
 (defun J74-deep-copy-ipl-list (link)
-  (if (regional-symbol? link) link ;; Things like V0 don't get replicated.
-      (if (zero? link) link
-	  (let* ((old-cell (<== link))
-		 (q (cell-q old-cell))
-		 (name (cell-name old-cell))
-		 (symb (cell-symb old-cell))
-		 (new-cell (make-cell!
-			    :name (or (gethash name *j74tbl*) name)
-			    :p (cell-p old-cell)
-			    :q (if (= q 2)
-				   (setf (cell-q old-cell) 0) ;; This will also return the 0
-				   (cell-q old-cell))
-			    :symb (or (gethash symb *j74tbl*)
-				      (if (= q 2)
-					  (setf (gethash symb *j74tbl*) (newsym)) ;; Make and record new symbol
-					  symb)
-				      symb)
-			    :link (J74-deep-copy-ipl-list (cell-link old-cell))
-			    :id (cell-id old-cell))))
-	    (J74-deep-copy-IPL-list symb) ;; Recurse down the symbol as well
-	    (cell-name new-cell)))))
+  (if (or (zero? link) ;; has to go first bcs could be "" which screw regional-symbol?
+	  (regional-symbol? link) 
+	  (functionp (gethash link *symtab*)))
+      link
+      (let* ((old-cell (<== link))
+	     (q (cell-q old-cell))
+	     (name (cell-name old-cell))
+	     (symb (cell-symb old-cell))
+	     (new-cell (make-cell!
+			:name (or (gethash name *j74tbl*) name)
+			:p (cell-p old-cell)
+			:q (if (= q 2)
+			       (setf (cell-q old-cell) 0) ;; This will also return the 0
+			       (cell-q old-cell))
+			:symb (or (gethash symb *j74tbl*)
+				  (if (= q 2)
+				      ;; Make and record a new symbol. Also, we need to replace
+				      ;; the head cell of the sublist so that it has the name of
+				      ;; the new symbol, and then copy the rest of the sublist,
+				      ;; AFTER the new head. %%% This is really messy!
+				      (let* ((newsym (newsym))
+					     (subhead (<== symb))
+					     (new-subhead (make-cell! :name newsym
+								      :p (cell-p subhead)
+								      :q (cell-q subhead)
+								      :symb (cell-symb subhead)
+								      :link (cell-link subhead)
+								      :id (cell-link subhead))))
+					(setf (gethash symb *j74tbl*) newsym)
+					;; Now subcopy from the link in the newsubhead. WWW!!!
+					;; This may miss the case where the head of the sublist
+					;; is also q=2, but that would be the list's DL.
+					(J74-deep-copy-ipl-list (cell-link subhead))
+					newsym)
+				      (J74-deep-copy-ipl-list symb)))
+			:link (J74-deep-copy-ipl-list (cell-link old-cell))
+			:id (cell-id old-cell))))
+	(cell-name new-cell))))
 
 #| Version that honors Q=2:
 
@@ -2705,7 +2731,7 @@
   (setf *!!* *default-!!list*) 
   (setf *report-all-system-cells?* nil)
   (setf *cell-tracing-on* nil)
-  (setf *trace-@orID-exprs* nil)
+  (setf *trace-exprs* nil)
   '(trace ipl-eval)
   )
 
@@ -2725,7 +2751,7 @@
   (set-default-tracing)
   '(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
-  ;(setf *trace-@orID-exprs* '((9 (break))))
+  ;(setf *trace-exprs* '((9 (break))))
   ;(setf *!!* '(:s :run :jcalls :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0 ipush force-replace)
   (load-ipl "Ackermann.liplv" :adv-limit 250)
@@ -2758,6 +2784,7 @@
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
 ;;; *!!* <= :jdeep :jfns :run :run> :jcalls :dr-memory :s :run-full :alerts :load :gentrace :warnings
 ;;; (fsym "symbol")
+;;; Here's a useful *trace-exprs*: (= *gensym-counter* 3434)
 
 (progn ;; LT 
   (set-default-tracing)
@@ -2766,13 +2793,13 @@
   ;; (It's been over-riden by LTFixed code.)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
   ;(trace j8n-helper J73-shallow-copy-ipl-list J74-deep-copy-ipl-list)
-  (setf *trace-@orID-exprs*
+  (setf *trace-exprs*
 	'(
 	  ;; NOTE: The key can be partial, as "P052R"; uses (search...)
 
 	  ;; Basic tracer:
 
-  	   ;; (22290 
+  	   ;; ((= *gensym-counter* 3434)
 	   ;;  (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts :s) *cell-tracing-on* t)
 	   ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t)
 	   ;;  )
