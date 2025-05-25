@@ -488,6 +488,7 @@
 		 do (format t "  ~a(~a): ~s~%" stack-name depth cell))))
 
 (defun ??? (&aux (*cell-tracing-on* t) (*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "W2")))
+  (print *trace-instruction*) (terpri)
   (format t "H5=~a, H3(cycles)=~a~%" (cell "H5") (h3-cycles))
   (format t "*W24-Line-Buffer*=~s~%" *W24-Line-Buffer*)
   (trace-cell-safe-for-trace-expr))
@@ -2148,7 +2149,7 @@
 (defun J73-shallow-copy-ipl-list (link)
   ;; This version doesn't honor Q=2
   (if (zero? link) link
-      (let* ((old-cell (print (<== link)))
+      (let* ((old-cell (<== link))
 	     (new-cell (make-cell!
 			:p (cell-p old-cell)
 			:q (cell-q old-cell)
@@ -2751,7 +2752,7 @@
 
 |#
 
-;;; debugging tools: (pl cell) (pll cell) (rj) :c
+;;; debugging tools: (pl cell) (pll cell) (rj) :c (ds) (trace!)
 ;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
 ;;; (rx) analyzes routine call stats
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
@@ -2771,10 +2772,10 @@
 
 	  ;; Basic tracer:
 
-  	  ;; ("M062R000"
-	  ;;  (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts :s) *cell-tracing-on* t)
-	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t)
-	  ;;  )
+  	   ;; (22290 
+	   ;;  (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts :s) *cell-tracing-on* t)
+	   ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t)
+	   ;;  )
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
