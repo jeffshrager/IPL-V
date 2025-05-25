@@ -2173,120 +2173,86 @@
 ;;; although possible is, I think, generally avoided. See ChatGPT
 ;;; dicsussion.) More importantly, it recurses into the sublists.
 
+;;; What has to happen here is a bit conceptually pretzelly, so I
+;;; replicate code more than I probably will have to in a later
+;;; refactor. Sorry!
+
 (defun J74-deep-copy-ipl-list (link)
+  ;; This always gets a symbol naming a cell that is a list head and
+  ;; always returns the symbol to the new list head, which will be
+  ;; connected into a new link (or symb for q=2) or, eventually,
+  ;; returned as the top node of the whole copied list.
+
+  ;; Protect against trying to copy things that can't ever be copied:
+  ;; Functions and zeros (list ends). Don't be contused by testing for
+  ;; a regional symbol. You're saying to youself, well, if Q=2 then
+  ;; that needs to be localized, but AHA! that's done ABOVE here, so
+  ;; by the time we get here, we would only be handed a regional
+  ;; symbol if the above cell's Q was NOT 2. (You'd think that this
+  ;; could be stopped above, and it could, indeed, but here or here
+  ;; does't mattere much.)
+
   (if (or (zero? link) ;; has to go first bcs could be "" which screw regional-symbol?
-	  (regional-symbol? link) 
+	  (regional-symbol? link) ;; This will have been replaced above if it was tagged q=2 (in theory!)
 	  (functionp (gethash link *symtab*)))
       link
+
+      ;; Okay, so we actually have a cell that needs to be
+      ;; copied. Let's make a new one for it and then all we should
+      ;; need to do is to fill it in, and do the correct recusions
+      ;; through it's link, and, if q=2, it's symb.
+
       (let* ((old-cell (<== link))
-	     (q (cell-q old-cell))
-	     (name (cell-name old-cell))
-	     (symb (cell-symb old-cell))
+	     (old-p (cell-p old-cell))
+	     (old-q (cell-q old-cell))
+	     (old-symb (cell-symb old-cell))
+	     (old-link (cell-link old-cell))
+	     (old-id (cell-id old-cell))
+	     (new-cell-name (or (gethash old-name *j74tbl*) old-name))
 	     (new-cell (make-cell!
-			:name (or (gethash name *j74tbl*) name)
-			:p (cell-p old-cell)
-			:q (if (= q 2)
-			       (setf (cell-q old-cell) 0) ;; This will also return the 0
-			       (cell-q old-cell))
-			:symb (or (gethash symb *j74tbl*)
-				  (if (= q 2)
-				      ;; Make and record a new symbol. Also, we need to replace
-				      ;; the head cell of the sublist so that it has the name of
-				      ;; the new symbol, and then copy the rest of the sublist,
-				      ;; AFTER the new head. %%% This is really messy!
-				      (let* ((newsym (newsym))
-					     (subhead (<== symb))
-					     (new-subhead (make-cell! :name newsym
-								      :p (cell-p subhead)
-								      :q (cell-q subhead)
-								      :symb (cell-symb subhead)
-								      :link (cell-link subhead)
-								      :id (cell-link subhead))))
-					(setf (gethash symb *j74tbl*) newsym)
-					;; Now subcopy from the link in the newsubhead. WWW!!!
-					;; This may miss the case where the head of the sublist
-					;; is also q=2, but that would be the list's DL.
-					(J74-deep-copy-ipl-list (cell-link subhead))
-					newsym)
-				      (J74-deep-copy-ipl-list symb)))
-			:link (J74-deep-copy-ipl-list (cell-link old-cell))
-			:id (cell-id old-cell))))
-	(cell-name new-cell))))
+			:name new-cell-name
+			:p old-p
+			:q old-q
+			:symb :tbd
+			:link (j74-deep-copy-ipl-list old-link)
+			:id old-id)))
 
-#| Version that honors Q=2:
+	;; Okay, now we have the new cell, and everything is correct
+	;; EXCEPT the symb. The simple case is where q!=2, in which
+	;; case we just recurse on the symb and jam is in place. This
+	;; is the part that may be able to be refactored.
 
-;;; If we hit a Q=2 indicated cell we have to create a new symbol in
-;;; that cell, even though that symbol doesn't point to anything! That
-;;; is, J73 creates a new local name even though it does not
-;;; immediately create the cell that the name will eventually refer
-;;; to. This seems wrong, but I don't see how it could be otherwise
-;;; because But how could J73 copy the backbone and new a new local
-;;; symbol when it hits a cell with Q=2? Suppose the symbol in the Q=2
-;;; symb field is "SYM1" and Q is 2, we're saying that it would create
-;;; a local (starting with "9") gensym, say "9-1234" to replace SYM1
-;;; in the new list cell, but that doesn't point to anything unless we
-;;; also create a new cell called 9-1234, but then that wouldn't be
-;;; the right head of the sublist, but that's J74's job!
+	(if (not (= 2 old-q))
+	    (setf (cell-symb new-cell) (j74-deep-copy-ipl-list old-symb))
+	    
+	    ;; Okay, so now we have the difficult case where q=2, so
+	    ;; we need to create a new symbol and not only put it
+	    ;; here, but also create a new sub-head with that name,
+	    ;; and copy in the info from the old sub-head, and then
+	    ;; recurse down THIS cell.
 
-(defun J73-copy-list-backbone (link)
-  (if (zero? link) link
-      (let* ((old-cell (<== link))
-	     (oldq (cell-q old-cell))
-	     (new-cell (make-cell!
-			:p (cell-p old-cell)
-			:q (if (= 2 oldq) ;; Clear a Q=2
-			       (setf (cell-q old-cell) 0) ;; This will return a zero here as well.
-			       oldq) 
-			:symb (if (= 2 oldq) (newsym) (cell-symb old-cell))
-			:link (J73-copy-list-backbone (cell-link old-cell))
-			:id (cell-id old-cell))))
-	(cell-name new-cell))))
+	    (let* ((old-sub-head (<== old-symb))
+		   (new-subhead-name (setf (gethash old-symb *j74tbl*) (newsym)))
+		   (new-subhead (make-cell!
+				 :name new-subhead-name
+				 :p (cell-p old-sub-head)
+				 :q (cell-q old-sub-head)
+				 :symb (cell-symb old-sub-head)
+				 :link (cell-link old-sub-head)
+				 :id (cell-id old-sub-head))))
+	      ;; Okay, so all we should have to do now is set this as
+	      ;; the sym of the new-cell, and recursively copy from it.
 
-|#
+	      ;; ??? Something seems wrong here. It's gonna start from
+	      ;; the new cell it just created.
 
-#| I think that this version is deprecated and should be removed:
+	      (setf (cell-symb new-cell)
+		    (j74-deep-copy-ipl-list new-subhead-name))
 
-(defvar *copy-list-head-collector* nil)
-
-(defun copy-ipl-list-and-return-head (head)
-  (setf *copy-list-head-collector* nil)
-  (copy-ipl-list (cell head) head)
-  *copy-list-head-collector*
- )
-
-;;; The head symbol is used to tell when we need to store the new cell
-;;; because it's the new head for returning to the caller. (FFF %%%
-;;; UUU)
-
-(defun copy-ipl-list (cell-or-symb/link &optional head-symbol)
-  (cond
-    ;; If you're handed a cell, create a new one
-    ((cell? cell-or-symb/link)
-     (let* ((new-name (newsym))
-	    (new-cell (make-cell! :name new-name
-				  :symb (copy-ipl-list (cell-symb cell-or-symb/link))
-				  :link (copy-ipl-list (cell-link cell-or-symb/link)))))
-       (when head-symbol (setf *copy-list-head-collector* new-cell))
-       new-name))
-    ;; If you get a zero, just return it to get pluged back in.
-    ((zero? cell-or-symb/link) "0")
-    ;; If it's a local symbol, create a new cell with a new symbol and copy the cell,
-    ;; recursing for the symb and links
-    ((local-symbol-by-name? cell-or-symb/link)
-     (let* ((cell (cell cell-or-symb/link))
-	    (new-name (newsym))
-	    (new-cell (make-cell! :name new-name
-				  :symb (copy-ipl-list (cell-symb cell))
-				  :link (copy-ipl-list (cell-link cell)))))
-       (when head-symbol (setf *copy-list-head-collector* new-cell))
-       new-name))
-    ;; If we're handed a global symbol or a number, just return it.
-    ((or (numberp cell-or-symb/link)
-	 (global-symbol? cell-or-symb/link))
-     cell-or-symb/link)
-    (t (break "In copy-ipl-list got ~s which wasn't expected." cell-or-symb/link))))
-
-|#
+	      ))
+		   
+	;; And finally the result of the whole thing is just the new-cell-name.
+	new-cell-name)))
 
 (defun last-cell-of-linear-list (l)
   (cond ((zero? (cell-link l)) l)
