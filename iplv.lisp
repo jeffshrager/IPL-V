@@ -418,7 +418,8 @@
 	    (if (listp name-or-expr)
 		(let ((r (eval name-or-expr)))
 		  (when r (format t "   ~s => ~s~%" name-or-expr r)))
-	      (format t "   ~a=~s ++ ~s~%" name-or-expr (cell name-or-expr) (first-n 4 (gethash name-or-expr *systacks*))))))))
+		(format t "   ~a=~s ++ ~s~%" name-or-expr (cell name-or-expr)
+			(first-n  *stack-display-depth* (gethash name-or-expr *systacks*))))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -2709,7 +2710,8 @@
   (untrace)
   (setf *trace-cell-names-or-exprs* nil)
   (setf *breaks* nil) ;; If this is set to t (or '(t)) it break on every call
-  (setf *stack-depth-limit* 25) ;; (Nb. must be much higher, ~100, for Ackermann!)
+  (setf *stack-depth-limit* 100) 
+  (setf *stack-display-depth* 4)
   (setf *!!* *default-!!list*) 
   (setf *report-all-system-cells?* nil)
   (setf *cell-tracing-on* nil)
@@ -2757,6 +2759,38 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
+Looks like someone is over-popping:
+
+  0: IPOP returned {||exit|0}
+   H0={H0||9-3418|} ++ ({||*207|0} {|||} {||**EMPTY**|})
+   H1={H1||exit|0} ++ ({||<FUNCTION (LAMBDA (ARG0) :IN SETUP-J-FNS) {535E57BB}>|0} {||M7-180|0})
+   W0={W0||*207|0} ++ ({||*207|} {||*207|0} {|||} {||**EMPTY**|})
+   W1={W1|||} ++ ({||**EMPTY**|})
+   W2={W2|||} ++ ({||**EMPTY**|})
+  0: (IPOP "H1")
+  0: IPOP returned {||FUNCTION (LAMBDA (ARG0) :IN SETUP-J-FNS) {535E57BB}>|0}
+Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^ @30204[RUN]
+  0: (IPOP "H1")
+  0: IPOP returned {||M7-180|0}
+   H0={H0||9-3418|} ++ ({||*207|0} {|||} {||**EMPTY**|})
+   H1={H1||M7-180|0} ++ NIL                                           <<<<<<<<<<<<<<<<< Where'd my **EMPTY** go!?
+   W0={W0||*207|0} ++ ({||*207|} {||*207|0} {|||} {||**EMPTY**|})
+   W1={W1|||} ++ ({||**EMPTY**|})
+   W2={W2|||} ++ ({||**EMPTY**|})
+   .......... Calling J5 [REVERSE H5] (No Args)
+  0: (IPOP "H1")
+
+debugger invoked on a TYPE-ERROR @535BCAB8 in thread <THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
+
+(IPOP "H1" :MAKE-ME-A-NEW-COPY-OF-THE-POPPED-CELL T)
+; Using form offset instead of character position.
+
+   source: (CELL-P POPPED-CELL)
 
 
 |#
@@ -2775,7 +2809,6 @@
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
-  ;(trace J74-deep-copy-ipl-list)
   (setf *trace-exprs*
 	'(
 	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in LTFixed!
@@ -2783,10 +2816,11 @@
 	  ;; NOTE: The key can be partial, as "P052R"; uses (search...)
 
 	  ;; Basic tracer:
-  	  ;; (29660
-	  ;;  (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts :s) *cell-tracing-on* t)
-	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t)
-	  ;;  )
+  	  (30000
+	   ;;(setf *stack-display-depth* 10)
+	   ;;(setf *!!* '(:run>) *cell-tracing-on* t) ;;  :run :jcalls :jfns :jdeep :alerts :s
+	   ;;(setf *trace-cell-names-or-exprs* '("H1") *cell-tracing-on* t)
+	   )
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
