@@ -155,7 +155,7 @@
     "M076" "M071" "M071" "P014" "M112" "M113" "P024"
     "P017" "P013" "P016" "P000" "M041" "M040" "M019"
     "M017" "M016" "M014" "P022" "J73"  "J74"  "M008"
-    "M013" "M007" "M011" "M015" "M051" "M075")) 
+    "M013" "M007" "M011" "M015" "M051" "M075" "M090")) 
 
 (defun trace! ()
   (loop for entry in (reverse *card-cycles.ids-executed*)
@@ -190,7 +190,7 @@
 (defvar *trace-cell-names-or-exprs* nil) 
 
 ;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump :run>
-;;; :alerts :pq :warnings
+;;; :alerts 
 (defparameter *default-!!list* '(:run> :jcalls))
 
 (defun step! () (setf *breaks* t) "Use :c to step.")
@@ -364,7 +364,7 @@
 			 :symb (cell-symb popped-cell)
 			   :link (cell-link popped-cell)
 			   :id (cell-id popped-cell))))
-	  (!! :warnings "       Warning: IPOP WAS EXPLICILY ASKED TO RETURN ~s TO THE CALLER!" new-cell)
+	  (!! :dr-memory "       Warning: IPOP WAS EXPLICILY ASKED TO RETURN ~s TO THE CALLER!" new-cell)
 	  new-cell)
 	  :someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it)
     ))
@@ -790,7 +790,7 @@
 	  as depth = (length stack)
 	  do 
 	  (when (> depth *stack-depth-limit*)
-	    (!! :dr-memory "Tailing stack ~a, now ~a deep, to ~a. [mem]" key depth *stack-depth-limit*)
+	    (!! :alerts "*** THE STACK CLEANER COMETH! (Tailing: ~a) ***" key depth *stack-depth-limit*)
 	    (loop for s+ on stack
 		  as d below *stack-depth-limit*
 		  finally (setf (cdr s+) nil))))))
@@ -2101,7 +2101,7 @@
   (let* ((data-cell (cell sym)))
     (unless (numberp (cell-link data-cell))
       (!! :alerts
-	  "       *** ALERT !!! NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link."
+	  "*** NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link. ***"
 	  data-cell sym))
     (setf (cell-link data-cell) n)))
 
@@ -2799,7 +2799,7 @@ restarts (invokable by number or by possibly-abbreviated name):
 ;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
 ;;; (rx) analyzes routine call stats
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
-;;; *!!* <= :jdeep :jfns :run :run> :jcalls :dr-memory :s :run-full :alerts :load :gentrace :warnings
+;;; *!!* <= :jdeep :jfns :run :run> :jcalls :dr-memory :s :run-full :alerts :load :gentrace 
 ;;; (fsym "symbol")
 ;;; Here's a useful *trace-exprs*: (= *gensym-counter* 3434)
 
@@ -2811,21 +2811,23 @@ restarts (invokable by number or by possibly-abbreviated name):
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
   (setf *trace-exprs*
 	'(
-	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in LTFixed!
+	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
+	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in the original code!
 
-	  ;; NOTE: The key can be partial, as "P052R"; uses (search...)
+	  ;; NOTE: The key can be partial, as "P052R"; uses
+	  ;; (search...) for strings, or an expr, for example to trace
+	  ;; when local is created: (= *gensym-counter* 3434)
 
 	  ;; Basic tracer:
-  	  (30000
-	   ;;(setf *stack-display-depth* 10)
-	   ;;(setf *!!* '(:run>) *cell-tracing-on* t) ;;  :run :jcalls :jfns :jdeep :alerts :s
-	   ;;(setf *trace-cell-names-or-exprs* '("H1") *cell-tracing-on* t)
-	   )
+  	  ;; (52500
+	  ;;  (setf *!!* '(:run> :alerts) *cell-tracing-on* t) ;;  :run :jcalls :jfns :jdeep :alerts :s
+	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+	  ;;  )
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 	  
 
 	  ))
-  (load-ipl "LTFixed.liplv" :adv-limit 200000)
+  (load-ipl "LTFixed.liplv" :adv-limit 500000)
   )
