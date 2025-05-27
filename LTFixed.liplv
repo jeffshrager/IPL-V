@@ -2094,7 +2094,7 @@
 ("" "1" "" "" "" "" "" "" "    R")
 ("Q15 ATTRIBUTE INTERNAL FORM." "" "Q15" "" "10" "Q15" "J10" "" "Q015R000")
 ("" "1" "" "" "" "" "" "" "    R")
-("Q16 FIND EXTERNAL NAME OF (0)" "" "Q16" "" "10" "Q10" "" "" "Q016R000")
+("Q16 FIND EXTERNAL NAME OF (0)" "" "Q16" "" "10" "T10" "" "" "Q016R000")
 ("IN TABLE T10." "" "" "" "" "J6" "J10" "" "Q016R010")
 ("" "1" "" "" "" "" "" "" "    R")
 (" Q17 FIND LEVEL OF SUBSEGMENT" "" "Q17" "" "40" "W0" "" "" "Q017R000")
