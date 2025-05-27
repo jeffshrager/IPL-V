@@ -155,7 +155,7 @@
     "M076" "M071" "M071" "P014" "M112" "M113" "P024"
     "P017" "P013" "P016" "P000" "M041" "M040" "M019"
     "M017" "M016" "M014" "P022" "J73"  "J74"  "M008"
-    "M013" "M007" "M011")) 
+    "M013" "M007" "M011" "M015" "M051" "M075")) 
 
 (defun trace! ()
   (loop for entry in (reverse *card-cycles.ids-executed*)
@@ -2167,40 +2167,39 @@
 			:id (cell-id old-cell))))
 	(cell-name new-cell))))
 
-;;; This Is almost the same as J73 but *does* honor Q=2, and keeps a
-;;; table of new names in case it comes across them again (although it
-;;; shouldn't bcs then the list will be self-referential, which,
-;;; although possible is, I think, generally avoided. See ChatGPT
-;;; dicsussion.) More importantly, it recurses into the sublists.
-
-;;; What has to happen here is a bit conceptually pretzelly, so I
-;;; replicate code more than I probably will have to in a later
-;;; refactor. Sorry!
+;;; J74 copies the whole list structure, including honoring q=2
+;;; symbols and making new locals for them when it comes across
+;;; them. This is a bit conceptually pretzelly, so I replicate code
+;;; more than I should to but will deal with that in a refactor.
 
 (defun J74-deep-copy-ipl-list (link)
   ;; This always gets a symbol naming a cell that is a list head and
   ;; always returns the symbol to the new list head, which will be
   ;; connected into a new link (or symb for q=2) or, eventually,
-  ;; returned as the top node of the whole copied list.
+  ;; returned as the top node of the whole copied list. Of course, in
+  ;; the recursions, these list heads aren't the top of the graph.
 
-  ;; Protect against trying to copy things that can't ever be copied:
-  ;; Functions and zeros (list ends). Don't be contused by testing for
-  ;; a regional symbol. You're saying to youself, well, if Q=2 then
-  ;; that needs to be localized, but AHA! that's done ABOVE here, so
-  ;; by the time we get here, we would only be handed a regional
-  ;; symbol if the above cell's Q was NOT 2. (You'd think that this
-  ;; could be stopped above, and it could, indeed, but here or here
-  ;; does't mattere much.)
+  ;; Terminal case: Trying to copy things that can't ever be copied:
+  ;; Functions, zeros (list ends), and regional symbols. (Regarding
+  ;; regional symbols, you're thinking: "But if Q=2 then that needs to
+  ;; be localized!". But that would have been done ABOVE here, so by
+  ;; the time we get here, we would only be handed a regional symbol
+  ;; if the above cell symb link was NOT q=2.
 
-  (if (or (zero? link) ;; has to go first bcs could be "" which screw regional-symbol?
+  (if (or (zero? link) ;; this first bcs "" screws regional-symbol?
+	  (numberp link) ;; Actual numbers will only show up in data lists
 	  (functionp (gethash link *symtab*))
-	  (regional-symbol? link)) ;; This will have been replaced above if it was tagged q=2 (in theory!)
+	  (regional-symbol? link)) ;; This will have been replaced
+				   ;; above if it was tagged q=2
       link
 
       ;; Okay, so we actually have a cell that needs to be
       ;; copied. Let's make a new one for it and then all we should
       ;; need to do is to fill it in, and do the correct recusions
-      ;; through it's link, and, if q=2, it's symb.
+      ;; through it's link, and, if q=2, it's symb. So far this is
+      ;; just like J73 (although that only walks links, so we didn't
+      ;; even need the special protections from regional symbols and
+      ;; functions, as above.)
 
       (let* ((old-cell (<== link))
 	     (old-name (cell-name old-cell))
@@ -2219,18 +2218,24 @@
 			:id old-id)))
 
 	;; Okay, now we have the new cell, and everything is correct
-	;; EXCEPT the symb. The simple case is where q!=2, in which
-	;; case we just recurse on the symb and jam is in place. This
-	;; is the part that may be able to be refactored.
+	;; EXCEPT the symb. The simple case is where q is NOT =2 nor
+	;; is is local, in which case we just recurse on the symb and
+	;; jam is in place. This is the part that may be able to be
+	;; refactored.
 
-	(if (not (= 2 old-q))
+	(if (or (not (= 2 old-q))
+		(numberp old-symb)
+		(local-symbol-by-name? old-symb))
 	    (setf (cell-symb new-cell) (j74-deep-copy-ipl-list old-symb))
 	    
-	    ;; Okay, so now we have the difficult case where q=2, so
-	    ;; we need to create a new symbol and not only put it
-	    ;; here, but also create a new sub-head with that name,
-	    ;; and copy in the info from the old sub-head, and then
-	    ;; recurse down THIS cell.
+	    ;; Okay, so now we have the difficult case where q=2 or
+	    ;; (actually and/or) it's a local symbol. In thie case we
+	    ;; need to create a new symbol and not only put it here,
+	    ;; but also create a new subhead with that name, and copy
+	    ;; in the info from the old sub-head, and then recurse
+	    ;; down THIS cell. (??? WWW Possible screw case where it's
+	    ;; q=2 but also a 0! I don't know why this would happen,
+	    ;; but it's theoretically possible could.)
 
 	    (let* ((old-sub-head (<== old-symb))
 		   (new-subhead-name (setf (gethash old-symb *j74tbl*) (newsym)))
@@ -2267,18 +2272,21 @@
 (defun pll (symb) (print-linear-list symb))
 (defun print-linear-list (symb &optional (depth 0))
   (let ((cell (<== symb)))
-    (if (> depth 5) (break "PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
-    (format t "~%+------------------------- ~s [~a] -------------------------+~%" symb depth)
-    ;; FFF Maintain depth and indent.
-    (when (not (zero? (cell-symb cell)))
-      (format t "| Description list:~%")
-      (print-linear-list (cell-symb cell) (1+ depth)))
-    (loop do (format t "| ~s~70T|~%" cell)
-	  (let ((link (cell-link cell)))
-	    (if (zero? link) (return :end-of-list))
-	    (setf cell (cell link))))
-    (format t "+--------------------------End: ~a -------------------------------------------+~%" symb)
-    ))
+    (if (numberp (cell-link cell))
+	(format t "| ~s~70T|~%" cell)
+	(progn 
+	  (if (> depth 5) (break "PRINT-LINEAR-LIST appears to be in a recursive death spiral!"))
+	  (format t "~%+------------------------- ~s [~a] -------------------------+~%" symb depth)
+	  ;; FFF Maintain depth and indent.
+	  (when (not (zero? (cell-symb cell)))
+	    (format t "| Description list:~%")
+	    (print-linear-list (cell-symb cell) (1+ depth)))
+	  (loop do (format t "| ~s~70T|~%" cell)
+		(let ((link (cell-link cell)))
+		  (if (zero? link) (return :end-of-list))
+		  (setf cell (cell link))))
+	  (format t "+--------------------------End: ~a -------------------------------------------+~%" symb)
+	  ))))
 
 (defun pl (symb &rest args)
     (format t "~%+------------------------- ~s ~s -------------------------+~%" symb (cell symb))
@@ -2287,7 +2295,11 @@
     )
 (defun print-list (symb &key (depth 0) (limit 10) (dls? t))
   (cond ((> depth limit) (format t "~a[@~a...]~%" (blanks (* (1- depth) 3)) depth))
-	((or (not (atom symb)) (numberp symb) (null symb) (null (ignore-errors (cell symb))) (zero? symb)))
+	((or (not (atom symb))
+	     (numberp symb)
+	     (null symb)
+	     (null (ignore-errors (cell symb)))
+	     (zero? symb)))
 	(t (let ((cell (cell symb)))
 	     (format t "~a(~a) ~s~%" (blanks (* depth 3)) depth
 		     (or (gethash cell *jfn->name*) cell))
@@ -2746,6 +2758,7 @@
 #| Current issue (see notes.txt for the issue stack):
 
 
+
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (ds) (trace!)
@@ -2762,22 +2775,22 @@
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
-  (trace j8n-helper J73-shallow-copy-ipl-list J74-deep-copy-ipl-list)
+  ;(trace J74-deep-copy-ipl-list)
   (setf *trace-exprs*
 	'(
+	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in LTFixed!
+
 	  ;; NOTE: The key can be partial, as "P052R"; uses (search...)
 
 	  ;; Basic tracer:
-
-  	   ;; ((= *gensym-counter* 3434)
-	   ;;  (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts :s) *cell-tracing-on* t)
-	   ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t)
-	   ;;  )
+  	  (29660
+	   (setf *!!* '(:run> :run :jcalls :jfns :jdeep :alerts :s) *cell-tracing-on* t)
+	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3" "W4" "W5") *cell-tracing-on* t)
+	   )
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 	  
-	  ;;("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; L11 problem Patched in LTFixed
 
 	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 200000)
