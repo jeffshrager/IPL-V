@@ -156,7 +156,7 @@
     "P017" "P013" "P016" "P000" "M041" "M040" "M019"
     "M017" "M016" "M014" "P022" "J73"  "J74"  "M008"
     "M013" "M007" "M011" "M015" "M051" "M075" "M090"
-    "P025" "P003" "P026")) 
+    "P025" "P003" "P026"))
 
 (defun trace! ()
   (loop for entry in (reverse *card-cycles.ids-executed*)
@@ -1786,7 +1786,7 @@
 	(W25-set 0))
 
   (defj J155 () "Print line"
-	(format t ":::::::::::::::::::::::::::::::: ~a~%" *W24-Line-Buffer*)
+	(format t ":::::::::::::::::::::::::::::::: ~a~%" (hack-output!! *W24-Line-Buffer*))
 	)
 
   (defj J156 (arg0) "ENTER SYMBOL (0) LEFT-JUSTIFIED"
@@ -1796,7 +1796,7 @@
 	;; H5 is set + . If (0) exceeds the remaining space, no entry
 	;; is made and H5 is set - .
 	(PopH0 1)
-	(let* ((s (cell-symb (<=! arg0)))
+	(let* ((s arg0) ;;(cell-symb (<=! arg0)))
 	       (l (length s))
 	       (p (W25-get)))
 	  (!! :io "             .....J156 trying to add ~s at pos ~a in print butter." s p)
@@ -1977,6 +1977,28 @@
 
 ;;; ===================================================================
 ;;; JFn Utilities
+
+;;; There's this whole mess about zeros following certain characters
+;;; because they are symbols and such like. This cleans up these
+;;; hacks. FFF figure out what's supposed suppose to happen to avoid
+;;; this mess.
+
+(defun hack-output!! (s)
+  (loop with r = (blanks 80)
+	with l = (length s)
+	as p below l
+	as o below l
+	as c across s
+	with skip1 = nil
+	do
+	(if skip1
+	    (setf skip1 nil o (1- o))
+	    (progn 
+	      (setf (aref r o) c)
+	      (if (and (member c '(#\( #\)) :test #'char-equal)
+		       (char-equal #\0 (aref s (1+ p))))
+		  (setf skip1 t))))
+	finally (return r)))
 
 ;;; Used to pop the inputs of JFns. You need to be VERY CAREFUL about
 ;;; when in the JFn you do pop the args bcs the JFn may want to use
@@ -2851,13 +2873,15 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;; (search...) for strings, or an expr, for example to trace
 	  ;; when local is created: (= *gensym-counter* 3434)
 
+	  ;; Useful for localizing problems: ((zerop (mod (h3-cycles) 1000)) (print (list "***********" (h3-cycles))))
 	  ;("M088R020" (break))
 	  ;; Basic tracer:
-  	   ;; (1
-	   ;;  (setf *!!* '(:run> :alerts :run :jcalls :jfns :jdeep) *cell-tracing-on* t) ;;  :run :jcalls :jfns :jdeep :alerts :s
-	   ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
-	   ;;  )
-
+  	  ;; (42704
+	  ;;   (setf *!!* '(:run> :alerts :run :jcalls :jfns :jdeep) *cell-tracing-on* t) ;;  :run :jcalls :jfns :jdeep :alerts :s
+	  ;;   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+	  ;;  )
+	  ;; (42870 (break))
+	  
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 	  
