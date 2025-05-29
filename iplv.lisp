@@ -155,7 +155,8 @@
     "M076" "M071" "M071" "P014" "M112" "M113" "P024"
     "P017" "P013" "P016" "P000" "M041" "M040" "M019"
     "M017" "M016" "M014" "P022" "J73"  "J74"  "M008"
-    "M013" "M007" "M011" "M015" "M051" "M075" "M090")) 
+    "M013" "M007" "M011" "M015" "M051" "M075" "M090"
+    "P025" "P003" "P026")) 
 
 (defun trace! ()
   (loop for entry in (reverse *card-cycles.ids-executed*)
@@ -399,6 +400,8 @@
 ;;;      ))
 ;;; The key can be a partial string (it uses search) a number (indicating H3 cycles)
 ;;; or a list which is simple evaled
+
+(defvar *stack-display-depth* 4)
 
 (defun trace-cells ()
   (let* ((cycle (h3-cycles))
@@ -972,6 +975,21 @@
 	  (PopH0 3)
 	  ))
 
+  (defj J14 (arg0 arg1) "ERASE ATTRIBUTE (0) OF (1)"
+	;; If the symbol (0) exists on the description list of list
+	;; (1) as an attribute, both it and its value symbol are
+	;; removed from the list. If either is local, it is erased as
+	;; a list structure (J72). If (0) is not an attribute on the
+	;; description list of (1), nothing is done. (In all cases the
+	;; description list is left.)
+	(let* ((head (<== arg1))
+	       (dlname (cell-symb head)))
+	  (if (zero? dlname) (break "J14 (ERASE ATTRIBUTE ~s OF ~s) called but ~s doesn't have a DList!" arg0 arg1 arg1))
+	  (let ((dlhead (<== dlname)))
+	    (setf (cell-link dlhead) (j14-helper arg0 (cell-link dlhead)))))
+	(poph0 2)
+	)
+
   (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
 	;; The description list of list (0) is erased as a list
 	;; structure (J72), and the head of (0) is set empty.
@@ -1222,7 +1240,7 @@
 	;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
 	(let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
 	  (poph0 2) 
-	  (ipush "H0" r))))
+	  (ipush "H0" (cell-name r)))))
 
   (defj J63 (new-symbol list-cell-name) "INSERT (0) BEFORE SYMBOL IN (1)"
 	;; (1) is assumed to name a cell in a list. A new cell is
@@ -1944,8 +1962,6 @@
 		(ipush "H0" (format nil (if (numchar? c) "~c" "~c0") c))
 		(H5+)))))
 
-  (defj J14 () "Unimplemented!" (break "J14 is unimplemented!")) ;; ERASE ATTRIBUTE(0) OF (1) **
-
   (defj J991 () "EMERGENCY HIDE"
 	(setf *J991/2-emergency-hidey-hole*
 	      (list (cell-symb (cell "H0"))
@@ -2035,6 +2051,22 @@
 	  (setf (cell-link last-val-cell) (cell-name new-att-cell))
 	  (H5+)
 	  (return t))))
+
+(defun j14-helper (att link)
+  (if (zero? link) link ;; end of recursion
+      (let* ((attcell (<== link))
+	    (valcell (<== (cell-link attcell))))
+	(if (string-equal att (cell-symb attcell))
+	    ;; Skip the attribute and value cells, and return the link
+	    ;; of the value.
+	    (cell-link (<== (cell-link attcell)))
+	    ;; If not, then skip to the valcell and recur, reinserting
+	    ;; the result in the valcell's link, and then returning
+	    ;; the attcell's link -- that is, the link we originally
+	    ;; got, bcs that will be re-inserted above. Ugh.
+	    (progn (setf (cell-link valcell)
+			 (j14-helper att (cell-link valcell)))
+		   link)))))
 
 (defun dlist-of (listhead &key (create-if-does-not-exist? nil))
   (let* ((dlisthead (cell-symb listhead)))
@@ -2808,6 +2840,7 @@ restarts (invokable by number or by possibly-abbreviated name):
   (setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
+  ;(trace j14-helper)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
   (setf *trace-exprs*
 	'(
@@ -2818,11 +2851,12 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;; (search...) for strings, or an expr, for example to trace
 	  ;; when local is created: (= *gensym-counter* 3434)
 
+	  ;("M088R020" (break))
 	  ;; Basic tracer:
-  	  ;; (52500
-	  ;;  (setf *!!* '(:run> :alerts) *cell-tracing-on* t) ;;  :run :jcalls :jfns :jdeep :alerts :s
-	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
-	  ;;  )
+  	   ;; (1
+	   ;;  (setf *!!* '(:run> :alerts :run :jcalls :jfns :jdeep) *cell-tracing-on* t) ;;  :run :jcalls :jfns :jdeep :alerts :s
+	   ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+	   ;;  )
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues

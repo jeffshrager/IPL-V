@@ -396,7 +396,7 @@
 ("    H5+MEANS (0) IS A SOL'N." "" "" "" "" "J10" "" "" "M016R040")
 ("(M16 TRIES ONE LEVEL AT A TIME)" "" "" "" "70" "J38" "" "" "M016R050")
 ("" "" "" "" "60" "W2" "" "" "M016R060")
-("FIND MAP OF DEF. LEFT SIDES." "" "" "" "" "J81" "" "" "MO16R070")
+("FIND MAP OF DEF. LEFT SIDES." "" "" "" "" "J81" "" "" "M016R070")
 ("    IF NONE, QUIT-." "" "" "" "70" "J38" "" "" "M016R080")
 ("" "" "" "" "60" "W1" "" "1W1=LFTMAP" "M016R090")
 ("" "" "" "" "51" "W2" "" "" "M016R100")
@@ -2855,6 +2855,10 @@
 ("" "" "X22" "" "" "0" "" "" "X022D000")
 ("DESCRIPTION LIST OF TRAP ACTIONS." "" "X23" "" "" "0" "" "" "X023D000")
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
+*1.01  ((PIQ).=.(-PVQ))  DEF.
+*2.33  ((PVQVR).=.((PVQ)QR)) DEF.
+*3.01  ((P*Q).=.-(-(PV-Q)) DEF.
+*4.01  ((P=Q).=.((PIQ)*(QIP))) DEF.
 *1.1   (AIA)
 *1.2   ((AVA)IA)
 *1.3   (BI(AVB))
