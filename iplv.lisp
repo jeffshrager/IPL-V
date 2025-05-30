@@ -2873,15 +2873,15 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;; (search...) for strings, or an expr, for example to trace
 	  ;; when local is created: (= *gensym-counter* 3434)
 
-	  ;; Useful for localizing problems: ((zerop (mod (h3-cycles) 1000)) (print (list "***********" (h3-cycles))))
+	  ;; Useful for localizing problems:
+	  ;; ((zerop (mod (h3-cycles) 1000)) (print (list "***********" (h3-cycles))))
 	  ;("M088R020" (break))
 	  ;; Basic tracer:
-  	  ;; (42704
-	  ;;   (setf *!!* '(:run> :alerts :run :jcalls :jfns :jdeep) *cell-tracing-on* t) ;;  :run :jcalls :jfns :jdeep :alerts :s
-	  ;;   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
-	  ;;  )
-	  ;; (42870 (break))
-	  
+  	  (381000
+	   (setf *!!* '(:run> :run :jcalls) *cell-tracing-on* t) ;;  :run> :run :jcalls :jfns :jdeep :alerts :s
+	   (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t) ;;  "W0" "W1" "W2"
+	   )
+	  (383000 (break))
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 	  
