@@ -243,7 +243,7 @@
 	     (member ,key *!!*))
      ;; There's a special hack here for :run> just to make it slightly prettier
      ,(if (stringp (car args))
-	  (if (eq :run> key)
+	  (if (member key '(:load :run>))
 	      `(format t ,(car args) ,@(cdr args)) ;; Run already puts this info out
 	      `(format t (concatenate 'string  ,(car args) " @~a[~a]~%") ,@(cdr args) (h3-cycles) ,key))
 	  `(progn ,@args))))
@@ -529,16 +529,16 @@
       (i file)
     (setf *card-number* 0)
     (setf *input-stream* i) ;; For reads inside the program executor
-    (!! :load "Loading IPL file: ~s" file)
+    (!! :load "Loading IPL file: ~s~%" file)
     ;; First line is assumed to be the header which we just check
     (if (equal *cols* (read i))
-	(!! :load "Header okay!")
+	(!! :load "Header okay!~%")
 	(error "No valid header on ~s" file)
 	)
     (loop for read-row = (read i nil nil)
 	  with cells = nil
 	  until (null read-row)
-	  do (!! :load "Reading card number ~a: ~s" (incf *card-number*) read-row)
+	  do (!! :load "Reading card number ~a: ~s~%" (incf *card-number*) read-row)
 	  (let* ((p -1)
 		 (cell (make-cell
 			:comments (nth (incf p) read-row)
@@ -561,27 +561,27 @@
 	    (if (zero? (cell-type cell))
 		(progn 
 		  (when (global-symbol? name)
-		    (!! :load "Loading global name: ~s" name)
+		    (!! :load "Loading global name: ~s~%" name)
 		    (save-cells (reverse cells) load-mode) (setf cells nil))
 	      	  (push cell cells))
 		(if (string-equal "5" (cell-type cell))
 		    (if (global-symbol? (cell-symb cell))
 			(progn
-			  (!! :run "** Execution start at ~s **" (cell-symb cell))
+			  (!! :load "** Execution start at ~s **~%" (cell-symb cell))
 			  (save-cells (reverse cells) load-mode)
 			  (setf cells nil)
 			  (run (cell-symb cell) :adv-limit adv-limit))
 			(if (and (zerop (cell-p cell)) (= (cell-q cell) 1))
 			    (progn
 			      (save-cells (reverse cells) load-mode) (setf cells nil)
-			      (!! :load "Switching to DATA load mode.")
+			      (!! :load "Switching to DATA load mode.~%")
 			      (setf load-mode :data))
 			    (if (and (zerop (cell-p cell)) (zerop (cell-q cell)))
 				(progn
-				  (!! :load "Switching to CODE load mode.")
+				  (!! :load "Switching to CODE load mode.~%")
 				  (save-cells (reverse cells) load-mode) (setf cells nil)
 				  (setf load-mode :code))
-				(!! :load "Ignoring: ~s" read-row)))))))
+				(!! :load "Ignoring: ~s~%" read-row)))))))
 	  finally (save-cells (reverse cells) load-mode)
 	  )))
 
@@ -635,7 +635,7 @@
 					  do (format t "WARNING: Cell ~s is being added for missing local symbol ~s!~%" new-name missymb)
 					  collect (make-cell! :name new-name :p 0 :q 0 :symb "0" :link "0"))))))
       (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
-      (!! :load "Saved: ~s" (cell-name (car cells)))
+      (!! :load "Saved: ~s~%" (cell-name (car cells)))
       ;; Loop through the whole list and create a local symbol for every cell
       ;; that doesn't already have one. 
       (loop for (this-cell next-cell) on cells
@@ -2805,6 +2805,12 @@
   (load-ipl "T123.liplv" :adv-limit 100)
   )
 
+(progn ;; Test of EPAM
+  (set-default-tracing)
+  (setf *!!* '(:run>) *cell-tracing-on* t)
+  (load-ipl "EPAMFixed.liplv" :adv-limit 10000)
+  )
+
 ;;; WWW If this ends early with a BAD EXPRESSION (or other "normal
 ;;; error"), you're likely to get redisual errors from the loader
 ;;; trying to read more data after "normal" termination of the
@@ -2857,7 +2863,7 @@ restarts (invokable by number or by possibly-abbreviated name):
 ;;; (fsym "symbol")
 ;;; Here's a useful *trace-exprs*: (= *gensym-counter* 3434)
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
@@ -2877,11 +2883,11 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;; ((zerop (mod (h3-cycles) 1000)) (print (list "***********" (h3-cycles))))
 	  ;("M088R020" (break))
 	  ;; Basic tracer:
-  	  (381000
-	   (setf *!!* '(:run> :run :jcalls) *cell-tracing-on* t) ;;  :run> :run :jcalls :jfns :jdeep :alerts :s
-	   (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t) ;;  "W0" "W1" "W2"
-	   )
-	  (383000 (break))
+  	  ;; (381000
+	  ;;  (setf *!!* '(:run> :run :jcalls) *cell-tracing-on* t) ;;  :run> :run :jcalls :jfns :jdeep :alerts :s
+	  ;;  (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t) ;;  "W0" "W1" "W2"
+	  ;;  )
+	  ;; (383000 (break))
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 	  
