@@ -2807,7 +2807,7 @@
 
 (progn ;; Test of EPAM
   (set-default-tracing)
-  (setf *!!* '(:run>) *cell-tracing-on* t)
+  (setf *!!* '(:jdeep :jfns :run :run> :jcalls) *cell-tracing-on* t)
   (load-ipl "EPAMFixed.liplv" :adv-limit 10000)
   )
 
