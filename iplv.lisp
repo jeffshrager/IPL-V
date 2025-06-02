@@ -2782,7 +2782,7 @@
   ;(push :run-full *!!*)
   ;(trace force-replace) 
   ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (load-ipl "F1.liplv")
+  (load-ipl "misccode/F1.liplv")
   )
 
 '(progn ;; Ackermann test
@@ -2792,7 +2792,7 @@
   ;(setf *trace-exprs* '((9 (break))))
   ;(setf *!!* '(:s :run :jcalls :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0 ipush force-replace)
-  (load-ipl "Ackermann.liplv" :adv-limit 250)
+  (load-ipl "misccode/Ackermann.liplv" :adv-limit 250)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
       (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
@@ -2802,13 +2802,13 @@
 '(progn ;; Test of call stack state machine.
   (set-default-tracing)
   (setf *trace-cell-names-or-exprs* '("H0" "H1") *cell-tracing-on* t)
-  (load-ipl "T123.liplv" :adv-limit 100)
+  (load-ipl "misccode/T123.liplv" :adv-limit 100)
   )
 
-(progn ;; Test of EPAM
+'(progn ;; Test of EPAM
   (set-default-tracing)
   (setf *!!* '(:jdeep :jfns :run :run> :jcalls) *cell-tracing-on* t)
-  (load-ipl "EPAMFixed.liplv" :adv-limit 10000)
+  (load-ipl "EPAM/EPAMFixed.liplv" :adv-limit 10000)
   )
 
 ;;; WWW If this ends early with a BAD EXPRESSION (or other "normal
@@ -2863,9 +2863,9 @@ restarts (invokable by number or by possibly-abbreviated name):
 ;;; (fsym "symbol")
 ;;; Here's a useful *trace-exprs*: (= *gensym-counter* 3434)
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-default-tracing)
-  (setf *!!* '() *cell-tracing-on* nil)
+  (setf *!!* '(:run>) *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;(trace j14-helper)
@@ -2887,11 +2887,11 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;;  (setf *!!* '(:run> :run :jcalls) *cell-tracing-on* t) ;;  :run> :run :jcalls :jfns :jdeep :alerts :s
 	  ;;  (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t) ;;  "W0" "W1" "W2"
 	  ;;  )
-	  ;; (383000 (break))
+	  (3000 (break))
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 	  
 
 	  ))
-  (load-ipl "LTFixed.liplv" :adv-limit 500000)
+  (load-ipl "LT/LTFixed.liplv" :adv-limit 500000)
   )

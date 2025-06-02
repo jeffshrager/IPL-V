@@ -1,4 +1,4 @@
-# Reanimation of LT, The Logic Theorist
+# Reanimation of Early Simon, Newell, and Shaw IPL-V AIs
 
 ---
 
@@ -8,9 +8,13 @@
 - Open an emacs shell.
 - Start SBCL (no packages required--I think)
 - The compile-and-load expr is at the top of the code file: (load (compile-file "iplv.lisp"))
-- The exec calls are the end.
 
-To run LT you'll want to be sure that there's no qoute on this line near the end:
+The exec calls are the end. What will run is whatever I happened to be
+testing most recently, so t might run LT or EPAM, or something else,
+and you're likely to get a bunch of debugging crap.
+
+To run LT, for example, you'll want to be sure that there's no qoute
+on this line near the end:
 
 ```
 (progn ;; LT
@@ -24,9 +28,8 @@ That is, it look like the above, not:
 ```
 
 
-(The single quote in
-Lisp blocks execution, so it acts like commenting out a whole block
-of code.)
+(The single quote in Lisp blocks execution, so it acts like commenting
+out a whole block of code.)
 
 If you want to run the ackermann function instead, or in addition to
 this, that call is somewhat above:
@@ -36,6 +39,21 @@ this, that call is somewhat above:
 ```
 
 Just make sure that that one doesn't have a quote.
+
+You'll have to suss out the details of debugging yourself, but if you
+want it all turned off, make sure it only has this minimum execution
+set:
+
+```
+(progn ;; Ackermann test
+ (set-default-tracing)
+ (setf *!!* '() *cell-tracing-on* nil)
+ (load-ipl "SUBIR/CODE.liplv")
+ ;; For example: (Ackerman requires much longer than default!)
+ ;; (load-ipl "misccode/Ackermann.liplv" :adv-limit 250000) 
+ )
+```
+
 
 ---
 
