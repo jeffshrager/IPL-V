@@ -40,13 +40,14 @@ this, that call is somewhat above:
 
 Just make sure that that one doesn't have a quote.
 
-You'll have to suss out the details of debugging yourself, but if you
-want it all turned off, make sure it only has this minimum execution
-set:
+You'll have to suss out the details of tracing and debugging yourself,
+but if you want it all turned off, make sure it only has this minimum
+execution set:
 
 ```
 (progn ;; Ackermann test
  (set-default-tracing)
+ ;; You might want to add :run> to the *!!* trace list.
  (setf *!!* '() *cell-tracing-on* nil)
  (load-ipl "SUBIR/CODE.liplv")
  ;; For example: (Ackerman requires much longer than default!)
@@ -54,6 +55,10 @@ set:
  )
 ```
 
+[Yeah, I know that I don't need the ' in '() but can just put () or
+nil. The reason for the seemingly spurious quote is that it makes it
+convenient to add trace keys, like :run> to the *!!* list without
+having to remember to also add a quote!]
 
 ---
 
