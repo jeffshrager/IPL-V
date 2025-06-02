@@ -245,7 +245,7 @@
      ,(if (stringp (car args))
 	  (if (member key '(:load :run>))
 	      `(format t ,(car args) ,@(cdr args)) ;; Run already puts this info out
-	      `(format t (concatenate 'string  ,(car args) " @~a[~a]~%") ,@(cdr args) (h3-cycles) ,key))
+	      `(format t (concatenate 'string  ,(car args) " ~a@~a[~a]~%") *fname-hint* ,@(cdr args) (h3-cycles) ,key))
 	  `(progn ,@args))))
 
 ;;; Cell dereferencing: Used when you need a cell. <=! is more
@@ -303,6 +303,9 @@
 ;;; separate the load from the cell name?)
 
 (defun ipush (stack-name &optional newval)
+  (if (and newval (string-equal "H0" stack-name) (not (stringp newval)))
+      ;;; ???????????????? Why is this printing a nil? How could a nil get here??
+      (!! :alerts "*** IPUSH to H0 of non-symbol: ~s ***" (cdr (print (cons "**************" newval)))))
   (!! :dr-memory "IPUSH wants to put ~s on ~a" (or newval "[nil: No newval]") stack-name)
   ;; Start by creating a new cell on the stack and copy everything from
   ;; the main cell into it. NOTE THAT THIS IS NOT SAVED!
@@ -1484,12 +1487,12 @@
 	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
 	  (cond ((zero? (cell-link l0))
 		 (poph0 2)
-		 (ipush "H0" c1)
+		 (ipush "H0" (cell-name c1))
 		 (H5-))
 		(t (setf (cell-link c1) (cell-link l0))
 		   (setf (cell-link last-cell-in-l0) c1link)
 		   (poph0 2)
-		   (ipush "H0" last-cell-in-l0)))))
+		   (ipush "H0" (Cell-name last-cell-in-l0))))))
 
   (defj J78 (arg0) "TEST IF LIST (0) IS NOT EMPTY"
 	;; H5 is set - if LINK of (0) is a termination symbol, and set + if not.
@@ -2154,10 +2157,9 @@
 (defun numset (sym n)
   (let* ((data-cell (cell sym)))
     (unless (numberp (cell-link data-cell))
-      (!! :alerts
-	  "*** NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link. ***"
+      (!! :jdeep "             .....NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link."
 	  data-cell sym))
-    (setf (cell-link data-cell) n)))
+    (setf (cell-link data-cell) n (cell-p data-cell) 0) (cell-q data-cell) 1))
 
 ;;; !!! WWW OBIWAN UNIVERSE WITH LISP ZERO ORIGIN INDEXING WWW !!!
 ;;; (NNN H0p might be deprecated FFF Remove?)
@@ -2865,10 +2867,11 @@ restarts (invokable by number or by possibly-abbreviated name):
 
 (progn ;; LT 
   (set-default-tracing)
-  (setf *!!* '(:run>) *cell-tracing-on* nil)
+  ;;(setf *!!* '(:jcalls :run> :run :jfns :alerts) *cell-tracing-on* nil)
+  (setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
-  ;(trace j14-helper)
+  ;;(trace ipush)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
   (setf *trace-exprs*
 	'(
@@ -2887,7 +2890,7 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;;  (setf *!!* '(:run> :run :jcalls) *cell-tracing-on* t) ;;  :run> :run :jcalls :jfns :jdeep :alerts :s
 	  ;;  (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t) ;;  "W0" "W1" "W2"
 	  ;;  )
-	  (3000 (break))
+	  ;; (3000 (break))
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 	  
