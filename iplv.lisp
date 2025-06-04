@@ -190,10 +190,6 @@
 (defvar *breaks* nil) ;; If this is set to t it breaks on every call
 (defvar *trace-cell-names-or-exprs* nil) 
 
-;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump :run>
-;;; :alerts 
-(defparameter *default-!!list* '(:run> :jcalls))
-
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! (&optional next-breaks) (setf *breaks* next-breaks) "Use :c to run free.")
 
@@ -241,9 +237,9 @@
   `(when (or (equal *!!* t)
 	     (equal ,key t)
 	     (member ,key *!!*))
-     ;; There's a special hack here for :run> just to make it slightly prettier
+     ;; There's a special hack here for :run just to make it slightly prettier
      ,(if (stringp (car args))
-	  (if (member key '(:load :run>))
+	  (if (member key '(:load :run))
 	      `(format t ,(car args) ,@(cdr args)) ;; Run already puts this info out
 	      `(format t (concatenate 'string  ,(car args) " ~a@~a[~a]~%") *fname-hint* ,@(cdr args) (h3-cycles) ,key))
 	  `(progn ,@args))))
@@ -2499,7 +2495,7 @@
 	 (go ADVANCE)
 	 ))
      (setq cell (cell (cell-symb (H1)))) ;; This shouldn't be needed since we're operating all in cell now.
-     (!! :run> "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
+     (!! :run "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
      (setf p (cell-p cell)
@@ -2515,8 +2511,8 @@
        (1 (setf S (cell-symb (cell symb))) (go INTERPRET-P))
        ;; 2 Take the symbol in the cell at the name that the symb is pointing to 
        (2 (setf S (cell-symb (cell (cell-symb (cell symb))))) (go INTERPRET-P))
-       (3 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)" cell) (setf S symb) (go INTERPRET-P))
-       (4 (!! :run "(Unimplemented monitor action in ~s; Executing w/o monitor!)" cell) (setf S symb) (go INTERPRET-P))
+       (3 (!! :run-full "(Unimplemented monitor action in ~s; Executing w/o monitor!)" cell) (setf S symb) (go INTERPRET-P))
+       (4 (!! :run-full "(Unimplemented monitor action in ~s; Executing w/o monitor!)" cell) (setf S symb) (go INTERPRET-P))
        (5 (call-ipl-prim symb) (go ASCEND)) ;; ??? THIS IS VERY UNCLEAR; NO PUSH ???
        (6 (error "In RUN at INTERPRET-Q:~%~s~%, Q=6 unimplmented!" cell))
        (7 (error "In RUN at INTERPRET-Q:~%~s~%, Q=7 unimplmented!" cell))
@@ -2762,6 +2758,9 @@
 
 ;;; Basic tracing setup for "light" tracing.
 
+;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump :alerts
+(defparameter *default-!!list* '(:run :jcalls :alerts))
+
 (defun set-default-tracing ()
   (untrace)
   (setf *trace-cell-names-or-exprs* nil)
@@ -2772,7 +2771,6 @@
   (setf *report-all-system-cells?* nil)
   (setf *cell-tracing-on* nil)
   (setf *trace-exprs* nil)
-  '(trace ipl-eval)
   )
 
 ;; Comment (or just ') progn blocks out as needed.
@@ -2780,7 +2778,7 @@
 '(progn ;; F1 test
   (set-default-tracing)
   (setf *!!* '() *cell-tracing-on* nil)
-  ;(setf *!!* '(:dr-memory :run :jdeep :jcalls) *cell-tracing-on* t)
+  ;(setf *!!* '(:dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
   ;(trace force-replace) 
   ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
@@ -2809,7 +2807,7 @@
 
 '(progn ;; Test of EPAM
   (set-default-tracing)
-  (setf *!!* '(:jdeep :jfns :run :run> :jcalls) *cell-tracing-on* t)
+  (setf *!!* '(:jdeep :run :jcalls) *cell-tracing-on* t)
   (load-ipl "EPAM/EPAMFixed.liplv" :adv-limit 10000)
   )
 
@@ -2861,13 +2859,13 @@ restarts (invokable by number or by possibly-abbreviated name):
 ;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
 ;;; (rx) analyzes routine call stats
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
-;;; *!!* <= :jdeep :jfns :run :run> :jcalls :dr-memory :s :run-full :alerts :load :gentrace 
+;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace 
 ;;; (fsym "symbol")
 ;;; Here's a useful *trace-exprs*: (= *gensym-counter* 3434)
 
 (progn ;; LT 
   (set-default-tracing)
-  ;;(setf *!!* '(:jcalls :run> :run :jfns :alerts) *cell-tracing-on* nil)
+  ;;(setf *!!* '(:jcalls :run :alerts) *cell-tracing-on* nil)
   (setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
@@ -2876,7 +2874,9 @@ restarts (invokable by number or by possibly-abbreviated name):
   (setf *trace-exprs*
 	'(
 	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
-	  ("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in the original code!
+	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in the original code!
+
+  	  ("P055R000" (???) (format t "~%~%") (pl (cell-symb (car (H0+)))))
 
 	  ;; NOTE: The key can be partial, as "P052R"; uses
 	  ;; (search...) for strings, or an expr, for example to trace
@@ -2885,12 +2885,14 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;; Useful for localizing problems:
 	  ;;((zerop (mod (h3-cycles) 100)) (print (list "***********" (h3-cycles))))
 	  ;("M088R020" (break))
+
 	  ;; Basic tracer:
-  	   ;; (14400
-	   ;;  (setf *!!* '(:run> :run :jcalls) *cell-tracing-on* t) ;;  :run> :run :jcalls :jfns :jdeep :alerts :s
-	   ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t) 
-	   ;;  )
+  	  ;; ("P055R000"
+	  ;;  (setf *!!* '(:run :jcalls :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s
+	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
+	  ;;  )
 	  ;; (3000 (break))
+	  
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 	  
