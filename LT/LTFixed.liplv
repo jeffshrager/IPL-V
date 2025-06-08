@@ -1934,14 +1934,15 @@
 ("P55 LOCATE SUBLIST FOLLOWING" "" "P55" "" "" "J41" "" "" "P055R000")
 
 ;;; There's something really wrong above that sometimes looses L11
-;;; here (see notes around 202505xx so I added this line to FORCE
-;;; this to be what it appears to really want to be. [This can
-;;; also be done by adding: ("P055R000" (setf (cell-symb (car (H0+))) "L11"))
-;;; to the *trace-@orID-exprs*]
+;;; here (see notes around 202505xx so I added this line to FORCE this
+;;; to be what it appears to really want to be. This fix calls a
+;;; special JFn:JP055R005JEFF This can also be done by adding:
+;;; ("P055R000" (setf (cell-symb (car (H0+))) "L11")) to the
+;;; *trace-@orID-exprs* (The JP055... fix causes sbcl to crash in an
+;;; infinite recursion at the moment so you have to use the
+;;; trace-level hack!)
+
 ;("JEFF KLUDGE: FORCE L11 TO H0" "" "" "" "" "JP055R005JEFF" "" "" "P055R005JEFF")
-;;; Um...what? There's no actual code here -- was there ever any code here????!?!
-;;; This fix was never completed bcs it's slightly complex to hack (1), so it's
-;;; still done in the trace machinery. 
 
 ("DATA TERM (0) ON LIST (1))" "" "" "" "20" "W0" "" "" "P055R010")
 ("H5+ MEANS PUTPUT (0) IS" "" "9-3" "" "60" "W1" "" "" "P055R020")
@@ -1962,8 +1963,8 @@
 ("SET UP CELL HOLDING SUBLIST." "" "9-2" "" "" "J60" "" "" "P055R170")
 
 ;;; This seems to need to be a return:
-("" "" "" "" "70" "J7" "J31" "" "P055R180") 
-;("" "" "" "" "70" "J31" "J31" "" "P055R180") 
+;("" "" "" "" "70" "J7" "J31" "" "P055R180") 
+("" "" "" "" "70" "J31" "J31" "" "P055R180") 
 
 ("" "1" "" "" "" "" "" "" "    R")
 ("01 FIND CONNECTIVE OF SEGMENT (0)." "" "Q1" "" "" "J80" "" "" "Q001R000")

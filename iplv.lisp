@@ -510,7 +510,9 @@
   (print *trace-instruction*) (terpri)
   (format t "H5=~a, H3(cycles)=~a~%" (cell "H5") (h3-cycles))
   (format t "*W24-Line-Buffer*=~s~%" *W24-Line-Buffer*)
-  (trace-cell-safe-for-trace-expr))
+  (trace-cell-safe-for-trace-expr)
+  (backtrace!)
+  )
 (define-symbol-macro ?? (???))
 
 ;;; ===================================================================
@@ -836,6 +838,8 @@
 
 (defvar *j74tbl* (make-hash-table :test #'equal))
 
+(defvar *j15-mode* :clear-dl)
+
 (defmacro defj (name args explanation &rest forms)
   `(let ((uname ,(string-upcase (format nil "~a" name))))
      (setf (gethash uname *jfn-plists*) '(explanation ,explanation))
@@ -877,8 +881,8 @@
   (defj J1 (arg0) "EXECUTE (0)"
     ;;; The process, (0), is removed from H0, H0 is restored (this
     ;;; positions the process's inputs correctly), and the process is
-    ;;; executed as if its name occurred in the instruction in- stead
-    ;;; of J1.
+    ;;; executed as if its name occurred in the instruction instead of
+    ;;; J1.
     (poph0 1) ;; Pre-popping in this case should be safe.
     (ipl-eval arg0))
 
@@ -887,7 +891,7 @@
 	;; case of alphabetics, trailing blanks or zeros are ignored.]
 	;; Before we go anywhere else, the names could be equal or the
 	;; name of one could be equal to the symbol of the other, in
-	;; either direction. This is sooooooooo horrible!
+	;; either direction. 
 	(!! :jdeep (announce "   ~a=~a" arg0 arg1))
 	(if (ipl-string-equal arg0 arg1) (H5+) (H5-))
 	(poph0 2)
@@ -941,11 +945,13 @@
 		    do ;; Note we're skipping the dl of the dl if any
 		    ;; The first could be the last. This is sort of messy. FFF Unduplicate code %%%
 		    (if (null dl-attribute-cell)
-			(progn (!! :jdeep "             .....J10 failed (a) to find ~s." target) (H5-) (return nil)))
+			(progn (!! :jdeep "             .....J10 failed (a) to find ~s." target)
+			       (H5-) (return nil)))
 		    (!! :jdeep "             .....In J10 dl-attribute-cell = ~s" dl-attribute-cell)
 		    (if (ipl-string-equal target (cell-symb dl-attribute-cell))
 			(let* ((cell (cell (cell-link dl-attribute-cell))))
-			  (!! :jdeep "             .....J10 found ~s at ~s, returning ~s" target dl-attribute-cell (cell-symb cell))
+			  (!! :jdeep "             .....J10 found ~s at ~s, returning ~s"
+			      target dl-attribute-cell (cell-symb cell))
 			  (H5+)
 			  (ipush "H0" (cell-symb cell))
 			  (return t))
@@ -963,16 +969,18 @@
 	;; and (1) has taken its place; if the old value was local, it
 	;; has been erased as a list structure (J72). If (0) is a new
 	;; attribute, it is placed at the front of the description
-	;; list. J11 will create the description list (with a local
-	;; name) if it does not exist (head of (2) empty). There is no
-	;; output in HO. *** Def. needs to pop late !!!
+	;; list. [??? I'm not sure this lastcondition is implemented
+	;; correctly???] J11 will create the description list (with a
+	;; local name) if it does not exist (head of (2) empty). There
+	;; is no output in HO. *** Def. needs to pop late !!!
 	(let* ((att arg0)
 	       (val arg1)
 	       (list-head (cell arg2))
 	       (maybe-dl-head (cell-symb list-head))
-	       (dl-head (if (not (zero? maybe-dl-head)) (cell maybe-dl-head)
+	       (dl-head (if (not (zero? maybe-dl-head))
+			    (cell maybe-dl-head)
 			    (progn (!! :jdeep "             .....In J11 no dlist yet for ~s so I'm creating one!" list-head)
-				   (make-cell! :name (newsym) :symb "0" :link "0"))))
+				   (make-cell! :name (newsym) :p 0 :q 0 :symb "0" :link "0"))))
 	       )
 	  ;; Either get the DL for the list, or create one if it doesn't exist.
 	  ;; (This is redundant if it was already there)
@@ -999,10 +1007,23 @@
 
   (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
 	;; The description list of list (0) is erased as a list
-	;; structure (J72), and the head of (0) is set empty.
+	;; structure (J72), and the head of (0) is set empty. [???
+	;; It's unclear here whether the DL is left and just cleared,
+	;; or the DL pointer (symb) in the list-head is set to 0???]
 	(let ((lhead (<== arg0)))
 	  (!! :jdeep "             .....J15 clearing the dl of ~s (~s)" arg0 lhead)
-	  (setf (cell-symb lhead) "0"))
+	  (case *J15-mode*
+	    (:clear-dl
+	     ;; This is the "Leave the DL but remove its contents"
+	     (let ((dlhead (cell-symb lhead)))
+	       (if (zero? dlhead)
+		   (break "In  J15 trying to clear a DL that doesn't exist!")
+		   (setf (cell-symb dlhead) "0" (cell-link dlhead) "0"))))
+	    (:delete-dl
+	     ;; This is the "Kill the DL at the list head" version:
+	     (setf (cell-symb lhead) "0"))
+	    (t (error "*J15-mode* must be either :clear-dl or :delete-dl"))
+	  ))
 	(poph0 1)
 	)
 
@@ -2300,28 +2321,22 @@
 	    ;; but it's theoretically possible could.)
 
 	    (let* ((old-sub-head (<== old-symb))
-		   (new-subhead-name (setf (gethash old-symb *j74tbl*) (newsym)))
-		   (new-subhead (make-cell!
-				 :name new-subhead-name
-				 :p (cell-p old-sub-head)
-				 :q (cell-q old-sub-head)
-				 :symb (cell-symb old-sub-head) ;; This will get checked on the recursion below.
-				 :link (cell-link old-sub-head)
-				 :id (cell-id old-sub-head))))
+		   (new-subhead-name (setf (gethash old-symb *j74tbl*) (newsym))))
+	      (make-cell!
+	       :name new-subhead-name
+	       :p (cell-p old-sub-head)
+	       :q (cell-q old-sub-head)
+	       :symb (cell-symb old-sub-head) ;; This will get checked on the recursion below.
+	       :link (cell-link old-sub-head)
+	       :id (cell-id old-sub-head))
 	      ;; Okay, so all we should have to do now is set this as
-	      ;; the sym of the new-cell, and recursively copy from it.
-
-	      ;; ??? Something seems wrong here. It's gonna start from
-	      ;; the new cell it just created. As a result, we're at
-	      ;; least going to copy that cell TWICE...is this really
-	      ;; necessary?! Could this recursion take place in the
-	      ;; :symb set above??
-
-	      (setf (cell-symb new-cell)
-		    (j74-deep-copy-ipl-list new-subhead-name))
-
-	      ))
-		   
+	      ;; the sym of the new-cell, and recursively copy from
+	      ;; it.  ??? This is a little weird: It's gonna start
+	      ;; from the new cell it just created. As a result, we're
+	      ;; at least going to copy that cell TWICE...is this
+	      ;; really necessary?! Could this recursion take place in
+	      ;; the :symb set above??
+	      (setf (cell-symb new-cell) (j74-deep-copy-ipl-list new-subhead-name))))
 	;; And finally the result of the whole thing is just the new-cell-name.
 	new-cell-name)))
 
@@ -2858,6 +2873,7 @@ H5={H5||+|}, H3(cycles)=35714
 
 (progn ;; LT 
   (set-default-tracing)
+  (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;;(setf *!!* '(:jcalls :run :alerts) *cell-tracing-on* nil)
   (setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
@@ -2867,6 +2883,7 @@ H5={H5||+|}, H3(cycles)=35714
   (setf *trace-exprs*
 	'(
 	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
+	  ;; See notes re special JFn:JP055R005JEFF (in LTFixed)
 	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in the original code!
   	  ;("P055R000" (???) (format t "~%~%") (backtrace! 25) (format t "~%~%") (pl (cell-symb (car (H0+)))))
 
@@ -2879,7 +2896,7 @@ H5={H5||+|}, H3(cycles)=35714
 	  ;("M088R020" (break))
 
 	  ;; Basic tracer:
-  	  (15000
+  	  (15000000
 	   (setf *!!* '(:run :jcalls :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
 	   )
@@ -2892,19 +2909,3 @@ H5={H5||+|}, H3(cycles)=35714
 	  ))
   (load-ipl "LT/LTFixed.liplv" :adv-limit 500000)
   )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
