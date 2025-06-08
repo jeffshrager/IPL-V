@@ -878,22 +878,22 @@
 
   (defj J0 () "No operation")
 
-  (defj J1 (arg0) "EXECUTE (0)"
+  (defj J1 ([0]) "EXECUTE (0)"
     ;;; The process, (0), is removed from H0, H0 is restored (this
     ;;; positions the process's inputs correctly), and the process is
     ;;; executed as if its name occurred in the instruction instead of
     ;;; J1.
     (poph0 1) ;; Pre-popping in this case should be safe.
-    (ipl-eval arg0))
+    (ipl-eval [0]))
 
-  (defj J2 (arg0 arg1) "TEST (0) == (1)?" ;; The identity test
+  (defj J2 ([0] [1]) "TEST (0) == (1)?" ;; The identity test
 	;; is on the SYMBpart only; P and Q are ignored. [Also, in the
 	;; case of alphabetics, trailing blanks or zeros are ignored.]
 	;; Before we go anywhere else, the names could be equal or the
 	;; name of one could be equal to the symbol of the other, in
 	;; either direction. 
-	(!! :jdeep (announce "   ~a=~a" arg0 arg1))
-	(if (ipl-string-equal arg0 arg1) (H5+) (H5-))
+	(!! :jdeep (announce "   ~a=~a" [0] [1]))
+	(if (ipl-string-equal [0] [1]) (H5+) (H5-))
 	(poph0 2)
 	;; ("p.10: "...it is understood from the definition of TEST
 	;; that J2 will remove both (0) and (1) from HO.")
@@ -924,18 +924,18 @@
 	(!! :jdeep "             .....J9 just pops H0; We don't need to do our own GC.")
 	(poph0 1))
 
-  (defj J10 (arg0 arg1) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)" ;; USED IN LT
+  (defj J10 ([0] [1]) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)" ;; USED IN LT
 	;; If the symbol (0) is on the description list of list (1) as an
 	;; attribute, then its value--i.e., the symbol following it--is output
 	;; as (0) and H5 set + ; if not found, or if the description list
 	;; doesn't exist, there is no output and H5 set - . (J10 is accomplished
 	;; by a search and test of all attributes on the description list.) 
 	(PopH0 2) ;; I think pre-popping is safe here because H0 won't ever be a list head.
-	(!! :jdeep "             .....In J10 trying to find the value of ~s in ~s!" arg0 arg1)
-	(!! :jdeep (announce "Find ~a in ~a" arg0 arg1))
-	(let* ((list-head (cell arg1))
+	(!! :jdeep "             .....In J10 trying to find the value of ~s in ~s!" [0] [1])
+	(!! :jdeep (announce "Find ~a in ~a" [0] [1]))
+	(let* ((list-head (cell [1]))
 	       (dlist-name (cell-symb list-head))
-	       (target arg0))
+	       (target [0]))
 	  (!! :jdeep "             .....In J10 list-head = ~s
                      dlist-name = ~s
                      target = ~s" list-head dlist-name target)
@@ -962,7 +962,7 @@
 				(H5-) (return nil))
 			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
 
-  (defj J11 (arg0 arg1 arg2) "ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)"
+  (defj J11 ([0] [1] [2]) "ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)"
 	;; After J11, the symbol (1) is on the description list of
 	;; list (2) as the value of attribute (0). If (0) was already
 	;; on the description list, the old value has been removed,
@@ -973,9 +973,9 @@
 	;; correctly???] J11 will create the description list (with a
 	;; local name) if it does not exist (head of (2) empty). There
 	;; is no output in HO. *** Def. needs to pop late !!!
-	(let* ((att arg0)
-	       (val arg1)
-	       (list-head (cell arg2))
+	(let* ((att [0])
+	       (val [1])
+	       (list-head (cell [2]))
 	       (maybe-dl-head (cell-symb list-head))
 	       (dl-head (if (not (zero? maybe-dl-head))
 			    (cell maybe-dl-head)
@@ -986,32 +986,32 @@
 	  ;; (This is redundant if it was already there)
 	  (setf (cell-symb list-head) (cell-name dl-head))
 	  (J11-helper-add-to-dlist dl-head att val)
-	  (!! :jdeep (pll arg2))
+	  (!! :jdeep (pll [2]))
 	  (PopH0 3)
 	  ))
 
-  (defj J14 (arg0 arg1) "ERASE ATTRIBUTE (0) OF (1)"
+  (defj J14 ([0] [1]) "ERASE ATTRIBUTE (0) OF (1)"
 	;; If the symbol (0) exists on the description list of list
 	;; (1) as an attribute, both it and its value symbol are
 	;; removed from the list. If either is local, it is erased as
 	;; a list structure (J72). If (0) is not an attribute on the
 	;; description list of (1), nothing is done. (In all cases the
 	;; description list is left.)
-	(let* ((head (<== arg1))
+	(let* ((head (<== [1]))
 	       (dlname (cell-symb head)))
-	  (if (zero? dlname) (break "J14 (ERASE ATTRIBUTE ~s OF ~s) called but ~s doesn't have a DList!" arg0 arg1 arg1))
+	  (if (zero? dlname) (break "J14 (ERASE ATTRIBUTE ~s OF ~s) called but ~s doesn't have a DList!" [0] [1] [1]))
 	  (let ((dlhead (<== dlname)))
-	    (setf (cell-link dlhead) (j14-helper arg0 (cell-link dlhead)))))
+	    (setf (cell-link dlhead) (j14-helper [0] (cell-link dlhead)))))
 	(poph0 2)
 	)
 
-  (defj J15 (arg0) "ERASE ALL ATTRIBUTES OF (0)"
+  (defj J15 ([0]) "ERASE ALL ATTRIBUTES OF (0)"
 	;; The description list of list (0) is erased as a list
 	;; structure (J72), and the head of (0) is set empty. [???
 	;; It's unclear here whether the DL is left and just cleared,
 	;; or the DL pointer (symb) in the list-head is set to 0???]
-	(let ((lhead (<== arg0)))
-	  (!! :jdeep "             .....J15 clearing the dl of ~s (~s)" arg0 lhead)
+	(let ((lhead (<== [0])))
+	  (!! :jdeep "             .....J15 clearing the dl of ~s (~s)" [0] lhead)
 	  (case *J15-mode*
 	    (:clear-dl
 	     ;; This is the "Leave the DL but remove its contents"
@@ -1219,7 +1219,7 @@
   (defj J52 () "PRESERVE W0-W2 THEN MOVE(0)-(2) into W0-W2" (J5n=preserve-wn-then-move-0-n-into-w0-wn 2))
   (defj J53 () "PRESERVE W0-W3 THEN MOVE(0)-(3) into W0-W3" (J5n=preserve-wn-then-move-0-n-into-w0-wn 3))
 
-  (defj J60 (arg0) "LOCATE NEXT SYMBOL AFTER CELL (0)" ;; USED IN F1
+  (defj J60 ([0]) "LOCATE NEXT SYMBOL AFTER CELL (0)" ;; USED IN F1
 	;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
 	;; cell. If a next cell exists (LINK of (0) not a termination
 	;; symbol), then the output (0) is the name of the next cell,
@@ -1229,7 +1229,7 @@
 	;; that (0) is not a data term, and J60 will attempt to
 	;; interpret a data term as a standard IPL cell.  !!! Must pop
 	;; late (if at all) 
-	(let* ((this-cell (cell arg0))
+	(let* ((this-cell (cell [0]))
 	       (link (cell-link this-cell)))
 	  (!! :jdeep "             .....In J60, this-cell = ~s, link = ~s" this-cell link)
 	  (if (zero? link)
@@ -1249,7 +1249,7 @@
   ;; up the original cell, so I've taken these as usually creating new
   ;; cells, and testing for SYMB equivalence.
 
-(defj J62 (arg0 arg1) "LOCATE (O) ON LIST (1)"
+(defj J62 ([0] [1]) "LOCATE (O) ON LIST (1)"
       ;; LOCATE (0) ON LIST (1). A search of list with name (1) is
       ;; made, testing each symbol against (0) (starting with cell
       ;; after cell (1)). If (0) is found, the output (0) is the
@@ -1263,8 +1263,8 @@
       ;; case we use that cell's symb. ... Is this complexity needed
       ;; anylonger with <== and <=!?]  Prob. actually safe to
       ;; pre-pop.
-      (let* ((target arg0)
-	     (list-head (cell arg1)))
+      (let* ((target [0])
+	     (list-head (cell [1])))
 	(!! :jdeep "             .....J62 trying to locate target:~s in linear list starting with cell ~s" target list-head)
 	;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
 	(let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
@@ -1322,15 +1322,15 @@
 
   ;; WWW If this tries to work with numeric data there's gonna be a
   ;; problem bcs PQ will be wrong.
-  (defj J65 (arg0 arg1) "INSERT (0) AT END OF LIST (1)"
-	(!! :jdeep (announce "~a =++ ~a" arg0 arg1))
+  (defj J65 ([0] [1]) "INSERT (0) AT END OF LIST (1)"
+	(!! :jdeep (announce "~a =++ ~a" [0] [1]))
 	;; Identical to J66 except that it always inserts at the end
 	;; of the list.
-	(!! :jdeep "             .....=========================================================J65 trying to append ~s to ~s~%" arg0 arg1)
+	(!! :jdeep "             .....=========================================================J65 trying to append ~s to ~s~%" [0] [1])
 	(!! :jdeep "             .....Here are the lists before:")
-	(!! :jdeep (pl arg0) (pl arg1))
-	(loop with list-cell = (cell arg1)
-	      with symb = arg0
+	(!! :jdeep (pl [0]) (pl [1]))
+	(loop with list-cell = (cell [1])
+	      with symb = [0]
 	      with new-cell = (make-cell! :name (newsym) :symb symb :link "0")
 	      do
 	      (cond ((zero? (cell-link list-cell))
@@ -1341,22 +1341,22 @@
 	      (setf list-cell (cell (cell-link list-cell))))
 	(!! :jdeep "             .....*********************************************************")
 	(!! :jdeep "             .....Here is the target list, after:")
-	(!! :jdeep (pl arg1))
+	(!! :jdeep (pl [1]))
 	(!! :jdeep "             .....=========================================================")
 	(PopH0 2)
 	)
 	
 
-  (defj J66 (arg0 arg1) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" ;; USED IN F1
+  (defj J66 ([0] [1]) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" ;; USED IN F1
 	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
 	;; search of list (1) is made. against (0) (starting with the
 	;; cell after cell (1) . If (0) is found, J66 does nothing
 	;; further. If (0) is not found, it is inserted at the end of
 	;; the list, as in J65. [Nb. This can't do anything sensible
 	;; with a branching list!]
-	(let ((target arg0))
-	  (!! :jdeep "             .....J66 trying to insert ~s in ~s" target arg1)
-	  (loop with list-cell = (<=! arg1)
+	(let ((target [0]))
+	  (!! :jdeep "             .....J66 trying to insert ~s in ~s" target [1])
+	  (loop with list-cell = (<=! [1])
 		as link = (cell-link list-cell)
 		do
 		(cond ((string-equal (cell-symb list-cell) target)
@@ -1370,7 +1370,7 @@
 		;; Move to next cell if nothing above returned out
 		(setf list-cell (cell (cell-link list-cell))))))
  
-  (defj J68 (arg0) "DELETE SYMBOL IN CELL (0)"
+  (defj J68 ([0]) "DELETE SYMBOL IN CELL (0)"
 	;; (0) names a cell in a list. The symbol in it is deleted by
 	;; replacing it with the next symbol down the list (the next
 	;; cell is removed from the list and returned to available
@@ -1381,7 +1381,7 @@
 	;; cell (see discussion in § 9.4, DELETE). [This is weird! It
 	;; moves the next symbol up and then deletes the NEXT
 	;; cell....?]
-	(let* ((this-cell (<== arg0)) ;; was <=!
+	(let* ((this-cell (<== [0])) ;; was <=!
 	       (next-cell-name (cell-link this-cell)))
 	  (if (zero? next-cell-name)
 	      (progn (!! "J68 hit the end of the list.")
@@ -1395,8 +1395,8 @@
 	(poph0 1)
 	)
 
-  (defj J71 (arg0) "ERASE LIST (0)"
-	(declare (ignore arg0))
+  (defj J71 ([0]) "ERASE LIST (0)"
+	(declare (ignore [0]))
 	;; (0) is assumed to name a list. All cells of the list--both
 	;; head and list cells--are returned to available
 	;; space. (Nothing else is returned, not even the description
@@ -1406,8 +1406,8 @@
 	;; always fatal situation.
 	(poph0 1))
 
-  (defj J72 (arg0) "ERASE LIST STRUCTURE (0)"
-	(declare (ignore arg0))
+  (defj J72 ([0]) "ERASE LIST STRUCTURE (0)"
+	(declare (ignore [0]))
 	;; (0) is assumed to name a list structure or a sublist
 	;; structure. List (0) is erased, as are all lists with local
 	;; names on list (0), and all lists with local names on them,
@@ -1433,7 +1433,7 @@
   ;;   - Page 148: "If the SYMB field of a word is marked with Q=2, the loader recognizes it as a local symbol."
   ;;   - Page 29: "To create a local symbol... set Q=2 in the cell in which the name appears."
 
-  (defj J73 (arg0) "(Shallow) Copy list [186]"
+  (defj J73 ([0]) "(Shallow) Copy list [186]"
 	;; COPYLIST (0). The output (0) names a new list, with the
 	;; identical symbols in the cells as are in the corresponding
 	;; cells of list (0), including the head. If (0) is the name
@@ -1450,15 +1450,15 @@
 	;; these 0s, and this hack is covering up for that.]
 	(!! :jdeep "             .....J73 is shallow copying list: ~s" (H0))
 	(let* ((new-head
-		(if (zero? arg0)
+		(if (zero? [0])
 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
 		      (!! :alerts "            .....j73 passed a '0' is creating a blank list cell: ~s" new-cell)
 		      (cell-name new-cell))
-		    (J73-shallow-copy-ipl-list arg0))))
+		    (J73-shallow-copy-ipl-list [0]))))
 	  (poph0 1)
 	  (ipush "H0" new-head)))
 
-  (defj J74 (arg0) "(Deep) Copy List Structure [186]"
+  (defj J74 ([0]) "(Deep) Copy List Structure [186]"
 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
 	;; which are in one-to-one correspondence with the cells of list structure
 	;; (0). All the regional and internal symbols in the cells will be identical
@@ -1472,22 +1472,22 @@
 	(!! :jdeep "             .....J74 is deep copying list: ~s" (H0))
 	(clrhash *j74tbl*)
 	(let* ((new-head
-		(if (zero? arg0)
+		(if (zero? [0])
 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
 		      (!! :alerts "            .....j73 passed a '0' is creating a blank list cell: ~s" new-cell)
 		      (cell-name new-cell))
-		    (J74-deep-copy-ipl-list arg0))))
+		    (J74-deep-copy-ipl-list [0]))))
 	  (poph0 1)
 	  (ipush "H0" new-head)))
 
-  (defj J75 (arg0) "DIVIDE LIST AFTER LOCATION (0)"
+  (defj J75 ([0]) "DIVIDE LIST AFTER LOCATION (0)"
 	;; (0) is assumed to be the name of a cell on a list. A
 	;; termination symbol is put for LINK of (0), thus making (0)
 	;; the last cell on the list. The output (0) names the
 	;; remainder list: a new blank head followed by the string of
 	;; list cells that occurred after cell (0).
-	(!! :jdeep "             .....J75 is dividing a list at: ~s" arg0)
-	(let* ((split-cell (<== arg0))
+	(!! :jdeep "             .....J75 is dividing a list at: ~s" [0])
+	(let* ((split-cell (<== [0]))
 	       (new-head (make-cell! :name (newsym) :link (cell-link split-cell))))
 	  (setf (cell-link split-cell) "0")
 	  (!! :jdeep "             .....J75 splitting a list: New tail: ~s, New head (H0): ~s" split-cell new-head)
@@ -1495,7 +1495,7 @@
 	    (poph0 1)
 	    (ipush "H0" r))))
 
-  (defj J76 (arg0 arg1) "INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL"
+  (defj J76 ([0] [1]) "INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL"
 	;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
 	;; assume to desescribable. Its head is erased (if local, the symbol in
 	;; the head is erased as a list structure). The string of list cells is
@@ -1506,9 +1506,9 @@
 	;; has no list cells, then the output (0) is the input (1) and H5 is set
 	;; -. [Again, I think that this is intended only to work on linear lists
 	;; since there's no "last symbol" in a non-linear list.]
-	(!! :jdeep "             .....J76 is inserting ~a after ~a" arg0 arg1)
-	(let* ((l0 (<== arg0))
-	       (c1 (<== arg1))
+	(!! :jdeep "             .....J76 is inserting ~a after ~a" [0] [1])
+	(let* ((l0 (<== [0]))
+	       (c1 (<== [1]))
 	       (c1link (cell-link c1))
 	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
 	  (cond ((zero? (cell-link l0))
@@ -1520,20 +1520,20 @@
 		   (poph0 2)
 		   (ipush "H0" (Cell-name last-cell-in-l0))))))
 
-  (defj J78 (arg0) "TEST IF LIST (0) IS NOT EMPTY"
+  (defj J78 ([0]) "TEST IF LIST (0) IS NOT EMPTY"
 	;; H5 is set - if LINK of (0) is a termination symbol, and set + if not.
-	(if (zero? (cell-link (cell arg0))) (H5-) (H5+))
+	(if (zero? (cell-link (cell [0]))) (H5-) (H5+))
 	(poph0 1)
 	)
 
-  (defj J79 (arg0) "TEST IF CELL (0) IS NOTEMPTY"
+  (defj J79 ([0]) "TEST IF CELL (0) IS NOTEMPTY"
 	;; H5 is set - if SYMB of (0) is 0, and set + otherwise. (Q of
 	;; (0) is ignored; thus, both cells holding internal zero and
 	;; termination cells give H5-). [??? It looks like this should
 	;; be getting the name of a cell, but in the one call that
 	;; it's used in LT - M054R130 - H0={...|0|0|0}, so ...hmmmm?]
-	(if (zero? arg0) (format t "WARNING: @~a J79 IS PROBABLY GETTING BAD INPUT: ~s~%" (h3-cycles) arg0))
-	(if (or (zero? arg0) (zero? (cell-symb (cell arg0)))) (H5-) (H5+))
+	(if (zero? [0]) (format t "WARNING: @~a J79 IS PROBABLY GETTING BAD INPUT: ~s~%" (h3-cycles) [0]))
+	(if (or (zero? [0]) (zero? (cell-symb (cell [0])))) (H5-) (H5+))
 	(poph0 1))
 
   ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <== n <== 9. (Ten routines: J80-J89)
@@ -1541,11 +1541,11 @@
   ;; so that J81 finds symbol in first list cell, etc. J80 finds symbol in head;
   ;; and sets H5- if (0) is a termination symbol. 
 
-  (defj J80 (arg0) "FIND THE HEAD SYMBOL OF (0)"
+  (defj J80 ([0]) "FIND THE HEAD SYMBOL OF (0)"
 	(h5+)
-	(if (zero? arg0)
+	(if (zero? [0])
 	    (H5-)
-	    (let* ((r (cell-symb (cell arg0))))
+	    (let* ((r (cell-symb (cell [0]))))
 	      (poph0 1)
 	      (ipush "H0" r))))
 
@@ -1554,11 +1554,11 @@
 ;;; so that J81 finds symbol in first list cell, etc. J80 finds
 ;;; symbol in head; and sets H5- if (0) is a termination symbol.
 
-  (defj J81 (arg0) "FIND THE 1st (non-head) SYMBOL OF (0)"
-	(j8n-helper (cell-link (cell arg0)) 1))
+  (defj J81 ([0]) "FIND THE 1st (non-head) SYMBOL OF (0)"
+	(j8n-helper (cell-link (cell [0])) 1))
 
-  (defj J82 (arg0) "FIND THE 2nd (non-head0 SYMBOL OF (0)"
-	(j8n-helper (cell-link (cell arg0)) 2))
+  (defj J82 ([0]) "FIND THE 2nd (non-head0 SYMBOL OF (0)"
+	(j8n-helper (cell-link (cell [0])) 2))
 	      
   ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0
   ;; < n < 9. The order is (n-1) first, (n-2) second, ..., (0)
@@ -1579,16 +1579,16 @@
   (defj J92 () "Create a list of 2 entries" (J9n-helper 2))
   (defj J93 () "Create a list of 3 entries" (J9n-helper 3))
 
-  (defj J100 (arg0 arg1) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" ;; USED IN LT
+  (defj J100 ([0] [1]) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" ;; USED IN LT
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
 	;; named (0) is performed successively with each of the symbols of list named
 	;; (1) as input. The order is the order on the list, starting with the first
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
-	(!! :jdeep "             .....J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s" arg1 arg0)
-	(loop with cell-name = (cell-link (cell arg1))
+	(!! :jdeep "             .....J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s" [1] [0])
+	(loop with cell-name = (cell-link (cell [1]))
 	      with cell = nil
-	      with exec-symb = arg0
+	      with exec-symb = [0]
 	      with inputs-popped = nil
 	      until (zero? cell-name)
 	      do 
@@ -1610,25 +1610,25 @@
 	      finally (unless inputs-popped (poph0 2)) ;; In case NOTHING is called still need to do the pops!!
 	      ))
 
-  (defj J110 (arg0 arg1 arg2) "(1) + (2) = (O)" 
+  (defj J110 ([0] [1] [2]) "(1) + (2) = (O)" 
 	;; The number (0) is set equal to the algebraic difference between numbers
 	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
-	(let* ((n1 (numget arg1))
-	       (n2 (numget arg2))
+	(let* ((n1 (numget [1]))
+	       (n2 (numget [2]))
 	       (r (+ n1 n2)))
 	  (!! :jdeep "             .....J110: ~a + ~a = ~a" n1 n2 r)
 	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
-	  (numset arg0 r)))
+	  (numset [0] r)))
 
-  (defj J111 (arg0 arg1 arg2) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
+  (defj J111 ([0] [1] [2]) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
 	;; The number (0) is set equal to the algebraic difference between numbers
 	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
-	(let* ((n1 (numget arg1))
-	       (n2 (numget arg2))
+	(let* ((n1 (numget [1]))
+	       (n2 (numget [2]))
 	       (r (- n1 n2)))
 	  (!! :jdeep "             .....J111: ~a - ~a = ~a" n1 n2 r)
 	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
-	  (numset arg0 r)))
+	  (numset [0] r)))
 
   (defj J114 ([0] [1]) "TEST IF (0) = (1)" 
 	(if (= (numget [0]) (numget [1])) (h5+) (h5-))
@@ -1642,19 +1642,19 @@
 	(if (< (numget [0]) (numget [1])) (h5+) (h5-))
 	(poph0 2))
 
-  (defj J117 (arg0) "TEST IF (0) = 0." ;; USED IN ACKERMAN
-	(let* ((n (numget arg0)))
-	  (!! :jdeep "             .....J117: Testing if ~s (~s: ~s) = 0?" arg0 (<=! arg0) n)
+  (defj J117 ([0]) "TEST IF (0) = 0." ;; USED IN ACKERMAN
+	(let* ((n (numget [0])))
+	  (!! :jdeep "             .....J117: Testing if ~s (~s: ~s) = 0?" [0] (<=! [0]) n)
 	  (if (zerop n) (H5+) (H5-)))
 	(poph0 1))
 
-  (defj J120 (arg0) "COPY (0)"
+  (defj J120 ([0]) "COPY (0)"
 	;; COPY (0). The output (0) names a new cell containing the
 	;; identical contents to (0). The name is local if the input
 	;; (0) is local; otherwise, it is internal.
 	;; (No pop bcs H0 is replaced -- Maybe pop and push?)
 	;; (?? Can this be replaced with FORCE-REPLACE ??)
-	(let ((old-cell (cell arg0)))
+	(let ((old-cell (cell [0])))
 	  (setf (h0) ;; This is probably redundant since the make-cell! set it in the symtab
 		(make-cell!
 		 :name "H0"
@@ -1672,30 +1672,30 @@
 	(poph0 2)
 	(ipush "H0" to))
 
-  (defj J124 (arg0) "CLEAR (0)" ;; USED IN LT
+  (defj J124 ([0]) "CLEAR (0)" ;; USED IN LT
 	;; The number (0) is set to be 0. If the cell is not a data
 	;; term, it is made an integer data term=0. If a number, its
 	;; type, integer, or floating point, is unaffected. It is left
 	;; as the output (0).  (NO POP!?!?)
-	(!! :jdeep "             .....J124: Clear (H0): ~s" arg0)
-	(numset arg0 0))
+	(!! :jdeep "             .....J124: Clear (H0): ~s" [0])
+	(numset [0] 0))
 
 ;************************************* 
 
-  (defj J125 (arg0) "TALLY 1 IN (0)" ;; USED IN ACKERMAN
+  (defj J125 ([0]) "TALLY 1 IN (0)" ;; USED IN ACKERMAN
 	;; An integer 1 is added to the number (0). The type of the result
 	;; is the same as the type of (0). It is left as the output
 	;; (0). [NNN: If there is no value in (0) this assumes zero and
 	;; set the number to 1"
 	;; NO POP! "It is left as the output (0)." !!
-	(let* ((curval (numget arg0)))
-	  (!! :jdeep "             .....J125: Tally (0) currently: ~s" arg0)
-	  (numset arg0
+	(let* ((curval (numget [0])))
+	  (!! :jdeep "             .....J125: Tally (0) currently: ~s" [0])
+	  (numset [0]
 		  (if (not (numberp curval))
 		      (progn (!! :jdeep "             .....Warning! J125 was sent a non-number: ~s, setting result to 1" curval) 1)
 		      (1+ curval)))))
 
-  (defj J126 (arg0) "COUNT LIST (0)"
+  (defj J126 ([0]) "COUNT LIST (0)"
 	;; The output (0) is an integer data term, whose value is the
 	;; number of list cells in list (0) (i.e., it doesn't count
 	;; the head). If (0) = H2, J126 will count the available space
@@ -1703,11 +1703,11 @@
 	;; the programmer. [Nb. H2 is not passed to COUNT LIST in LT]
 	(let* ((count-cell (make-cell! :name (newsym) :p 1 :q 2 :link 0))
 	       (count-cell-name (cell-name count-cell))
-	       (list-head (cell arg0))
+	       (list-head (cell [0]))
 	       (next-cell-name (cell-link list-head))
 	       (count 0))
-	  (!! :jdeep "             J126 counting ~a:" arg0)
-	  (!! :jdeep (pll (cell arg0)))
+	  (!! :jdeep "             J126 counting ~a:" [0])
+	  (!! :jdeep (pll (cell [0])))
 	  (loop until (zero? next-cell-name)
 		do (incf count)
 		(setf next-cell-name (cell-link (cell next-cell-name)))
@@ -1717,17 +1717,17 @@
 			       (ipush "H0" count-cell-name))
 		)))
 
-  (defj J130 (arg0) "TEST IF (O) IS REGIONAL SYMBOL"
-	;; Tests if Q = 0 in arg0.
+  (defj J130 ([0]) "TEST IF (O) IS REGIONAL SYMBOL"
+	;; Tests if Q = 0 in [0].
 	(if 
-	 (= 0 (cell-q (<== arg0)))
+	 (= 0 (cell-q (<== [0])))
 	 (H5+) (H5-))
 	(poph0 1))
 
-  (defj J132 (arg0) "TEST IF (O) IS LOCAL SYMBOL"
-	;; Tests if Q = 2 in arg0's cell. 
+  (defj J132 ([0]) "TEST IF (O) IS LOCAL SYMBOL"
+	;; Tests if Q = 2 in [0]'s cell. 
 	(if 
-	 (= 2 (cell-q (<== arg0)))
+	 (= 2 (cell-q (<== [0])))
 	 (H5+) (H5-))
 	(poph0 1))
 
@@ -1776,16 +1776,16 @@
 	  (setf (cell-q newmain) 4 (cell-symb newmain) "0")
 	  ))
 
-  (defj J138 (arg0) "J138 MAKE SYMBOL (O) INTERNAL"
+  (defj J138 ([0]) "J138 MAKE SYMBOL (O) INTERNAL"
 	;; The output (0) is the input (0) with Q = 4. Best considered
 	;; as "unmake local symbol." [Whatever the f any of that
 	;; means! This is one of those confusing ones where it seems
 	;; to indicate that the symbol includes the PQ.]
-	(setf (cell-q (<== arg0)) 4))
+	(setf (cell-q (<== [0])) 4))
 
-  (defj J147 (arg0) "MARK ROUTINE (O) TO TRACE"
+  (defj J147 ([0]) "MARK ROUTINE (O) TO TRACE"
 	;; FFF Maybe actually turn tracing on! :-)
-	(declare (ignore arg0))
+	(declare (ignore [0]))
 	(poph0 1))
 
   (defj J148 () "MARK ROUTINE (0) TO PROPAGATE TRACE." 	;; Pop????
@@ -1798,15 +1798,15 @@
   ;; kludge-convenience. For example, there is exactly one 80 column
   ;; input/output buffer and it's used for all input and output.
 
-  (defj J151 (arg0) "Print list (0)" ;; USED IN F1
-	(print-linear-list arg0)
+  (defj J151 ([0]) "Print list (0)" ;; USED IN F1
+	(print-linear-list [0])
 	(PopH0 1)
 	)
 
-  (defj J152 (arg0) "PRINT SYMBOL (0)" ;; USED IN ACKERMAN
+  (defj J152 ([0]) "PRINT SYMBOL (0)" ;; USED IN ACKERMAN
 	;; Pop after!!
 	(PopH0 1)
-	(pretty-print-cell (cell arg0)))
+	(pretty-print-cell (cell [0])))
 
   (defj J154 () "Clear print line"
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
@@ -1818,14 +1818,14 @@
 	(format t ":::::::::::::::::::::::::::::::: ~a~%" (hack-output!! *W24-Line-Buffer*))
 	)
 
-  (defj J156 (arg0) "ENTER SYMBOL (0) LEFT-JUSTIFIED"
+  (defj J156 ([0]) "ENTER SYMBOL (0) LEFT-JUSTIFIED"
 	;; Symbol (0) is entered in the current print line with its
 	;; leftmost character in print position 1W25, 1W25 is advanced
 	;; to the next column after those in which (0) is entered, and
 	;; H5 is set + . If (0) exceeds the remaining space, no entry
 	;; is made and H5 is set - .
 	(PopH0 1)
-	(let* ((s arg0) ;;(cell-symb (<=! arg0)))
+	(let* ((s [0]) ;;(cell-symb (<=! [0])))
 	       (l (length s))
 	       (p (W25-get)))
 	  (!! :io "             .....J156 trying to add ~s at pos ~a in print butter." s p)
@@ -1924,7 +1924,7 @@
 		(ipush "H0" string)
 		(H5-)))))
 
-  (defj J182 (arg0) "INPUT LINE DATATERM (0)" ;; USED IN LT
+  (defj J182 ([0]) "INPUT LINE DATATERM (0)" ;; USED IN LT
 	;; J182 INPUT LINE DATA TERM (0). The field specified as J181
 	;; is taken as the value of a data term. Input data term (0)
 	;; is set to that value and left as output (0). H5 is set +.
@@ -1949,10 +1949,10 @@
 	       (end (+ start w30n))
 	       (string (subseq *W24-Line-Buffer* start end)))
 	  ;; WWW Assumes that the target is alpha, which could be wrong in future applications!
-	  (setf (cell-symb (cell arg0)) string) 
+	  (setf (cell-symb (cell [0])) string) 
 	  (W25-set (+ (W25-get) w30n))
 	  (!! :jdeep "             .....J182 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a] and jammed it into ~s"
-	      string start end *W24-Line-Buffer* w25p w30n arg0)
+	      string start end *W24-Line-Buffer* w25p w30n [0])
 	))
 
   ;; J183 SET (0) TO NEXT BLANK. (0) is taken as a decimal integer data
@@ -1966,14 +1966,14 @@
   ;; in column 1W25 and delimited on the right by the next occurrence of the
   ;; scanned-for character.) [Nb. W25 is NOT changed!]
 
-  (defj J183 (arg0) "SET (0) TO NEXT BLANK"
+  (defj J183 ([0]) "SET (0) TO NEXT BLANK"
 	;; 183/4 the term indicated by (0) is updated, so NO POP H0!
-	(J183/4-Scanner arg0 :blank))
+	(J183/4-Scanner [0] :blank))
  
-  (defj J184 (arg0) "SET (0) TO NEXT NON-BLANK"
+  (defj J184 ([0]) "SET (0) TO NEXT NON-BLANK"
 	;; Same as J183, except scans for any non-blank character.
 	;; 183/4 the term indicated by (0) is updated, so NO POP H0!
-	(J183/4-Scanner arg0 :non-blank))
+	(J183/4-Scanner [0] :non-blank))
 
   (defj J186 () "INPUT LINE CHARACTER"
 	;; The character in column 1W25 of line 1W24 is input to HO,
@@ -2190,9 +2190,9 @@
 ;;; !!! WWW OBIWAN UNIVERSE WITH LISP ZERO ORIGIN INDEXING WWW !!!
 ;;; (NNN H0p might be deprecated FFF Remove?)
 
-(defun J183/4-Scanner (arg0 mode)
+(defun J183/4-Scanner ([0] mode)
   ;; NO POP H0! ("...leave (0)")
-  (let* ((counter arg0)
+  (let* ((counter [0])
 	 (w25p (W25-get)))
     (!! :jdeep "             .....Starting in J183/4-Scanner: counter = ~s, w25p = ~a" counter w25p)
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
