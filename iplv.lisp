@@ -1009,7 +1009,9 @@
 	;; The description list of list (0) is erased as a list
 	;; structure (J72), and the head of (0) is set empty. [???
 	;; It's unclear here whether the DL is left and just cleared,
-	;; or the DL pointer (symb) in the list-head is set to 0???]
+	;; or the DL pointer (symb) in the list-head is set to 0???
+	;; The *j15-mode* is used to choose the one we want on a given
+	;; run. So far it doesn't seem to matter.]
 	(let ((lhead (<== [0])))
 	  (!! :jdeep "             .....J15 clearing the dl of ~s (~s)" [0] lhead)
 	  (case *J15-mode*
@@ -1051,16 +1053,6 @@
 	  ;; superroutine, and records it in one of the hideout cells (see §
 	  ;; 15.0, MONITOR SYSTEM).
 	  (poph0 2) ;; Safe -- never passed H0
-
-	  ;; This is an ugly hack that grabs the previous generator processing fn, if 
-	  ;; J18 is passed as the process function. ... At the moment it's been undone
-	  ;; bcs instead I've made J18 actually remove the top entry from the genstack
-	  ;; before IPL-EVAL re-entry, which has sort of the same effect, albeit cleaner.
-	  ;; (!! :Jdeep "             J17 called with wn:~s and fn:~s" wn-symb fn)
-	  ;; (when (string-equal fn "J18")
-	  ;;   (setf fn (gentry-fn (car *genstack*)))
-	  ;;   (!! :jdeep "             .....J18 HACK!! is replacing subFn with ~s" fn))
-
 	  (let* ((wn (parse-integer (subseq wn-symb 1 2))))
 	    (J4n=preserve-wn wn)
 	    (push (make-gentry :fn fn
@@ -2782,7 +2774,7 @@
 
 ;;; Basic tracing setup for "light" tracing.
 
-;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump :alerts
+;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump :alerts :gentrace
 (defparameter *default-!!list* '(:run :jcalls :alerts))
 
 (defun set-default-tracing ()
@@ -2867,7 +2859,7 @@ H5={H5||+|}, H3(cycles)=35714
 ;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
 ;;; (rx) analyzes routine call stats
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
-;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace 
+;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 ;;; Here's a useful *trace-exprs*: (= *gensym-counter* 3434)
 
@@ -2897,7 +2889,7 @@ H5={H5||+|}, H3(cycles)=35714
 
 	  ;; Basic tracer:
   	  (15000000
-	   (setf *!!* '(:run :jcalls :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s
+	   (setf *!!* '(:run :jcalls :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
 	   )
 	  ;; (3000 (break))
