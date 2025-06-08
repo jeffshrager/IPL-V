@@ -164,6 +164,13 @@
    	do
    	(if (listp entry) (format t "~vT~s~%" indent entry)
    	    (if (eq :descend entry) (incf indent 3) (decf indent 3)))))
+(defun backtrace! (&optional (n 10))
+  (loop for entry in *card-cycles.ids-executed*
+	as k below n
+  	with indent = 0
+   	do
+   	(if (listp entry) (format t "~vT~s~%" indent entry)
+   	    (if (eq :descend entry) (incf indent 3) (decf indent 3)))))
 
 (defun rx () ;; report on execs (card ids executed)
   (clrhash *rxtbl*)
@@ -301,7 +308,8 @@
 (defun ipush (stack-name &optional newval)
   (if (and newval (string-equal "H0" stack-name) (not (stringp newval)))
       ;;; ???????????????? Why is this printing a nil? How could a nil get here??
-      (!! :alerts "*** IPUSH to H0 of non-symbol: ~s ***" (cdr (print (cons "**************" newval)))))
+      (!! :alerts "*** IPUSH to H0 of non-symbol: ~s ***"
+	  (cdr (print (cons "**************" newval)))))
   (!! :dr-memory "IPUSH wants to put ~s on ~a" (or newval "[nil: No newval]") stack-name)
   ;; Start by creating a new cell on the stack and copy everything from
   ;; the main cell into it. NOTE THAT THIS IS NOT SAVED!
@@ -1205,7 +1213,8 @@
 	  (!! :jdeep "             .....In J60, this-cell = ~s, link = ~s" this-cell link)
 	  (if (zero? link)
 	      ;; Notice that we don't pop on eol!
-	      (progn (!! :jdeep "             .....In J60 no next cell!") (H5-))
+	      (progn (!! :jdeep "             .....In J60 no next cell!")
+		     (H5-))
 	      (progn (!! :jdeep "             .....In J60 next cell is ~s!" link)
 		     (PopH0 1)
 		     (H5+)
@@ -2819,39 +2828,23 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-Looks like someone is over-popping:
+There are a bunch of P055 calls above here, but this one is wrong!
+3993 isn't a list cell! 
 
-  0: IPOP returned {||exit|0}
-   H0={H0||9-3418|} ++ ({||*207|0} {|||} {||**EMPTY**|})
-   H1={H1||exit|0} ++ ({||<FUNCTION (LAMBDA (ARG0) :IN SETUP-J-FNS) {535E57BB}>|0} {||M7-180|0})
-   W0={W0||*207|0} ++ ({||*207|} {||*207|0} {|||} {||**EMPTY**|})
-   W1={W1|||} ++ ({||**EMPTY**|})
-   W2={W2|||} ++ ({||**EMPTY**|})
-  0: (IPOP "H1")
-  0: IPOP returned {||FUNCTION (LAMBDA (ARG0) :IN SETUP-J-FNS) {535E57BB}>|0}
-Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^ @30204[RUN]
-  0: (IPOP "H1")
-  0: IPOP returned {||M7-180|0}
-   H0={H0||9-3418|} ++ ({||*207|0} {|||} {||**EMPTY**|})
-   H1={H1||M7-180|0} ++ NIL                                           <<<<<<<<<<<<<<<<< Where'd my **EMPTY** go!?
-   W0={W0||*207|0} ++ ({||*207|} {||*207|0} {|||} {||**EMPTY**|})
-   W1={W1|||} ++ ({||**EMPTY**|})
-   W2={W2|||} ++ ({||**EMPTY**|})
-   .......... Calling J5 [REVERSE H5] (No Args)
-  0: (IPOP "H1")
+{P055R000::P55||J41|P55-1662 [P55 LOCATE SUBLIST FOLLOWING;]} 
+H5={H5||+|}, H3(cycles)=35714
+*W24-Line-Buffer*="2.07    PI(0PVP)0                                                               "
+   H0={H0||9-4057|0} ++ ({||9-3993|0} {||9-3880|} {||*207|0} {|||})
+   H1={H1||P55|P55-1662} ++ ({|64|M42-717|M42-717} {||M42-709|M42-696} {||M43-753|M43-729} {||M19-639|M19-625})
+   W0={W0||9-4024|} ++ ({||9-4024|} {||9-4024|} {||M11|0} {||9-3029|})
+   W1={||9-4057|} ++ ({||9-4057|} {||9-3029|} {||*208|0} {||*207|})
+   W2={W2||*207|0} ++ ({||*207|0} {||*207|0} {||*208|} {|||})
 
-debugger invoked on a TYPE-ERROR @535BCAB8 in thread <THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
 
-Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
 
-restarts (invokable by number or by possibly-abbreviated name):
-  0: [ABORT] Exit debugger, returning to top level.
-
-(IPOP "H1" :MAKE-ME-A-NEW-COPY-OF-THE-POPPED-CELL T)
-; Using form offset instead of character position.
-
-   source: (CELL-P POPPED-CELL)
-
++------------------------- "9-3993" {9-3993|02||1} -------------------------+
+(0) {9-3993|02||1}
++--------------------------End "9-3993" -------------------------------------------+
 
 |#
 
@@ -2875,8 +2868,7 @@ restarts (invokable by number or by possibly-abbreviated name):
 	'(
 	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
 	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in the original code!
-
-  	  ("P055R000" (???) (format t "~%~%") (pl (cell-symb (car (H0+)))))
+  	  ;("P055R000" (???) (format t "~%~%") (backtrace! 25) (format t "~%~%") (pl (cell-symb (car (H0+)))))
 
 	  ;; NOTE: The key can be partial, as "P052R"; uses
 	  ;; (search...) for strings, or an expr, for example to trace
@@ -2887,10 +2879,10 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;("M088R020" (break))
 
 	  ;; Basic tracer:
-  	  ;; ("P055R000"
-	  ;;  (setf *!!* '(:run :jcalls :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s
-	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
-	  ;;  )
+  	  (15000
+	   (setf *!!* '(:run :jcalls :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s
+	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
+	   )
 	  ;; (3000 (break))
 	  
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
@@ -2900,3 +2892,19 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ))
   (load-ipl "LT/LTFixed.liplv" :adv-limit 500000)
   )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
