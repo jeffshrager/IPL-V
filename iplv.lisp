@@ -5,7 +5,7 @@
 ;;; FFF Do something to simplify the various make-cells and
 ;;; cell-cell!s all over the place with different args.
 
-;;; See notes.txt
+;;; See notes.txt!
 
 ;;; WWW Leaves these at high debug etc or things break for unknown reasons.
 (declaim (optimize (debug 3) (safety 3) (speed 0) (space 0) (compilation-speed 0)))
@@ -2888,7 +2888,7 @@ H5={H5||+|}, H3(cycles)=35714
 	  ;("M088R020" (break))
 
 	  ;; Basic tracer:
-  	  (15000000
+  	  (18750
 	   (setf *!!* '(:run :jcalls :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
 	   )
