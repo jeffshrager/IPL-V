@@ -1211,7 +1211,7 @@
   (defj J52 () "PRESERVE W0-W2 THEN MOVE(0)-(2) into W0-W2" (J5n=preserve-wn-then-move-0-n-into-w0-wn 2))
   (defj J53 () "PRESERVE W0-W3 THEN MOVE(0)-(3) into W0-W3" (J5n=preserve-wn-then-move-0-n-into-w0-wn 3))
 
-  (defj J60 ([0]) "LOCATE NEXT SYMBOL AFTER CELL (0)" ;; USED IN F1
+  (defj J60 ([0]) "LOCATE NEXT SYMBOL AFTER CELL (0)" 
 	;; LOCATE NEXT SYMBOL AFTER CELL (0). (0) is the name of a
 	;; cell. If a next cell exists (LINK of (0) not a termination
 	;; symbol), then the output (0) is the name of the next cell,
@@ -1300,7 +1300,7 @@
 	(!! :jdeep (pl new-symbol) (pl list-cell-name))
 	(let* ((list-cell (cell list-cell-name)))
 	  (if (and (zero? (cell-symb list-cell)) (zero? (cell-link list-cell)))
-	      (setf (cell-symb list-cell) new-symbol)
+	      (setf (cell-link list-cell) new-symbol) 
 	      (setf (cell-link list-cell)
 		    (cell-name (make-cell! :name (newsym)
 					   :symb new-symbol
@@ -2835,23 +2835,36 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-There are a bunch of P055 calls above here, but this one is wrong!
-3993 isn't a list cell! 
+@18767+ >>>>> {P055R070::P55-1667||J116|P55-1668 [TEST IF PAST.;]} (Execute fn named by symb name itself)
+   H0={H0||9-3219|0} ++ ({||9-3041|0} {||9-3042|0} {||9-2974|} {|||})
+   W0={W0||9-3219|} ++ ({||9-3205|} {||9-3205|} {||M11|0} {||9-2878|})
+   W1={||9-3044|} ++ ({||9-3219|} {||9-2574|} {||*12|0} {||*201|})
+   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||*12|} {|||})
+   W3={W3||9-3205|0} ++ ({||9-3205|0} {||9-3195|} {|||} {||**EMPTY**|})
+   .......... Calling J116 [TEST IF (0) < (1)]: ([0] [1])=("9-3219" "9-3041")
 
-{P055R000::P55||J41|P55-1662 [P55 LOCATE SUBLIST FOLLOWING;]} 
-H5={H5||+|}, H3(cycles)=35714
-*W24-Line-Buffer*="2.07    PI(0PVP)0                                                               "
-   H0={H0||9-4057|0} ++ ({||9-3993|0} {||9-3880|} {||*207|0} {|||})
-   H1={H1||P55|P55-1662} ++ ({|64|M42-717|M42-717} {||M42-709|M42-696} {||M43-753|M43-729} {||M19-639|M19-625})
-   W0={W0||9-4024|} ++ ({||9-4024|} {||9-4024|} {||M11|0} {||9-3029|})
-   W1={||9-4057|} ++ ({||9-4057|} {||9-3029|} {||*208|0} {||*207|})
-   W2={W2||*207|0} ++ ({||*207|0} {||*207|0} {||*208|} {|||})
+debugger invoked on a SIMPLE-CONDITION in thread #<THREAD "main thread" RUNNING {1001670003}>: Numget was asked to get a non-number "9-3064" from {9-3041|02|9-3062|9-3064} ("9-3041").
 
+The problem comes from way up somewhere where this list got created:
 
+(0) {9-3044||9-3043|9-3042}
+   (1) {9-3043|02||4}
+   (1) {9-3042||9-3041|0}
+      (2) {9-3041|02|9-3062|9-3064}
+         (3) {9-3062|02|9-3080|9-3082}
+            (4) {9-3080|02|0|0}
+            (4) {9-3082||9-3081|0}
+               (5) {9-3081|02|0|3}
+         (3) {9-3064||9-3063|0}
+            (4) {9-3063|02||1}
 
-+------------------------- "9-3993" {9-3993|02||1} -------------------------+
-(0) {9-3993|02||1}
-+--------------------------End "9-3993" -------------------------------------------+
+Note that although this is mostly a list of number cells
+{9-3042||9-3041|0}'s SYMB points to ... something confused. What's
+going on in this list?!
+
+(This was all w/o the L11 hack in place. If I add that back this doens't even get this far!)
+
+So I have to track where the 9-3041 cell gets added.
 
 |#
 
@@ -2861,7 +2874,6 @@ H5={H5||+|}, H3(cycles)=35714
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
-;;; Here's a useful *trace-exprs*: (= *gensym-counter* 3434)
 
 (progn ;; LT 
   (set-default-tracing)
@@ -2883,16 +2895,22 @@ H5={H5||+|}, H3(cycles)=35714
 	  ;; (search...) for strings, or an expr, for example to trace
 	  ;; when local is created: (= *gensym-counter* 3434)
 
+	  ;; Here's a useful *trace-exprs*:
+	  ;; ((= *gensym-counter* 3042) (???))
+
 	  ;; Useful for localizing problems:
 	  ;;((zerop (mod (h3-cycles) 100)) (print (list "***********" (h3-cycles))))
 	  ;("M088R020" (break))
 
+	  ((and (string-equal "0" (cell-symb (h0))) (string-equal "0" (cell-link (h0))))
+	   (???))
+
 	  ;; Basic tracer:
-  	  (18750
-	   (setf *!!* '(:run :jcalls :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+  	  (15400
+	   (setf *!!* '(:run :jcalls :alerts :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
 	   )
-	  ;; (3000 (break))
+	  ;(15500 (break))
 	  
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
