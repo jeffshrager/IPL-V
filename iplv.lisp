@@ -1537,7 +1537,7 @@
 	(h5+)
 	(if (zero? [0])
 	    (H5-)
-	    (let* ((r (cell-symb (cell [0]))))
+	    (let* ((r (cell-link (cell [0]))))
 	      (poph0 1)
 	      (ipush "H0" r))))
 
@@ -2835,36 +2835,72 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-@18767+ >>>>> {P055R070::P55-1667||J116|P55-1668 [TEST IF PAST.;]} (Execute fn named by symb name itself)
-   H0={H0||9-3219|0} ++ ({||9-3041|0} {||9-3042|0} {||9-2974|} {|||})
-   W0={W0||9-3219|} ++ ({||9-3205|} {||9-3205|} {||M11|0} {||9-2878|})
-   W1={||9-3044|} ++ ({||9-3219|} {||9-2574|} {||*12|0} {||*201|})
-   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||*12|} {|||})
-   W3={W3||9-3205|0} ++ ({||9-3205|0} {||9-3195|} {|||} {||**EMPTY**|})
-   .......... Calling J116 [TEST IF (0) < (1)]: ([0] [1])=("9-3219" "9-3041")
+@15488+ >>>>> {P055R030::P55-1663||J60|P55-1664 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
+   H0={H0||9-2926|0} ++ ({||9-2974|} {|||} {||**EMPTY**|})
+   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
+   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
+   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
+   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
+   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: ([0])=("9-2926")
+             .....In J60, this-cell = NIL, link = {9-2926||9-2925|9-2924} 9-2924@15488[JDEEP]
+             .....In J60 next cell is NIL! 9-2924@15488[JDEEP]
+   H0={H0||9-2924|0} ++ ({||9-2974|} {|||} {||**EMPTY**|})
+   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
+   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
+   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
+   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
+@15489+ >>>>> {P055R040::P55-1664|70|J31|P55-1665 [H5- MEANS OUTPUT (0) IS;]} (Goto by H5: -symb|+link itself)
+   H0={H0||9-2924|0} ++ ({||9-2974|} {|||} {||**EMPTY**|})
+   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
+   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
+   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
+   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
+@15490+ >>>>> {P055R050::P55-1665|12|H0|P55-1666 [CELL AFTER WHICH TO INSERT.;]} (Push 2nd deref on H0)
+   H0={H0||0|0} ++ ({||9-2924|0} {||9-2974|} {|||} {||**EMPTY**|})
+   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
+   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
+   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
+   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
+@15491+ >>>>> {P055R060::P55-1666|11|W0|P55-1667} (Push cntnts of the cell named by symb, onto H0)
+   H0={H0||9-3047|0} ++ ({||0|0} {||9-2924|0} {||9-2974|} {|||})
+   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
+   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
+   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
+   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
+@15492+ >>>>> {P055R070::P55-1667||J116|P55-1668 [TEST IF PAST.;]} (Execute fn named by symb name itself)
+   H0={H0||9-3047|0} ++ ({||0|0} {||9-2924|0} {||9-2974|} {|||})
+   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
+   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
+   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
+   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
+   .......... Calling J116 [TEST IF (0) < (1)]: ([0] [1])=("9-3047" "0")
 
-debugger invoked on a SIMPLE-CONDITION in thread #<THREAD "main thread" RUNNING {1001670003}>: Numget was asked to get a non-number "9-3064" from {9-3041|02|9-3062|9-3064} ("9-3041").
+debugger invoked on a TYPE-ERROR @535EC405 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
 
-The problem comes from way up somewhere where this list got created:
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
 
-(0) {9-3044||9-3043|9-3042}
-   (1) {9-3043|02||4}
-   (1) {9-3042||9-3041|0}
-      (2) {9-3041|02|9-3062|9-3064}
-         (3) {9-3062|02|9-3080|9-3082}
-            (4) {9-3080|02|0|0}
-            (4) {9-3082||9-3081|0}
-               (5) {9-3081|02|0|3}
-         (3) {9-3064||9-3063|0}
-            (4) {9-3063|02||1}
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
 
-Note that although this is mostly a list of number cells
-{9-3042||9-3041|0}'s SYMB points to ... something confused. What's
-going on in this list?!
+(NUMGET "0")
+; Using form offset instead of character position.
 
-(This was all w/o the L11 hack in place. If I add that back this doens't even get this far!)
+   source: (CELL-LINK DATA-CELL)
+0] (pl "9-2926")
+(pl "9-2926")
 
-So I have to track where the 9-3041 cell gets added.
++------------------------- "9-2926" {9-2926||9-2925|9-2924} -------------------------+
+(0) {9-2926||9-2925|9-2924}
+   (1) {9-2925|02||1}
+   (1) {9-2924|02|0|9-2942}
+      (2) {9-2942||9-2941|9-2940}
+         (3) {9-2941|02|0|3}
+         (3) {9-2940|02|0|0}
++--------------------------End "9-2926" -------------------------------------------+
+
+The above list is fucked up. The data last cell (2940) should be
+hanging on a list header cell! ... and {9-2924|02|0|9-2942} shouldn't
+have a 0 in it!
 
 |#
 
@@ -2902,15 +2938,15 @@ So I have to track where the 9-3041 cell gets added.
 	  ;;((zerop (mod (h3-cycles) 100)) (print (list "***********" (h3-cycles))))
 	  ;("M088R020" (break))
 
-	  ((and (string-equal "0" (cell-symb (h0))) (string-equal "0" (cell-link (h0))))
-	   (???))
+	  ;; ((and (string-equal "0" (cell-symb (h0))) (string-equal "0" (cell-link (h0))))
+	  ;;  (???))
 
 	  ;; Basic tracer:
-  	  (15400
+  	  (15480
 	   (setf *!!* '(:run :jcalls :alerts :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
 	   )
-	  ;(15500 (break))
+	  ;;(15110 (break))
 	  
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
