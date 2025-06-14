@@ -89,6 +89,7 @@
 (defvar *fname-hint* "") ;; for messages in the middle of jfn ops
 (defvar *jfn-calls* (make-hash-table :test #'equal))
 (defvar *jfn-plists* (make-hash-table :test #'equal))
+(defvar *jfn-arg-traps* nil) ;; If anything in here get's passed to a jfn we hit a break.
 
 ;;; Find every reference to a given symbol in either the symtab or in
 ;;; lists (FFF add stack search):
@@ -1286,6 +1287,10 @@
 	(poph0 2)
 	)
 
+  ;; This is probably the most important function of all, and if hard
+  ;; to get right because it depends upon subtlties of locality and
+  ;; such.
+
   (defj J64 (new-symbol list-cell-name) "INSERT (0) AFTER SYMBOL IN (1)"
 	;; Identical with J63, except the symbol in (1) is left in
 	;; (1), and (0) is put into the new cell, thus occurring after
@@ -1293,18 +1298,35 @@
 	;; (0) is put in cell (1), which agrees with the definition of
 	;; insert after.) [WWW???!!! I dunno WTF this is talking
 	;; about! And it's prob. gonna break at list ends because
-	;; ... see above!] 
-	(!! :jdeep "             .....******** In J64 WORRY ABOUT THE UNINTERPRETABLE TERMINATION CELL CASE!")
+	;; ... see above!] There seems to be a screw case here. If
+	;; we're handed a cell that is x|0|0 we don't know if that's a
+	;; list header or a "private termination symbol" because we
+	;; don't have the concept of privacy other than the names. If
+	;; we do this wrong, it's gonna put the new thing into the DL
+	;; of this list, which is decidedly NOT right. So, we
+	;; heuristically assume that x|0|0 is a list header, and in
+	;; this case add a new cell to the tail anyway, but flag an
+	;; alert..
 	(!! :jdeep "             .....=========================================================J64 trying to append ~s to ~s~%" new-symbol list-cell-name)
 	(!! :jdeep "             .....Here are the lists before:")
 	(!! :jdeep (pl new-symbol) (pl list-cell-name))
-	(let* ((list-cell (cell list-cell-name)))
-	  (if (and (zero? (cell-symb list-cell)) (zero? (cell-link list-cell)))
-	      (setf (cell-link list-cell) new-symbol) 
-	      (setf (cell-link list-cell)
-		    (cell-name (make-cell! :name (newsym)
-					   :symb new-symbol
-					   :link (cell-link list-cell))))))
+	(let* ((list-cell (cell list-cell-name))
+	       (list-cell-symb (cell-symb list-cell))
+	       (list-cell-link (cell-link list-cell))
+	       (new-cell-name (newsym))
+	       (new-cell (make-cell! :name new-cell-name
+				     :symb new-symbol
+				     :link list-cell-link)))
+	  ;;; If the cell we've been handed is heuristically an empty
+	  ;;; list header, we soft flag this and add the new cell to
+	  ;;; the end.
+	  (when (and (zero? list-cell-symb) (zero? list-cell-link))
+	    (!! :alert "             .....J64 was handed what is assumed to be a list header: ~s!" list-cell))
+	  ;; So, all we need to do now is to link the new cell to the
+	  ;; given one, since the list cell link was already added
+	  ;; (representing the rest of the list) when the new cell was
+	  ;; created.
+	  (setf (cell-link list-cell) new-cell-name))
 	(!! :jdeep "             .....*********************************************************")
 	(!! :jdeep "             .....Here is the target list, after:")
 	(!! :jdeep (pl list-cell-name))
@@ -2469,8 +2491,13 @@
 ;;; could be indirect.
 
 (defun check-jfn-arglist-for-red-flags*** (args)
-  (if (member "H0" args :test #'string-equal)
-      (format t "WARNING: @~a H0 is passed as a per se argument: ~s! WATCH OUT FOR H0 POP RACE!~%" (h3-cycles) args))
+  (loop for arg in args
+	if (or (numberp arg)
+	       (string-equal "H0" arg)
+	       (member arg *jfn-arg-traps* :test #'string-equal))
+	do
+	(???)
+	(break "Arg ~s is either invalid or trapped! (WATCH OUT FOR H0 POP RACE!)~%" arg))
   args)
 
 (defun ipl-eval (start-symb &aux s)
@@ -2920,6 +2947,8 @@ have a 0 in it!
   ;; (It's been over-riden by LTFixed code.)
   ;;(trace ipush)
   ;(setf *!!* '(:alerts) *cell-tracing-on* t)
+  ;(setf *jfn-arg-traps* '("9-2941"))
+  (setf *!!* '(:alerts) *cell-tracing-on* t)
   (setf *trace-exprs*
 	'(
 	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
@@ -2942,11 +2971,11 @@ have a 0 in it!
 	  ;;  (???))
 
 	  ;; Basic tracer:
-  	  (15480
+  	  (1291000
 	   (setf *!!* '(:run :jcalls :alerts :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
 	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
 	   )
-	  ;;(15110 (break))
+	  ;(12920 (break))
 	  
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
