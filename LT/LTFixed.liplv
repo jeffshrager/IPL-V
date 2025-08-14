@@ -40,7 +40,7 @@
 ("TEST UTILITY." "" "" "" "" "M43" "" "" "M001R030")
 
 ;;; Consider removing this like to ignore utility and just do the proof:
-("     IF NO GOOD, QUIT." "" "" "" "70" "9-4" "" "" "M001R040")
+;("     IF NO GOOD, QUIT." "" "" "" "70" "9-4" "" "" "M001R040")
 
 ("" "" "" "" "11" "W0" "" "" "M001R050")
 ("PRINT 'TO PROVE' PROBLEM 1W0." "" "" "" "" "M78" "" "" "M001R060")

@@ -2813,22 +2813,23 @@
 ;;; t for all or :dr-memory :load :run :jdeep :run-full :io :end-dump :alerts :gentrace
 (defparameter *default-!!list* '(:run :jcalls :alerts))
 
-(defun set-default-tracing ()
+(defun set-trace-mode (&optional (mode :default))
   (untrace)
   (setf *trace-cell-names-or-exprs* nil)
   (setf *breaks* nil) ;; If this is set to t (or '(t)) it break on every call
   (setf *stack-depth-limit* 100) 
   (setf *stack-display-depth* 4)
-  (setf *!!* *default-!!list*) 
+  (setf *!!* *default-!!list*)
   (setf *report-all-system-cells?* nil)
   (setf *cell-tracing-on* nil)
   (setf *trace-exprs* nil)
-  )
+  (case mode
+    (:none (setf *!!* nil))))
 
 ;; Comment (or just ') progn blocks out as needed.
 
 '(progn ;; F1 test
-  (set-default-tracing)
+  (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
@@ -2838,7 +2839,7 @@
   )
 
 '(progn ;; Ackermann test
-  (set-default-tracing)
+  (set-trace-mode :default)
   '(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
@@ -2852,13 +2853,13 @@
   )
 
 '(progn ;; Test of call stack state machine.
-  (set-default-tracing)
+  (set-trace-mode :default)
   (setf *trace-cell-names-or-exprs* '("H0" "H1") *cell-tracing-on* t)
   (load-ipl "misccode/T123.liplv" :adv-limit 100)
   )
 
 '(progn ;; Test of EPAM
-  (set-default-tracing)
+  (set-trace-mode :default)
   (setf *!!* '(:jdeep :run :jcalls) *cell-tracing-on* t)
   (load-ipl "EPAM/EPAMFixed.liplv" :adv-limit 10000)
   )
@@ -2871,72 +2872,33 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-@15488+ >>>>> {P055R030::P55-1663||J60|P55-1664 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
-   H0={H0||9-2926|0} ++ ({||9-2974|} {|||} {||**EMPTY**|})
-   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
-   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
-   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
-   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
-   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: ([0])=("9-2926")
-             .....In J60, this-cell = NIL, link = {9-2926||9-2925|9-2924} 9-2924@15488[JDEEP]
-             .....In J60 next cell is NIL! 9-2924@15488[JDEEP]
-   H0={H0||9-2924|0} ++ ({||9-2974|} {|||} {||**EMPTY**|})
-   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
-   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
-   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
-   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
-@15489+ >>>>> {P055R040::P55-1664|70|J31|P55-1665 [H5- MEANS OUTPUT (0) IS;]} (Goto by H5: -symb|+link itself)
-   H0={H0||9-2924|0} ++ ({||9-2974|} {|||} {||**EMPTY**|})
-   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
-   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
-   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
-   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
-@15490+ >>>>> {P055R050::P55-1665|12|H0|P55-1666 [CELL AFTER WHICH TO INSERT.;]} (Push 2nd deref on H0)
-   H0={H0||0|0} ++ ({||9-2924|0} {||9-2974|} {|||} {||**EMPTY**|})
-   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
-   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
-   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
-   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
-@15491+ >>>>> {P055R060::P55-1666|11|W0|P55-1667} (Push cntnts of the cell named by symb, onto H0)
-   H0={H0||9-3047|0} ++ ({||0|0} {||9-2924|0} {||9-2974|} {|||})
-   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
-   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
-   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
-   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
-@15492+ >>>>> {P055R070::P55-1667||J116|P55-1668 [TEST IF PAST.;]} (Execute fn named by symb name itself)
-   H0={H0||9-3047|0} ++ ({||0|0} {||9-2924|0} {||9-2974|} {|||})
-   W0={W0||9-3047|} ++ ({||*201|} {||*201|} {||M16|0} {||*201|})
-   W1={||9-2926|} ++ ({||9-3047|} {||9-2878|} {||/16|0} {||9-2293|})
-   W2={W2||*201|0} ++ ({||*201|0} {||*201|0} {||9-2294|} {|||})
-   W3={W3||*201|0} ++ ({||*201|0} {||9-2978|} {|||} {||**EMPTY**|})
-   .......... Calling J116 [TEST IF (0) < (1)]: ([0] [1])=("9-3047" "0")
+Somehow a {H0||0|0} gets put on H0 here (I think):
 
-debugger invoked on a TYPE-ERROR @535EC405 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
+@27906+ >>>>> {P055R180::P55-1676|70|J7|J31} (Goto by H5: -symb|+link itself)
+   H0={H0||9-3575|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
+   H0={H0||9-3575|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
+@27908+ >>>>> {M042R240::M42-718|70|M42-719|J80} (Goto by H5: -symb|+link itself)
+   H0={H0||9-3575|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
+   H0={H0||0|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
+@27910+ >>>>> {M042R070::M42-702|11|W0|M42-703} (Push cntnts of the cell named by symb, onto H0)
+   H0={H0||*201|0} ++ ({||0|0} {||9-3645|} {|||} {||**EMPTY**|})
+
+And much later, it comes back to bite us:
+
+@28291+ >>>>> {P055R030::P55-1663||J60|P55-1664 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
+   H0={H0||0|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
+
+debugger invoked on a TYPE-ERROR @535DF274 in thread #<THREAD "main thread" RUNNING {10016B0003}>: The value NIL is not of type COMMON-LISP-USER::CELL
 
 Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
 
 restarts (invokable by number or by possibly-abbreviated name):
   0: [ABORT] Exit debugger, returning to top level.
 
-(NUMGET "0")
+((LAMBDA ([0]) :IN SETUP-J-FNS) "0")
 ; Using form offset instead of character position.
 
-   source: (CELL-LINK DATA-CELL)
-0] (pl "9-2926")
-(pl "9-2926")
-
-+------------------------- "9-2926" {9-2926||9-2925|9-2924} -------------------------+
-(0) {9-2926||9-2925|9-2924}
-   (1) {9-2925|02||1}
-   (1) {9-2924|02|0|9-2942}
-      (2) {9-2942||9-2941|9-2940}
-         (3) {9-2941|02|0|3}
-         (3) {9-2940|02|0|0}
-+--------------------------End "9-2926" -------------------------------------------+
-
-The above list is fucked up. The data last cell (2940) should be
-hanging on a list header cell! ... and {9-2924|02|0|9-2942} shouldn't
-have a 0 in it!
+   source: (CELL-LINK THIS-CELL)
 
 |#
 
@@ -2948,14 +2910,10 @@ have a 0 in it!
 ;;; (fsym "symbol")
 
 (progn ;; LT 
-  (set-default-tracing)
+  (set-trace-mode :none)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
-  ;;(setf *!!* '(:jcalls :run :alerts) *cell-tracing-on* nil)
-  ;;(setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
-  ;;(trace ipush)
-  ;;(setf *!!* '(:alerts) *cell-tracing-on* t)
   ;(setf *jfn-arg-traps* '("9-2941"))
   (setf *trace-exprs*
 	'(
@@ -2973,17 +2931,18 @@ have a 0 in it!
 
 	  ;; Useful for localizing problems:
 	  ;;((zerop (mod (h3-cycles) 100)) (print (list "***********" (h3-cycles))))
+
 	  ;;("M088R020" (break))
 
 	  ;; ((and (string-equal "0" (cell-symb (h0))) (string-equal "0" (cell-link (h0))))
 	  ;;  (???))
 
 	  ;; Basic tracer:
-;;  	  (13000
-;;	   (setf *!!* '(:run :jcalls :alerts :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-;;	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
-;;	   )
-	  
+  	  (25000
+	   (setf *!!* '(:run) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	   (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t)  ;;  "W0" "W1" "W2" "W3"
+	   )
+
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 
