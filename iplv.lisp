@@ -2879,6 +2879,7 @@ Somehow a {H0||0|0} gets put on H0 here (I think):
    H0={H0||9-3575|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
 @27908+ >>>>> {M042R240::M42-718|70|M42-719|J80} (Goto by H5: -symb|+link itself)
    H0={H0||9-3575|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
+   .......... Calling J80 [FIND THE HEAD SYMBOL OF (0)]: ([0])=("9-3575")
    H0={H0||0|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
 @27910+ >>>>> {M042R070::M42-702|11|W0|M42-703} (Push cntnts of the cell named by symb, onto H0)
    H0={H0||*201|0} ++ ({||0|0} {||9-3645|} {|||} {||**EMPTY**|})
@@ -2890,15 +2891,20 @@ And much later, it comes back to bite us:
 
 debugger invoked on a TYPE-ERROR @535DF274 in thread #<THREAD "main thread" RUNNING {10016B0003}>: The value NIL is not of type COMMON-LISP-USER::CELL
 
-Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+So, J80 is fucking us, and symbol [0] = "9-3575", which is:
 
-restarts (invokable by number or by possibly-abbreviated name):
-  0: [ABORT] Exit debugger, returning to top level.
-
-((LAMBDA ([0]) :IN SETUP-J-FNS) "0")
-; Using form offset instead of character position.
-
-   source: (CELL-LINK THIS-CELL)
++------------------------- "9-3575" {9-3575||9-3574|0} -------------------------+
+(0) {9-3575||9-3574|0}
+   (1) {9-3574|02|0|9-3596}
+      (2) {9-3596||9-3595|9-3594}
+         (3) {9-3595|02||1}
+         (3) {9-3594||9-3593|0}
+            (4) {9-3593|02|0|9-3613}
+               (5) {9-3613||9-3612|9-3611}
+                  (6) {9-3612|02|0|3}
+                  (6) {9-3611||9-3610|0}
+                     (7) {9-3610|02|0|0}
++--------------------------End "9-3575" -------------------------------------------+
 
 |#
 
@@ -2938,10 +2944,12 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;;  (???))
 
 	  ;; Basic tracer:
-  	  (25000
-	   (setf *!!* '(:run) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+  	  (27900
+	   (setf *!!* '(:run :jcalls :jdeep :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
 	   (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t)  ;;  "W0" "W1" "W2" "W3"
 	   )
+
+	  (27910 (break))
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
