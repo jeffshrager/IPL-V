@@ -1568,7 +1568,7 @@
 	(h5+)
 	(if (zero? [0])
 	    (H5-)
-	    (let* ((r (cell-link (cell [0]))))
+	    (let* ((r (cell-symb (cell [0]))))
 	      (poph0 1)
 	      (ipush "H0" r))))
 
@@ -2944,12 +2944,12 @@ So, J80 is fucking us, and symbol [0] = "9-3575", which is:
 	  ;;  (???))
 
 	  ;; Basic tracer:
-  	  (27900
-	   (setf *!!* '(:run :jcalls :jdeep :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	   (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t)  ;;  "W0" "W1" "W2" "W3"
-	   )
+  	  ;(27900
+	  ; (setf *!!* '(:run :jcalls :jdeep :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	  ; (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t)  ;;  "W0" "W1" "W2" "W3"
+	  ; )
 
-	  (27910 (break))
+	  ;(27910 (break))
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
