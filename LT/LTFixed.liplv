@@ -38,7 +38,10 @@
 ("   PROBLEM (0). H5 + IF SUCCEEDS " "" "" "" "40" "W0" "" "" "M001R010")
 ("" "" "" "" "60" "W0" "" "1W0=PROB" "M001R020")
 ("TEST UTILITY." "" "" "" "" "M43" "" "" "M001R030")
-;("     IF NO GOOD, QUIT." "" "" "" "70" "9-4" "" "" "M001R040") don't worry about utility -- just try to prove it!
+
+;;; Consider removing this like to ignore utility and just do the proof:
+("     IF NO GOOD, QUIT." "" "" "" "70" "9-4" "" "" "M001R040")
+
 ("" "" "" "" "11" "W0" "" "" "M001R050")
 ("PRINT 'TO PROVE' PROBLEM 1W0." "" "" "" "" "M78" "" "" "M001R060")
 ("" "" "" "" "11" "W0" "" "" "M001R070")
@@ -296,7 +299,7 @@
 ("" "" "" "" "" "J6" "" "" "M014R150")
 ("GET FEASIBLE THEOREM LEFT SIDES." "" "" "" "" "M63" "" "" "M014R160")
 ("" "" "" "" "60" "W0" "" "1W0=FSFLS" "M014R170")
-("TRY FEASIBLE THM LEFTS WITH" "" "" "" "10" "9-100" "" "" "M014R180") ;; ERR!!
+("TRY FEASIBLE THM LEFTS WITH" "" "" "" "10" "9-100" "" "" "M014R180")
 ("PROBLEM LEFT. GENERATE FSBLS." "" "" "" "" "J100" "" "" "M014R190")
 ("" "" "" "" "11" "W0" "" "" "M014R200")
 ("ERASE LIST OF FEASIBLES." "" "" "" "" "J71" "" "" "M014R210")
@@ -305,7 +308,7 @@
 ("9-100 SUBPROCESS, TRY LEFT SIDES." "" "9-100" "" "60" "W2" "" "1W2=THM" "M014R240")
 ("" "" "" "" "11" "W1" "" "1W1=PROB" "M014R250")
 ("" "" "" "" "11" "W2" "" "" "M014R260")
-("MAKE FREE VARIABLES DISJOINT." "" "" "" "" "M110" "" "" "M014R270") ;; ERR!!
+("MAKE FREE VARIABLES DISJOINT." "" "" "" "" "M110" "" "" "M014R270")
 ("FIND LEFT SEGMENT OF THY TEX." "" "" "" "" "P13" "" "" "M014R280")
 ("" "" "" "" "70" "J4" "" "" "M014R290")
 ("INPUT PROB LEFT" "" "" "" "11" "9-1" "" "" "M014R300")
@@ -1482,10 +1485,7 @@
 ("" "" "" "" "12" "W0" "" "" "M112R070")
 ("DELINEATE SEGENT AT THIS STATION" "" "" "" "" "9-100" "" "" "M112R080")
 ("" "" "" "" "21" "W0" "9-1" "" "M112R090")
-
-;;;("SEGMENT DELINEATION SUBPROCESS." "" "9-100" "" " 4" "J50" "" "" "M112R100")
-("SEGMENT DELINEATION SUBPROCESS." "" "9-100" "" "" "J50" "" "" "M112R100")
-
+("SEGMENT DELINEATION SUBPROCESS." "" "9-100" "" "4" "J50" "" "" "M112R100")
 ("" "" "" "" "11" "W0" "" "" "M112R110")
 ("IS INPUT A VARIABLE." "" "" "" "" "P8" "" "" "M112R120")
 ("" "" "" "" "11" "W0" "" "" "M112R130")
@@ -1505,10 +1505,7 @@
 ("DELINEATE FREE VARIABLE" "" "" "" "" "9-200" "" "" "M112R270")
 ("" "" "" "" "21" "W0" "" "" "M112R280")
 ("" "" "" "" "" "J30" "J4" "" "M112R290")
-
-;;;("" "" "9-200" "" " 4" "J50" "" "" "M112R300")
-("" "" "9-200" "" "" "J50" "" "" "M112R300")
-
+("" "" "9-200" "" "4" "J50" "" "" "M112R300")
 ("" "" "" "" "10" "W1" "" "" "M112R310")
 ("" "" "" "" "11" "W0" "" "" "M112R320")
 ("FIND CORRESPONDING SUBSTITUTOR" "" "" "" "" "J10" "" "" "M112R330")
@@ -1648,7 +1645,7 @@
 ("SEGMENT (0) ON THE LEFTS," "" "" "" "" "P17" "" "" "P022R010")
 ("SEGMENT (1) CN THE RIGHT." "" "" "" "" "J6" "" "" "P022R020")
 ("AND IMPLIES AS CONNECTIVE." "" "" "" "" "P17" "" "" "P022R030")
-("CREATE MEX." "" "" "" "" "J92" "" "" "P022R040") ;; ERR!!
+("CREATE MEX." "" "" "" "" "J92" "" "" "P022R040")
 ("" "" "" "" "" "J136" "" "" "P022R050")
 ("" "" "" "" "60" "W0" "" "" "P022R060")
 ("INSERT CONNECTIVE." "" "" "" "11" "K6" "" "" "P022R070")
@@ -1931,6 +1928,7 @@
 ("9-300 SUBPROCESS, INSERT SEGMENT." "" "9-300" "" "11" "W0" "" "" "P052R560")
 ("" "" "" "" "" "J6" "J65" "" "P052R570")
 ("" "1" "" "" "" "" "" "" "    R")
+
 ("P55 LOCATE SUBLIST FOLLOWING" "" "P55" "" "" "J41" "" "" "P055R000")
 
 ;;; There's something really wrong above that sometimes looses L11
@@ -1963,15 +1961,15 @@
 ("SET UP CELL HOLDING SUBLIST." "" "9-2" "" "" "J60" "" "" "P055R170")
 
 ;;; This seems to need to be a return:
-;("" "" "" "" "70" "J7" "J31" "" "P055R180") 
-("" "" "" "" "70" "J31" "J31" "" "P055R180") 
+("" "" "" "" "70" "J7" "J31" "" "P055R180") ;; Original
+;("" "" "" "" "70" "J31" "J31" "" "P055R180") ;; Forced return
 
 ("" "1" "" "" "" "" "" "" "    R")
 ("01 FIND CONNECTIVE OF SEGMENT (0)." "" "Q1" "" "" "J80" "" "" "Q001R000")
 ("" "" "" "" "70" "0" "" "" "Q001R010")
 ("" "" "" "" "40" "H0" "" "" "Q001R020")
 ("TEST IF IT IS .4 CONNECTIVE." "" "" "" "" "P7" "" "" "Q001R030")
-("" "" "" "" "70" "J80" "0" "" "Q001R040")
+("" "" "" "" "70" "J8" "0" "" "Q001R040") ;; Typo discovered by RL 20250813
 ("" "1" "" "" "" "" "" "" "    R")
 ("Q2 FIND NO. OF LEVELS OF TEX (0)." "" "Q2" "" "40" "H0" "" "" "Q002R000")
 ("H5- MEANS DEFECTIVE EXPRESSION." "" "" "" "10" "Q2" "" "" "Q002R010")
@@ -1988,7 +1986,8 @@
 ("FIND MEX." "" "" "" "" "J81" "" "" "Q002R120")
 ("IF NONE, CLEANUP, QUIT-." "" "" "" "70" "9-1" "" "" "Q002R130")
 ("IF THERE, COUNT LEVELS." "" "" "" "" "9-100" "" "" "Q002R140")
-("" "" "" "" "11" "W0" "" "" "Q002R150")
+("" "" "9-1" "" "11" "W0" "" "" "Q002R150") ;; Rupert noticed this problem, but it was correct in the spreadsheet?? (20250813)
+    ;; Maybe it was a previously discovered typo that I fixed in the spreadsheet but failed to move to here.
 ("ERASE COUNTER." "" "" "" "" "J9" "" "" "Q002R160")
 ("INPUT LEVEL," "" "" "" "11" "W1" "" "" "Q002R170")
 ("IF H5-, ERASE LEVEL, QUIT-." "" "" "" "70" "9-2" "" "" "Q002R180")

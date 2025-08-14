@@ -1292,6 +1292,10 @@
   ;; such.
 
   (defj J64 (new-symbol list-cell-name) "INSERT (0) AFTER SYMBOL IN (1)"
+	;; (format t "~%~%***************** (J64 :Insert ~s :In ~s) *****************!~%~%" new-symbol list-cell-name)
+	;; (format t "~%~%--------------------------~%~%")
+	;; (pl "L11") 
+	;; (format t "~%~%--------------------------~%~%")
 	;; Identical with J63, except the symbol in (1) is left in
 	;; (1), and (0) is put into the new cell, thus occurring after
 	;; the symbol in (1). (If (1) is a private termination symbol,
@@ -1326,7 +1330,13 @@
 	  ;; given one, since the list cell link was already added
 	  ;; (representing the rest of the list) when the new cell was
 	  ;; created.
-	  (setf (cell-link list-cell) new-cell-name))
+	  (setf (cell-link list-cell) new-cell-name)
+	  ;; (format t "~%~%--------------------------~%~%")
+	  ;; (pl list-cell-name) 
+	  ;; (format t "~%~%--------------------------~%~%")
+	  ;; (pl "L11") 
+	  ;; (format t "~%~%--------------------------~%~%")
+	  )
 	(!! :jdeep "             .....*********************************************************")
 	(!! :jdeep "             .....Here is the target list, after:")
 	(!! :jdeep (pl list-cell-name))
@@ -1359,7 +1369,6 @@
 	(!! :jdeep "             .....=========================================================")
 	(PopH0 2)
 	)
-	
 
   (defj J66 ([0] [1]) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" ;; USED IN F1
 	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
@@ -2953,7 +2962,7 @@ have a 0 in it!
 	'(
 	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
 	  ;; See notes re special JFn:JP055R005JEFF (in LTFixed)
-	  ;("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in the original code!
+	  ;;("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in the original code!
   	  ;("P055R000" (???) (format t "~%~%") (backtrace! 25) (format t "~%~%") (pl (cell-symb (car (H0+)))))
 
 	  ;; NOTE: The key can be partial, as "P052R"; uses
@@ -2965,21 +2974,19 @@ have a 0 in it!
 
 	  ;; Useful for localizing problems:
 	  ;;((zerop (mod (h3-cycles) 100)) (print (list "***********" (h3-cycles))))
-	  ;("M088R020" (break))
+	  ;;("M088R020" (break))
 
 	  ;; ((and (string-equal "0" (cell-symb (h0))) (string-equal "0" (cell-link (h0))))
 	  ;;  (???))
 
 	  ;; Basic tracer:
-  	  (1291000
-	   (setf *!!* '(:run :jcalls :alerts :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
-	   )
-	  ;(12920 (break))
+;;  	  (13000
+;;	   (setf *!!* '(:run :jcalls :alerts :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+;;	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2" "W3") *cell-tracing-on* t) 
+;;	   )
 	  
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
-	  
 
 	  ))
   (load-ipl "LT/LTFixed.liplv" :adv-limit 500000)
