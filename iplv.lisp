@@ -1021,7 +1021,7 @@
 	     (let ((dlhead (cell-symb lhead)))
 	       (if (zero? dlhead)
 		   (break "In  J15 trying to clear a DL that doesn't exist!")
-		   (setf (cell-symb dlhead) "0" (cell-link dlhead) "0"))))
+		   (setf dlhead (<== dlhead) (cell-symb dlhead) "0" (cell-link dlhead) "0"))))
 	    (:delete-dl
 	     ;; This is the "Kill the DL at the list head" version:
 	     (setf (cell-symb lhead) "0"))
@@ -2949,15 +2949,14 @@ have a 0 in it!
 
 (progn ;; LT 
   (set-default-tracing)
-  (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
+  ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;;(setf *!!* '(:jcalls :run :alerts) *cell-tracing-on* nil)
-  (setf *!!* '() *cell-tracing-on* nil)
+  ;;(setf *!!* '() *cell-tracing-on* nil)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;;(trace ipush)
-  ;(setf *!!* '(:alerts) *cell-tracing-on* t)
+  ;;(setf *!!* '(:alerts) *cell-tracing-on* t)
   ;(setf *jfn-arg-traps* '("9-2941"))
-  (setf *!!* '(:alerts) *cell-tracing-on* t)
   (setf *trace-exprs*
 	'(
 	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
