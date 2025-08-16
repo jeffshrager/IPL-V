@@ -2936,7 +2936,7 @@ So, J80 is fucking us, and symbol [0] = "9-3575", which is:
 	  ;; ((= *gensym-counter* 3042) (???))
 
 	  ;; Useful for localizing problems:
-	  ;;((zerop (mod (h3-cycles) 100)) (print (list "***********" (h3-cycles))))
+	  ;; ((zerop (mod (h3-cycles) 100)) (print (h3-cycles)))
 
 	  ;;("M088R020" (break))
 
@@ -2944,10 +2944,10 @@ So, J80 is fucking us, and symbol [0] = "9-3575", which is:
 	  ;;  (???))
 
 	  ;; Basic tracer:
-  	  ;(27900
-	  ; (setf *!!* '(:run :jcalls :jdeep :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	  ; (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t)  ;;  "W0" "W1" "W2" "W3"
-	  ; )
+  	  (131500
+	   (setf *!!* '(:run :jcalls :jdeep :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;   "W2" "W3"
+	   )
 
 	  ;(27910 (break))
 
