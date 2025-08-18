@@ -1471,7 +1471,9 @@
 	;; caller might think it's what it's looking for. FFF ??? It's
 	;; actually pretty likely that a bug in my code is sending
 	;; these 0s, and this hack is covering up for that.]
-	(!! :jdeep "             .....J73 is shallow copying list: ~s" (H0))
+	(!! :jdeep "             .....J73 is shallow copying list: ~s" [0])
+	(!! :jdeep "                  Incoming list:")
+	(!! :jdeep (pl [0]))
 	(let* ((new-head
 		(if (zero? [0])
 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
@@ -1479,6 +1481,10 @@
 		      (cell-name new-cell))
 		    (J73-shallow-copy-ipl-list [0]))))
 	  (poph0 1)
+	  (!! :jdeep "                  Incoming list (to check for damage!):")
+	  (!! :jdeep (pl [0]))
+	  (!! :jdeep "                  Copy:")
+	  (!! :jdeep (pl new-head))
 	  (ipush "H0" new-head)))
 
   (defj J74 ([0]) "(Deep) Copy List Structure [186]"
@@ -1492,7 +1498,9 @@
 	;; the copy will be produced in main storage. In all cases, list structure (0)
 	;; remains unaffected. The output (0) names the new list structure. It is
 	;; local if the input (0) is local; It is internal otherwise.
-	(!! :jdeep "             .....J74 is deep copying list: ~s" (H0))
+	(!! :jdeep "             .....J74 is deep copying list: ~s" [0])
+	(!! :jdeep "                  Incoming list:")
+	(!! :jdeep (pl [0]))
 	(clrhash *j74tbl*)
 	(let* ((new-head
 		(if (zero? [0])
@@ -1501,6 +1509,10 @@
 		      (cell-name new-cell))
 		    (J74-deep-copy-ipl-list [0]))))
 	  (poph0 1)
+	  (!! :jdeep "                  Incoming list (to check for damage!):")
+	  (!! :jdeep (pl [0]))
+	  (!! :jdeep "                  Copy:")
+	  (!! :jdeep (pl new-head))
 	  (ipush "H0" new-head)))
 
   (defj J75 ([0]) "DIVIDE LIST AFTER LOCATION (0)"
@@ -1567,10 +1579,11 @@
   (defj J80 ([0]) "FIND THE HEAD SYMBOL OF (0)"
 	(h5+)
 	(if (zero? [0])
-	    (H5-)
+	    (progn (H5-) (poph0 1))
 	    (let* ((r (cell-symb (cell [0]))))
-	      (poph0 1)
-	      (ipush "H0" r))))
+	      (if (zero? r)
+		  (progn (H5-) (poph0 1))
+		  (progn (poph0 1) (ipush "H0" r))))))
 
 ;;; FIND THE NTH SYMBOL ON LIST (0) Ten routines, J80-J89. Set H5+ if
 ;;; the Nth symbol exists, - if not. Assume list (0) is de-scribable,
@@ -2349,8 +2362,14 @@
 	       :name new-subhead-name
 	       :p (cell-p old-sub-head)
 	       :q (cell-q old-sub-head)
-	       :symb (cell-symb old-sub-head) ;; This will get checked on the recursion below.
-	       :link (cell-link old-sub-head)
+	       :symb (cell-symb old-sub-head) ;; This will get checked
+	       ;; on the recursion below.  This change here was a shot
+	       ;; in the dark bcs *13 was being munged (B -> Q) and I
+	       ;; thought maybe it was because of inappropriate
+	       ;; sharing bcs a list wasn't being copied through it's
+	       ;; links....or something, but it appears that this
+	       ;; makes no difference.
+	       :link (j74-deep-copy-ipl-list (cell-link old-sub-head)) 
 	       :id (cell-id old-sub-head))
 	      ;; Okay, so all we should have to do now is set this as
 	      ;; the sym of the new-cell, and recursively copy from
@@ -2393,7 +2412,7 @@
     (apply #'print-list symb args)
     (format t "+--------------------------End ~s -------------------------------------------+~%" symb)
     )
-(defun print-list (symb &key (depth 0) (limit 10) (dls? t))
+(defun print-list (symb &key (depth 0) (limit 3) (dls? t))
   (cond ((> depth limit) (format t "~a[@~a...]~%" (blanks (* (1- depth) 3)) depth))
 	((or (not (atom symb))
 	     (numberp symb)
@@ -2410,7 +2429,9 @@
 		   (print-list (cell-symb cell) :depth (1+ depth) :limit limit))
 		 (format t "~a(dl suppressed)~%" (blanks (* (1+ depth) 3))))
 	       (unless (equal (cell-link cell) symb)
-		 (print-list (cell-link cell) :depth (1+ depth) :limit limit)))))))
+		 (print-list (cell-link cell) :depth depth :limit limit) ;; Don't increment depth for the link
+		 ;; (print-list (cell-link cell) :depth (1+ depth) :limit limit)
+		 ))))))
 	     
 (defun pretty-print-cell (cell)
   (setf cell (<=! cell))
@@ -2872,39 +2893,11 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-Somehow a {H0||0|0} gets put on H0 here (I think):
+With
 
-@27906+ >>>>> {P055R180::P55-1676|70|J7|J31} (Goto by H5: -symb|+link itself)
-   H0={H0||9-3575|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
-   H0={H0||9-3575|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
-@27908+ >>>>> {M042R240::M42-718|70|M42-719|J80} (Goto by H5: -symb|+link itself)
-   H0={H0||9-3575|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
-   .......... Calling J80 [FIND THE HEAD SYMBOL OF (0)]: ([0])=("9-3575")
-   H0={H0||0|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
-@27910+ >>>>> {M042R070::M42-702|11|W0|M42-703} (Push cntnts of the cell named by symb, onto H0)
-   H0={H0||*201|0} ++ ({||0|0} {||9-3645|} {|||} {||**EMPTY**|})
+  K30=R
 
-And much later, it comes back to bite us:
-
-@28291+ >>>>> {P055R030::P55-1663||J60|P55-1664 [CELL HOLDING SUBLIST.;]} (Execute fn named by symb name itself)
-   H0={H0||0|0} ++ ({||9-3645|} {|||} {||**EMPTY**|})
-
-debugger invoked on a TYPE-ERROR @535DF274 in thread #<THREAD "main thread" RUNNING {10016B0003}>: The value NIL is not of type COMMON-LISP-USER::CELL
-
-So, J80 is fucking us, and symbol [0] = "9-3575", which is:
-
-+------------------------- "9-3575" {9-3575||9-3574|0} -------------------------+
-(0) {9-3575||9-3574|0}
-   (1) {9-3574|02|0|9-3596}
-      (2) {9-3596||9-3595|9-3594}
-         (3) {9-3595|02||1}
-         (3) {9-3594||9-3593|0}
-            (4) {9-3593|02|0|9-3613}
-               (5) {9-3613||9-3612|9-3611}
-                  (6) {9-3612|02|0|3}
-                  (6) {9-3611||9-3610|0}
-                     (7) {9-3610|02|0|0}
-+--------------------------End "9-3575" -------------------------------------------+
+Something breaks.
 
 |#
 
@@ -2944,12 +2937,13 @@ So, J80 is fucking us, and symbol [0] = "9-3575", which is:
 	  ;;  (???))
 
 	  ;; Basic tracer:
-  	  (131500
-	   (setf *!!* '(:run :jcalls :jdeep :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;   "W2" "W3"
-	   )
 
-	  ;(27910 (break))
+  	  ;; (1
+	  ;;  (setf *!!* '(:run :jcalls :jdeep :alerts) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)  ;;   "W2" "W3"
+	  ;;  )
+
+	  ;;(2875 (break))
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
