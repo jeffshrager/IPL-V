@@ -114,6 +114,19 @@ You get:
 :::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
 ```
 
+Incidentally, the :run trace from the above is in the file
+repo/LT/20250825_SimpleSubstProof.drb and is nearly 4000 operations in
+length. (Generally-speaking, the interpreter works quite well; I'm not
+so sure of all the J-functions, esp. the ones that copy lists, like
+J74. There is thing pervasive confusion between describable lists and
+non-describable lists. The difference is unmarked, and many operations
+appear to assume one or the other, and I'm not sure I got all thos
+right. This is esp. a problem when you're copying a complex tree --
+are the sublists describable or not? It's one thing when the
+programmer can choose because s/he knows what the code is suppose to
+do, it's quite another thing when a J-function needs to "know" this
+someplace inside.)
+
 But in sligtly more complex cases there's some sort of output bug:
 
 Input:

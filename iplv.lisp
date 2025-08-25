@@ -3005,10 +3005,10 @@ Which actually looks like it correctly takes off 2 agrs, but then there's {|||} 
 
 	  ;; Basic tracer:
 
-  	   ;; (1
-	   ;;  (setf *!!* '(:run) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	   ;;  (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	   ;;  )
+  	    (1
+	     (setf *!!* '(:run) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	     (setf *trace-cell-names-or-exprs* '("H0") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
+	     )
 
 	  ;;(2875 (break))
 
