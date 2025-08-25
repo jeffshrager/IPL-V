@@ -62,6 +62,254 @@ having to remember to also add a quote!]
 
 ---
 
+# State of the project on 2025-08-25
+
+## Reader problems
+
+If the inputs are given exactly as shown in the paper, weird things
+happen. You need double spaces after the number and before the
+sentence. So, for example:
+
+Broken:
+*1.2 ((AVA)IA)
+Works:
+*1.2  ((AVA)IA)
+
+And some of the defs don't read right for unknown reasons.
+
+*1.2  ((AVA)IA)
+*1.4  ((AVB)I(BVA))
+
+*2.07  ((PVP)IP)
+*2.08  (PIP)
+
+Trivial substitution proof works well, e.g., with this input:
+
+```
+*1.2  ((AVA)IA)
+                    [This is a required break before sentences to prove.]
+*2.07  ((PVP)IP)
+```
+
+You get:
+
+```
+:::::::::::::::::::::::::::::::: 1.2     (AVA)IA                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.07    (PVP)IP                                                                 
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.07    (PVP)IP                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         *12       (AVA)IA                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  2.07      (PVP)IP                       
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+```
+
+But in sligtly more complex cases there's some sort of output bug:
+
+Input:
+```
+*1.2  ((AVA)IA)
+*1.4  ((AVB)I(BVA))
+
+*2.07  ((PVP)IP)
+*2.08  (PIP)
+
+```
+Output:
+
+```
+:::::::::::::::::::::::::::::::: 1.2     (AVA)IA                                                                 
+:::::::::::::::::::::::::::::::: 1.4     (AVB)I(BVA)                                                             
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.07    (PVP)IP                                                                 
+:::::::::::::::::::::::::::::::: 2.08    PIP                                                                     
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.07    (PVP)IP                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         *12       (AVA)IA                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  2.07      (PVP)IP                       
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.08    PIP                                                                     
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+
+debugger invoked on a TYPE-ERROR @535E74C7 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
+
+((LAMBDA ([0] [1]) :IN SETUP-J-FNS) "Q13" "")
+; Using form offset instead of character position.
+
+   source: (CELL-SYMB LIST-HEAD)
+
+```
+
+I think that this is a simple problem, and could be easily fixed. However, more complex proofs don't work. For example, (PVQ)IQ should have been pprovable from (AVB)I(BVA) and (AVB)IA.
+
+```
+:::::::::::::::::::::::::::::::: 1.2     (AVB)I(BVA)                                                             
+:::::::::::::::::::::::::::::::: 1.2     (AVB)IA                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.07    (PVQ)IQ                                                                 
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.07    (PVQ)IQ                                                                 
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+```
+
+And, indeed, if you provide all the original inputs:
+```
+:::::::::::::::::::::::::::::::: 1.01    (AIB).=.(-AVB) EF.                                                      
+:::::::::::::::::::::::::::::::: BAD EXPRESSION   ((PVQ/UGH/VR).=.((PVQ)VR))                                     
+:::::::::::::::::::::::::::::::: BAD EXPRESSION   ((P*Q).=.-(-(PV-Q)/UGH/)                                       
+:::::::::::::::::::::::::::::::: 4.01    (A=B).=.((AIB)*(BIA)) EF.                                               
+:::::::::::::::::::::::::::::::: 1.2     (AVA)IA                                                                 
+:::::::::::::::::::::::::::::::: 1.3     BI(AVB)                                                                 
+:::::::::::::::::::::::::::::::: 1.4     (AVB)I(BVA)                                                             
+:::::::::::::::::::::::::::::::: 1.5     (AV(BVC))I(BV(AVC))                                                     
+:::::::::::::::::::::::::::::::: 1.6     (BIC)I((AVB)I(AVC))                                                     
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.01    (PI-P)I-P                                                               
+:::::::::::::::::::::::::::::::: 2.02    QI(PIQ)                                                                 
+:::::::::::::::::::::::::::::::: BAD EXPRESSION   (((PI-Q)I(QI-P)/UGH/)                                          
+:::::::::::::::::::::::::::::::: 2.04    (PI(QIR))I(QI(PIR))                                                     
+:::::::::::::::::::::::::::::::: 2.05    (QIR)I((PIQ)I(PIR))                                                     
+:::::::::::::::::::::::::::::::: 2.06    (PIQ)I((QIR)I(PIR))                                                     
+:::::::::::::::::::::::::::::::: 2.07    PI(PVP)                                                                 
+:::::::::::::::::::::::::::::::: 2.08    PIP                                                                     
+:::::::::::::::::::::::::::::::: 2.10    -PVP                                                                    
+:::::::::::::::::::::::::::::::: 2.11    PV-P                                                                    
+:::::::::::::::::::::::::::::::: 2.12    PI--P                                                                   
+:::::::::::::::::::::::::::::::: 2.13    PV---P                                                                  
+:::::::::::::::::::::::::::::::: 2.14    --PIP                                                                   
+:::::::::::::::::::::::::::::::: 2.15    (-PIQ)I(-QIP)                                                           
+:::::::::::::::::::::::::::::::: 2.20    PI(PVQ)                                                                 
+:::::::::::::::::::::::::::::::: 2.21    -PI(PIQ)                                                                
+:::::::::::::::::::::::::::::::: 2.24    PI(-PVQ)                                                                
+:::::::::::::::::::::::::::::::: 3.13    (-(P*Q))I(-PV-Q)                                                        
+:::::::::::::::::::::::::::::::: 3.14    (-PV-Q)I(-(P*Q))                                                        
+:::::::::::::::::::::::::::::::: 3.24    -(P*-P)                                                                 
+:::::::::::::::::::::::::::::::: 4.13    P=--P                                                                   
+:::::::::::::::::::::::::::::::: 4.20    P=P                                                                     
+:::::::::::::::::::::::::::::::: 4.24    P=(P*P)                                                                 
+:::::::::::::::::::::::::::::::: 4.25    P=(PVP)                                                                 
+```
+You end up with the worst of both worlds:
+```
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.01    (PI-P)I-P                                                               
+::::::::::::::::::::::::::::::::            .0   ((P)V(P))I-P            ,0 SUBLEVEL REPLACEMENT                 
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.02    QI(PIQ)                                                                 
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.04    (PI(QIR))I(QI(PIR))                                                     
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.05    (QIR)I((PIQ)I(PIR))                                                     
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.06    (PIQ)I((QIR)I(PIR))                                                     
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.07    PI(PVP)                                                                 
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.08    PIP                                                                     
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20            ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.10    -PVP                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+
+debugger invoked on a TYPE-ERROR @535E74C7 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
+
+((LAMBDA ([0] [1]) :IN SETUP-J-FNS) "Q13" "")
+; Using form offset instead of character position.
+
+   source: (CELL-SYMB LIST-HEAD)
+0] 
+```
+
+The failure in proof-making is probably a much more difficult problem
+to figure out than a simple ouput crash.
+
+---
+
 # Docs:
 
 The IPL-V manual
