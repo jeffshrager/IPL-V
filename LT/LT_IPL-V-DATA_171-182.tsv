@@ -92,7 +92,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes
 172	LIMIT ON NO. OF  SUBPROBLEMS		K20	_+	1		100		K020D000			
 172	LIMIT ON NO. OF  SUBSTITUTIONS		K21	_+	1		100		K021D000			
 172	LIMIT ON EFFORT		K22	_+	1	100	"0000"		K022D000			
-172			K30			F			K030D000			
+172			K30			X			K030D000			
 172	K31 DON'T PRINT REJECTS IF HOLD NO		K31			N0			K031D000	N-OH OR N-ZERO?		N-ZERO I THINK - ANT
 172	K41 VALUE = METHOD COLUMN.		K41		01		10		K041D000			
 172	K42 VALUE = NAME COLUMN.		K42		01		40		K042D000			
@@ -106,12 +106,12 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes
 173	K52 DATA TERM ')'		K52		21	)			K052D000			
 173	K53 DATA TERM '''		K53		21	.			K053D000			
 173	K54 DATA TERM ','		K54		21	,			K054D000			
-173	L0 SYMBOL FOR CHARACTER L.		L				0		L000D000			
+173	L0 SYMBOL FOR CHARACTER L.		L0				0		L000D000			
 173						0			L000D010			
 173						Q7			L000D020			
 173							0		L000D030			
 173				_+	21	L			L000D040			
-173	L1 TRUE THEOREMS AXIOMS DEFINITIONS		L1				0		L001D000			
+173	L1 TRUE THEOREMS AXIOMS DEFINITIONS		L1			0	0		L001D000			
 173	LIST OF FREE VARIABLES		L2			0			L002D000			
 173						A0			L002D010			
 173						B0			L002D020			
@@ -192,11 +192,11 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes
 174				_+	21	O			O000D040			
 174	VARIABLE P		P				0		P000D000			
 174						0			P000D010			
-174						P5			P000D020			
-174						P5			P000D030			
-174						P9			P000D033			
-174						P9			P000D037			
-174						P7			P000D040			
+174						Q5			P000D020			
+174						Q5			P000D030			
+174						Q9			P000D033			
+174						Q9			P000D037			
+174						Q7			P000D040			
 174							0		P000D050			
 174				_+	21	P			P000D060			
 174	VARIABLE Q		Q				0		Q000D000			
@@ -210,29 +210,29 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes
 175				_+	21	Q			Q000D060			
 175	VARIABLE R		R				0		R000D000			
 175						0			R000D010			
-175						R5			R000D020			
-175						R5			R000D030			
-175						R9			R000D033			
-175						R9			R000D037			
-175						R7			R000D040			
+175						Q5			R000D020			
+175						Q5			R000D030			
+175						Q9			R000D033			
+175						Q9			R000D037			
+175						Q7			R000D040			
 175							0		R000D050			
 175				_+	21	R			R000D060			
 175	VARIABLE S		S				0		S000D000			
 175						0			S000D010			
-175						S5			S000D020			
-175						S5			S000D030			
-175						S9			S000D033			
-175						S9			S000D037			
-175						S7			S000D040			
+175						Q5			S000D020			
+175						Q5			S000D030			
+175						Q9			S000D033			
+175						Q9			S000D037			
+175						Q7			S000D040			
 175							0		S000D050			
 175				_+	21	S			S000D060			
 175	VARIABLE T		T				0		T000D000			
 175						0			T000D010			
-175						T5			T000D020			
-175						T5			T000D030			
-175						T9			T000D033			
-175						T9			T000D037			
-175						T7			T000D040			
+175						Q5			T000D020			
+175						Q5			T000D030			
+175						Q9			T000D033			
+175						Q9			T000D037			
+175						Q7			T000D040			
 175							0		T000D050			
 175				_+	21	T			T000D060			
 175	GIVEN'		T1			0			T001D000			
@@ -300,7 +300,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes
 176						T15			T010D110			
 176						M16			T010D120			
 176						T16	0		T010D130			
-176	T12 'DETACHMENT'		T12				0		T012D000			
+176	T12 'DETACHMENT'		T12			0			T012D000			
 176						9-1			T012D010			
 176						9-2	0		T012D020			
 176			9-1		21	DETAC			T012D030			
@@ -350,7 +350,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes
 177			9-4		21	M			T019D080			
 177	T20 'ACTUAL'		T20			0			T020D000			
 177						9-1			T020D010			
-177						9-2			T020D020			
+177						9-2	0		T020D020			
 177			9-1		21	ACTUA			T020D030			
 177			9-2		21	L			T020D040			
 177	T21 'LIMIT'		T21			0			T021D000		THIS HAS A DIFFERENT FORM THAN MOST OF THEM. SOMEHOW IF THERE'S JUST ONE ELEMENT YOU DON'T NEED A LINK? ALSO, HOW DOES IT KNOW THE REST END W/O A TERMINAL ZERO?	
@@ -523,7 +523,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes
 181						Q15			/016D040			
 181						Q7			/016D050			
 181							0		/016D060			
-181	EXTERNAL NAME				21				/016D070			
+181	EXTERNAL NAME				21	#####			/016D070		This a true blank alpha entry which triggers the restriction that both symb and link can't both be blank, so I've temporarily blatted it with crosshatchs.	
 181	CONNECTIVE 'I'.		9-2			I0			/016D080			
 181						9-10			/016D090			
 181						9-20	0		/016D100			

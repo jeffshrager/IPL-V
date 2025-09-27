@@ -274,7 +274,7 @@
      MEASURE UTILITY, ERASE IF NO GOOD.         00M19                   M013R670
                                                 70J4                    M013R680
      TRY SUBSTITUTION, H5+ OUTPUT PROOF.        00M12   J5              M013R700
-                                          9-301 00W3                    M013R710
+                                          9-301 11W3                    M013R710
      ERASE SUBSTITUTION LIST.                   00J72   J4              M013R720
                                         1       00                      R       
      M14 FORWARD CHAINING METHOD FOR      M14   00J44                   M014R000
@@ -295,7 +295,7 @@
                                                 00J6                    M014R150
      GET FEASIBLE THEOREM LEFT SIDES.           00M63                   M014R160
                                                 60W0          1W0=FSFLS M014R170
-     TRY FEASIBLE THM LEFTS WITH                109-1                   M014R180
+     TRY FEASIBLE THM LEFTS WITH                109-100                 M014R180
      PROBLEM LEFT. GENERATE FSBLS.              00J100                  M014R190
                                                 11W0                    M014R200
      ERASE LIST OF FEASIBLES.                   00J71                   M014R210
@@ -304,7 +304,7 @@
      9-100 SUBPROCESS, TRY LEFT SIDES.    9-100 60W2          1W2=THM   M014R240
                                                 11W1          1W1=PROB  M014R250
                                                 11W2                    M014R260
-     MAKE FREE VARIABLES DISJOINT.              00M119                  M014R270
+     MAKE FREE VARIABLES DISJOINT.              00M110                  M014R270
      FIND LEFT SEGMENT OF THY TEX.              00P13                   M014R280
                                                 70J4                    M014R290
      INPUT PROB LEFT                            119-1                   M014R300
@@ -361,7 +361,7 @@
      MAKE FREE VARIABLES DISJOINT.              00M110                  M015R240
      FIND RIGHT SEGMENT OF THE TEX.             00P14                   M015R250
                                                 70J4                    M015R260
-     INPUT PROB RIGHT.                          609-1                   M015R270
+     INPUT PROB RIGHT.                          119-1                   M015R270
      MATCH, OUTPUT LIST OF SUBSTITUTIONS        00M113                  M015R280
      WILL MAKE THM LIKE PROB IF CAN.            70J4                    M015R290
                                                 60W3          1W3=SUBSTLM015R300
@@ -395,7 +395,7 @@
          H5+MEANS (0) IS A SOL'N.               00J10                   M016R040
      (M16 TRIES ONE LEVEL AT A TIME)            70J38                   M016R050
                                                 60W2                    M016R060
-     FIND MAP OF DEF. LEFT SIDES.               00J81                   MO16R070
+     FIND MAP OF DEF. LEFT SIDES.               00J81                   M016R070
          IF NONE, QUIT-.                        70J38                   M016R080
                                                 60W1          1W1=LFTMAPM016R090
                                                 51W2                    M016R100
@@ -822,7 +822,7 @@
                                                 60W2          1W2=SEGMNTM054R090
      TEST IF SIMPLE VARIABLE.                   00P8                    M054R100
         IF NO, CONTINUE DOWN MAP.               709-102                 M054R110
-        IF YES, ADD THMNAME.                    11W1                    M054R120
+        IF YES, ADD THNAME.                     11W1                    M054R120
      TEST IF NAME LIST IN MAP HEAD.             00J79                   M054R130
         IF NO, GO MAKE ONE.                     709-101                 M054R140
         IF YES,                                 12W1                    M054R150
@@ -1576,7 +1576,7 @@
                                                 10Q4    J14             P003R060
                                         1       00                      R       
      P4 GC THRU NOTS OF SEGMENT (0),      P4    12H0                    P004R000
-     LEAVE 1ST UNNOTTED SEGMENT.                11Q2                    P004R010
+     LEAVE 1ST UNNOTTED SEGMENT.                11K2                    P004R010
      H5- VEANS NO OUTPUT.                       00J2                    P004R020
      QUIT, H5+ MEANS NORMAL EXIT.               70J4                    P004R030
      FIND SUBSEGMENT OF NOT.                    00J81                   P004R040
@@ -1639,7 +1639,7 @@
      SEGMENT (0) ON THE LEFTS,                  00P17                   P022R010
      SEGMENT (1) CN THE RIGHT.                  00J6                    P022R020
      AND IMPLIES AS CONNECTIVE.                 00P17                   P022R030
-     CREATE MEX.                                00J93                   P022R040
+     CREATE MEX.                                00J92                   P022R040
                                                 00J136                  P022R050
                                                 60W0                    P022R060
      INSERT CONNECTIVE.                         11K6                    P022R070
@@ -1714,7 +1714,7 @@
      IF NO BOUND, QUIT.                         709-1                   P027R060
                                                 11W0                    P027R070
      CREATE LIST OF FREE OF 1W0.                00P30                   P027R080
-                                                0060W30       1W3=FREELSP027R090
+                                                60W3          1W3=FREELSP027R090
                                                 10J137                  P027R100
      GEN FREE VAR TO BE MARKED.                 00J100                  P027R110
                                                 10L2          L2=SYSFREEP027R120
@@ -1808,7 +1808,7 @@
      IF NONE, CLEAN UP, QUIT.                   709-1                   P031R030
                                                 109-100                 P031R040
      GENERATE LOCATIONS OF BOUND VAR.           00P29                   P031R050
-                                          9-1   11W0                    P031R060
+                                          9-1   11W0    J30             P031R060
      SUBPROCESS, ADD BOUND VARIABLE       9-100 52H0                    P031R070
      2H0 TO LIST 1W0 IF NOT ON.                 11W0                    P031R080
                                                 00J6                    P031R090
@@ -1924,7 +1924,7 @@
                                         1       00                      R       
      P55 LOCATE SUBLIST FOLLOWING         P55   00J41                   P055R000
      DATA TERM (0) ON LIST (1))                 20W0                    P055R010
-     H5+ MEANS PUTPUT (0) IS              9-3   60W1                    P055R020
+     H5+ MEANS OUTPUT (0) IS              9-3   60W1                    P055R020
      CELL HOLDING SUBLIST.                      00J60                   P055R030
      H5- MEANS OUTPUT (0) IS                    70J31                   P055R040
      CELL AFTER WHICH TO INSERT.                12H0                    P055R050
@@ -1942,11 +1942,11 @@
      SET UP CELL HOLDING SUBLIST.         9-2   00J60                   P055R170
                                                 70J7    J31             P055R180
                                         1       00                      R       
-     01 FIND CONNECTIVE OF SEGMENT (0).   Q1    00J80                   Q001R000
+     Q1 FIND CONNECTIVE OF SEGMENT (0).   Q1    00J80                   Q001R000
                                                 700                     Q001R010
                                                 40H0                    Q001R020
      TEST IF IT IS .4 CONNECTIVE.               00P7                    Q001R030
-                                                70J80   0               Q001R040
+                                                70J8    0               Q001R040
                                         1       00                      R       
      Q2 FIND NO. OF LEVELS OF TEX (0).    Q2    40H0                    Q002R000
      H5- MEANS DEFECTIVE EXPRESSION.            10Q2                    Q002R010
@@ -1963,7 +1963,7 @@
      FIND MEX.                                  00J81                   Q002R120
      IF NONE, CLEANUP, QUIT-.                   709-1                   Q002R130
      IF THERE, COUNT LEVELS.                    009-100                 Q002R140
-                                                11W0                    Q002R150
+                                          9-1   11W0                    Q002R150
      ERASE COUNTER.                             00J9                    Q002R160
      INPUT LEVEL,                               11W1                    Q002R170
      IF H5-, ERASE LEVEL, QUIT-.                709-2                   Q002R180
@@ -2070,7 +2070,7 @@
                                         1       00                      R       
      Q15 ATTRIBUTE INTERNAL FORM.         Q15   10Q15   J10             Q015R000
                                         1       00                      R       
-     Q16 FIND EXTERNAL NAME OF (0)        Q16   10Q10                   Q016R000
+     Q16 FIND EXTERNAL NAME OF (0)        Q16   10T10                   Q016R000
      IN TABLE T10.                              00J6    J10             Q016R010
                                         1       00                      R       
      Q17 FIND LEVEL OF SUBSEGMENT         Q17   40W0                    Q017R000
@@ -2185,7 +2185,7 @@
      LIMIT ON NO. OF  SUBPROBLEMS         K20  +01      100             K020D000
      LIMIT ON NO. OF  SUBSTITUTIONS       K21  +01      100             K021D000
      LIMIT ON EFFORT                      K22  +01100   0000            K022D000
-                                          K30   00F                     K030D000
+                                          K30   00X                     K030D000
      K31 DON'T PRINT REJECTS IF HOLD NO   K31   00N0                    K031D000
      K41 VALUE = METHOD COLUMN.           K41   01      10              K041D000
      K42 VALUE = NAME COLUMN.             K42   01      40              K042D000
@@ -2199,12 +2199,12 @@
      K52 DATA TERM ')'                    K52   21)                     K052D000
      K53 DATA TERM '''                    K53   21.                     K053D000
      K54 DATA TERM ','                    K54   21,                     K054D000
-     L0 SYMBOL FOR CHARACTER L.           L     00      0               L000D000
+     L0 SYMBOL FOR CHARACTER L.           L0    00      0               L000D000
                                                 000                     L000D010
                                                 00Q7                    L000D020
                                                 00      0               L000D030
                                                +21L                     L000D040
-     L1 TRUE THEOREMS AXIOMS DEFINITIONS  L1    00      0               L001D000
+     L1 TRUE THEOREMS AXIOMS DEFINITIONS  L1    000     0               L001D000
      LIST OF FREE VARIABLES               L2    000                     L002D000
                                                 00A0                    L002D010
                                                 00B0                    L002D020
@@ -2285,11 +2285,11 @@
                                                +21O                     O000D040
      VARIABLE P                           P     00      0               P000D000
                                                 000                     P000D010
-                                                00P5                    P000D020
-                                                00P5                    P000D030
-                                                00P9                    P000D033
-                                                00P9                    P000D037
-                                                00P7                    P000D040
+                                                00Q5                    P000D020
+                                                00Q5                    P000D030
+                                                00Q9                    P000D033
+                                                00Q9                    P000D037
+                                                00Q7                    P000D040
                                                 00      0               P000D050
                                                +21P                     P000D060
      VARIABLE Q                           Q     00      0               Q000D000
@@ -2303,29 +2303,29 @@
                                                +21Q                     Q000D060
      VARIABLE R                           R     00      0               R000D000
                                                 000                     R000D010
-                                                00R5                    R000D020
-                                                00R5                    R000D030
-                                                00R9                    R000D033
-                                                00R9                    R000D037
-                                                00R7                    R000D040
+                                                00Q5                    R000D020
+                                                00Q5                    R000D030
+                                                00Q9                    R000D033
+                                                00Q9                    R000D037
+                                                00Q7                    R000D040
                                                 00      0               R000D050
                                                +21R                     R000D060
      VARIABLE S                           S     00      0               S000D000
                                                 000                     S000D010
-                                                00S5                    S000D020
-                                                00S5                    S000D030
-                                                00S9                    S000D033
-                                                00S9                    S000D037
-                                                00S7                    S000D040
+                                                00Q5                    S000D020
+                                                00Q5                    S000D030
+                                                00Q9                    S000D033
+                                                00Q9                    S000D037
+                                                00Q7                    S000D040
                                                 00      0               S000D050
                                                +21S                     S000D060
      VARIABLE T                           T     00      0               T000D000
                                                 000                     T000D010
-                                                00T5                    T000D020
-                                                00T5                    T000D030
-                                                00T9                    T000D033
-                                                00T9                    T000D037
-                                                00T7                    T000D040
+                                                00Q5                    T000D020
+                                                00Q5                    T000D030
+                                                00Q9                    T000D033
+                                                00Q9                    T000D037
+                                                00Q7                    T000D040
                                                 00      0               T000D050
                                                +21T                     T000D060
      GIVEN'                               T1    000                     T001D000
@@ -2393,7 +2393,7 @@
                                                 00T15                   T010D110
                                                 00M16                   T010D120
                                                 00T16   0               T010D130
-     T12 'DETACHMENT'                     T12   00      0               T012D000
+     T12 'DETACHMENT'                     T12   000                     T012D000
                                                 009-1                   T012D010
                                                 009-2   0               T012D020
                                           9-1   21DETAC                 T012D030
@@ -2443,7 +2443,7 @@
                                           9-4   21M                     T019D080
      T20 'ACTUAL'                         T20   000                     T020D000
                                                 009-1                   T020D010
-                                                009-2                   T020D020
+                                                009-2   0               T020D020
                                           9-1   21ACTUA                 T020D030
                                           9-2   21L                     T020D040
      T21 'LIMIT'                          T21   000                     T021D000
@@ -2616,7 +2616,7 @@
                                                 00Q15                   /016D040
                                                 00Q7                    /016D050
                                                 00      0               /016D060
-     EXTERNAL NAME                              21                      /016D070
+     EXTERNAL NAME                              21#####                 /016D070
      CONNECTIVE 'I'.                      9-2   00I0                    /016D080
                                                 009-10                  /016D090
                                                 009-20  0               /016D100
@@ -2670,13 +2670,13 @@
                                                 10X23                   X001R010
                                                 00J73                   X001R020
      SET UP TRAPS.                              00J76                   X001R030
-                                                50X21                   X001R040
-                                                10J147                  X001R050
+     [[This is all tracing setup]]              50X21                   X001R040
+     [[This is all tracing setup]]              10J147                  X001R050
      MARK TO TRACE.                             00J100                  X001R060
-                                                10X22                   X001R070
-                                                10J148                  X001R080
+     [[This is all tracing setup]]              10X22                   X001R070
+     [[This is all tracing setup]]              10J148                  X001R080
      MARK TO PROPAGATE TRACE.                   00J100                  X001R090
-     GET NEXT TRUE TEX FROM               9-1   00M89                   X001R100
+     GET NEXT TRUE TEX FROM                     9-M89                   X001R100
      INPUT UNIT IF ANY LEFT.                    709-10                  X001R110
                                                 40H0                    X001R120
      CONVERT TO TREE FORM.                      00P50                   X001R130
@@ -2803,7 +2803,7 @@
      DESCRIPTION LIST OF TRAP ACTIONS.    X23   000                     X023D000
      KICK OFF FOR PROVING THEOREMS      5       00X1                            
      *1.01 ((PIQ).=.(-PVQ))  DEF.               00                              
-     *2.33 ((PVQVR).=.((PVQ)QR)) DEF.           00                              
+     *2.33 ((PVQVR).=.((PVQ)VR)) DEF.           00                              
      *3.01 ((P*Q).=.-(-(PV-Q)) DEF.             00                              
      *4.01 ((P=Q).=.((PIQ)*(QIP))) DEF.         00                              
      *1.2  ((AVA)IA)                            00                              

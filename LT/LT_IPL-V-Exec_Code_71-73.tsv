@@ -68,8 +68,8 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 72			X22			0			X022D000						
 72	DESCRIPTION LIST OF TRAP ACTIONS.		X23			0			X023D000						
 73	KICK OFF FOR PROVING THEOREMS	5				X1									
-73	*1.01 ((PIQ).=.(-PVQ))  DEF.														
-73	*2.33 ((PVQVR).=.((PVQ)QR)) DEF.														
+73	*1.01 ((PIQ).=.(-PVQ))  DEF.										May need 3 spaces (tried this in the fixed input set)				
+73	*2.33 ((PVQVR).=.((PVQ)VR)) DEF.														
 73	*3.01 ((P*Q).=.-(-(PV-Q)) DEF.														
 73	*4.01 ((P=Q).=.((PIQ)*(QIP))) DEF.														
 73	*1.2  ((AVA)IA)														

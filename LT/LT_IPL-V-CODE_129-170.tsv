@@ -1,4 +1,4 @@
-Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [then] LINK MEANING
+0	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [then] LINK MEANING
 129	LOGIC THEORIST (IPL-V)	9							-					NOTE THAT THESE COLUMNS ARE FILLED IN AUTOMATICALLY FROM THE 'SYMBDEX' SHEET VIA A COMPLEX PRESSION.	
 129		2	A				10		0000 000						
 129		2	B				10		0000 010						
@@ -275,7 +275,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 134	MEASURE UTILITY, ERASE IF NO GOOD.					M19			M013R670						FINISH BUILDING NEW SUBPROBLEM TEX (3) FROM (2) VIA THEOREM (1) BY METHOD(0). H5- MEANS NEW TEX WAS ERASED DUE TO LOW UTILITY. H5+ MEANS OUTPUT TEX (0) HAS SATISFACTORY UTILITY.
 134					70	J4			M013R680					Branch to S (direct) if H5-	Set H5+
 134	TRY SUBSTITUTION, H5+ OUTPUT PROOF.					M12	J5		M013R700						SUBSTITUTION METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO OUTPUT. [then] Reverse sense of H5
-134			9-301			W3			M013R710						[Work cell 3]
+134			9-301		11	W3			M013R710					Input S (indirect) to H0, after pushing H0	[Work cell 3]
 134	ERASE SUBSTITUTION LIST.					J72	J4		M013R720						ERASE list structure (0) [then] Set H5+
 134		1							    R						
 134	M14 FORWARD CHAINING METHOD FOR		M14			J44			M014R000						
@@ -296,7 +296,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 135						J6			M014R150						Reverse (0) and (1)
 135	GET FEASIBLE THEOREM LEFT SIDES.					M63			M014R160						CREATE A LIST OF FEASIBLE MATCHES FOR TOTAL EXPRESSION (1) FROM MAP (0)•
 135					60	W0		1W0=FSFLS	M014R170					Copy (0) to S (direct)	[Work cell 0]
-135	TRY FEASIBLE THM LEFTS WITH				10	9-1			M014R180					Input S (direct) to H0, after pushing H0	
+135	TRY FEASIBLE THM LEFTS WITH				10	9-100			M014R180					Input S (direct) to H0, after pushing H0	
 135	PROBLEM LEFT. GENERATE FSBLS.					J100			M014R190						Gen symbols on list (1) for(0)
 135					11	W0			M014R200					Input S (indirect) to H0, after pushing H0	[Work cell 0]
 135	ERASE LIST OF FEASIBLES.					J71			M014R210						ERASE list (0)
@@ -305,7 +305,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 135	9-100 SUBPROCESS, TRY LEFT SIDES.		9-100		60	W2		1W2=THM	M014R240					Copy (0) to S (direct)	[Work cell 2]
 135					11	W1		1W1=PROB	M014R250					Input S (indirect) to H0, after pushing H0	[Work cell 1]
 135					11	W2			M014R260					Input S (indirect) to H0, after pushing H0	[Work cell 2]
-135	MAKE FREE VARIABLES DISJOINT.					M119			M014R270						
+135	MAKE FREE VARIABLES DISJOINT.					M110			M014R270						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
 135	FIND LEFT SEGMENT OF THY TEX.					P13			M014R280						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
 135					70	J4			M014R290					Branch to S (direct) if H5-	Set H5+
 135	INPUT PROB LEFT				11	9-1			M014R300					Input S (indirect) to H0, after pushing H0	
@@ -362,7 +362,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 136	MAKE FREE VARIABLES DISJOINT.					M110			M015R240						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
 136	FIND RIGHT SEGMENT OF THE TEX.					P14			M015R250						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
 136					70	J4			M015R260					Branch to S (direct) if H5-	Set H5+
-136	INPUT PROB RIGHT.				60	9-1			M015R270					Copy (0) to S (direct)	
+136	INPUT PROB RIGHT.				11	9-1			M015R270					Input S (indirect) to H0, after pushing H0	
 136	MATCH, OUTPUT LIST OF SUBSTITUTIONS					M113			M015R280						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
 136	WILL MAKE THM LIKE PROB IF CAN.				70	J4			M015R290					Branch to S (direct) if H5-	Set H5+
 136					60	W3		1W3=SUBSTL	M015R300					Copy (0) to S (direct)	[Work cell 3]
@@ -396,7 +396,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 137	    H5+MEANS (0) IS A SOL'N.					J10			M016R040						FIND value of attribute (0) of (1)
 137	(M16 TRIES ONE LEVEL AT A TIME)				70	J38			M016R050					Branch to S (direct) if H5-	
 137					60	W2			M016R060					Copy (0) to S (direct)	[Work cell 2]
-137	FIND MAP OF DEF. LEFT SIDES.					J81			MO16R070						FIND the 1th symbol on list (0)
+137	FIND MAP OF DEF. LEFT SIDES.					J81			M016R070						FIND the 1th symbol on list (0)
 137	    IF NONE, QUIT-.				70	J38			M016R080					Branch to S (direct) if H5-	
 137					60	W1		1W1=LFTMAP	M016R090					Copy (0) to S (direct)	[Work cell 1]
 137					51	W2			M016R100					Replace (0) by S (indirect)	[Work cell 2]
@@ -823,7 +823,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 145					60	W2		1W2=SEGMNT	M054R090					Copy (0) to S (direct)	[Work cell 2]
 145	TEST IF SIMPLE VARIABLE.					P8			M054R100						TEST IF (0) IS VARIABLE TERM.
 145	   IF NO, CONTINUE DOWN MAP.				70	9-102			M054R110					Branch to S (direct) if H5-	
-145	   IF YES, ADD THMNAME.				11	W1			M054R120					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+145	   IF YES, ADD THNAME.				11	W1			M054R120					Input S (indirect) to H0, after pushing H0	[Work cell 1]
 145	TEST IF NAME LIST IN MAP HEAD.					J79			M054R130						TEST if cell (0) is not empty
 145	   IF NO, GO MAKE ONE.				70	9-101			M054R140					Branch to S (direct) if H5-	
 145	   IF YES,				12	W1			M054R150					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
@@ -1205,99 +1205,99 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 152					10	N2			M081R320					Input S (direct) to H0, after pushing H0	
 152	BUMP COLUMN.					J161			M081R330						Increment column by (0)
 152			9-3		10	T19			M081R340					Input S (direct) to H0, after pushing H0	
-153	ENTER MESSAGE AND PRINT.					M76	J155		M081R350						
+153	ENTER MESSAGE AND PRINT.					M76	J155		M081R350						ENTER LIST OF DATA TERMS (0). [then] Print line
 153		1							    R						
-153	M82 PRINT 'REMEMBER PROVED THEOREM'		M82			J154			M082R000						
-153						J155			M082R010						
-153						J155			M082R020						
+153	M82 PRINT 'REMEMBER PROVED THEOREM'		M82			J154			M082R000						Clear print line
+153						J155			M082R010						Print line
+153						J155			M082R020						Print line
 153					10	T23			M082R030						
-153	ENTER MESSAGE.					M76			M082R040						
-153						J155			M082R050						
-153						J154	J155		M082R060						
+153	ENTER MESSAGE.					M76			M082R040						ENTER LIST OF DATA TERMS (0).
+153						J155			M082R050						Print line
+153						J154	J155		M082R060						Clear print line [then] Print line
 153		1							    R						
-153	M88 PRINT BAD LIST FORM EXPRESSION.		M88			J154			M088R000						
+153	M88 PRINT BAD LIST FORM EXPRESSION.		M88			J154			M088R000						Clear print line
 153					10	T24			M088R010						
-153	ENTER 'BAD EXPRESSION'					M76			M088R020						
+153	ENTER 'BAD EXPRESSION'					M76			M088R020						ENTER LIST OF DATA TERMS (0).
 153					10	N3			M088R030						
-153	BUMP COLUMN.					J161			M088R040						
-153					10	M79			M088R050						
-153	GEN SYMBOLS FOR ENTRY, PRINT.					J100	J155		M088R060						
+153	BUMP COLUMN.					J161			M088R040						Increment column by (0)
+153					10	M79			M088R050						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+153	GEN SYMBOLS FOR ENTRY, PRINT.					J100	J155		M088R060						Gen symbols on list (1) for(0) [then] Print line
 153		1							    R						
-153	M89 READ NEXT LOGIC EXPRESSION		M89		40	W0			M089R000						
+153	M89 READ NEXT LOGIC EXPRESSION		M89		40	W0			M089R000						[Work cell 0]
 153	    FROM NORMAL INPUT UNIT.				40	W25			M089R010						
 153	    H5- MEANS NONE THERE.				40	W30			M089R020						
-153	CLEAR AND		9-10			J154			M089R050						
-153	FILL BUFFER.					J180			M089R060						
+153	CLEAR AND		9-10			J154			M089R050						Clear print line
+153	FILL BUFFER.					J180			M089R060						Read line
 153	   IF EOF, QUIT, H5-.				70	9-0			M089R070						
 153					10	N1			M089R080						
-153						J120			M089R090						
-153	LOCATE 1ST OF NAME.					J184			M089R110						
+153						J120			M089R090						COPY (0)
+153	LOCATE 1ST OF NAME.					J184			M089R110						Set (0) to next non-blank, leave (0)
 153	   IF BLANK CARD, QUIT, H5-.				70	9-1			M089R120						
 153					20	W25		1W25=1ST	M089R125						
-153						J90			M089R130						
-153						J124			M089R140						
-153	DETERMINE EXTENT.					J183			M089R150						
+153						J90			M089R130						Create list of 0 symbols, (0-0) to (0)
+153						J124			M089R140						Clear (0), leave (0)
+153	DETERMINE EXTENT.					J183			M089R150						Set (0) to next blank, leave (0)
 153	   IF REST OF CARD, RESET, GET NEXT				70	9-2			M089R160						
 153					20	W30		1W30=EXTNT	M089R170						
-153	INPUT NAME.					J181			M089R180						
-153					40	H0			M089R190						
-153	TEST IF REGIONAL.					J130			M089R200						
+153	INPUT NAME.					J181			M089R180						Input line symbol
+153					40	H0			M089R190						[Communication Cell]
+153	TEST IF REGIONAL.					J130			M089R200						TEST if (0) is regional symbol
 153	   IF NOT, RESET, GET NEXT.				70	9-4			M089R210						
-153					40	H0			M089R213						
-153	TEST IF NAME IS A CHARACTER SYMBOL.					P18			M089R215						
+153					40	H0			M089R213						[Communication Cell]
+153	TEST IF NAME IS A CHARACTER SYMBOL.					P18			M089R215						TEST IF (0) IS A. CHARACTER SYMBOL.
 153	     IF YES, RESET, GET NEXT.				70	9-4			M089R217						
-153					20	W0		1W0=EXPR.	M089R220						
+153					20	W0		1W0=EXPR.	M089R220						[Work cell 0]
 153	   IF OK, GET EXTERNAL NAME.				11	W30			M089R230						
 153					11	W25			M089R240						
 153					11	W25			M089R250						
-153	RESET COLUMN TO 1ST OF NAME.					J111			M089R260						
-153					50	K51			M089R265						
-153	CREATE PROTOTYPE DATA TERM.					J120			M089R270						
-153	MARK LOCAL.					J136			M089R280						
-153	SET D.T. TO HOLD NAME.					J182			M089R290						
-153					11	W0			M089R300						
-154						J6			M089R310						
-154					10	Q7			M089R320						
-154	ASSIGN D.T. AS EXTERNAL NAME.					J11			M089R330						
+153	RESET COLUMN TO 1ST OF NAME.					J111			M089R260						(1) - (2) => (0), leave (0)
+153					50	K51			M089R265						DATA TERM '('
+153	CREATE PROTOTYPE DATA TERM.					J120			M089R270						COPY (0)
+153	MARK LOCAL.					J136			M089R280						Make (0) local, leave (0)
+153	SET D.T. TO HOLD NAME.					J182			M089R290						Input line data term (0)
+153					11	W0			M089R300						[Work cell 0]
+154						J6			M089R310						Reverse (0) and (1)
+154					10	Q7			M089R320						ATTRIBUTE--EXTERNAL NAME.
+154	ASSIGN D.T. AS EXTERNAL NAME.					J11			M089R330						Assign (1) as value of attribute (0) of (2)
 154					11	W25			M089R340						
-154	LOCATE 1ST OF EXPRESSION.					J184			M089R350						
+154	LOCATE 1ST OF EXPRESSION.					J184			M089R350						Set (0) to next non-blank, leave (0)
 154	   IF NONE, RESET, GET NEXT.				70	9-5			M089R360						
-154	FIND CHARACTER SYMBOL AT 1W25.		9-3			J186			M089R370						
+154	FIND CHARACTER SYMBOL AT 1W25.		9-3			J186			M089R370						Input line character
 154	     IF NONE, EXPRESSION FINI.				70	9-6			M089R380						
-154	     IF FOUND, GET ALTERNATE,					P19			M089R390						
-154					11	W0			M089R400						
-154						J6			M089R410						
-154	ADD AT END OF LIST EXPRESSION,					J65			M089R420						
-154	TALLY 1W25 AND LOOP FOR NEXT.					J125	9-3		M089R430						
-154	LOCATE FIRST OF SUFFIX.		9-6			J184			M089R440						
+154	     IF FOUND, GET ALTERNATE,					P19			M089R390						GET APPROPRIATE CHARACTER SYMBOL FOR (0).
+154					11	W0			M089R400						[Work cell 0]
+154						J6			M089R410						Reverse (0) and (1)
+154	ADD AT END OF LIST EXPRESSION,					J65			M089R420						INSERT (0) at end of list (1)
+154	TALLY 1W25 AND LOOP FOR NEXT.					J125	9-3		M089R430		I think this needs to get W25 back before the incr. I've added a new command in LT Fixed				Tally 1 in (0), leave (0)
+154	LOCATE FIRST OF SUFFIX.		9-6			J184			M089R440						Set (0) to next non-blank, leave (0)
 154	   IF NONE, SKIP IT.				70	9-7			M089R480						
 154					51	W30			M089R490						
-154						J124			M089R495						
-154	DETERMINE EXTENT.					J183			M089R500						
+154						J124			M089R495						Clear (0), leave (0)
+154	DETERMINE EXTENT.					J183			M089R500						Set (0) to next blank, leave (0)
 154	   IF NONE, SKIP IT.				70	9-7			M089R510						
-154					50	K51			M089R520						
-154	CREATE PROTOTYPE.					J120			M089R530						
-154	SET D. T. TO SUFFIX.					J182			M089R540						
-154					11	W0			M089R550						
-154						J6			M089R560						
-154					10	Q18			M089R570						
-154	ASSIGN AS SUFFIX OF 1W0.					J11			M089R580						
-154					11	W0	9-8		M089R590						
-154	ADJUST FOR EXTRA IN H0.		9-7		51	W0	9-8		M089R600						
-154	SET H5+		9-8			J4			M089R610						
+154					50	K51			M089R520						DATA TERM '('
+154	CREATE PROTOTYPE.					J120			M089R530						COPY (0)
+154	SET D. T. TO SUFFIX.					J182			M089R540		I think D. T. is Data Term				Input line data term (0)
+154					11	W0			M089R550						[Work cell 0]
+154						J6			M089R560						Reverse (0) and (1)
+154					10	Q18			M089R570						FIND SUFFIX OF EXPRESSION (0).
+154	ASSIGN AS SUFFIX OF 1W0.					J11			M089R580						Assign (1) as value of attribute (0) of (2)
+154					11	W0	9-8		M089R590						[Work cell 0]
+154	ADJUST FOR EXTRA IN H0.		9-7		51	W0	9-8		M089R600						[Work cell 0]
+154	SET H5+		9-8			J4			M089R610						Set H5+
 154					11	W25			M089R620						
-154	DISCARD COLUMN D.T.					J9			M089R630						
+154	DISCARD COLUMN D.T.					J9			M089R630						ERASE cell (0)
 154					11	W30			M089R640						
-154	DISCARD EXTENT D.T.		9-1			J9			M089R650						
+154	DISCARD EXTENT D.T.		9-1			J9			M089R650						ERASE cell (0)
 154			9-0		30	W25			M089R660						
-154					30	W30	J30		M089R670						
-154	RESET		9-5		11	W0			M089R700						
-154	AFTER					J15			M089R710						
-154	A		9-4			J8			M089R720						
+154					30	W30	J30		M089R670						 [then] Restore W0-W0
+154	RESET		9-5		11	W0			M089R700						[Work cell 0]
+154	AFTER					J15			M089R710						ERASE all attributes of (0)
+154	A		9-4			J8			M089R720						Restore H0
 154	BAD				11	W30			M089R730						
-154	EXPRESSION		9-2			J9			M089R740						
+154	EXPRESSION		9-2			J9			M089R740						ERASE cell (0)
 154	AND				11	W25			M089R750						
-154	GET NEXT CARD.					J9	9-10		M089R760						
+154	GET NEXT CARD.					J9	9-10		M089R760						ERASE cell (0)
 154		1							    R						
 154	M90 TEST IF PROBLEM LIMITS REACHED.		M90		10	K20			M090R000						
 154					10	K10			M090R010						
@@ -1387,7 +1387,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 156						J100	0		M110R640						
 156		1							    R						
 156	M111 MATCH SEGMENTS (0) AND (1),		M111			J90			M111R000						
-156	   H5+ MEANS OUTPUT (0) IS LIST				20	9-10			M111R010						
+156	   H5+ MEANS OUTPUT (0) IS LIST				20	9-10			M111R010		Uh-oh -- this seems to be randomly using a local symbol!				
 156	    OF PAIRS--1ST IS FREE VAR.,					9-100			M111R020						
 156	    2ND IS SUBSTITUTOR.				11	9-10			M111R030						
 156	    H5- MEANS NO MATCH, NO OUTPUT.				70	J71	0		M111R040						
@@ -1577,7 +1577,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 160					10	Q4	J14		P003R060					Input S (direct) to H0, after pushing H0	FIND NO. OF VARIABLE PLACES CF EXPRESSION (0). [then] ERASE attribute (0) of (1)
 160		1							    R						
 160	P4 GC THRU NOTS OF SEGMENT (0),		P4		12	H0			P004R000					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
-160	LEAVE 1ST UNNOTTED SEGMENT.				11	Q2			P004R010					Input S (indirect) to H0, after pushing H0	FIND NO. OF LEVELS OF EXPRESSION (0).
+160	LEAVE 1ST UNNOTTED SEGMENT.				11	K2			P004R010					Input S (indirect) to H0, after pushing H0	HOLDS -NOT-.
 160	H5- VEANS NO OUTPUT.					J2			P004R020						TEST (0) (1)
 160	QUIT, H5+ MEANS NORMAL EXIT.				70	J4			P004R030					Branch to S (direct) if H5-	Set H5+
 160	FIND SUBSEGMENT OF NOT.					J81			P004R040						FIND the 1th symbol on list (0)
@@ -1640,7 +1640,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 161	SEGMENT (0) ON THE LEFTS,					P17			P022R010						COPY SEGMENT (0). IF (0) IS A VARIABLE, OUTPUT 1HE INPUT.
 161	SEGMENT (1) CN THE RIGHT.					J6			P022R020						Reverse (0) and (1)
 161	AND IMPLIES AS CONNECTIVE.					P17			P022R030						COPY SEGMENT (0). IF (0) IS A VARIABLE, OUTPUT 1HE INPUT.
-161	CREATE MEX.					J93			P022R040						
+161	CREATE MEX.					J92			P022R040						Create list of 2 symbols, (2-1) to (0)
 161						J136			P022R050						Make (0) local, leave (0)
 161					60	W0			P022R060					Copy (0) to S (direct)	[Work cell 0]
 161	INSERT CONNECTIVE.				11	K6			P022R070					Input S (indirect) to H0, after pushing H0	HOLDS -IMPLIES-
@@ -1715,7 +1715,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 162	IF NO BOUND, QUIT.				70	9-1			P027R060					Branch to S (direct) if H5-	
 162					11	W0			P027R070					Input S (indirect) to H0, after pushing H0	[Work cell 0]
 162	CREATE LIST OF FREE OF 1W0.					P30			P027R080						CREATE LIST OF FREE VARIABLES IN EXPRESSION (0).
-162						60W30		1W3=FREELS	P027R090						
+162					60	W3		1W3=FREELS	P027R090					Copy (0) to S (direct)	[Work cell 3]
 163					10	J137			P027R100					Input S (direct) to H0, after pushing H0	Mark list (0) processed, leave (0)
 163	GEN FREE VAR TO BE MARKED.					J100			P027R110						Gen symbols on list (1) for(0)
 163					10	L2		L2=SYSFREE	P027R120					Input S (direct) to H0, after pushing H0	LIST OF FREE VARIABLES.
@@ -1809,7 +1809,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 164	IF NONE, CLEAN UP, QUIT.				70	9-1			P031R030					Branch to S (direct) if H5-	
 164					10	9-100			P031R040					Input S (direct) to H0, after pushing H0	
 164	GENERATE LOCATIONS OF BOUND VAR.					P29			P031R050						GENERATE LOCATIONS OF BOUND VARIABLES IN SEGMENT (1) FOR (0).
-164			9-1		11	W0			P031R060					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+164			9-1		11	W0	J30		P031R060					Input S (indirect) to H0, after pushing H0	[Work cell 0] [then] Restore W0-W0
 164	SUBPROCESS, ADD BOUND VARIABLE		9-100		52	H0			P031R070					Replace (0) by S (DOUBLE indirect)	[Communication Cell]
 164	2H0 TO LIST 1W0 IF NOT ON.				11	W0			P031R080					Input S (indirect) to H0, after pushing H0	[Work cell 0]
 164						J6			P031R090						Reverse (0) and (1)
@@ -1817,7 +1817,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 164		1							    R						
 164	P50 CONVERT LOGIC EXPRESSION (0) TO		P50		40	H0			P050R000					Preserve (Push) S (direct)	[Communication Cell]
 164	INTERNAL (TREE) FORM IF IN					P15			P050R010						TEST IF TOTAL EXPRESSION (0) IS IN TREE FORM.
-164	EXTERNAL (LIST) FORM. ENTIRE				70	J8			P050R020					Branch to S (direct) if H5-	Restore H0
+164	EXTERNAL (LIST) FORM. ENTIRE				70		J8		P050R020					Branch to S (direct) if H5-	Restore H0
 165	EXPRESSION MUST BE ENCLOSED					J41			P050R030						Preserve W0-W1
 165	IN PARENTHESES. NO OUTPUT.				60	W0			P050R040					Copy (0) to S (direct)	[Work cell 0]
 165	H5- MEANS FAILURE.					P51			P050R050						REPLACE ALL DELIMITED SYMBOLS IN EXPRESSION (0) IF (0) IS IN LIST FORM.
@@ -1925,7 +1925,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 167		1							    R						
 167	P55 LOCATE SUBLIST FOLLOWING		P55			J41			P055R000						Preserve W0-W1
 167	DATA TERM (0) ON LIST (1))				20	W0			P055R010						[Work cell 0]
-167	H5+ MEANS PUTPUT (0) IS		9-3		60	W1			P055R020					Copy (0) to S (direct)	[Work cell 1]
+167	H5+ MEANS OUTPUT (0) IS		9-3		60	W1			P055R020					Copy (0) to S (direct)	[Work cell 1]
 167	CELL HOLDING SUBLIST.					J60			P055R030						LOCATE next symbol after cell (0)
 167	H5- MEANS OUTPUT (0) IS				70	J31			P055R040					Branch to S (direct) if H5-	Restore W0-W1
 167	CELL AFTER WHICH TO INSERT.				12	H0			P055R050					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
@@ -1943,11 +1943,11 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 167	SET UP CELL HOLDING SUBLIST.		9-2			J60			P055R170						LOCATE next symbol after cell (0)
 167					70	J7	J31		P055R180					Branch to S (direct) if H5-	Halt, proceed on GO [then] Restore W0-W1
 167		1							    R						
-167	01 FIND CONNECTIVE OF SEGMENT (0).		Q1			J80			Q001R000						FIND the 0th symbol on list (0)
+167	Q1 FIND CONNECTIVE OF SEGMENT (0).		Q1			J80			Q001R000						FIND the 0th symbol on list (0)
 167					70	0			Q001R010					Branch to S (direct) if H5-	
 167					40	H0			Q001R020					Preserve (Push) S (direct)	[Communication Cell]
 167	TEST IF IT IS .4 CONNECTIVE.					P7			Q001R030						TEST IF (0) IS A CONNECTIVE.
-167					70	J80	0		Q001R040					Branch to S (direct) if H5-	FIND the 0th symbol on list (0)
+167					70	J8	0		Q001R040		Typo discovered by RL 20250813			Branch to S (direct) if H5-	Restore H0
 167		1							    R						
 167	Q2 FIND NO. OF LEVELS OF TEX (0).		Q2		40	H0			Q002R000					Preserve (Push) S (direct)	[Communication Cell]
 167	H5- MEANS DEFECTIVE EXPRESSION.				10	Q2			Q002R010					Input S (direct) to H0, after pushing H0	FIND NO. OF LEVELS OF EXPRESSION (0).
@@ -1964,7 +1964,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 167	FIND MEX.					J81			Q002R120						FIND the 1th symbol on list (0)
 167	IF NONE, CLEANUP, QUIT-.				70	9-1			Q002R130					Branch to S (direct) if H5-	
 167	IF THERE, COUNT LEVELS.					9-100			Q002R140						
-167					11	W0			Q002R150					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+167			9-1		11	W0			Q002R150					Input S (indirect) to H0, after pushing H0	[Work cell 0]
 167	ERASE COUNTER.					J9			Q002R160						ERASE cell (0)
 167	INPUT LEVEL,				11	W1			Q002R170					Input S (indirect) to H0, after pushing H0	[Work cell 1]
 167	IF H5-, ERASE LEVEL, QUIT-.				70	9-2			Q002R180					Branch to S (direct) if H5-	
@@ -2071,7 +2071,7 @@ Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [
 169		1							    R						
 169	Q15 ATTRIBUTE INTERNAL FORM.		Q15		10	Q15	J10		Q015R000					Input S (direct) to H0, after pushing H0	ATTRIBUTE--INTERNAL FORM. [then] FIND value of attribute (0) of (1)
 169		1							    R						
-169	Q16 FIND EXTERNAL NAME OF (0)		Q16		10	Q10			Q016R000		WWW THIS ONE SEEMS WRONG -- 10? 16?			Input S (direct) to H0, after pushing H0	FIND PROBLEM EXPRESSION (0) DERIVED FROM.
+169	Q16 FIND EXTERNAL NAME OF (0)		Q16		10	T10			Q016R000		WWW THIS ONE SEEMS WRONG -- T10? Q16?			Input S (direct) to H0, after pushing H0	
 169	IN TABLE T10.					J6	J10		Q016R010						Reverse (0) and (1) [then] FIND value of attribute (0) of (1)
 170		1							    R						
 170	Q17 FIND LEVEL OF SUBSEGMENT		Q17		40	W0			Q017R000					Preserve (Push) S (direct)	[Work cell 0]
