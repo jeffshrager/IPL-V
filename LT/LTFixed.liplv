@@ -2726,7 +2726,10 @@
 ("" "" "" "" "" "Q15" "" "" "/016D040")
 ("" "" "" "" "" "Q7" "" "" "/016D050")
 ("" "" "" "" "" "" "0" "" "/016D060")
+
+;;; Note that there is a true blank here (see #### in spreadsheet)
 ("EXTERNAL NAME" "" "" "" "21" " " "" "" "/016D070")
+
 ("CONNECTIVE 'I'." "" "9-2" "" "" "I0" "" "" "/016D080")
 ("" "" "" "" "" "9-10" "" "" "/016D090")
 ("" "" "" "" "" "9-20" "0" "" "/016D100")
@@ -2845,7 +2848,10 @@
 ("" "1" "" "" "" "" "" "" "R")
 ("X19 MINOTOR POINT FORCER." "" "X19" "" "3" "J0" "0" "" "X019R000")
 ("LOGIC THEORIST TEST" "9" "" "" "" "" "" "" "")
+
+;;; These have been manually replaced where they belong.
 ("MODIFIED ROUTINES" "5" "" "" "00" "" "" "" "")
+
 ("" "1" "" "" "" "" "" "" "R")
 ("RUN DATA HEADER" "5" "" "" "01" "" "" "" "D -")
 ("W12 SET-UP ENTRY SNAP ACTION." "" "W12" "" "" "X13" "0" "" "W012D000")
