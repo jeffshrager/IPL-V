@@ -1,0 +1,31 @@
+This is SBCL 2.2.6, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+(ql:quickload "...")
+(ql:system-apropos "...")
+--- Loaded quicklisp ---
+To load "fiveam":
+  Load 1 ASDF system:
+    fiveam
+; Loading "fiveam"
+
+; compiling file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/AG1/iplv.lisp" (written 04 JAN 2026 10:55:09 PM):
+
+
+; wrote /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/AG1/iplv.fasl
+; compilation finished in 0:00:01.791
+*** WARNING: PQ "0" (in ("" "5" "" "" "0" "" "" "" "ACK015")) is ambugious and intepreted as p=0, q=0
+*** WARNING: PQ "0" (in ("" "5" "" "" "0" "" "" "" "ACK015")) is ambugious and intepreted as p=0, q=0
+
++--------------------- {ACK045::N0|01||61 [VALUE OF N;]} ---------------------+
+| {ACK045::N0|01||61 [VALUE OF N;]}                                   |
++---------------------------------------------------------------------+
+
+{ACK045::N0|01||61 [VALUE OF N;]} 
+*********************************
+* Ackerman (3,3) = 61 -- Check! *
+*********************************

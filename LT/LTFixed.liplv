@@ -194,8 +194,22 @@
 ("" "" "" "" "11" "W2" "" "" "M012R180")
 ("MAKE FREE VARIABLES DISJOINT." "" "" "" "" "M110" "" "" "M012R190")
 ("FIND MAIN EXPRESSION OF THEOREM." "" "" "" "" "J81" "" "" "M012R200")
-("" "" "" "" "70" "J4" "" "" "M012R210")
-("" "" "" "" "11" "W0" "" "" "M012R220")
+
+; BEFORE (Original Logic)
+;; H0 contains Theorem Expression (from J81)
+("FIND MAIN EXPRESSION OF THEOREM." "" "" "" "" "J81" "" "" "M012R200")
+("" "" "" "" "70" "J4" "" "" "M012R210")   ; Set H5+ (No op on stack)
+("" "" "" "" "11" "W0" "" "" "M012R220")   ; Push Problem to Top (0)
+;; Stack: Top=[Problem], Next=[Theorem]
+
+;; AFTER AG Fix (20251226):
+;; H0 contains Theorem Expression (from J81)
+;;("FIND MAIN EXPRESSION OF THEOREM." "" "" "" "" "J81" "" "" "M012R200")
+;;("" "" "" "" "20" "W4" "" "" "M012R210") ;; Move THM-Expr to W4
+;;("" "" "" "" "11" "W0" "" "" "M012R220") ;; Push Prob
+;;("" "" "" "" "11" "W4" "" "" "M012R225") ;; Push THM-Expr (Pattern)
+;; Stack: Top=[Theorem], Next=[Problem]
+
 ("TEST FOR MATCH." "" "" "" "" "M114" "" "" "M012R230")
 ("IF H5-, SET + FOR GENERATOR," "" "" "" "70" "J4" "" "" "M012R240")
 ("" "" "" "" "11" "W1" "" "" "M012R250")
