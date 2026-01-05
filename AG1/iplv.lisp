@@ -2926,10 +2926,10 @@
 
 	  ;; Basic tracer:
 
-  	      (1 ;; "M001R000"
-	       (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	       (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	       )
+  	    ;; (1 ;; "M001R000"
+	    ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
+	    ;;  )
 
 	  ;;(2875 (break))
 
