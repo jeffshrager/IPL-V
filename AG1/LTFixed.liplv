@@ -2877,8 +2877,8 @@
 
 ;;; Original inputs:
 ; *1.01  ((PIQ).=.(-PVQ))  DEF.
-; *2.33  ((PVQVR).=.((PVQ)VR))  DEF.
-; *3.01  ((P*Q).=.-(-(PV-Q))  DEF.
+; *2.33  ((PV(QVR)).=.((PVQ)VR))  DEF.
+; *3.01  ((P*Q).=.-(-(PV-Q)))  DEF.
 ; *4.01  ((P=Q).=.((PIQ)*(QIP)))  DEF.
 ; *1.2   ((AVA)IA)
 ; *1.3   (BI(AVB))
@@ -2888,7 +2888,7 @@
 ; 
 ; *2.01  ((PI-P)I-P)
 ; *2.02  (QI(PIQ))
-; *2.03  (((PI-Q)I(QI-P))
+; *2.03  ((PI-Q)I(QI-P))
 ; *2.04  ((PI(QIR))I(QI(PIR)))
 ; *2.05  ((QIR)I((PIQ)I(PIR)))
 ; *2.06  ((PIQ)I((QIR)I(PIR)))
@@ -2915,4 +2915,4 @@
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
 *1.3   (BI(AVB))
 
-*2.02  (QI(PIQ))
+*2.01  ((PI-P)I-P)

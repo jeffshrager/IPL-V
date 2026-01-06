@@ -888,16 +888,13 @@
     (ipl-eval [0]))
 
   (defj J2 ([0] [1]) "TEST (0) == (1)?" ;; The identity test
-	;; is on the SYMBpart only; P and Q are ignored. [Also, in the
-	;; case of alphabetics, trailing blanks or zeros are ignored.]
-	;; Before we go anywhere else, the names could be equal or the
-	;; name of one could be equal to the symbol of the other, in
-	;; either direction. 
+	;; is on the SYMBpart and SIGN part; P and Q are ignored.
 	(!! :jdeep (announce "   ~a=~a" [0] [1]))
-	(if (ipl-string-equal [0] [1]) (H5+) (H5-))
+    (let ((c0 (H0)) (c1 (first (H0+))))
+      (if (and (ipl-string-equal (cell-symb c0) (cell-symb c1))
+               (string-equal (cell-sign c0) (cell-sign c1)))
+          (H5+) (H5-)))
 	(poph0 2)
-	;; ("p.10: "...it is understood from the definition of TEST
-	;; that J2 will remove both (0) and (1) from HO.")
 	)
 
   (defj J3 () "SET H5 -" (H5-))
@@ -2938,4 +2935,11 @@
 
 	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 500000)
+  (format t "~%--- DEBUG DUMP ---~%")
+  (format t "Cell P: ~s~%" (cell "P"))
+  (format t "Cell Q: ~s~%" (cell "Q"))
+  (format t "Cell V: ~s~%" (cell "V"))
+  (format t "Cell I: ~s~%" (cell "I"))
+  (format t "Cell -: ~s~%" (cell "-"))
+  (format t "Cell -0: ~s~%" (cell "-0"))
   )
