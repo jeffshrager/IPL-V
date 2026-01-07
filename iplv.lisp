@@ -2378,7 +2378,11 @@
 	      ;; at least going to copy that cell TWICE...is this
 	      ;; really necessary?! Could this recursion take place in
 	      ;; the :symb set above??
-	      (setf (cell-symb new-cell) (j74-deep-copy-ipl-list new-subhead-name))))
+	      ;; Original:
+	      ;; (setf (cell-symb new-cell) (j74-deep-copy-ipl-list new-subhead-name))
+	      ;; AntiGravity suggested this change:
+	      (setf (cell-symb new-cell) new-subhead-name)
+	      ))
 	;; And finally the result of the whole thing is just the new-cell-name.
 	new-cell-name)))
 

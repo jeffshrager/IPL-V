@@ -2375,7 +2375,10 @@
 	      ;; at least going to copy that cell TWICE...is this
 	      ;; really necessary?! Could this recursion take place in
 	      ;; the :symb set above??
-	      (setf (cell-symb new-cell) (j74-deep-copy-ipl-list new-subhead-name))))
+	      ;; Original: (setf (cell-symb new-cell) (j74-deep-copy-ipl-list new-subhead-name))))
+	      ;; AntiGravity suggested this change:
+	      (setf (cell-symb new-cell) new-subhead-name)
+	      ))
 	;; And finally the result of the whole thing is just the new-cell-name.
 	new-cell-name)))
 
@@ -2923,10 +2926,10 @@
 
 	  ;; Basic tracer:
 
-  	     (1 ;; "M001R000"
-	      (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	      (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	      )
+  	   ;;  (1 ;; "M001R000"
+	   ;;   (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	   ;;   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
+	   ;;   )
 
 	  ;;(2875 (break))
 
