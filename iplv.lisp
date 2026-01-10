@@ -35,6 +35,10 @@
 
 (defvar *symtab* (make-hash-table :test #'equal))
 
+(defun dst () ;; Dump Symbol Table
+  (loop for cell being the hash-values of *symtab*
+	do (print cell)))
+
 (defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "-"))))
 
 (defun store (cell &optional (name (cell-name cell)))
@@ -60,12 +64,22 @@
 
 (defun print-cell (cell s d)
   (declare (ignore d))
-  (let ((p (cell-p cell)) (q (cell-q cell)))
+  (let ((p (cell-p cell)) (q (cell-q cell))
+	(stack (cell-stack cell)))
     (if (and (zerop p) (zerop q))
-	(format s "{~a~a||~a|~a~a}"
-		(if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
-		(cell-name cell) (cell-symb cell) (cell-link cell)
-		(format-cell-comments-for-printing cell))
+	(if (string-equal *eos-marker* (car stack))
+	    ;; Normal cells (no stack)
+	    (format s "{~a~a||~a|~a~a}"
+		    (if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
+		    (cell-name cell) (cell-symb cell) (cell-link cell)
+		    (format-cell-comments-for-printing cell))
+	    ;; With a stack:
+	    (format s "{~a~a||~a|~a~a|~s}"
+		    (if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
+		    (cell-name cell) (cell-symb cell) (cell-link cell)
+		    (format-cell-comments-for-printing cell)
+		    stack))
+	;; Data cells:
 	(format s "{~a~a|~a~a|~a|~a~a}"
 		(if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
 		(cell-name cell) p q (cell-symb cell) (cell-link cell)
@@ -2786,7 +2800,7 @@
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:dr-memory :jdeep :jcalls) *cell-tracing-on* t)
@@ -2796,7 +2810,7 @@
   (load-ipl "misccode/F1.liplv")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
