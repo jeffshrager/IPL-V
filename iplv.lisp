@@ -17,6 +17,8 @@
 ;;; ===================================================================
 ;;; Cell, Storage, and Special Symbols
 
+(defparameter *EOS-MARKER* "*EOS")
+
 (defstruct (cell (:print-function print-cell) (:predicate cell?))
   (comments "")
   (type "")
@@ -28,7 +30,7 @@
   (link "")
   (comments.1 "")
   (id "")
-  (stack (list "*EOS"))	 ;; "*EOS" causes an error if you pop too far
+  (stack (list *EOS-MARKER*)) ;; throw an error if you pop too far
   )
 
 (defvar *symtab* (make-hash-table :test #'equal))
@@ -309,7 +311,7 @@
   (let* ((storage-cell (cell storage-cell-name))
 	 (recovered-symb (pop (cell-stack storage-cell))))
     (!! :dr-memory "IPOP popped ~s off ~a" recovered-symb storage-cell-name)
-    (if (string-equal "*EOS" recovered-symb)
+    (if (string-equal *EOS-MARKER* recovered-symb)
 	(break "IPOP asked to pop beyond the bottom of the stack of ~a" storage-cell))
     ;; You're not allowed to use the result of ipop
     :someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it
@@ -710,30 +712,23 @@
   (setf (cell "S") "S-is-null")
   )
 
-;;; If any var becomes nil, there's something wrong!  (**EMPTY** is okay
-;;; at the very end of the process.)
-
-(defun check-for-overpopping ()
-  (loop for name in *all-system-cells*
-	as val = (gethash name *symtab*)
-	if (null val)
-	do (break "**** Oops! ~s is ~s, which is oughtn't be!" name val)))
-
 ;;; This is needed because of H0 memory leaks, probably from JFNS.
 (defvar *stack-depth-limit* 100)
 
+;;; If any var becomes nil, there's something wrong!  (**EMPTY** is okay
+;;; at the very end of the process.)
+
 (defun clean-stacks ()
-  (check-for-overpopping)
-  (when *stack-depth-limit*
-    (loop for key being the hash-keys of *systacks*
-	  using (hash-value stack)
-	  as depth = (length stack)
-	  do 
-	  (when (> depth *stack-depth-limit*)
-	    (!! :alerts "*** THE STACK CLEANER COMETH! (Tailing: ~a) ***" key depth *stack-depth-limit*)
-	    (loop for s+ on stack
-		  as d below *stack-depth-limit*
-		  finally (setf (cdr s+) nil))))))
+  (loop for cell being the hash-values of *symtab*
+	as stack = (cell-stack cell)
+	;; Check-for-overpopping
+	do
+	;; Check for opverpopping:
+	(if (null stack) (break "*** Oops! ~s is empty, which shouldn't happen!!!" name))
+	(when *stack-depth-limit*
+	    (if (> (length stack) *stack-depth-limit*)
+		(!! :alerts "*** Tailing  ~a ***" (cell-name cell))
+		(rplacd (nthcdr *stack-depth-limit* stack) (list *EOS-MARKER*))))))
 
 ;;; Loaded code analysis:
 ;;; This throws an annoying warning and is a non-critical deugging tool
@@ -2801,7 +2796,7 @@
   (load-ipl "misccode/F1.liplv")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2917,7 +2912,7 @@ Which actually looks like it correctly takes off 2 agrs, but then there's {|||} 
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-trace-mode :none)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
