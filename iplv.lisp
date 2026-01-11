@@ -1,5 +1,10 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+;;; WWW The JFns are also in the cell table, which leads to some
+;;; confusion and need to check things occassionally, but allows us to
+;;; generalize by defining the JFns as IPL-V lists themselves, as in
+;;; Simon's Js.
+
 ;;; **************************************** WARNING: Watch out for
 ;;; non-standard sotrage cells defined by a 0 in the link. See p. 143
 ;;; (14.1) etc. I don't think that this is correctly implemented!
@@ -19,6 +24,9 @@
 
 (defparameter *EOS-MARKER* "*EOS")
 
+(defun new-empty-stack ()
+  (list *EOS-MARKER*))
+
 (defstruct (cell (:print-function print-cell) (:predicate cell?))
   (comments "")
   (type "")
@@ -30,20 +38,20 @@
   (link "")
   (comments.1 "")
   (id "")
-  (stack (list *EOS-MARKER*)) ;; throw an error if you pop too far
+  (stack (new-empty-stack)) ;; throw an error if you pop too far
   )
 
-(defvar *symtab* (make-hash-table :test #'equal))
+(defvar *cells* (make-hash-table :test #'equal))
 
 (defun dst () ;; Dump Symbol Table
-  (loop for cell being the hash-values of *symtab*
+  (loop for cell being the hash-values of *cells*
 	do (print cell)))
 
 (defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "-"))))
 
 (defun store (cell &optional (name (cell-name cell)))
   ;;(!! :dr-memory "== Store ==> ~s [mem]" cell) Causes compiler race condition
-  (setf (gethash name *symtab*) cell)
+  (setf (gethash name *cells*) cell)
   cell)
   
 (defun make-cell! (&rest args)
@@ -89,7 +97,6 @@
   (if (and (zero? (cell-comments cell)) (zero? (cell-comments.1 cell))) 
       "" (format nil " [~a;~a]" (cell-comments cell) (cell-comments.1 cell))))
 
-
 ;;; The generator triplex. The generator system maintains its own
 ;;; private stack, which is the "generator hideout" referred to in the
 ;;; manual and below where J17-19 are defj'ed.
@@ -115,8 +122,8 @@
 ;;; lists (FFF add stack search):
 
 (defun fsym (sym &key (print-lists? nil) &aux inlists)
-  (format t "*symtab* and list-embedded references to ~s:~%" sym)
-  (loop for name being the hash-keys of *symtab*
+  (format t "*cells* and list-embedded references to ~s:~%" sym)
+  (loop for name being the hash-keys of *cells*
 	using (hash-value cell)
 	when (cell? cell)
 	do (cond ((or (string-equal! sym name)
@@ -248,14 +255,14 @@
 ;;; strings just like user-defined symbols. It's up to the user to ot
 ;;; try to push/pop things that aren't stacks!
 
-(defmacro cell (symb) `(gethash ,symb *symtab*))
+(defmacro cell (symb) `(gethash ,symb *cells*))
 (defmacro stack (symb) `(cell-stack (cell ,symb)))
 
 (defvar *!!* nil) 
 
 (defmacro H3-cycles () `(cell-link (cell "H3")))
 
-(defmacro !! (key &rest args) 
+(defmacro !! (key &rest args)
   `(when (or (equal *!!* t)
 	     (equal ,key t)
 	     (member ,key *!!*))
@@ -263,7 +270,7 @@
      ,(if (stringp (car args))
 	  (if (member key '(:load :run))
 	      `(format t ,(car args) ,@(cdr args)) ;; Run already puts this info out
-	      `(format t (concatenate 'string  ,(car args) " ~a@~a[~a]~%") *fname-hint* ,@(cdr args) (h3-cycles) ,key))
+	      `(format t (concatenate 'string  ,(car args) " ~a@~a[~a]~%") ,@(cdr args) *fname-hint* (h3-cycles) ,key))
 	  `(progn ,@args))))
 
 ;;; Cell dereferencing: Used when you need a cell. <=! is more
@@ -273,7 +280,7 @@
 
 (defun <== (cell-or-symb)
   (!! :dr-memory "<== retreiving ~s" cell-or-symb)
-  (if (cell? cell-or-symb) cell-or-symb (gethash cell-or-symb *symtab*)))
+  (if (cell? cell-or-symb) cell-or-symb (gethash cell-or-symb *cells*)))
 
 (defun <=! (cell-or-symb &key create-if-does-not-exist?) ;; cell-or-symb can be a cell or a name
   (!! :dr-memory "<=! retreiving ~s" cell-or-symb)
@@ -316,7 +323,7 @@
   curcell)
 
 (defun ipush (storage-cell-name newsymb)
-  (!! :dr-memory "IPUSH wants to push ~s on ~a" newsymb storage-cell-name)
+  (!! :dr-memory "IPUSH wants to push ~s on ~s" newsymb storage-cell-name)
   (let* ((storage-cell (cell storage-cell-name)))
     (push (cell-symb storage-cell) (cell-stack storage-cell))
     (setf (cell-symb storage-cell) newsymb)))
@@ -383,7 +390,7 @@
 		(let ((r (eval name-or-expr)))
 		  (when r (format t "   ~s => ~s~%" name-or-expr r)))
 		(format t "   ~a=~s ++ ~s~%" name-or-expr (cell name-or-expr)
-			(first-n  *stack-display-depth* (gethash name-or-expr *systacks*))))))))
+			(first-n *stack-display-depth* (cell-stack (gethash name-or-expr *cells*)))))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -412,7 +419,7 @@
 ;;; This also checks to make sure that there isn't crap left on the
 ;;; stacks or in the cells and breaks if ther is. 
 
-(defparameter *system-cells* '("H0" "H1" "H3" "H5"))
+(defparameter *system-cells* '("H0" "H1" "H5")) ;; H3 was setup early for debugging printouts
 (defparameter *w-cells* (loop for w below 43 collect (format nil "W~a" w)))
 
 (defparameter *all-system-cells* (append *system-cells* *w-cells*))
@@ -442,7 +449,7 @@
 
 (defun rems (target-sym) ;; report elements of memory with symbol
   (format t "Core:~%")
-  (loop for cell-name being the hash-keys of *symtab*
+  (loop for cell-name being the hash-keys of *cells*
 	using (hash-value cell)
 	as cell-symb = (and (cell? cell) (cell-symb cell))
 	when (and (cell? cell)
@@ -589,7 +596,7 @@
 					  as new-name = (cdr (assoc missymb local-symbols.new-names :test #'string-equal))
 					  do (format t "WARNING: Cell ~s is being added for missing local symbol ~s!~%" new-name missymb)
 					  collect (make-cell! :name new-name :p 0 :q 0 :symb "0" :link "0"))))))
-      (setf (gethash top-name *symtab*) (car cells)) ;; ?? Can/Should this be a (store ...)
+      (setf (gethash top-name *cells*) (car cells)) ;; ?? Can/Should this be a (store ...)
       (!! :load "Saved: ~s~%" (cell-name (car cells)))
       ;; Loop through the whole list and create a local symbol for every cell
       ;; that doesn't already have one. 
@@ -704,7 +711,9 @@
 	  ""))))
 
 (defun reset! ()
-  (clrhash *symtab*) 
+  (setf *running?* nil)
+  (clrhash *cells*) 
+  (create-system-cells)
   (setup-j-fns)
   (clrhash *col->vals*)
   )
@@ -719,10 +728,13 @@
 ;;; (WWW S is not a cell just a symbol.)
 
 (defun create-system-cells ()
+  ;; H3 has to be setup early for debugging printouts.
+  (make-cell! :name "H3" :p 0 :q 1 :link 0)
   (loop for name in *all-system-cells*
-	do
-	(make-cell! :name name)
-	(!! :dr-memory "Created system cell: ~s and its stack." name))
+	as cell = (make-cell! :name name)
+	do 
+	(!! :dr-memory "Created system cell: ~s" cell))
+  (H5+) ;; Init H5 +
   (setf (cell "S") "S-is-null")
   )
 
@@ -733,16 +745,16 @@
 ;;; at the very end of the process.)
 
 (defun clean-stacks ()
-  (loop for cell being the hash-values of *symtab*
-	as stack = (cell-stack cell)
-	;; Check-for-overpopping
+  (loop for cell being the hash-values of *cells*
+	when (typep cell 'cell)
 	do
-	;; Check for opverpopping:
-	(if (null stack) (break "*** Oops! ~s is empty, which shouldn't happen!!!" name))
-	(when *stack-depth-limit*
-	    (if (> (length stack) *stack-depth-limit*)
-		(!! :alerts "*** Tailing  ~a ***" (cell-name cell))
-		(rplacd (nthcdr *stack-depth-limit* stack) (list *EOS-MARKER*))))))
+
+	(let ((stack (cell-stack cell)))
+	  ;; Check for overpopping:
+	  (if (null stack) (break "*** Oops! ~s is empty, which shouldn't happen!!!" name))
+	  (when (and *stack-depth-limit* (> (length stack) *stack-depth-limit*))
+	    (!! :alerts "*** Tailing  ~a ***" (cell-name cell))
+	    (rplacd (nthcdr *stack-depth-limit* stack) (list *EOS-MARKER*))))))
 
 ;;; Loaded code analysis:
 ;;; This throws an annoying warning and is a non-critical deugging tool
@@ -781,7 +793,7 @@
   `(let ((uname ,(string-upcase (format nil "~a" name))))
      (setf (gethash uname *jfn-plists*) '(explanation ,explanation))
      (let ((fn (lambda ,args ,@forms)))
-       (setf (gethash uname *symtab*) fn)
+       (setf (gethash uname *cells*) fn)
        (setf (gethash fn *jfn->name*) uname))))
 
 ;;; This is, alas, a bit heuristic because our strings can be
@@ -840,7 +852,7 @@
   (defj J4 () "SET H5 +" (H5+))
   (defj J5 () "REVERSE H5" (if (string-equal "+" (H5)) (H5-) (H5+)))
 
-  (defj J6 () "REVERSE (0) and (1)" ;; USED IN F1
+  (defj J6 () "REVERSE (0) and (1)" 
 	(let ((r1 (cell-symb (H0)))
 	      (r2 (cell-symb (first (H0+)))))
 	  ;; !!! This is what you always have to do: Precompute your
@@ -917,7 +929,7 @@
 	       (dl-head (if (not (zero? maybe-dl-head))
 			    (cell maybe-dl-head)
 			    (progn (!! :jdeep "             .....In J11 no dlist yet for ~s so I'm creating one!" list-head)
-				   (make-cell! :name (newsym) :p 0 :q 0 :symb "0" :link "0"))))
+				   (make-cell! :name (newsym) :p 0 :q 0 :symb "0" :link "0" :stack (new-empty-stack)))))
 	       )
 	  ;; Either get the DL for the list, or create one if it doesn't exist.
 	  ;; (This is redundant if it was already there)
@@ -1312,7 +1324,7 @@
 	(PopH0 2)
 	)
 
-  (defj J66 ([0] [1]) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" ;; USED IN F1
+  (defj J66 ([0] [1]) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" 
 	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
 	;; search of list (1) is made. against (0) (starting with the
 	;; cell after cell (1) . If (0) is found, J66 does nothing
@@ -1544,7 +1556,7 @@
   ;; is describable. J90 creates an empty list (also used to create
   ;; empty storage cells, and empty data terms).
 
-  (defj J90 () "Create a blank cell on H0"  ;; USED IN F1
+  (defj J90 () "Create a blank cell on H0"  
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
 	;; The output (0) is the name a the new list.
@@ -1781,7 +1793,7 @@
   ;; kludge-convenience. For example, there is exactly one 80 column
   ;; input/output buffer and it's used for all input and output.
 
-  (defj J151 ([0]) "Print list (0)" ;; USED IN F1
+  (defj J151 ([0]) "Print list (0)" 
 	(print-linear-list [0])
 	(PopH0 1)
 	)
@@ -2254,7 +2266,7 @@
 
   (if (or (zero? link) ;; this first bcs "" screws regional-symbol?
 	  (numberp link) ;; Actual numbers will only show up in data lists
-	  (functionp (gethash link *symtab*))
+	  (functionp (gethash link *cells*))
 	  (regional-symbol? link)) ;; This will have been replaced
 				   ;; above if it was tagged q=2
       link
@@ -2412,10 +2424,7 @@
   )
 
 (defun initialize-machine ()
-  (setf *running?* nil)
   (create-system-cells) ;; See above in storage section
-  (H5+) ;; Init H5 +
-  (setf (H3-cycles) 0 (cell-p (cell "H3")) 0 (cell-q (cell "H3")) 1) ;; Init H3 Cycle-Counter
   (setf *W24-Line-Buffer* (Blank80)) ;; Init Read Line buffer
   (w25-init) ;; I/O pointer
   (w26-init) ;; Trap action list (actually ignored, but needed for most complex code to work.)
@@ -2482,7 +2491,7 @@
   args)
 
 (defun ipl-eval (start-symb &aux s)
-  (!! :run "vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-symb)
+  (!! :run "~%vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at ~s" start-symb)
   (prog (cell q p symb link)
      (ipush "H1" "exit")
      (ipush "H1" start-symb) ;; Where we're headed this time in.
@@ -2648,7 +2657,7 @@
 (defun force-replace (tosymb fromsymb)
   (let* ((fromcell (cell fromsymb)))
     (!! :dr-memory "Force replacing ~s with ~s: ~s" tosymb fromsymb fromcell)
-    (setf (gethash tosymb *symtab*) (make-cell :sign "" :p 0 :q 0 :symb fromsymb :link ""))))
+    (setf (gethash tosymb *cells*) (make-cell :sign "" :p 0 :q 0 :symb fromsymb :link ""))))
 
 (defun call-ipl-prim (symb)
   (break "!!!!!!!! UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
@@ -2802,11 +2811,11 @@
 
 (progn ;; F1 test
   (set-trace-mode :default)
-  (setf *!!* '() *cell-tracing-on* nil)
-  ;(setf *!!* '(:dr-memory :jdeep :jcalls) *cell-tracing-on* t)
+  ;(setf *!!* '() *cell-tracing-on* nil)
+  (setf *!!* '(:load :run :run-full :alerts :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
-  ;(trace force-replace) 
   ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (trace ipop poph0 ipush)
   (load-ipl "misccode/F1.liplv")
   )
 
@@ -2816,7 +2825,7 @@
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
   ;(setf *!!* '(:s :run :jcalls :jdeep) *cell-tracing-on* t)
-  ;(trace ipop poph0 ipush force-replace)
+  ;(trace create-system-cells make-cell! make-cell ipop poph0 ipush force-replace print-cell)
   (load-ipl "misccode/Ackermann.liplv" :adv-limit 250000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
@@ -2920,6 +2929,7 @@ Which actually looks like it correctly takes off 2 agrs, but then there's {|||} 
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (ds) (trace!)
+;;; (dst) dump symbol table
 ;;; list printing: (pl cell) (pll cell) [pll for linear lists only]
 ;;; (rx) analyzes routine call stats
 ;;; ?? tells you various values like H5 H3 H1 and H0 top and W1, W2, and W3
