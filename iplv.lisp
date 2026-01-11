@@ -793,7 +793,7 @@
   `(let ((uname ,(string-upcase (format nil "~a" name))))
      (setf (gethash uname *jfn-plists*) '(explanation ,explanation))
      (let ((fn (lambda ,args ,@forms)))
-       (setf (gethash uname *cells*) fn)
+       (setf (gethash uname *cells*) (make-cell :name uname :symb fn))
        (setf (gethash fn *jfn->name*) uname))))
 
 ;;; This is, alas, a bit heuristic because our strings can be
