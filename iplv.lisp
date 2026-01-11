@@ -2504,6 +2504,7 @@
      ;; to the list. In the case of an internal (J) funtion this will
      ;; be a lambda, in which case we just call it and then advance
      (when (null (H1)) (break "!!! (H1) is NIL! Maybe missing a JFn definition?"))
+     ;; This logic needs to be simplified
      (let* ((fn (if (functionp (cell-symb (h1)))
 		    (cell-symb (h1))
 		    (if (functionp (cell-symb (cell (cell-symb (h1)))))
@@ -2811,22 +2812,22 @@
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-trace-mode :default)
   ;(setf *!!* '() *cell-tracing-on* nil)
-  (setf *!!* '(:load :run :run-full :alerts :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
+  ;(setf *!!* '(:load :run :run-full :alerts :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
   ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (trace ipop poph0 ipush)
+  ;(trace ipop poph0 ipush)
   (load-ipl "misccode/F1.liplv")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
+  (setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
-  ;(setf *!!* '(:s :run :jcalls :jdeep) *cell-tracing-on* t)
+  (setf *!!* '(:load :run :run-full :alerts :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(trace create-system-cells make-cell! make-cell ipop poph0 ipush force-replace print-cell)
   (load-ipl "misccode/Ackermann.liplv" :adv-limit 250000)
   (print (cell "N0"))
