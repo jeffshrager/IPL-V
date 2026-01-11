@@ -27,15 +27,22 @@
 (defun new-empty-stack ()
   (list *EOS-MARKER*))
 
+;;; WWWWWWWWW Beacuse all cells (incl. storage cells -- really all
+;;; cells are storage cell in this implementation, the programmer
+;;; usually doesn't use them that way) are started with a "0" symb,
+;;; the first ipush will put that "0" onto the stack, which could
+;;; then, perfectly normally be popped back out at the very
+;;; end. What's NOT allowed is popping the End of Stack marker!
+
 (defstruct (cell (:print-function print-cell) (:predicate cell?))
   (comments "")
-  (type "")
-  (name "") ;; This field is actually not a part of the cell and maybe shouldn't exist??? FFF
-  (sign "")
+  (type "0")
+  (name "0") ;; This field is actually not a part of the cell and maybe shouldn't exist??? FFF
+  (sign "0")
   (p 0)
   (q 0)
-  (symb "")
-  (link "")
+  (symb "0")
+  (link "0")
   (comments.1 "")
   (id "")
   (stack (new-empty-stack)) ;; throw an error if you pop too far
