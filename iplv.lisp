@@ -2504,8 +2504,10 @@
      ;; to the list. In the case of an internal (J) funtion this will
      ;; be a lambda, in which case we just call it and then advance
      (when (null (H1)) (break "!!! (H1) is NIL! Maybe missing a JFn definition?"))
-     (let* ((fn (if (functionp (cell-symb (h1))) (cell-symb (h1))
-		    (if (functionp (cell (cell-symb (h1)))) (cell (cell-symb (h1)))))))
+     (let* ((fn (if (functionp (cell-symb (h1)))
+		    (cell-symb (h1))
+		    (if (functionp (cell-symb (cell (cell-symb (h1)))))
+			(cell-symb (cell (cell-symb (h1))))))))
        (when fn 
 	 (let* ((arglist (second (function-lambda-expression fn)))
 		(args (if (null arglist) ()
