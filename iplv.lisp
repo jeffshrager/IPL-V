@@ -2639,7 +2639,7 @@
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (setf *fname-hint* S)
-     (ipush "H1" (cell S)) ;; %%% FFF UUU This has an ugly compensatory hack in ipush that should be unwound at some point! (see: "IPH1HACK")
+     (ipush "H1" (cell-name (cell S))) 
      (trace-cells)
      (go INTERPRET-Q)
    BRANCH
