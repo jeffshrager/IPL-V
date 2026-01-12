@@ -2,6 +2,10 @@
 
 (setf *print-pretty* nil)
 
+;;; **************************************** WARNING: Watch out for
+;;; non-standard sotrage cells defined by a 0 in the link. See p. 143
+;;; (14.1) etc. I don't think that this is correctly implemented!
+
 ;;; FFF Do something to simplify the various make-cells and
 ;;; cell-cell!s all over the place with different args.
 
@@ -13,17 +17,27 @@
 ;;; ===================================================================
 ;;; Cell, Storage, and Special Symbols
 
+(defparameter *EOS-MARKER* "*EOS")
+
+;;; WWWWWWWWW Beacuse all cells (incl. storage cells -- really all
+;;; cells are storage cell in this implementation, the programmer
+;;; usually doesn't use them that way) are started with a "0" symb,
+;;; the first ipush will put that "0" onto the stack, which could
+;;; then, perfectly normally be popped back out at the very
+;;; end. What's NOT allowed is popping the End of Stack marker!
+
 (defstruct (cell (:print-function print-cell) (:predicate cell?))
   (comments "")
-  (type "")
+  (type "0")
   (name "") ;; This field is actually not a part of the cell and maybe shouldn't exist??? FFF
-  (sign "")
+  (sign "0")
   (p 0)
   (q 0)
-  (symb "")
-  (link "")
+  (symb "0")
+  (link "0")
   (comments.1 "")
   (id "")
+  (stack (list *EOS-MARKER*)) ;; throws an error if you pop too far
   )
 
 (defvar *symtab* (make-hash-table :test #'equal))
@@ -2849,7 +2863,7 @@
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:dr-memory :jdeep :jcalls) *cell-tracing-on* t)
@@ -2859,14 +2873,14 @@
   (load-ipl "misccode/F1.liplv")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-trace-mode :default)
-  '(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
+  (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
   ;(setf *!!* '(:s :run :jcalls :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0 ipush force-replace)
-  (load-ipl "misccode/Ackermann.liplv" :adv-limit 250)
+  (load-ipl "misccode/Ackermann.liplv" :adv-limit 25000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
       (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
