@@ -1305,6 +1305,12 @@
   ;; to get right because it depends upon subtlties of locality and
   ;; such.
 
+  ;; WWW !!!!!!!!! I think there's a confusion here about the sense of
+  ;; "symbol" On pg. 185 is says: "INSERT (O) AFTER SYMBOL IN (1)",
+  ;; but on pg. 7 it says: "J64: Insert (0) after the list cell named
+  ;; (1)." and gives an example that suggests that it's the NAME field
+  ;; that's being referred to in (1) NOT something in the SYMB field!
+
   (defj J64 (new-symbol list-cell-name) "INSERT (0) AFTER SYMBOL IN (1)"
 	;; (format t "~%~%***************** (J64 :Insert ~s :In ~s) *****************!~%~%" new-symbol list-cell-name)
 	;; (format t "~%~%--------------------------~%~%")
