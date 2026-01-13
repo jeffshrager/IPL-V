@@ -267,7 +267,7 @@
      ,(if (stringp (car args))
 	  ;; If the first elt is a string consider it a format spec,
 	  ;; otherwise, just execute the list of instructions.
-	  (if (member key '(:load :run)) ;; (Special hack to make it slightly prettier)
+	  (if (member key '(:load :run :dr-memory)) ;; make these slightly prettier -- and :dr-memory fails w/o this protection
 	      `(format t ,(car args) ,@(cdr args)) ;; Run already puts this info out
 	      `(format t (concatenate 'string  ,(car args) " ~a@~a[~a]~%") ,@(cdr args) *fname-hint* (h3-cycles) ,key))
 	  `(progn ,@args))))
@@ -326,11 +326,11 @@
 ;;; they don't have names!)  (FFF Maybe use hiearchical structs to
 ;;; separate the load from the cell name?)
 
-(defun ipush (storage-cell-name newsymb)
+(defun ipush (storage-cell-name &optional newsymb)
   (!! :dr-memory "IPUSH wants to push ~s on ~a" newsymb storage-cell-name)
-  (let* ((storage-cell (cell storage-cell-name)))
+  (let* ((storage-cell (cell storage-cell-name))) ;; <== ???
     (push (cell-symb storage-cell) (cell-stack storage-cell))
-    (setf (cell-symb storage-cell) newsymb)))
+    (setf (cell-symb storage-cell) (or newsymb (cell-symb storage-cell)))))
 
 (defun ipop (storage-cell-name)
   (let* ((storage-cell (cell storage-cell-name))
@@ -338,6 +338,7 @@
     (!! :dr-memory "IPOP popped ~s off ~a" recovered-symb storage-cell-name)
     (if (string-equal *EOS-MARKER* recovered-symb)
 	(break "IPOP asked to pop beyond the bottom of the stack of ~a" storage-cell))
+    (setf (cell-symb storage-cell) recovered-symb)
     ;; You're not allowed to use the result of ipop
     :someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it
     ))
@@ -2501,7 +2502,7 @@
      (when (null (H1)) (break "!!! (H1) is NIL! Maybe missing a JFn definition?"))
      (let* ((fn (if (functionp (cell-symb (h1))) (cell-symb (h1))
 		    (if (functionp (<== (cell-symb (h1)))) (<== (cell-symb (h1)))))))
-       (print (list 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAA (h1) (cell-symb (h1)) (<== (cell-symb (h1))) fn))
+       ;;(print (list 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAA (h1) (cell-symb (h1)) (<== (cell-symb (h1))) fn))
        (when fn 
 	 (let* ((arglist (second (function-lambda-expression fn)))
 		(args (if (null arglist) ()
@@ -2513,20 +2514,22 @@
 	   (when *fname-hint* 
 	     (!! :jcalls (format t (if arglist "   .......... Calling ~a [~a]: ~s=~s~%"
 				    "   .......... Calling ~a [~a] (No Args)~*~*~%")
-			      *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args))
+				 *fname-hint* (getf (gethash *fname-hint* *jfn-plists*) 'explanation) arglist args))
 	     (push args (gethash *fname-hint* *jfn-calls*)) ;; For (rj) summary reports
 	     (maybe-break? *fname-hint*)
 	     (setf *fname-hint* nil)
 	     )
 	   (apply fn args))
 	 (push :ascend *card-cycles.ids-executed*)
+	 ;;(print (list "Before: Remove the JFn call: (ipop 'H1')" (h1)))
 	 (ipop "H1") ;; Remove the JFn call
+	 ;;(print (list "After: Remove the JFn call: (ipop 'H1')" (h1)))
 	 (go ADVANCE)
 	 ))
      ;; Not a JFn
-     (print (list '111111111111111111 'NOTAJFN1 :h1 (h1) :cell cell :s s))
+     ;;(print (list '111111111111111111 'NOTAJFN1 :h1 (h1) :cell cell :s s))
      (setq cell (cell (cell-symb (H1)))) ;; This shouldn't be needed since we're operating all in cell now.
-     (print (list '222222222222222222 'NOTAJFN2 :h1 (h1) :cell cell :s s))
+     ;;(print (list '222222222222222222 'NOTAJFN2 :h1 (h1) :cell cell :s s))
      (!! :run "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
@@ -2535,8 +2538,8 @@
 	   symb (cell-symb cell)
 	   link (cell-link cell)
 	   )
-     (print (list '333333333333333333 'NOTAJFN3 :p p :q q :symb symb :link link :h1 (h1) :cell cell :s s))
-     (print (list :run-full "-----> At INTERPRET-Q: CELL =~s      Q = ~s, symb=~s~%" cell q symb))
+     ;;(print (list '333333333333333333 'NOTAJFN3 :p p :q q :symb symb :link link :h1 (h1) :cell cell :s s))
+     ;;(print (list :run-full "-----> At INTERPRET-Q: CELL =~s      Q = ~s, symb=~s~%" cell q symb))
      (!! :run-full "-----> At INTERPRET-Q: CELL =~s      Q = ~s, symb=~s~%" cell q symb)
      (case q
        ;; 0 take the symbol itself
@@ -2635,7 +2638,7 @@
      (ipop "H1")
      (go ADVANCE)
    DESCEND 
-     (print (list 'DESCENDDESCENDDESCENDDESCENDDESCEND s))
+     ;;(print (list 'DESCENDDESCENDDESCENDDESCENDDESCEND s))
      (push :descend *card-cycles.ids-executed*)
      (!! :run-full "-----> At DESCEND w/S = ~s" S)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
@@ -2814,8 +2817,8 @@
 (progn ;; F1 test
   (set-trace-mode :default)
   (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (setf *!!* '(:run :run-full :jdeep :jcalls)) ;;  :dr-memory
-  (trace ipush)
+  (setf *!!* '(:run :run-full :jdeep :jcalls :dr-memory)) 
+  (trace ipush ipop)
   (load-ipl "misccode/F1.liplv")
   )
 
