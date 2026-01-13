@@ -2688,9 +2688,8 @@ Prob. 51 isn't doing the right thing!
 ;;; holding the original.
 
 (defun force-replace (tosymb fromsymb)
-  (let* ((fromcell (cell fromsymb)))
-    (!! :dr-memory "Force replacing ~s with ~s: ~s" tosymb fromsymb fromcell)
-    (setf (gethash tosymb *symtab*) (make-cell :sign "" :p 0 :q 0 :symb fromsymb :link ""))))
+    (!! :dr-memory "Force replacing ~s's symbol with ~s: ~s" (<== tosymb) fromsymb)
+    (setf (cell-symb (<== tosymb)) fromsymb))
 
 (defun call-ipl-prim (symb)
   (break "!!!!!!!! UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
@@ -2844,13 +2843,13 @@ Prob. 51 isn't doing the right thing!
 
 (progn ;; F1 test
   (set-trace-mode :default)
-  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (setf *!!* '(:run :jcalls))  ;  :run-full :jdeep  :dr-memory
-  (trace ipush ipop trace-cells trace-cell-safe-for-trace-expr check-jfn-arglist-for-red-flags***)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  ;(setf *!!* '(:run :jcalls))  ;  :run-full :jdeep  :dr-memory
+  ;(trace force-replace ipush ipop trace-cells trace-cell-safe-for-trace-expr check-jfn-arglist-for-red-flags***)
   (load-ipl "misccode/F1.liplv")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2966,7 +2965,7 @@ Which actually looks like it correctly takes off 2 agrs, but then there's {|||} 
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-trace-mode :none)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
