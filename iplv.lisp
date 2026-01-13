@@ -395,7 +395,7 @@
 		(let ((r (eval name-or-expr)))
 		  (when r (format t "   ~s => ~s~%" name-or-expr r)))
 		(format t "   ~a=~s ++ ~s~%" name-or-expr (cell name-or-expr)
-			(first-n  *stack-display-depth* (gethash name-or-expr *systacks*))))))))
+			(first-n *stack-display-depth* (cell-stack (<== name-or-expr)))))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -850,11 +850,13 @@
   (defj J4 () "SET H5 +" (H5+))
   (defj J5 () "REVERSE H5" (if (string-equal "+" (H5)) (H5-) (H5+)))
 
-  (defj J6 () "REVERSE (0) and (1)" ;; USED IN F1
+  (defj J6 () "REVERSE (0) and (1)" 
 	(let ((r1 (cell-symb (H0)))
-	      (r2 (cell-symb (first (H0+)))))
+	      (r2 (cell-symb (<== (first (H0+))))))
 	  ;; !!! This is what you always have to do: Precompute your
-	  ;; answers, then pop the inputs and push the outputs:
+	  ;; answers, then pop the inputs and push the
+	  ;; outputs. (Recall that you're not allowed to use the
+	  ;; result of IPOP!)
 	  (poph0 2)
 	  (ipush "H0" r1)
 	  (ipush "H0" r2)))
@@ -1322,7 +1324,7 @@
 	(PopH0 2)
 	)
 
-  (defj J66 ([0] [1]) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" ;; USED IN F1
+  (defj J66 ([0] [1]) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" 
 	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
 	;; search of list (1) is made. against (0) (starting with the
 	;; cell after cell (1) . If (0) is found, J66 does nothing
@@ -1554,7 +1556,7 @@
   ;; is describable. J90 creates an empty list (also used to create
   ;; empty storage cells, and empty data terms).
 
-  (defj J90 () "Create a blank cell on H0"  ;; USED IN F1
+  (defj J90 () "Create a blank cell on H0"  
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
 	;; The output (0) is the name a the new list.
@@ -1790,7 +1792,7 @@
   ;; kludge-convenience. For example, there is exactly one 80 column
   ;; input/output buffer and it's used for all input and output.
 
-  (defj J151 ([0]) "Print list (0)" ;; USED IN F1
+  (defj J151 ([0]) "Print list (0)" 
 	(print-linear-list [0])
 	(PopH0 1)
 	)
@@ -2817,8 +2819,8 @@
 (progn ;; F1 test
   (set-trace-mode :default)
   (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (setf *!!* '(:run :run-full :jdeep :jcalls :dr-memory)) 
-  (trace ipush ipop)
+  (setf *!!* '(:run :jcalls))  ; :run-full :jdeep  :dr-memory
+  ;(trace ipush ipop trace-cells trace-cell-safe-for-trace-expr)
   (load-ipl "misccode/F1.liplv")
   )
 
