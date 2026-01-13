@@ -41,7 +41,10 @@
   )
 
 (defvar *symtab* (make-hash-table :test #'equal))
-(defvar *systacks* (make-hash-table :test #'equal))
+
+(defun dst () ;; Dump Symbol Table
+  (loop for cell being the hash-values of *symtab*
+	do (print cell)))
 
 (defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "-"))))
 
@@ -68,12 +71,22 @@
 
 (defun print-cell (cell s d)
   (declare (ignore d))
-  (let ((p (cell-p cell)) (q (cell-q cell)))
+  (let ((p (cell-p cell)) (q (cell-q cell))
+	(stack (cell-stack cell)))
     (if (and (zerop p) (zerop q))
-	(format s "{~a~a||~a|~a~a}"
-		(if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
-		(cell-name cell) (cell-symb cell) (cell-link cell)
-		(format-cell-comments-for-printing cell))
+	(if (string-equal *eos-marker* (car stack))
+	    ;; Normal cells (no stack)
+	    (format s "{~a~a||~a|~a~a}"
+		    (if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
+		    (cell-name cell) (cell-symb cell) (cell-link cell)
+		    (format-cell-comments-for-printing cell))
+	    ;; With a stack:
+	    (format s "{~a~a||~a|~a~a|~s}"
+		    (if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
+		    (cell-name cell) (cell-symb cell) (cell-link cell)
+		    (format-cell-comments-for-printing cell)
+		    stack))
+	;; Data cells:
 	(format s "{~a~a|~a~a|~a|~a~a}"
 		(if (zero? (cell-id cell)) "" (format nil "~a::" (cell-id cell)))
 		(cell-name cell) p q (cell-symb cell) (cell-link cell)
@@ -215,12 +228,6 @@
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! (&optional next-breaks) (setf *breaks* next-breaks) "Use :c to run free.")
 
-(defun ds () ;; dump-stack
-  (loop for key being the hash-keys of *systacks*
-	using (hash-value val)
-	do (print (list key val)))
-  (format t "~%~%") :done)
-
 ;; ;;; Search a list (given the head cell's name) for a specific symbol,
 ;; ;;; and eval the action when it's found. This is usually used to throw
 ;; ;;; breaks when something weird gets put into a list.
@@ -249,21 +256,20 @@
 ;;; try to push/pop things that aren't stacks!
 
 (defmacro cell (symb) `(gethash ,symb *symtab*))
-(defmacro stack (symb) `(gethash ,symb *systacks*)) ;; Only system cells have stacks
+(defmacro stack (symb) `(cell-stack (cell ,symb))) ;; ??????? (cell ...) ->  <== ?????????
 
 (defvar *!!* nil) 
 
 (defmacro H3-cycles () `(cell-link (cell "H3")))
 
 (defmacro !! (key &rest args) 
-  `(when (or (equal *!!* t)
-	     (equal ,key t)
-	     (member ,key *!!*))
-     ;; There's a special hack here for :run just to make it slightly prettier
+  `(when (or (equal *!!* t) (equal ,key t) (member ,key *!!*))
      ,(if (stringp (car args))
-	  (if (member key '(:load :run))
+	  ;; If the first elt is a string consider it a format spec,
+	  ;; otherwise, just execute the list of instructions.
+	  (if (member key '(:load :run)) ;; (Special hack to make it slightly prettier)
 	      `(format t ,(car args) ,@(cdr args)) ;; Run already puts this info out
-	      `(format t (concatenate 'string  ,(car args) " ~a@~a[~a]~%") *fname-hint* ,@(cdr args) (h3-cycles) ,key))
+	      `(format t (concatenate 'string  ,(car args) " ~a@~a[~a]~%") ,@(cdr args) *fname-hint* (h3-cycles) ,key))
 	  `(progn ,@args))))
 
 ;;; Cell dereferencing: Used when you need a cell. <=! is more
@@ -297,7 +303,7 @@
 ;;; manually!)
 
 (defmacro H0 () `(cell "H0"))
-(defmacro H0+ () `(stack "H0"))
+(defmacro H0+ () `(cell-stack (H0)))
 
 ;;; Input/Push to system stack: This creates a copy only of the
 ;;; CONTENTS of the system cell.
@@ -320,76 +326,20 @@
 ;;; they don't have names!)  (FFF Maybe use hiearchical structs to
 ;;; separate the load from the cell name?)
 
-(defun ipush (stack-name &optional newval)
-  (if (and newval (string-equal "H0" stack-name) (not (stringp newval)))
-      ;;; ???????????????? Why is this printing a nil? How could a nil get here??
-      (!! :alerts "*** IPUSH to H0 of non-symbol: ~s ***"
-	  (cdr (print (cons "**************" newval)))))
-  (!! :dr-memory "IPUSH wants to put ~s on ~a" (or newval "[nil: No newval]") stack-name)
-  ;; Start by creating a new cell on the stack and copy everything from
-  ;; the main cell into it. NOTE THAT THIS IS NOT SAVED!
-  (let* ((topcell (cell stack-name))) 
-    (push (make-cell :sign (cell-sign topcell)
-		     :p (cell-p topcell)
-		     :q (cell-q topcell)
-		     :symb (cell-symb topcell)
-		     :link (cell-link topcell))
-	  (stack stack-name))
-    ;; Now create another new cell, this time to replace the top
-    ;; cell. This one IS saved!  NNN WWW This will replace the top
-    ;; cell in the symbtab!
-    (let ((newmain (setf (gethash stack-name *symtab*) (copy-cell topcell)))) 
-      ;; And replace it with whatever it appropriate given the input type.
-      (cond ((or (stringp newval) (functionp newval))
-	     (data-set newmain :symb newval))
-	    ((cell? newval)
-	     ;; Here we copy everything into it (except the name).
-	     (data-set newmain
-		       :sign (cell-sign newval)
-		       :p (cell-p newval)
-		       :q (cell-q newval)
-		       ;;  %%% FFF UUU This is an ugly compensatory hack from where it's called that should be unwound at some point! (see: "IPH1HACK")
-		       :symb (if (string-equal stack-name "H1") (cell-name newval) (cell-symb newval))
-		       :link (cell-link newval))
-	     (!! :run-full "iPushing a copy of data from ~s on ~a" newval stack-name))
-	    ((null newval)
-	     ;; This is just a push, and the copy has already been made.
-	     (!! :run-full "iPushing ~a" stack-name))
-	    ((numberp newval)
-	     (!! :run-full "iPushing (the number) ~s on ~a" newval stack-name)
-	     (data-set newmain :p 1 :q 2 :link newval))
-	    (t (break "IPUSH asked to push ~s onto ~a~%" newval stack-name)))
-      (!! :dr-memory "IPUSH pushew new cell: ~s (WWW NOT STORED!) on ~s" newmain stack-name)
-      newmain)))
+(defun ipush (storage-cell-name newsymb)
+  (!! :dr-memory "IPUSH wants to push ~s on ~a" newsymb storage-cell-name)
+  (let* ((storage-cell (cell storage-cell-name)))
+    (push (cell-symb storage-cell) (cell-stack storage-cell))
+    (setf (cell-symb storage-cell) newsymb)))
 
-;;; Warning: Pop has to create a new cell in the head otherwise anyone
-;;; holding the old value might have it destroyed. (Actually, I think
-;;; that this is safe bcs all pushes create new cells, but better
-;;; clean than worry.) Also, the result of ipop needs to be made into
-;;; a new cell, which is why you can suppress it if you don't need
-;;; the result, to save space.
-
-(defun ipop (stack-name &key (make-me-a-new-copy-of-the-popped-cell t))
-  (let* ((popped-cell (pop (stack stack-name)))
-	 (new-cell (make-cell!
-		    :name stack-name
-		    :p (cell-p popped-cell)
-		    :q (cell-q popped-cell)
-		    :symb (cell-symb popped-cell)
-		    :link (cell-link popped-cell)
-		    :id (cell-id popped-cell))))
-    (!! :dr-memory "IPOP created new cell: ~s on ~a, popping ~s" new-cell stack-name popped-cell)
-    (if make-me-a-new-copy-of-the-popped-cell
-	;; This one isn't saved!
-	(let ((new-cell (make-cell
-			 :p (cell-p popped-cell)
-			 :q (cell-q popped-cell)
-			 :symb (cell-symb popped-cell)
-			   :link (cell-link popped-cell)
-			   :id (cell-id popped-cell))))
-	  (!! :dr-memory "       Warning: IPOP WAS EXPLICILY ASKED TO RETURN ~s TO THE CALLER!" new-cell)
-	  new-cell)
-	  :someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it)
+(defun ipop (storage-cell-name)
+  (let* ((storage-cell (cell storage-cell-name))
+	 (recovered-symb (pop (cell-stack storage-cell))))
+    (!! :dr-memory "IPOP popped ~s off ~a" recovered-symb storage-cell-name)
+    (if (string-equal *EOS-MARKER* recovered-symb)
+	(break "IPOP asked to pop beyond the bottom of the stack of ~a" storage-cell))
+    ;; You're not allowed to use the result of ipop
+    :someone-called-ipop-and-used-the-result-but-claimed-not-to-need-it
     ))
 
 ;;; This is used in JFns to deref args H0
@@ -507,19 +457,10 @@
 	using (hash-value cell)
 	as cell-symb = (and (cell? cell) (cell-symb cell))
 	when (and (cell? cell)
-		  (and (stringp cell-symb))
-		  (string-equal target-sym cell-symb))
-	do (format t "  ~s~%" cell))
-  (format t "Stacks:~%")
-  (loop for stack-name being the hash-keys of *systacks*
-	using (hash-value cells)
-	do (loop for cell in cells
-		 as depth from 1 by 1
-		 as cell-symb = (and (cell? cell) (cell-symb cell))
-		 when (and (cell? cell)
-			   (and (stringp cell-symb))
-			   (string-equal target-sym cell-symb))
-		 do (format t "  ~a(~a): ~s~%" stack-name depth cell))))
+		  (or (and (stringp cell-symb) (string-equal target-sym cell-symb))
+		      ;; Or it's in its stack:
+		      (member target-sym (cell-stack cell) :test #'string-equal)))
+	do (format t "  ~s~%" cell)))
 
 (defun ??? (&aux (*cell-tracing-on* t) (*trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "W2")))
   (print *trace-instruction*) (terpri)
@@ -773,7 +714,6 @@
 	  ""))))
 
 (defun reset! ()
-  (clrhash *systacks*)
   (clrhash *symtab*) 
   (setup-j-fns)
   (clrhash *col->vals*)
@@ -792,35 +732,26 @@
   (loop for name in *all-system-cells*
 	do
 	(make-cell! :name name)
-	(setf (gethash name *systacks*) (list (make-cell :symb "**EMPTY**")))
 	(!! :dr-memory "Created system cell: ~s and its stack." name))
   (setf (cell "S") "S-is-null")
   )
 
-;;; If any var becomes nil, there's something wrong!  (**EMPTY** is okay
-;;; at the very end of the process.)
-
-(defun check-for-overpopping ()
-  (loop for name in *all-system-cells*
-	as val = (gethash name *symtab*)
-	if (null val)
-	do (break "**** Oops! ~s is ~s, which is oughtn't be!" name val)))
-
 ;;; This is needed because of H0 memory leaks, probably from JFNS.
 (defvar *stack-depth-limit* 100)
 
+;;; If any var becomes nil, there's something wrong!  (**EMPTY** is okay
+;;; at the very end of the process.)
+
 (defun clean-stacks ()
-  (check-for-overpopping)
-  (when *stack-depth-limit*
-    (loop for key being the hash-keys of *systacks*
-	  using (hash-value stack)
-	  as depth = (length stack)
-	  do 
-	  (when (> depth *stack-depth-limit*)
-	    (!! :alerts "*** THE STACK CLEANER COMETH! (Tailing: ~a) ***" key depth *stack-depth-limit*)
-	    (loop for s+ on stack
-		  as d below *stack-depth-limit*
-		  finally (setf (cdr s+) nil))))))
+  (loop for cell being the hash-values of *symtab*
+	as stack = (if (typep cell 'cell) (cell-stack cell) nil)
+	when stack do
+	;; Check for overpopping:
+	(if (null stack) (break "*** Oops! ~s is empty, which shouldn't happen!!!" name))
+	(when *stack-depth-limit*
+	    (when (> (length stack) *stack-depth-limit*)
+	      (!! :alerts "*** Tailing  ~a ***" (cell-name cell))
+	      (rplacd (nthcdr *stack-depth-limit* stack) (list *EOS-MARKER*))))))
 
 ;;; Loaded code analysis:
 ;;; This throws an annoying warning and is a non-critical deugging tool
@@ -1820,7 +1751,11 @@
   ;; restored. I think that ipush and ipop will do the thing, but
   ;; ... who knows!
 
+  ;; WWW PROBABLY BUGGY! *****************************************
+  ;; WWW *** This is referring to lists of cells, NOT cell stacks! *** WWW
+
   (defj J137 (l) "MARK LIST (0) PROCESSED"
+	(break "J137 IS WRONG!")
 	;; List (0) is preserved [ipushed], its [new] head made empty (Q =
 	;; 4, SYMB = 0), and P set to be 1. Restoring (0) will return
 	;; (0) to its initial state. This will work even with data
@@ -2565,7 +2500,8 @@
      ;; be a lambda, in which case we just call it and then advance
      (when (null (H1)) (break "!!! (H1) is NIL! Maybe missing a JFn definition?"))
      (let* ((fn (if (functionp (cell-symb (h1))) (cell-symb (h1))
-		    (if (functionp (cell (cell-symb (h1)))) (cell (cell-symb (h1)))))))
+		    (if (functionp (<== (cell-symb (h1)))) (<== (cell-symb (h1)))))))
+       (print (list 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAA (h1) (cell-symb (h1)) (<== (cell-symb (h1))) fn))
        (when fn 
 	 (let* ((arglist (second (function-lambda-expression fn)))
 		(args (if (null arglist) ()
@@ -2587,7 +2523,10 @@
 	 (ipop "H1") ;; Remove the JFn call
 	 (go ADVANCE)
 	 ))
+     ;; Not a JFn
+     (print (list '111111111111111111 'NOTAJFN1 :h1 (h1) :cell cell :s s))
      (setq cell (cell (cell-symb (H1)))) ;; This shouldn't be needed since we're operating all in cell now.
+     (print (list '222222222222222222 'NOTAJFN2 :h1 (h1) :cell cell :s s))
      (!! :run "@~a~a >>>>> ~s (~a)~%" (H3-cycles) (H5) cell (pq-explain cell))
      (maybe-break? (cell-id cell))
      (setf *trace-instruction* cell) ;; For tracing and error reporting
@@ -2596,6 +2535,8 @@
 	   symb (cell-symb cell)
 	   link (cell-link cell)
 	   )
+     (print (list '333333333333333333 'NOTAJFN3 :p p :q q :symb symb :link link :h1 (h1) :cell cell :s s))
+     (print (list :run-full "-----> At INTERPRET-Q: CELL =~s      Q = ~s, symb=~s~%" cell q symb))
      (!! :run-full "-----> At INTERPRET-Q: CELL =~s      Q = ~s, symb=~s~%" cell q symb)
      (case q
        ;; 0 take the symbol itself
@@ -2694,12 +2635,13 @@
      (ipop "H1")
      (go ADVANCE)
    DESCEND 
+     (print (list 'DESCENDDESCENDDESCENDDESCENDDESCEND s))
      (push :descend *card-cycles.ids-executed*)
      (!! :run-full "-----> At DESCEND w/S = ~s" S)
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (setf *fname-hint* S)
-     (ipush "H1" (cell S)) ;; %%% FFF UUU This has an ugly compensatory hack in ipush that should be unwound at some point! (see: "IPH1HACK")
+     (ipush "H1" S) 
      (trace-cells)
      (go INTERPRET-Q)
    BRANCH
@@ -2871,11 +2813,9 @@
 
 (progn ;; F1 test
   (set-trace-mode :default)
-  (setf *!!* '() *cell-tracing-on* nil)
-  ;(setf *!!* '(:dr-memory :jdeep :jcalls) *cell-tracing-on* t)
-  ;(push :run-full *!!*)
-  ;(trace force-replace) 
-  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (setf *!!* '(:run :run-full :jdeep :jcalls)) ;;  :dr-memory
+  (trace ipush)
   (load-ipl "misccode/F1.liplv")
   )
 
