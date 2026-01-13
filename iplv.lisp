@@ -1251,7 +1251,11 @@ Prob. 51 isn't doing the right thing!
 	(let* ((list-cell (cell list-cell-name))
 	       (new-cell-name (newsym))
 	       (list-cell-symbol (cell-symb list-cell))
-	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell))))
+	       (new-cell (make-cell! :name new-cell-name
+				     :symb list-cell-symbol
+				     :link (cell-link list-cell)
+				     :stack (cell-stack list-cell)
+				     )))
 	  (declare (ignore new-cell))
 	  (setf (cell-symb list-cell) new-symbol
 		(cell-link list-cell) new-cell-name))
@@ -1301,7 +1305,9 @@ Prob. 51 isn't doing the right thing!
 	       (new-cell-name (newsym))
 	       (new-cell (make-cell! :name new-cell-name
 				     :symb new-symbol
-				     :link list-cell-link)))
+				     :link list-cell-link
+				     :stack (cell-stack list-cell)
+		 )))
 	  ;;; If the cell we've been handed is heuristically an empty
 	  ;;; list header, we soft flag this and add the new cell to
 	  ;;; the end.
@@ -1680,7 +1686,11 @@ Prob. 51 isn't doing the right thing!
 				    :p (cell-p old-cell)
 				    :q (cell-q old-cell)
 				    :symb (cell-symb old-cell)
-				    :link (cell-link old-cell)))))))
+				    :link (cell-link old-cell)
+				    :stack (copy-list (cell-stack old-cell))
+				    ))
+		 :stack (copy-list (cell-stack (h0)))
+		))))
   
   (defj J121 (to from) "SET (O) IDENTICAL TO (1)"
 	;; The contents of the cell named (1) is places in the cell
@@ -2268,6 +2278,7 @@ Prob. 51 isn't doing the right thing!
 			:q (cell-q old-cell)
 			:symb (cell-symb old-cell)
 			:link (J73-shallow-copy-ipl-list (cell-link old-cell))
+			:stack (cell-stack old-cell)
 			:id (cell-id old-cell))))
 	(cell-name new-cell))))
 
@@ -2319,6 +2330,7 @@ Prob. 51 isn't doing the right thing!
 			:q old-q
 			:symb :tbd
 			:link (j74-deep-copy-ipl-list old-link)
+			:stack (cell-stack old-cell)
 			:id old-id)))
 
 	;; Okay, now we have the new cell, and everything is correct
@@ -2591,6 +2603,9 @@ Prob. 51 isn't doing the right thing!
 
        (2 ;; Output to S (then restore HO)
 
+	;; ("20" "Move H0 to the named symbol itself and pop H0")
+	;; ("21" "Move H0 to the cell named by symb, and pop H0")
+
 	;; ********************************************************
 	;; (0) is put in cell S; then H0 is restored." (Note: No S
 	;; push!)  It's actually unclear what the right way to do this
@@ -2603,7 +2618,7 @@ Prob. 51 isn't doing the right thing!
 	;; apparently needs to be. UUU WWW !!! This bodes poorly for
 	;; the overall correctness and stability of the interpreter!
 
-	(setf (cell-symb (cell S)) (cell-symb (H0))) ;; THIS ONE WORKS!
+	(setf (cell-symb (<== S)) (cell-symb (H0))) ;; THIS ONE WORKS! [was: (cell S) now (<== S) should be the same...?]
 	;; (force-replace S (cell-symb (H0)))        ;; THIS ONE DOES NOT WORK!
 
 	(ipop "H0")
@@ -2841,7 +2856,7 @@ Prob. 51 isn't doing the right thing!
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-trace-mode :default)
   ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   ;(setf *!!* '(:run :jcalls))  ;  :run-full :jdeep  :dr-memory
@@ -2849,7 +2864,7 @@ Prob. 51 isn't doing the right thing!
   (load-ipl "misccode/F1.liplv")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2965,8 +2980,10 @@ Which actually looks like it correctly takes off 2 agrs, but then there's {|||} 
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 
-'(progn ;; LT 
-  (set-trace-mode :none)
+(progn ;; LT 
+  (set-trace-mode :default)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (setf *!!* '(:run :jcalls :run-full))  ;   :jdeep  :dr-memory
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
