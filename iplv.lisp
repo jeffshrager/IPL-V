@@ -393,8 +393,8 @@
 	    (if (listp name-or-expr)
 		(let ((r (eval name-or-expr)))
 		  (when r (format t "   ~s => ~s~%" name-or-expr r)))
-		(format t "   ~a=~s ++ ~s~%" name-or-expr (cell name-or-expr)
-			(first-n *stack-display-depth* (cell-stack (<== name-or-expr)))))))))
+		;; FFF Maybe make this only show the first *stack-display-depth* of the stack.
+		(format t "   ~a=~s~%" name-or-expr (cell name-or-expr)))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -851,7 +851,7 @@
 
   (defj J6 () "REVERSE (0) and (1)" 
 	(let ((r1 (cell-symb (H0)))
-	      (r2 (cell-symb (<== (first (H0+))))))
+	      (r2 (first (H0+))))
 	  ;; !!! This is what you always have to do: Precompute your
 	  ;; answers, then pop the inputs and push the
 	  ;; outputs. (Recall that you're not allowed to use the
@@ -2503,7 +2503,6 @@
      (when (null (H1)) (break "!!! (H1) is NIL! Maybe missing a JFn definition?"))
      (let* ((fn (if (functionp (cell-symb (h1))) (cell-symb (h1))
 		    (if (functionp (<== (cell-symb (h1)))) (<== (cell-symb (h1)))))))
-       ;;(print (list 'AAAAAAAAAAAAAAAAAAAAAAAAAAAAA (h1) (cell-symb (h1)) (<== (cell-symb (h1))) fn))
        (when fn 
 	 (let* ((arglist (second (function-lambda-expression fn)))
 		(args (if (null arglist) ()
@@ -2511,7 +2510,7 @@
 			   (cons (cell-symb (H0))
 				 (loop for arg in (cdr arglist)
 				       as val in (h0+)
-				       collect (cell-symb val)))))))
+				       collect val))))))
 	   (when *fname-hint* 
 	     (!! :jcalls (format t (if arglist "   .......... Calling ~a [~a]: ~s=~s~%"
 				    "   .......... Calling ~a [~a] (No Args)~*~*~%")
@@ -2817,13 +2816,13 @@
 
 (progn ;; F1 test
   (set-trace-mode :default)
-  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (setf *!!* '(:run :jcalls))  ; :run-full :jdeep  :dr-memory
-  ;(trace ipush ipop trace-cells trace-cell-safe-for-trace-expr)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (setf *!!* '(:run :jcalls))  ;  :run-full :jdeep  :dr-memory
+  ;(trace ipush ipop trace-cells trace-cell-safe-for-trace-expr check-jfn-arglist-for-red-flags***)
   (load-ipl "misccode/F1.liplv")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
