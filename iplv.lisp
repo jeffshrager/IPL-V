@@ -1,6 +1,34 @@
 ;;; (load (compile-file "iplv.lisp"))
 (setf *print-pretty* nil)
 
+#|
+
+H0 getting incorrectly clobbered by @41- >>>>> {F1-9-2|51|W0|F1-133} (Replace H0 by the cell named in the H0 symb)
+Prob. 51 isn't doing the right thing!
+
+       :SOMEONE-CALLED-IPOP-AND-USED-THE-RESULT-BUT-CLAIMED-NOT-TO-NEED-IT
+  0: (TRACE-CELLS)
+    1: (TRACE-CELL-SAFE-FOR-TRACE-EXPR)
+   H0={H0||K1-139|0|("0" "*EOS")}
+   H1={H1||F1-9-1|0|("E1-124" "exit" "0" "*EOS")}
+   W0={W0||9-142|0|("0" "*EOS")}
+   W1={W1||0|0}
+    1: TRACE-CELL-SAFE-FOR-TRACE-EXPR returned NIL
+  0: TRACE-CELLS returned NIL
+@41- >>>>> {F1-128|70|F1-9-2|F1-129} (Goto by H5: -symb|+link itself)
+@41- >>>>> {F1-9-2|51|W0|F1-133} (Replace H0 by the cell named in the H0 symb)
+  0: (TRACE-CELLS)
+    1: (TRACE-CELL-SAFE-FOR-TRACE-EXPR)
+   H0={||9-142|}
+   H1={H1||F1-9-2|0|("E1-124" "exit" "0" "*EOS")}
+   W0={W0||9-142|0|("0" "*EOS")}
+   W1={W1||0|0}
+    1: TRACE-CELL-SAFE-FOR-TRACE-EXPR returned NIL
+  0: TRACE-CELLS returned NIL
+
+|#
+
+
 ;;; **************************************** WARNING: Watch out for
 ;;; non-standard sotrage cells defined by a 0 in the link. See p. 143
 ;;; (14.1) etc. I don't think that this is correctly implemented!
@@ -2816,9 +2844,9 @@
 
 (progn ;; F1 test
   (set-trace-mode :default)
-  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (setf *!!* '(:run :jcalls))  ;  :run-full :jdeep  :dr-memory
-  ;(trace ipush ipop trace-cells trace-cell-safe-for-trace-expr check-jfn-arglist-for-red-flags***)
+  (trace ipush ipop trace-cells trace-cell-safe-for-trace-expr check-jfn-arglist-for-red-flags***)
   (load-ipl "misccode/F1.liplv")
   )
 
