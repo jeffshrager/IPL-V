@@ -1611,12 +1611,6 @@ Prob. 51 isn't doing the right thing!
   (defj J92 () "Create a list of 2 entries" (J9n-helper 2))
   (defj J93 () "Create a list of 3 entries" (J9n-helper 3))
 
-  ;; !!! Something's wrong with J100: See GENTEST test code -- It's
-  ;; !!! not clear from the manual what it returns. We used to assume
-  ;; !!! that it returned the last result of the subfn, but I think
-  ;; !!! now that it returns nothing, which means it can just pop the
-  ;; !!! arguments. But the H5 rules are really confusing!
-
   (defj J100 ([0] [1]) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" 
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
 	;; named (0) is performed successively with each of the symbols of list named
@@ -2094,7 +2088,7 @@ Prob. 51 isn't doing the right thing!
   (let* ((head-name (newsym)) ;; Needed for tracing later
 	 (head (make-cell! :name head-name :p 0 :q 0 :symb "0" :link "0"))
 	 ;; The order is (n-1) first, (n-2) second, ... (0) last.
-	 (symbols `(,@(reverse (loop for hn in (H0+) as m from 1 to (1- n) collect (cell-symb hn))) ,(cell-symb (h0))))
+	 (symbols (reverse (loop for k below n as sym = (cell-symb (H0)) do (ipop "H0") collect sym)))
 	 )
     (!! :jdeep "            .....J9n creating a list @~s from: ~s " head symbols)
     (loop for sym in symbols
@@ -2102,9 +2096,9 @@ Prob. 51 isn't doing the right thing!
 	  as next-cell-name = (newsym)
 	  as next-cell = (make-cell! :name next-cell-name :p 0 :q 0 :symb sym :link "0")
 	  do 
+	  (!! :jdeep "                .....J9n added ~s " next-cell)
 	  (setf (cell-link prev-cell) next-cell-name)
 	  (setf prev-cell next-cell))
-    (poph0 n)
     (ipush "H0" head-name)
     (!! :jdeep "            .....J9n created list: ")
     (!! :jdeep (pl head-name))))
@@ -2883,7 +2877,7 @@ Prob. 51 isn't doing the right thing!
   (load-ipl "misccode/F1.liplv")
   )
 
-(progn ;; J100TEST
+'(progn ;; J100TEST
   (set-trace-mode :default)
   (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "H5") *cell-tracing-on* t)
   (setf *!!* '(:run :jcalls :jdeep)) ;; :jdeep :run-full :dr-memory
@@ -2927,112 +2921,6 @@ Prob. 51 isn't doing the right thing!
 
 P029 is in a loop:
 
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q5" "*12")
-@1527- >>>>> {P008R010::P8-1416|70|0|J8} (Goto by H5: -symb|+link itself)
-@1528- >>>>> {P029R140::P29-1551|70|P29-9-1|P29-1552 [IF NO, GENERATE ON SEGMENT.;]} (Goto by H5: -symb|+link itself)
-@1528- >>>>> {P029R180::P29-9-1|12|W0|P29-1554 [INPUT SEGMENT.;]} (Push 2nd deref on H0)
-@1529- >>>>> {P029R190::P29-1554|10|J18|P29-1555 [INPUT PROCESS.;]} (Push the symb (name) itself on H0)
-@1530- >>>>> {P029R200::P29-1555||P29|P29-9-3 [GENERATE LOCATIONS OF BND. VAR.;]} (Execute fn named by symb name itself)
-@1530- >>>>> {P029R000::P29|10|W0|P29-1539 [P29 GENERATE LOCATIONS OF BOUND;]} (Push the symb (name) itself on H0)
-@1531- >>>>> {P029R010::P29-1539||J17|P29-1540 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
-   .......... Calling J17 [GENERATOR SETUP]: (WN-SYMB FN)=("W0" "J18")
-@1532- >>>>> {P029R020::P29-1540|60|W0|P29-1541 [FOR PROCESS (0).;]} (Copy of (0) replaces S; S lost; H0 n.c.)
-@1533- >>>>> {P029R030::P29-1541||P8|P29-1542 [TEST IF INPUT SEGMENT IS VARIABLE.;]} (Execute fn named by symb name itself)
-@1533- >>>>> {P008R000::P8||Q5|P8-1416 [TEST IF (0) IS VARIABLE;]} (Execute fn named by symb name itself)
-@1533- >>>>> {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]} (Push the symb (name) itself on H0)
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q5" "*12")
-@1535- >>>>> {P008R010::P8-1416|70|0|J8} (Goto by H5: -symb|+link itself)
-@1536- >>>>> {P029R040::P29-1542|70|P29-9-2|J19 [IF YES, QUIT H5+.;]} (Goto by H5: -symb|+link itself)
-@1536- >>>>> {P029R050::P29-9-2|11|W0|P29-1543 [IF NO, ;]} (Push cntnts of the cell named by symb, onto H0)
-@1537- >>>>> {P029R060::P29-1543||J60|P29-1544 [LOCATE NEXT SEGMENT;]} (Execute fn named by symb name itself)
-   .......... Calling J60 [LOCATE NEXT SYMBOL AFTER CELL (0)]: ([0])=("*12")
-@1538+ >>>>> {P029R070::P29-1544|20|W0|P29-1545} (Move H0 to the named symbol itself and pop H0)
-@1539+ >>>>> {P029R080::P29-1545|70|J19|P29-1546 [IF NONE, QUIT, H5+.;]} (Goto by H5: -symb|+link itself)
-@1540+ >>>>> {P029R090::P29-1546|12|W0|P29-1547} (Push 2nd deref on H0)
-@1541+ >>>>> {P029R100::P29-1547||P9|P29-1548 [TEST IF FREE VARIABLE.;]} (Execute fn named by symb name itself)
-@1541+ >>>>> {P009R000::P9||Q6|P9-1417 [TEST IF (1) IS FREE VARIABLE;]} (Execute fn named by symb name itself)
-@1541+ >>>>> {Q006R000::Q6|10|Q6|J10 [ATTRIBUTE-FREE VARIABLE;]} (Push the symb (name) itself on H0)
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q6" "*12")
-@1543- >>>>> {P009R010::P9-1417|70|0|J8} (Goto by H5: -symb|+link itself)
-@1544- >>>>> {P029R110::P29-1548|70|P29-1549|P29-9-2 [IF YES, GET NEXT.;]} (Goto by H5: -symb|+link itself)
-@1544- >>>>> {P029R120::P29-1549|12|W0|P29-1550 [IF NO,;]} (Push 2nd deref on H0)
-@1545- >>>>> {P029R130::P29-1550||P8|P29-1551 [TEST IF BOUND VARIABLE.;]} (Execute fn named by symb name itself)
-@1545- >>>>> {P008R000::P8||Q5|P8-1416 [TEST IF (0) IS VARIABLE;]} (Execute fn named by symb name itself)
-@1545- >>>>> {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]} (Push the symb (name) itself on H0)
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q5" "*12")
-@1547- >>>>> {P008R010::P8-1416|70|0|J8} (Goto by H5: -symb|+link itself)
-@1548- >>>>> {P029R140::P29-1551|70|P29-9-1|P29-1552 [IF NO, GENERATE ON SEGMENT.;]} (Goto by H5: -symb|+link itself)
-@1548- >>>>> {P029R180::P29-9-1|12|W0|P29-1554 [INPUT SEGMENT.;]} (Push 2nd deref on H0)
-@1549- >>>>> {P029R190::P29-1554|10|J18|P29-1555 [INPUT PROCESS.;]} (Push the symb (name) itself on H0)
-@1550- >>>>> {P029R200::P29-1555||P29|P29-9-3 [GENERATE LOCATIONS OF BND. VAR.;]} (Execute fn named by symb name itself)
-@1550- >>>>> {P029R000::P29|10|W0|P29-1539 [P29 GENERATE LOCATIONS OF BOUND;]} (Push the symb (name) itself on H0)
-@1551- >>>>> {P029R010::P29-1539||J17|P29-1540 [VARIABLES WITHIN SEGMENT (1);]} (Execute fn named by symb name itself)
-   .......... Calling J17 [GENERATOR SETUP]: (WN-SYMB FN)=("W0" "J18")
-
-But it may be because the reader is creating bogus internal representations:
-
-0] (pl "*12")
-(pl "*12")
-; No debug variables for current frame: using EVAL instead of EVAL-IN-FRAME.
-
-+------------------------- "*12" {*12|02|I0|9-2250} -------------------------+
-(0) {*12|02|I0|9-2250}
-   (1) {I000D000::I0||I0-1839|9-2252 [IMPLIES;]}
-      (2) {I000D010::I0-1839||0|I0-1840}
-      (2) {I000D020::I0-1840||Q14|I0-1841}
-         (3) {Q014R000::Q14|10|Q14|J10 [Q14 FIND TYPE OF CONNECTIVE (0).;]}
-         (3) "J10"
-      (2) {I000D030::I0-1841||J4|I0-1842}
-         (3) "J4"
-      (2) {I000D040::I0-1842||Q7|I0-1843}
-         (3) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-         (3) "J10"
-      (2) {I000D050::I0-1843||I0-1844|0}
-         (3) {I000D060::I0-1844|21|I|}
-         [@4...]
-   (1) {9-2252||Q15|9-2251}
-      (2) {Q015R000::Q15|10|Q15|J10 [Q15 ATTRIBUTE INTERNAL FORM.;]}
-      (2) "J10"
-   (1) {9-2251||Q15|0}
-      (2) {Q015R000::Q15|10|Q15|J10 [Q15 ATTRIBUTE INTERNAL FORM.;]}
-      (2) "J10"
-(0) {9-2250||*12|0}
-   (1) {*12|02|I0|9-2250}
-      (2) {I000D000::I0||I0-1839|9-2252 [IMPLIES;]}
-         (3) {I000D010::I0-1839||0|I0-1840}
-         [@4...]
-         (3) {I000D020::I0-1840||Q14|I0-1841}
-         [@4...]
-         (3) {I000D030::I0-1841||J4|I0-1842}
-         [@4...]
-         (3) {I000D040::I0-1842||Q7|I0-1843}
-         [@4...]
-         (3) {I000D050::I0-1843||I0-1844|0}
-         [@4...]
-      (2) {9-2252||Q15|9-2251}
-         (3) {Q015R000::Q15|10|Q15|J10 [Q15 ATTRIBUTE INTERNAL FORM.;]}
-         (3) "J10"
-      (2) {9-2251||Q15|0}
-         (3) {Q015R000::Q15|10|Q15|J10 [Q15 ATTRIBUTE INTERNAL FORM.;]}
-         (3) "J10"
-   (1) {9-2250||*12|0}
-      (2) {*12|02|I0|9-2250}
-         (3) {I000D000::I0||I0-1839|9-2252 [IMPLIES;]}
-         [@4...]
-         (3) {9-2252||Q15|9-2251}
-         [@4...]
-         (3) {9-2251||Q15|0}
-         [@4...]
-      (2) {9-2250||*12|0}
-         (3) {*12|02|I0|9-2250}
-         [@4...]
-         (3) {9-2250||*12|0}
-         [@4...]
-+--------------------------End "*12" -------------------------------------------+
-NIL
-0] 
-
-
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (ds) (trace!)
@@ -3042,10 +2930,10 @@ NIL
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-trace-mode :default)
-  ;(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (setf *!!* '(:run :jcalls))  ; :jdeep  :dr-memory  :run-full
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
@@ -3086,5 +2974,5 @@ NIL
 	  ;; trace cells otherwise messy recusion cycle ensues
 
 	  ))
-  (load-ipl "LT/LTFixed.liplv" :adv-limit 1000)
+  (load-ipl "LT/LTFixed.liplv" :adv-limit 100000)
   )

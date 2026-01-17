@@ -2897,7 +2897,7 @@
 ; *4.24  (P=(P*P))
 ; *4.25  (P=(PVP))
 ;; Remember to turn on/off memory at K030D000
-
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
 *1.2   ((AVA)IA)
 
+*2.02  ((PVQ)IP)
