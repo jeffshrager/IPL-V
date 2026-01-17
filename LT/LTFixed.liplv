@@ -2728,7 +2728,7 @@
 ("" "" "" "" "" "" "0" "" "/016D060")
 
 ;;; Note that there is a true blank here (see #### in spreadsheet)
-("EXTERNAL NAME" "" "" "" "21" " " "" "" "/016D070")
+("EXTERNAL NAME" "" "" "" "21" " " "" "" "/016D070") ;; WWW This is slightly scary!
 
 ("CONNECTIVE 'I'." "" "9-2" "" "" "I0" "" "" "/016D080")
 ("" "" "" "" "" "9-10" "" "" "/016D090")
@@ -2901,4 +2901,3 @@
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
 *1.2   ((AVA)IA)
 
-*2.07  ((PVP)IP)

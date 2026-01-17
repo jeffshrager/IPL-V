@@ -1,6 +1,80 @@
 =========================================================
 Notes on the current issue:
 ================================================
+pre 2026:
+
+With
+
+  K30=R
+
+Something breaks here:
+
+@133184+ >>>>> {Q013R000::Q13|10|Q13|J10 [FIND PROVING THEOREM FOR (0);]} (Push the symb (name) itself on H0)
+   H0={H0||Q13|0} ++ ({|||0} {||**EMPTY**|})
+   W0={W0|||0} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
+   W1={W1|||} ++ ({||**EMPTY**|})
+   W2={W2|||} ++ ({||**EMPTY**|})
+   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q13" "")
+             .....In J10 trying to find the value of NIL in "Q13"! @133185[JDEEP]
+
+FFF III NNN DD      QQQ  1  333     III NNN     
+F    I  N N D D     Q Q 11    3      I  N N     
+FFF  I  N N D D     QQ   1   33      I  N N     
+F    I  N N D D      Q   1    3      I  N N     
+F   III N N DD       QQ 111 333     III N N     
+
+debugger invoked on a TYPE-ERROR @535E74C7 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
+
+((LAMBDA ([0] [1]) :IN SETUP-J-FNS) "Q13" "")
+; Using form offset instead of character position.
+
+   source: (CELL-SYMB LIST-HEAD)
+0] 
+
+The {|||0} in H0[1] comes from...
+
+@133183+ >>>>> {M071R090::M71-931|11|W0|M71-932} (Push cntnts of the cell named by symb, onto H0)
+   H0={H0|||0} ++ ({||**EMPTY**|})
+   W0={W0|||0} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
+   W1={W1|||} ++ ({||**EMPTY**|})
+   W2={W2|||} ++ ({||**EMPTY**|})
+
+The W0 comes from:
+
+@133169+ >>>>> {M071R000::M71||J50|M71-923 [M71 PRINT PROOF SEQUENCE FROM (0).;1W0=TEX]} (Execute fn named by symb name itself)
+   H0={H0|||} ++ ({||**EMPTY**|})
+   W0={W0||*210|} ++ ({||*210|0} {|||} {||**EMPTY**|})
+   W1={W1|||} ++ ({||**EMPTY**|})
+   W2={W2|||} ++ ({||**EMPTY**|})
+   .......... Calling J50 [PRESERVE W0-W0 THEN MOVE(0)-(0) into W0-W0] (No Args)
+   H0={H0||**EMPTY**|} ++ NIL
+   W0={W0|||0} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
+   W1={W1|||} ++ ({||**EMPTY**|})
+   W2={W2|||} ++ ({||**EMPTY**|})
+
+...
+
+@133163- >>>>> {M012R120::M12-245||J100|M12-246 [GENERATE THEOREMS.;]} (Execute fn named by symb name itself)
+   H0={H0||M12-9-100|0} ++ ({||9-8393|0} {|||} {||**EMPTY**|})
+   W0={W0||9-3153|} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
+   W1={W1||*210|} ++ ({|||} {||**EMPTY**|})
+   W2={W2|||} ++ ({|||} {||**EMPTY**|})
+   .......... Calling J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]: ([0] [1])=("M12-9-100" "9-8393")
+             .....J100 GENERATE SYMBOLS FROM LIST NIL FOR SUBPROCESS "9-8393" M12-9-100@133163[JDEEP]
+   H0={H0|||} ++ ({||**EMPTY**|})
+   W0={W0||9-3153|} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
+   W1={W1||*210|} ++ ({|||} {||**EMPTY**|})
+   W2={W2|||} ++ ({|||} {||**EMPTY**|})
+
+Which actually looks like it correctly takes off 2 agrs, but then there's {|||} ????
+
+
+
 
 ================================
 
