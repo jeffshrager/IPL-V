@@ -1483,6 +1483,22 @@ Prob. 51 isn't doing the right thing!
 	  (!! :jdeep (pl new-head))
 	  (ipush "H0" new-head)))
 
+  #|
+
+  AG found this potential problem here: I found a critical bug in J74
+  logic for Q=2 (Local Symbols): It creates a new sub-head cell, but
+  then recursively copies it again. (:symb (j74-deep-copy-ipl-list
+  new-subhead-name)) Since new-subhead-name is already the new copy,
+  this creates a "Twin" copy. This splits the graph topology: the
+  parent list points to Twin B, while shared references point to Twin
+  A. This breaks identity checks (like J2 in M111), causing Match
+  failures and potentially the unpredictable "0" corruption if J74
+  falters on the twin.  Fix: Remove the redundant recursion in
+  J74. (:symb new-subhead-name) This ensures topological identity is
+  preserved.
+
+  |#
+
   (defj J74 ([0]) "(Deep) Copy List Structure [186]"
 	;; COPY LIST STRUCTURE (0). A new list structure is produced, the cells of
 	;; which are in one-to-one correspondence with the cells of list structure
@@ -2914,7 +2930,40 @@ Prob. 51 isn't doing the right thing!
 
 #| Current issue (see notes.txt for the issue stack):
 
-P029 is in a loop:
+@2399- >>>>> {P008R010::P8-1416|70|0|J8} (Goto by H5: -symb|+link itself)
+   H0={H0||0|0}
+   H1={H1||M111-1268|0|("M111-1265" "M114" "M12-255" "exit" "J100" "M12-245" "M1-130" "M2-154" "exit" "J100" "M2-145" "exit" "0" "*EOS")}
+   W0={W0||9-2293|0|("9-2293" "*202" "*202" "0" "*EOS")}
+   W1={W1||0|0|("*202" "0" "*EOS")}
+   W2={W2||*12|0|("0" "*EOS")}
+@2400- >>>>> {M111R080::M111-1269|70|M111-9-101|M111-1270} (Goto by H5: -symb|+link itself)
+@2400- >>>>> {M111R470::M111-9-101|11|W1|M111-1307 [( (0) IS EXPRESSION. );]} (Push cntnts of the cell named by symb, onto H0)
+   H0={H0||0|0|("0" "*EOS")}
+   H1={H1||M111-9-101|0|("M111-1265" "M114" "M12-255" "exit" "J100" "M12-245" "M1-130" "M2-154" "exit" "J100" "M2-145" "exit" "0" "*EOS")}
+   W0={W0||9-2293|0|("9-2293" "*202" "*202" "0" "*EOS")}
+   W1={W1||0|0|("*202" "0" "*EOS")}
+   W2={W2||*12|0|("0" "*EOS")}
+@2401- >>>>> {M111R480::M111-1307||P8|M111-1308 [IS (1) A VARIABLE;]} (Execute fn named by symb name itself)
+   H0={H0||0|0|("0" "*EOS")}
+   H1={H1||P8|0|("M111-1307" "M111-1265" "M114" "M12-255" "exit" "J100" "M12-245" "M1-130" "M2-154" "exit" "J100" "M2-145" "exit" "0" "*EOS")}
+   W0={W0||9-2293|0|("9-2293" "*202" "*202" "0" "*EOS")}
+   W1={W1||0|0|("*202" "0" "*EOS")}
+   W2={W2||*12|0|("0" "*EOS")}
+@2401- >>>>> {P008R000::P8||Q5|P8-1416 [TEST IF (0) IS VARIABLE;]} (Execute fn named by symb name itself)
+   H0={H0||0|0|("0" "*EOS")}
+   H1={H1||Q5|0|("P8" "M111-1307" "M111-1265" "M114" "M12-255" "exit" "J100" "M12-245" "M1-130" "M2-154" "exit" "J100" "M2-145" "exit" "0" "*EOS")}
+   W0={W0||9-2293|0|("9-2293" "*202" "*202" "0" "*EOS")}
+   W1={W1||0|0|("*202" "0" "*EOS")}
+   W2={W2||*12|0|("0" "*EOS")}
+@2401- >>>>> {Q005R000::Q5|10|Q5|J10 [ATTRIBUTE-VARIABLE;]} (Push the symb (name) itself on H0)
+   H0={H0||Q5|0|("0" "0" "*EOS")}
+   H1={H1||Q5|0|("P8" "M111-1307" "M111-1265" "M114" "M12-255" "exit" "J100" "M12-245" "M1-130" "M2-154" "exit" "J100" "M2-145" "exit" "0" "*EOS")}
+   W0={W0||9-2293|0|("9-2293" "*202" "*202" "0" "*EOS")}
+   W1={W1||0|0|("*202" "0" "*EOS")}
+   W2={W2||*12|0|("0" "*EOS")}
+   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q5" "0")
+
+debugger invoked on a TYPE-ERROR @535E5E1E in thread #<THREAD "main thread" RUNNING {10016B00A3}>: The value NIL is not of type COMMON-LISP-USER::CELL
 
 |#
 
@@ -2927,9 +2976,9 @@ P029 is in a loop:
 
 (progn ;; LT 
   (set-trace-mode :default)
-  (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
+  ;(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (setf *!!* '(:run :jcalls))  ; :jdeep  :dr-memory  :run-full
+  ;(setf *!!* '(:run :jcalls))  ; :jdeep  :dr-memory  :run-full
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
@@ -2958,10 +3007,10 @@ P029 is in a loop:
 
 	  ;; Basic tracer:
 
-  	    ;; ("M001R000"
-	    ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	    ;;  )
+  	     (2300 ;; "M001R000"
+	      (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	      (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
+	      )
 
 	  ;;(2875 (break))
 
