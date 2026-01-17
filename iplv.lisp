@@ -1790,25 +1790,20 @@ Prob. 51 isn't doing the right thing!
 	(let ((cell (<== H0)))
 	  (setf (cell-q cell) 2)))
 
-  ;; This is deeply upsetting -- it pushes a non-system element -- the
-  ;; head of a list, meaning that any named cell can be pushed and
-  ;; restored. I think that ipush and ipop will do the thing, but
-  ;; ... who knows!
-
-  ;; WWW PROBABLY BUGGY! *****************************************
-  ;; WWW *** This is referring to lists of cells, NOT cell stacks! *** WWW
-
-  (defj J137 (l) "MARK LIST (0) PROCESSED"
-	(break "J137 IS WRONG!")
-	;; List (0) is preserved [ipushed], its [new] head made empty (Q =
+  (defj J137 ([0]) "MARK LIST (0) PROCESSED"
+	;; List (0) is preserved, its [new] head made empty (Q =
 	;; 4, SYMB = 0), and P set to be 1. Restoring (0) will return
 	;; (0) to its initial state. This will work even with data
 	;; terms. The output (0) is the input (0).
-	;(poph0 1)
-	(ipush l) ;; This will leave a copy in the main symtab.
-	(let ((newmain (cell l))) ;; This should be the NEW copy of the pushed head.
-	  ;; Now we mark the new main cell as indicated.
-	  (setf (cell-q newmain) 4 (cell-symb newmain) "0")
+	(let* ((head-cell (<== [0]))
+	       (current-first-cell-name (cell-link head-cell))
+	       (current-first-cell (<== current-first-cell-name))
+	       (new-first-cell-name (newsym))
+	       (new-first-cell (make-cell! :name new-first-cell-name :p "1" :q "4" :symb "0" :link current-first-cell-name))
+	       )
+	  (setf (cell-link head-cell) new-first-cell-name)
+	  (!! :jdeep "   .....J137 created new cell ~s in list: ~s" new-first-cell head-cell)
+	  (!! :jdeep (pl [0]))
 	  ))
 
   (defj J138 ([0]) "J138 MAKE SYMBOL (O) INTERNAL"
