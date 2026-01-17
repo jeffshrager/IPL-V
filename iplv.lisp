@@ -1611,7 +1611,11 @@ Prob. 51 isn't doing the right thing!
   (defj J92 () "Create a list of 2 entries" (J9n-helper 2))
   (defj J93 () "Create a list of 3 entries" (J9n-helper 3))
 
-  ;; !!! Something's wrong with J100: See GENTEST test code -- It's not 
+  ;; !!! Something's wrong with J100: See GENTEST test code -- It's
+  ;; !!! not clear from the manual what it returns. We used to assume
+  ;; !!! that it returned the last result of the subfn, but I think
+  ;; !!! now that it returns nothing, which means it can just pop the
+  ;; !!! arguments. But the H5 rules are really confusing!
 
   (defj J100 ([0] [1]) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" 
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
@@ -1620,22 +1624,16 @@ Prob. 51 isn't doing the right thing!
 	;; list cell. H5 is always set + at the start of the subprocess. J100 will
 	;; move in list (1) if it is on auxiliary. [This assumes a linear list.]
 	(!! :jdeep "             .....J100 GENERATE SYMBOLS FROM LIST ~s FOR SUBPROCESS ~s" [1] [0])
-	(loop with cell-name = (cell-link (cell [1])) ;; Remember to skip the d-list!
+	(poph0 2)
+	(loop with cell-name = (cell-link (<== [1])) ;; Skip the d-list!
 	      with cell = nil
 	      with exec-symb = [0]
-	      with inputs-popped = nil
 	      until (zero? cell-name)
 	      do 
-	      (setf cell (cell cell-name))
+	      (setf cell (<== cell-name))
 	      (!! :jdeep "             .....J100: cell-name=~s, cell=~s" cell-name cell)
 	      ;; Setup: arg->H0 and H5=+
-	      (let* ((r (cell-symb cell))) 
-		;; This only pops the 2 inputs on the first call-down!
-		;; Be afraid...be very afraid!  See! I told you to be
-		;; afraid! If this call doesn't happen, the args get
-		;; left on the stack .. see FINALLY fix, below.
-		(unless inputs-popped (poph0 2) (setf inputs-popped t))
-		(ipush "H0" r))
+	      (ipush "H0" (cell-symb cell))
 	      (H5+)
 	      (!! :jdeep "             .....J100: Exec'ing ~s on ~s" exec-symb (cell-symb (h0)))
 	      (ipl-eval exec-symb)
@@ -1643,7 +1641,6 @@ Prob. 51 isn't doing the right thing!
               (if (string-equal (H5) "-") (return)) ;; Bug found by AntiGravity (this line was missing)
 	      (setf cell-name (cell-link cell))
 	      (!! :jdeep "             .....J100 returned, H5=~s, next cell-name=~s" (H5) cell-name)
-	      finally (unless inputs-popped (poph0 2)) ;; In case NOTHING is called still need to do the pops!!
 	      ))
 
   (defj J110 ([0] [1] [2]) "(1) + (2) = (O)" 
@@ -2886,12 +2883,12 @@ Prob. 51 isn't doing the right thing!
   (load-ipl "misccode/F1.liplv")
   )
 
-(progn ;; GENTEST
+(progn ;; J100TEST
   (set-trace-mode :default)
-  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
-  (setf *!!* '(:run :jcalls)) ;; :jdeep :run-full :dr-memory
+  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1" "H5") *cell-tracing-on* t)
+  (setf *!!* '(:run :jcalls :jdeep)) ;; :jdeep :run-full :dr-memory
   ;;(trace cell)
-  (load-ipl "misccode/gentest.liplv")
+  (load-ipl "misccode/j100test.liplv")
   )
 
 '(progn ;; Ackermann test
