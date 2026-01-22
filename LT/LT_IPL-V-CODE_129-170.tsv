@@ -1,0 +1,2095 @@
+0	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [then] LINK MEANING
+129	LOGIC THEORIST (IPL-V)	9							-					NOTE THAT THESE COLUMNS ARE FILLED IN AUTOMATICALLY FROM THE 'SYMBDEX' SHEET VIA A COMPLEX PRESSION.	
+129		2	A				10		0000 000						
+129		2	B				10		0000 010						
+129		2	C				10		0000 020						
+129		2	D				10		0000 030						
+129		2	E				10		0000 040						
+129		2	F				10		0000 050						
+129		2	G				10		0000 060		Missing H, J, and W -- presuambly bcs these are IPL-reserved				
+129		2	I				10		0000 070						
+129		2	K				100		0000 080						
+129		2	L				50		0000 090						
+129		2	M				200		0000 100						
+129		2	N				50		0000 110						
+129		2	O				10		0000 120						
+129		2	P				100		0000 130						
+129		2	Q				50		0000 140						
+129		2	R				10		0000 150						
+129		2	S				10		0000 160						
+129		2	T				40		0000 170						
+129		2	U				10		0000 180						
+129		2	V				10		0000 190						
+129		2	X				50		0000 200						
+129		2	Y				10		0000 210						
+129		2	Z				50		0000 220						
+129		2	-				10		0000 230						
+129		2	*				600		0000 240						
+129		2	=				10		0000 250		SOME OF THESE CHARS ARE IN AS EXPRESSION BCS YOU CAN'T TYPE THEM IN A SPREADSHEET				
+129		2	,				10		0000 260						
+129		2	/				20		0000 270						
+129		2	+				10		0000 280						
+129		2	.				10		0000 290						
+129		2	(				10		0000 300						
+129		2	)				10		0000 310						
+129		2	'				10		0000 320						
+130	 PROGRAM HEADER	5							    R  -						
+130	M1 SINGLE PROBLEM EXECUTIVE FOR		M1			M3			M001R000						SET-UP FOR NEW PROBLEM.
+130	   PROBLEM (0). H5 + IF SUCCEEDS 				40	W0			M001R010					Preserve (Push) S (direct)	[Work cell 0]
+130					60	W0		1W0=PROB	M001R020					Copy (0) to S (direct)	[Work cell 0]
+130	TEST UTILITY.					M43			M001R030						MEASURE UTILITY OF (0). H5+ IF GOOD, H5- IF NO GOOD.
+130	     IF NO GOOD, QUIT.				70	9-4			M001R040					Branch to S (direct) if H5-	
+130					11	W0			M001R050					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130	PRINT 'TO PROVE' PROBLEM 1W0.					M78			M001R060						PRINT TO PROVE PROBLEM (0).
+130					11	W0			M001R070					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130	TRY SUBSTITUTION.					M12			M001R080						SUBSTITUTION METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO OUTPUT.
+130	    IF WORKED, PRINT PROOF.				70		9-2		M001R090					Branch to S (direct) if H5-	
+130			9-1		11	W0			M001R100					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130	CREATE LIST OF METHODSFOR PROB.					M8			M001R110						CREATE A LIST OF METHODS FOR PROBLEM (0).
+130					11	W0			M001R120					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130	APPLY METHODS					M7			M001R130						APPLY METHODS (1) TO PROBLEM (0), ERASE (1) WHEN THRU.
+130	      IF PROOF FOUND, PRINT IT.				70		9-2		M001R140					Branch to S (direct) if H5-	
+130	TEST IF ANY LIMITS EXCEEDED.					M90			M001R150						TEST IF A LIMIT HAS BEEN REACHED.
+130	     IF YES, QUIT.				70		9-3		M001R160					Branch to S (direct) if H5-	
+130	FIND NEXT SUBPROBLEM.					M60			M001R170						FIND AND REMOVE NEXT UNTRIED SUBPROBLEM ON UNTRIED LIST. H5- MEANS NO SUBPROBLEM ON LIST AND NO OUTPUT.
+130	     IF NONE, QUIT.				70	9-3			M001R180					Branch to S (direct) if H5-	
+130	     IF ONE,				60	W0			M001R190					Copy (0) to S (direct)	[Work cell 0]
+130	PRINT SUBPROBLEM, TRY METHODS.					M70	9-1		M001R200						PRINT EXPRESSION (0).
+130	PRINT PROOF FROM (0).		9-2			M71			M001R210						PRINT PROOF SEQUENCEWITH SUCCESSFUL SUBPROBLEM<OJ.
+130	      AND QUIT +.				30	W0	J4		M001R220					Restore (Pop) S (direct)	[Work cell 0] [then] Set H5+
+130	PRINT FAILURE, QUIT -.		9-3			M72	9-5		M001R230						PRINT FAILURE TO FIND PROOF•
+130			9-4		11	W0			M001R240					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130	PRINT REJECTED PROBLEM					M81			M001R250						PRINT REJECTED PROBLEM.
+130	     AND QUIT -.		9-5		30	W0	J3		M001R260					Restore (Pop) S (direct)	[Work cell 0] [then] Set H5-
+130		1							    R						
+130	M2 MULTIPLE PROBLEM EXECUTIVE.		M2		10	L3			M002R000					Input S (direct) to H0, after pushing H0	LIST OF UNPROVED EXPRESSIONS. (PROBLEMS)
+130					10	9-100			M002R010					Input S (direct) to H0, after pushing H0	
+130	GENERATE PROBLEMS FOR PROOF.					J100	0		M002R020						Gen symbols on list (1) for(0)
+130			9-100			J50			M002R030						Preserve W0-W0;MOVE (0)-(0) into W0-W0
+130					11	W0			M002R040					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130	CONVERT TO INTERNAL (TREE) FORM.					P50			M002R050						CONVERT LOGIC EXPRESSION (0) TO INTERNAL TREE FORT" IF IN EXTERNAL FORM. NO OUTPUT. H5- MEANS NO CONVERSION. ENTIRE EXPRESSION MUST BE PARENTHESIZED.
+130	    IF FAILED, TAKE ERROR ACTION.				70	9-103			M002R055					Branch to S (direct) if H5-	
+130					11	K30			M002R060					Input S (indirect) to H0, after pushing H0	HOLDS R0 IF PROVED THEOREMS ARE TO BE REMEMBERED.
+130					10	R			M002R070					Input S (direct) to H0, after pushing H0	
+130	TEST IF REMEMBERING.					J2			M002R080						TEST (0) (1)
+130	INPUT PROBLEM FOR M1.				11	W0			M002R090					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130					70	9-101			M002R100					Branch to S (direct) if H5-	
+130	TRY FOR PROOF TO BE REMEMBERED,					M1			M002R110						SINGLE PROBLEM EXEUTIVE FOR PROBLEM (0).
+130	H5- MEANS NO PROOF FOUND.				70	9-102			M002R120					Branch to S (direct) if H5-	
+130					11	W0			M002R130					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130	PRINT ' REMEMBER PROVED THEOREM'					M82			M002R135						PRINT 'REMEMBER PROVED THEOREM'
+130	ADD TO TRUE EXPRESSIONS LIST.					M50	9-102		M002R140						ADD TRUE EXPRESSION (0) TO TRUE EXPRESSIONS LIST AND MAP.
+130	TRY FOR PROOF TO BE FORGOTTEN.		9-101			M1			M002R150						SINGLE PROBLEM EXEUTIVE FOR PROBLEM (0).
+130	CLEAN UP W0, H5+ FOR GEN.		9-102		30	W0	J4		M002R160					Restore (Pop) S (direct)	[Work cell 0] [then] Set H5+
+130			9-103		11	W0			M002R170					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+130						M88	9-102		M002R180						PRINT LIST FORM EXPRESSION (0).
+131		1							    R						
+131	M3 SET UP FOR NEW PROBLEM.		M3		10	L10			M003R000					Input S (direct) to H0, after pushing H0	LIST OF UNTRIED PROBLEMS.
+131						J75			M003R010						Divide list after location (0); name of remainder is output (0)
+131	CLEAR UNTRIED PROBLEMS LIST.					J72			M003R020						ERASE list structure (0)
+131					10	L11			M003R030					Input S (direct) to H0, after pushing H0	LIST OF FOUND PROBLEMS.
+131						J75			M003R040						Divide list after location (0); name of remainder is output (0)
+131	CLEAR FOUND PROBLEMS LIST.					J72			M003R050						ERASE list structure (0)
+131					10	K10			M003R060					Input S (direct) to H0, after pushing H0	PREVIOUS SUBPROBLEM NUMBER. (DATA TERM)
+131	CLEAR PREVIOUS PROBLEM NUMBER.					J124			M003R070						Clear (0), leave (0)
+131					50	K11			M003R080					Replace (0) by S (direct)	SUBSTITUTION COUNT.
+131	CLEAR SUBSTITUTIONS COUNT.					J124			M003R090						Clear (0), leave (0)
+131					50	H3			M003R100					Replace (0) by S (direct)	[Tally of interpretation cycles]
+131					10	K12			M003R110					Input S (direct) to H0, after pushing H0	EFFORT BASE (AND TOTAL).
+131	SET EFFORT BASE.					J121	J8		M003R120						Set (0) identical to (1), leave (0) [then] Restore H0
+131		1							    R						
+131	M7 APPLY METHODS (1) TO PROBLEM.		M7			J50			M007R000						Preserve W0-W0;MOVE (0)-(0) into W0-W0
+131	    (0), ERASE LIST (1) WHEN THRU.				40	H0			M007R010					Preserve (Push) S (direct)	[Communication Cell]
+131	    H5+ MEANS OUTPUT (0) IS SOL'N.				10	9-100			M007R020					Input S (direct) to H0, after pushing H0	
+131	    H5- MEANS NO OUTPUT, NO SOL'N.					J100			M007R030						Gen symbols on list (1) for(0)
+131						J5			M007R035						Reverse sense of H5
+131					30	W0			M007R040					Restore (Pop) S (direct)	[Work cell 0]
+131	IF NO PROOF, ERASE METHOD LIST.				70	J71			M007R045					Branch to S (direct) if H5-	ERASE list (0)
+131	ELSE SAVE PROOF AND ERASE LIST.					J6	J71		M007R050						Reverse (0) and (1) [then] ERASE list (0)
+131	9-100 SUBPROCESS, APPLY METHOD (0)		9-100		11	W0			M007R060					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+131	      TO PROBLEM 1W0.					J6			M007R070						Reverse (0) and (1)
+131	REVERSE H5 FOR GENERATOR.					J1	J5		M007R080						Execute (0) after restoring H0 [then] Reverse sense of H5
+131		1							    R						
+131	M8 CREATE METHOD LIST FOR (0).		M8		10	L7			M008R000					Input S (direct) to H0, after pushing H0	LIST OF REGULAR METHODS FOR ALL PROBLEMS.
+131	COPY REGULAR LIST.					J73			M008R010						COPY list (0)
+131						J50			M008R020						Preserve W0-W0;MOVE (0)-(0) into W0-W0
+131	TEST IF ORIGINAL PROBLEM.					J130			M008R030						TEST if (0) is regional symbol
+131	    IF NOT, NO SPECIAL METHODS.				70	9-1			M008R040					Branch to S (direct) if H5-	
+131	    IF YES,				11	W0			M008R050					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+131					10	L6			M008R070					Input S (direct) to H0, after pushing H0	LIST OF SPECIAL METHODS FOR ORIGINAL PROBLEMS.
+131	COPY SPECIAL LIST,					J73			M008R080						COPY list (0)
+131	INSERT AFTER HEAD OF REGULAR LIST.					J76			M008R090						INSERT list (0) after (1), locate last symbol
+131	SET UP OUTPUT AND QUIT.				51	W0	J30		M008R100					Replace (0) by S (indirect)	[Work cell 0] [then] Restore W0-W0
+131			9-1		11	W0	J30		M008R110					Input S (indirect) to H0, after pushing H0	[Work cell 0] [then] Restore W0-W0
+131		1							    R						
+131	M11 DETACHMENT METHOD FOR PROB (0).		M11			J45			M011R000						
+131	    ADD NEW SUBPROBLEMS TO UNTRIED				60	W1		1W1=PROB	M011R010					Copy (0) to S (direct)	[Work cell 1]
+131	    LIST IF CAN.					J81			M011R020						FIND the 1th symbol on list (0)
+131	H5+ MEANS OUTPUT (0) IS A				70	J35			M011R030					Branch to S (direct) if H5-	
+131	    SOLUTION.				60	W0		1W0=PRBMEX	M011R040					Copy (0) to S (direct)	[Work cell 0]
+131	    H5- MEAN NO SOLUTION, NO OUTPT				50	L5		1L5=L4	M011R050					Replace (0) by S (direct)	HOLDS LIST STRUCTURE MAP OF TRUE EXPRESSIONS.
+131					11	K6		1K6=IMPLY	M011R060					Input S (indirect) to H0, after pushing H0	HOLDS -IMPLIES-
+131	FIND IMPLIES MAPS.					J10			M011R070						FIND value of attribute (0) of (1)
+131					70	J35			M011R080					Branch to S (direct) if H5-	
+131	FIND MAP OF RIGHT SIDES OF MAIN					J82			M011R090						FIND the 2th symbol on list (0)
+131	CONNECTIVE IMPLIES.				70	J35			M011R100					Branch to S (direct) if H5-	
+131					11	W1			M011R110					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+132						J6			M011R120						Reverse (0) and (1)
+132	GET LIST OF FEASIBLE THEOREMS.					M63			M011R130						CREATE A LIST OF FEASIBLE MATCHES FOR TOTAL EXPRESSION (1) FROM MAP (0)•
+132	SAVE LIST FOR ERASURE.				60	W5			M011R140					Copy (0) to S (direct)	[Work cell 5]
+132					10	9-100			M011R150					Input S (direct) to H0, after pushing H0	
+132	GENERATE FEASIBLE THEOREMS.					J100			M011R160						Gen symbols on list (1) for(0)
+132					11	W5		1W5=THMLST	M011R170					Input S (indirect) to H0, after pushing H0	[Work cell 5]
+132	CLEAN UP AND					J71			M011R180						ERASE list (0)
+132	REVERSE H5 AFTER GENERATOR.					J5	J35		M011R190						Reverse sense of H5
+132	9-100 SUBPROCESS,		9-100		60	W2		1W2=THM	M011R200					Copy (0) to S (direct)	[Work cell 2]
+132	      TRY PROOF WITH THEOREM (0).				11	W1			M011R210					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+132					11	W2			M011R220					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+132	MAKE FREE VARIABLES DISJOINT					M110			M011R230						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+132	FIND RIGHT SUBSEGMENT OF THM					P14			M011R240						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+132					70	J4			M011R250					Branch to S (direct) if H5-	Set H5+
+132					11	W0			M011R260					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+132	MATCH, MAKE THM RIGHT LIKE PROB.					M113		(1)=THMRT	M011R270						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+132					70	J4			M011R280					Branch to S (direct) if H5-	Set H5+
+132					60	W3		1W3=SUBSTL	M011R290					Copy (0) to S (direct)	[Work cell 3]
+132					11	W2			M011R300					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+132	FIND THM LEFT SUBSEGMENT.					P13			M011R310						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+132					70	9-101		(0)=THMLFT	M011R320					Branch to S (direct) if H5-	
+132						P17			M011R340						COPY SEGMENT (0). IF (0) IS A VARIABLE, OUTPUT 1HE INPUT.
+132	MAKE NEW TEX FROM COPY OF THMLFT.					P24			M011R345						MAKE SEGMENT (0) INTO A NEW TOTAL EXPRESSION.
+132					60	W4		1W4=NEWTEX	M011R350					Copy (0) to S (direct)	[Work cell 4]
+132	SUBSTITUTE INTO NEWTEX FROM (1)					M115			M011R360						SUBSTITUTE IN SEGMENT (0) FROM SUBSTITUTION LIST (1).
+132	ERASE SUBSTL.					9-101			M011R370						
+132	ASSIGN DERIVATION				11	W4		NEWPROBLEM	M011R390					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+132					11	W1		PROBLEM	M011R400					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+132					11	W2		THEOREM	M011R410					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+132	COMPLETE NEW SUBPROBLEM				10	M11			M011R420					Input S (direct) to H0, after pushing H0	DETACHMENT METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO SOLUTION. ADDS GOOD NEW SUBPROBLEMS TO UNTRIED LIST.
+132	DESCRIPTION AND MEASURE UTILITY.					M19			M011R430						FINISH BUILDING NEW SUBPROBLEM TEX (3) FROM (2) VIA THEOREM (1) BY METHOD(0). H5- MEANS NEW TEX WAS ERASED DUE TO LOW UTILITY. H5+ MEANS OUTPUT TEX (0) HAS SATISFACTORY UTILITY.
+132	H5- MEANS NEW PROBLEM WAS ERASED.				70	J4			M011R440					Branch to S (direct) if H5-	Set H5+
+132	TRY SUBSTITUTION, OUTPUT SOL'N.					M12	J5		M011R460						SUBSTITUTION METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO OUTPUT. [then] Reverse sense of H5
+132			9-101		11	W3			M011R470					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+132						J72	J4		M011R480						ERASE list structure (0) [then] Set H5+
+132		1							    R						
+132	M12 SUBSTITUTION METHOD FOR		M12			J43			M012R000						Preserve W0-W3
+132	    PROBLEM (0). H5+ MEANS				60	W1		1W1=PROB	M012R010					Copy (0) to S (direct)	[Work cell 1]
+132	    OUTPUT (0) IS A SOLUTION					J81			M012R020						FIND the 1th symbol on list (0)
+132	    H5- MEANS NO OUTPUT.				70	J33			M012R030					Branch to S (direct) if H5-	Restore W0-W3
+132					60	W0		1W0=PRBMEX	M012R040					Copy (0) to S (direct)	[Work cell 0]
+132					50	K11			M012R050					Replace (0) by S (direct)	SUBSTITUTION COUNT.
+132	TALLY SUBSTITUTION COUNTER.					J125			M012R060						Tally 1 in (0), leave (0)
+132					51	W1			M012R070					Replace (0) by S (indirect)	[Work cell 1]
+132					10	L4			M012R080					Input S (direct) to H0, after pushing H0	LIST STRUCTURE MAP OF ALL TRUE EXPRESSIONS.
+132	GET A LIST OF FEASIBLE THEOREMS.					M63			M012R090						CREATE A LIST OF FEASIBLE MATCHES FOR TOTAL EXPRESSION (1) FROM MAP (0)•
+132	SAVE THE LIST FOR ERASURE.				60	W3		1W3=THMLST	M012R100					Copy (0) to S (direct)	[Work cell 3]
+132					10	9-100			M012R110					Input S (direct) to H0, after pushing H0	
+132	GENERATE THEOREMS.					J100			M012R120						Gen symbols on list (1) for(0)
+132					11	W3			M012R130					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+132	ERASE LIST OF THEOREMS.					J71			M012R140						ERASE list (0)
+133	CLEAN-UP AND REVERSE H5.					J33	J5		M012R150						Restore W0-W3 [then] Reverse sense of H5
+133	9-100 SUBPROCESS, TRY PROBLEM MEX		9-100		60	W2		1W2=THM	M012R160					Copy (0) to S (direct)	[Work cell 2]
+133	   1W0 WITH THEOREM (0).				11	W1			M012R170					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+133					11	W2			M012R180					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+133	MAKE FREE VARIABLES DISJOINT.					M110			M012R190						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+133	FIND MAIN EXPRESSION OF THEOREM.					J81			M012R200						FIND the 1th symbol on list (0)
+133					70	J4			M012R210					Branch to S (direct) if H5-	Set H5+
+133					11	W0			M012R220					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+133	TEST FOR MATCH.					M114			M012R230						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. NO OUTPUT, H5- MEANS THE MATCH FAILED.
+133	IF H5-, SET + FOR GENERATOR,				70	J4			M012R240					Branch to S (direct) if H5-	Set H5+
+133					11	W1			M012R250					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+133					11	W2			M012R260					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+133	OTHERWISE ASSIGN PROOF				10	Q13			M012R270					Input S (direct) to H0, after pushing H0	FIND PROVING THEOREM FOR PROBLEM (0).
+133	AND OUTPUT SUCCESSFUL PROBLEM 1W1					J11			M012R280						Assign (1) as value of attribute (0) of (2)
+133	AS SOLUTION. QUIT WITH H5- FOR GEN.				11	W1	J3		M012R290					Input S (indirect) to H0, after pushing H0	[Work cell 1] [then] Set H5-
+133		1							    R						
+133	M13 REPLACEMENT METHOD FOR PROB (0)		M13			J46			M013R000						
+133	    ADD NEW SUBPROBLEMS TO UNTRIED				60	W1		1W1=PROB	M013R010					Copy (0) to S (direct)	[Work cell 1]
+133	    LIST IF CAN.					J81			M013R020						FIND the 1th symbol on list (0)
+133	    H5+ MEANS OUTPUT (0) IS A				70	J36			M013R030					Branch to S (direct) if H5-	
+133	    SOLUTION.				60	W0		1W0=PRBMEX	M013R040					Copy (0) to S (direct)	[Work cell 0]
+133	    H5- MEANS NO SOL'N, NO OUTPUT.				50	L5		1L5=L4	M013R050					Replace (0) by S (direct)	HOLDS LIST STRUCTURE MAP OF TRUE EXPRESSIONS.
+133					11	K5		1K5=DEFEQ	M013R060					Input S (indirect) to H0, after pushing H0	HOLDS -DEFINITIONAL EQUIVALENCE.
+133	FIND DEFINITIONAL EQUIVALENCE MAPS.					J10			M013R070						FIND value of attribute (0) of (1)
+133					70	J36			M013R080					Branch to S (direct) if H5-	
+133					60	W5		1W5=DEFMPS	M013R090					Copy (0) to S (direct)	[Work cell 5]
+133	FIND MAP OF LEFT SIDE OF DEFEQ.					J81			M013R100						FIND the 1th symbol on list (0)
+133					70	9-10			M013R110					Branch to S (direct) if H5-	
+133					11	W1			M013R120					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+133						J6			M013R130						Reverse (0) and (1)
+133	GET A LIST OF FEASIBLE DEFINITIONS.					M63			M013R140						CREATE A LIST OF FEASIBLE MATCHES FOR TOTAL EXPRESSION (1) FROM MAP (0)•
+133	SAVE LIST FOR ERASURE.				60	W6		1W6=FSBLS	M013R150					Copy (0) to S (direct)	
+133	TRY LEFT SIDES.				10	9-100			M013R160					Input S (direct) to H0, after pushing H0	
+133	GENERATE FEASIBLE DEFINITIONS.					J100			M013R170						Gen symbols on list (1) for(0)
+133					11	W6			M013R180					Input S (indirect) to H0, after pushing H0	
+133	ERASE FEASIBLE LIST.					J71			M013R190						ERASE list (0)
+133	REVERSE H5 FROM GENERATOR.					J5			M013R200						Reverse sense of H5
+133	QUIT IF PROOF IN H0, OR TRY RIGHTS.				70	9-10	J36		M013R210					Branch to S (direct) if H5-	
+133			9-10		11	W5			M013R220					Input S (indirect) to H0, after pushing H0	[Work cell 5]
+133	TRY MAP OF RIGHT SIDES OF DEFEQ.					J82			M013R230						FIND the 2th symbol on list (0)
+133					70	J36			M013R240					Branch to S (direct) if H5-	
+133					11	W1			M013R250					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+133						J6			M013R260						Reverse (0) and (1)
+133	GET A LIST OF FEASIBLE DEFINITIONS.					M63			M013R270						CREATE A LIST OF FEASIBLE MATCHES FOR TOTAL EXPRESSION (1) FROM MAP (0)•
+133	SAVE LIST.				60	W6		1W6=FSBLS	M013R280					Copy (0) to S (direct)	
+133	TRY RIGHT SIDES.				10	9-200			M013R290					Input S (direct) to H0, after pushing H0	
+133	GENERATE FEASIBLE DEFINITIONS.					J100			M013R300						Gen symbols on list (1) for(0)
+133					11	W6			M013R310					Input S (indirect) to H0, after pushing H0	
+133	ERASE FEASIBLE LIST.					J71			M013R320						ERASE list (0)
+133	REVERSE H5, CLEAN UP AND QUIT.					J5	J36		M013R330						Reverse sense of H5
+133	TRY LEFT SIDE OF (0) W/1W0.		9-100		60	W2		1W2=DEF	M013R340					Copy (0) to S (direct)	[Work cell 2]
+134					11	W1			M013R350					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+134					11	W2			M013R360					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+134	MAKE FREE VARIABLES DISJOINT.					M110			M013R370						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+134	FIND LEFT SUB SEG OF DEF.					P13			M013R380						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+134					70	J4			M013R390					Branch to S (direct) if H5-	Set H5+
+134					11	W0			M013R400					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+134	MATCH, MAKE DEF LIKE PROB IF CAN.					M113			M013R410						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+134					70	J4			M013R420					Branch to S (direct) if H5-	Set H5+
+134					60	W3		1W3=SUBSTL	M013R430					Copy (0) to S (direct)	[Work cell 3]
+134					11	W2			M013R440					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+134	FIND RIGHT SIDE OF DEFINITION.					P14			M013R445						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+134	IF NONE,				70		9-300		M013R450					Branch to S (direct) if H5-	
+134	ERASE SUBST. LIST, QUIT + FOR GEN.					J72	J4		M013R455						ERASE list structure (0) [then] Set H5+
+134	TRY RIGHT SIDE OF (0) W/1WO.		9-200		60	W2		1W2=DEF	M013R460					Copy (0) to S (direct)	[Work cell 2]
+134					11	W1			M013R470					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+134					11	W2			M013R480					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+134	MAKE FREE VARIABLES DISJOINT.					M110			M013R490						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+134	FIND RIGHT SUB SEG OF DEF.					P14			M013R500						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+134					70	J4			M013R510					Branch to S (direct) if H5-	Set H5+
+134					11	W0			M013R520					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+134	MATCH, MAKE DEF LIKE PROB IF CAN.					M113			M013R530						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+134					70	J4			M013R540					Branch to S (direct) if H5-	Set H5+
+134					60	W3		1W3=SUBSTL	M013R550					Copy (0) to S (direct)	[Work cell 3]
+134					11	W2			M013R560					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+134	FIND LEFT SIDE OF DEFINITION.					P13			M013R565						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+134	IF NONE,				70		9-300		M013R570					Branch to S (direct) if H5-	
+134	ERASE SUBST. LIST, QUIT + FOR GEN.					J72	J4		M013R575						ERASE list structure (0) [then] Set H5+
+134	MAKE SUBPROB FROM SEGMENT (0)		9-300			P17			M013R580						COPY SEGMENT (0). IF (0) IS A VARIABLE, OUTPUT 1HE INPUT.
+134	WITH SUBSTITUTION LIST (1)					P24			M013R590						MAKE SEGMENT (0) INTO A NEW TOTAL EXPRESSION.
+134					60	W4		1W4=NEWTEX	M013R600					Copy (0) to S (direct)	[Work cell 4]
+134	SUBSTITUTE INTO NEWTEX FROM SUBSTL.					M115			M013R610						SUBSTITUTE IN SEGMENT (0) FROM SUBSTITUTION LIST (1).
+134						9-301			M013R620						
+134					11	W4			M013R630					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+134					11	W1			M013R640					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+134					11	W2			M013R650					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+134	ASSIGN DERIVATION, ADD FOUND LIST,				10	M13			M013R660					Input S (direct) to H0, after pushing H0	REPLACEMENT METHOD FOR SUBPROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO SOLUTION. ADDS GOOD NEW SUBPROBLEMS TO UNTRIED LIST.
+134	MEASURE UTILITY, ERASE IF NO GOOD.					M19			M013R670						FINISH BUILDING NEW SUBPROBLEM TEX (3) FROM (2) VIA THEOREM (1) BY METHOD(0). H5- MEANS NEW TEX WAS ERASED DUE TO LOW UTILITY. H5+ MEANS OUTPUT TEX (0) HAS SATISFACTORY UTILITY.
+134					70	J4			M013R680					Branch to S (direct) if H5-	Set H5+
+134	TRY SUBSTITUTION, H5+ OUTPUT PROOF.					M12	J5		M013R700						SUBSTITUTION METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO OUTPUT. [then] Reverse sense of H5
+134			9-301		11	W3			M013R710					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+134	ERASE SUBSTITUTION LIST.					J72	J4		M013R720						ERASE list structure (0) [then] Set H5+
+134		1							    R						
+134	M14 FORWARD CHAINING METHOD FOR		M14			J44			M014R000						
+134	   PROBLEM (U). ADDS NEW SUBPROBS				60	W1		1W1=PROB	M014R010					Copy (0) to S (direct)	[Work cell 1]
+134	   TO UNTRIED LIST IF CAN.					P13			M014R020						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+134	   H5+ MEANS OUTPUT (0) IS				70	J34			M014R030					Branch to S (direct) if H5-	
+134	   SOLUTION.				60	9-1			M014R040					Copy (0) to S (direct)	
+134	   H5- MEANS NO SOLUTION, NO OUTPT				51	W1			M014R050					Replace (0) by S (indirect)	[Work cell 1]
+134	FIND MAIN CONNECTIVE OF PROB.					P16			M014R060						FIND MAIN CONNECTIVE OF TOTAL EXPRESSION (0).
+134					70	J34			M014R070					Branch to S (direct) if H5-	
+134					10	L5			M014R080					Input S (direct) to H0, after pushing H0	HOLDS LIST STRUCTURE MAP OF TRUE EXPRESSIONS.
+135						J6			M014R090						Reverse (0) and (1)
+135	FIND APPROPRIATE THEOREM MAPS.					J10			M014R100						FIND value of attribute (0) of (1)
+135					70	J34			M014R110					Branch to S (direct) if H5-	
+135	FIND MAP OF LEFT SIDES.					J81			M014R120						FIND the 1th symbol on list (0)
+135					70	J34			M014R130					Branch to S (direct) if H5-	
+135	INPUT FAKE TEX.				10	9-0			M014R140					Input S (direct) to H0, after pushing H0	
+135						J6			M014R150						Reverse (0) and (1)
+135	GET FEASIBLE THEOREM LEFT SIDES.					M63			M014R160						CREATE A LIST OF FEASIBLE MATCHES FOR TOTAL EXPRESSION (1) FROM MAP (0)•
+135					60	W0		1W0=FSFLS	M014R170					Copy (0) to S (direct)	[Work cell 0]
+135	TRY FEASIBLE THM LEFTS WITH				10	9-100			M014R180					Input S (direct) to H0, after pushing H0	
+135	PROBLEM LEFT. GENERATE FSBLS.					J100			M014R190						Gen symbols on list (1) for(0)
+135					11	W0			M014R200					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+135	ERASE LIST OF FEASIBLES.					J71			M014R210						ERASE list (0)
+135						J5	J34		M014R220						Reverse sense of H5
+135	FAKE TEX . . . 9-1 HOLDS MEX.		9-0			0	9-1		M014R230						
+135	9-100 SUBPROCESS, TRY LEFT SIDES.		9-100		60	W2		1W2=THM	M014R240					Copy (0) to S (direct)	[Work cell 2]
+135					11	W1		1W1=PROB	M014R250					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+135					11	W2			M014R260					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+135	MAKE FREE VARIABLES DISJOINT.					M110			M014R270						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+135	FIND LEFT SEGMENT OF THY TEX.					P13			M014R280						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+135					70	J4			M014R290					Branch to S (direct) if H5-	Set H5+
+135	INPUT PROB LEFT				11	9-1			M014R300					Input S (indirect) to H0, after pushing H0	
+135	MATCH, OUTPUT LIST OF SUBSTITUTIONS					M113			M014R310						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+135	WILL MAKE THM LIKE PROB IF CAN.				70	J4			M014R320					Branch to S (direct) if H5-	Set H5+
+135					60	W3		1W3=SUBSTL	M014R330					Copy (0) to S (direct)	[Work cell 3]
+135					51	W1			M014R340					Replace (0) by S (indirect)	[Work cell 1]
+135	FIND RIGHT SIDE OF PROB					P14			M014R350						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+135					70	9-101			M014R360					Branch to S (direct) if H5-	
+135					11	W2			M014R370					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+135	FIND RIGHT SIDE OF THEOREM.					P14			M014R380						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+135					70	9-102			M014R390					Branch to S (direct) if H5-	
+135	CREATE NEW TEX WITH COPIES.					P22			M014R400						CREATE NEW PROBLEM WITH SEGMENT (0) AS LEFT SUBExPREsSION, SEGMENT (1) AS RIGHT SUHEXPRESSION, IMPLIES AS CONNECTIVE.
+135					60	W4		1W4=NEWTEX	M014R405					Copy (0) to S (direct)	[Work cell 4]
+135	        THM LEFT, PROB RIGHT.				11	W3			M014R410					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+135						J6			M014R420						Reverse (0) and (1)
+135	SUBSTITUTE INTO NE TEX.					M115			M014R430						SUBSTITUTE IN SEGMENT (0) FROM SUBSTITUTION LIST (1).
+135	ERASE SUBSTL.					9-101			M014R510						
+135					11	W4			M014R520					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+135					11	W1			M014R530					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+135					11	W2			M014R540					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+135					10	M14			M014R550					Input S (direct) to H0, after pushing H0	FORWARD CHAINING METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO SOLUTION. ADDS GOOD NEW SUBPROBLEMS TO UNTRIED LIST.
+135	ASSIGN DERIVATION,ADD TO FOUND LIST					M19			M014R560						FINISH BUILDING NEW SUBPROBLEM TEX (3) FROM (2) VIA THEOREM (1) BY METHOD(0). H5- MEANS NEW TEX WAS ERASED DUE TO LOW UTILITY. H5+ MEANS OUTPUT TEX (0) HAS SATISFACTORY UTILITY.
+135	MEASURE UTILITY, ERASE IF NO, GOOD.				70	J4			M014R570					Branch to S (direct) if H5-	Set H5+
+135	TRY SUBSTITUTION, H5+ OUTPUT PROOF.					M12	J5		M014R590						SUBSTITUTION METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO OUTPUT. [then] Reverse sense of H5
+135			9-102		30	H0			M014R600					Restore (Pop) S (direct)	[Communication Cell]
+135	ERASE SUBSTITUTION LIST.		9-101		11	W3			M014R610					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+135						J72	J4		M014R620						ERASE list structure (0) [then] Set H5+
+135		1							    R						
+135	M15 BACKWARD CHAINING METHOD FOR		M15			J44			M015R000						
+135	   PROBLEM (0). ADDS NEW SUBPROBS				60	W1		1W1=PROB	M015R010					Copy (0) to S (direct)	[Work cell 1]
+135	   TO UNTRIED LIST IF CAN.					P14			M015R020						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+136	H5+ MEANS OUTPUT (0) IS A				70	J34			M015R030					Branch to S (direct) if H5-	
+136	SOLUTION.				60	9-1		9-0=FAKTEX	M015R040					Copy (0) to S (direct)	
+136	H5- MEANS NO SOLUTION, NO OUTPT				50	L5		L5 IS MAP	M015R050					Replace (0) by S (direct)	HOLDS LIST STRUCTURE MAP OF TRUE EXPRESSIONS.
+136					11	K6		1K6=IMPLY	M015R060					Input S (indirect) to H0, after pushing H0	HOLDS -IMPLIES-
+136	FIND APPROPRIATE MAPS.					J10			M015R070						FIND value of attribute (0) of (1)
+136					70	J34			M015R080					Branch to S (direct) if H5-	
+136	FIND MAP OF RIGHT SIDES.					J82			M015R090						FIND the 2th symbol on list (0)
+136					70	J34			M015R100					Branch to S (direct) if H5-	
+136					10	9-0			M015R110					Input S (direct) to H0, after pushing H0	
+136						J6			M015R120						Reverse (0) and (1)
+136	GET FEASIBLE THEOREM RIGHT SIDES.					M63			M015R130						CREATE A LIST OF FEASIBLE MATCHES FOR TOTAL EXPRESSION (1) FROM MAP (0)•
+136					60	W0		1W0=FSBLS	M015R140					Copy (0) to S (direct)	[Work cell 0]
+136	TRY FEASIBLE THM RIGHTS WITH				10	9-100			M015R150					Input S (direct) to H0, after pushing H0	
+136	PROBLEM RIGHT. GENERATE FSBLS.					J100			M015R160						Gen symbols on list (1) for(0)
+136					11	W0			M015R170					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+136	ERASE LIST OF FEASIBLES.					J71			M015R180						ERASE list (0)
+136						J5	J34		M015R190						Reverse sense of H5
+136	FAKE TEX . . . 9-1 HOLDS MEX.		9-0			0	9-1		M015R200						
+136	9-100 SUBPROCESS, TRY RIGHT SIDES.		9-100		60	W2		1W2=THM	M015R210					Copy (0) to S (direct)	[Work cell 2]
+136					11	W1			M015R220					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+136					11	W2			M015R230					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+136	MAKE FREE VARIABLES DISJOINT.					M110			M015R240						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+136	FIND RIGHT SEGMENT OF THE TEX.					P14			M015R250						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+136					70	J4			M015R260					Branch to S (direct) if H5-	Set H5+
+136	INPUT PROB RIGHT.				11	9-1			M015R270					Input S (indirect) to H0, after pushing H0	
+136	MATCH, OUTPUT LIST OF SUBSTITUTIONS					M113			M015R280						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+136	WILL MAKE THM LIKE PROB IF CAN.				70	J4			M015R290					Branch to S (direct) if H5-	Set H5+
+136					60	W3		1W3=SUBSTL	M015R300					Copy (0) to S (direct)	[Work cell 3]
+136					51	W2			M015R310					Replace (0) by S (indirect)	[Work cell 2]
+136	FIND LEFT SIDE OF THEOREM.					P13			M015R320						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+136					70	9-101			M015R330					Branch to S (direct) if H5-	
+136					11	W1			M015R340					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+136	FIND LEFT SIDE OF PROBLEM.					P13			M015R350						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+136					70	9-102			M015R360					Branch to S (direct) if H5-	
+136	CREATE NEW TEX WITH COPIES.					P22			M015R370						CREATE NEW PROBLEM WITH SEGMENT (0) AS LEFT SUBExPREsSION, SEGMENT (1) AS RIGHT SUHEXPRESSION, IMPLIES AS CONNECTIVE.
+136					60	W4		1W4=NEWTEX	M015R375					Copy (0) to S (direct)	[Work cell 4]
+136	PROB ON LEFT THM ON RIGHT.				11	W3			M015R380					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+136						J6			M015R390						Reverse (0) and (1)
+136	SUBSTITUTE INTO NEW TEX.					M115			M015R400						SUBSTITUTE IN SEGMENT (0) FROM SUBSTITUTION LIST (1).
+136	ERASE SUBSTL					9-101			M015R480						
+136					11	W4			M015R490					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+136					11	W1			M015R500					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+136					11	W2			M015R510					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+136	ASSIGN DERIVATION,ADD TO FOUND LIST				10	M15			M015R520					Input S (direct) to H0, after pushing H0	BACKWARD CHAINING METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5-IF NO SOLUTION. ADDS GOOD NEW SUBPROBLEMS TO UNTRIED LIST.
+136	MEASURE UTILITY , ERASE IF NO GOOD.					M19			M015R530						FINISH BUILDING NEW SUBPROBLEM TEX (3) FROM (2) VIA THEOREM (1) BY METHOD(0). H5- MEANS NEW TEX WAS ERASED DUE TO LOW UTILITY. H5+ MEANS OUTPUT TEX (0) HAS SATISFACTORY UTILITY.
+136					70	J4			M015R540					Branch to S (direct) if H5-	Set H5+
+136	TRY SUBSTITUTION, H5+ OUTPUT PROOF.					M12	J5		M015R560						SUBSTITUTION METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO OUTPUT. [then] Reverse sense of H5
+136			9-102		30	H0			M015R570					Restore (Pop) S (direct)	[Communication Cell]
+136	ERASE SUBSTITUTION LIST.		9-101		11	W3			M015R580					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+136						J72	J4		M015R590						ERASE list structure (0) [then] Set H5+
+136		1							    R						
+137	M16 SUBLEVEL REPLACEMENT METHOD FOR		M16			J48			M016R000						
+137	    PROBLEM (0). ADD ALL NEW				60	W0		1W0=PROB	M016R010					Copy (0) to S (direct)	[Work cell 0]
+137	    SUBPROBLEMS TO UNTRIED LIST.				50	L5			M016R020					Replace (0) by S (direct)	HOLDS LIST STRUCTURE MAP OF TRUE EXPRESSIONS.
+137	    H5-MEANS NO SOL'N, NO OUTPUT.				11	K5			M016R030					Input S (indirect) to H0, after pushing H0	HOLDS -DEFINITIONAL EQUIVALENCE.
+137	    H5+MEANS (0) IS A SOL'N.					J10			M016R040						FIND value of attribute (0) of (1)
+137	(M16 TRIES ONE LEVEL AT A TIME)				70	J38			M016R050					Branch to S (direct) if H5-	
+137					60	W2			M016R060					Copy (0) to S (direct)	[Work cell 2]
+137	FIND MAP OF DEF. LEFT SIDES.					J81			M016R070						FIND the 1th symbol on list (0)
+137	    IF NONE, QUIT-.				70	J38			M016R080					Branch to S (direct) if H5-	
+137					60	W1		1W1=LFTMAP	M016R090					Copy (0) to S (direct)	[Work cell 1]
+137					51	W2			M016R100					Replace (0) by S (indirect)	[Work cell 2]
+137	FIND MAP OF DEF. RIGHT SIDES.					J82			M016R110						FIND the 2th symbol on list (0)
+137	    IF NONE, QUIT-.				70	J38			M016R120					Branch to S (direct) if H5-	
+137					60	W2		1W2=RTMAP	M016R130					Copy (0) to S (direct)	[Work cell 2]
+137					51	W0			M016R140					Replace (0) by S (indirect)	[Work cell 0]
+137					40	H0			M016R142					Preserve (Push) S (direct)	[Communication Cell]
+137					10	Q17			M016R145					Input S (direct) to H0, after pushing H0	FIND CURRENT LEVEL OF SUBSEGMENT REPLACEMENT OF PROBLEM (0).
+137	CLEAR LEVEL					J14			M016R148						ERASE attribute (0) of (1)
+137	FIND LOWEST LEVEL IN PROBLEM.					Q17			M016R150						FIND CURRENT LEVEL OF SUBSEGMENT REPLACEMENT OF PROBLEM (0).
+137	     IF NONE, QUIT-. IF YES,				70	J38			M016R160					Branch to S (direct) if H5-	
+137					20	W3		1W3=CURLEV	M016R165						[Work cell 3]
+137	BUMP 1W3, TEST IF GREATER THAN 1.		9-3			9-20			M016R170						
+137	     IF NOT, QUIT-.				70	J38			M016R175					Branch to S (direct) if H5-	
+137	     IF YES,		9-10		11	W0			M016R180					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+137	COPY PROBLEM FOR REPLACEMENT.					P25			M016R190						COPY TEX (0) FOR SUBSTITUTION.
+137					60	W4		1W4=CPROB	M016R200					Copy (0) to S (direct)	[Work cell 4]
+137			9-11		10	J3			M016R210					Input S (direct) to H0, after pushing H0	Set H5-
+137	SET'NEW SUBPROBLEM FLAG' TO NO.				60	W5		1W5=FLAG	M016R220					Copy (0) to S (direct)	[Work cell 5]
+137					50	9-100			M016R230					Replace (0) by S (direct)	
+137	GENERATE SEGMENT LOCATIONS.					P26			M016R240						GENERATE LOCATIONS OF NON-VARIABLE SEGMENTS FROM TOTAL EXPRESSION (1) AT THE LEVEL OF DATA TERM(2) FOR PROCESS (0).
+137	EXECUTE 'NEW SUBPROBLEM FLAG'				01	W5			M016R250		PQ=01, BUT LEADING 0 LOST; MAYBE PQ COLUMN SHOULD BE TEXT FORMAT				[Work cell 5]
+137	    IF YES, GO FINISH IT UP.				70		9-1		M016R260					Branch to S (direct) if H5-	
+137	BUMP 1W3 AND TEST IF GREATER THAN 1					9-20			M016R270						
+137	    IF NOT, GO CLEAN UP, QUIT-.				70	9-2			M016R280					Branch to S (direct) if H5-	
+137	    IF GREATER, COPY 1W4 AND					J120			M016R290						COPY (0)
+137					10	Q17			M016R300					Input S (direct) to H0, after pushing H0	FIND CURRENT LEVEL OF SUBSEGMENT REPLACEMENT OF PROBLEM (0).
+137					11	W4			M016R310					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+137	ASSIGN COPY TO PROBLEM COPY.					J11			M016R320						Assign (1) as value of attribute (0) of (2)
+137					11	W3			M016R330					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+137	    LOOP FOR NEXT LEVEL.				11	W4	9-11		M016R340					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+137	    ALL DONE,		9-2		11	W4			M016R350					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+137	ERASE LEFTOVER COPY, QUIT.					J72	J38		M016R360						ERASE list structure (0)
+137	SET UP DERIVATION ASSOCIATIONS,		9-1		11	W4			M016R370					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+137					11	W0			M016R380					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+137	      AND				10	/16			M016R390					Input S (direct) to H0, after pushing H0	
+137					10	M16			M016R400					Input S (direct) to H0, after pushing H0	SUBLEVEL REPLACEMENT METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO SOLUTION. ADDS GOOD NEW SUBPROBLEMS TO UNTRIED LIST. M16 TRIES FOR A SUBPROBLEM AT EACH SUBLEVEL OF PROBLEM (0).
+137	FINISH BUILDING THE NEW SUBPROBLEM.					M19			M016R410						FINISH BUILDING NEW SUBPROBLEM TEX (3) FROM (2) VIA THEOREM (1) BY METHOD(0). H5- MEANS NEW TEX WAS ERASED DUE TO LOW UTILITY. H5+ MEANS OUTPUT TEX (0) HAS SATISFACTORY UTILITY.
+137	    IF NO GOOD, SET UP TO LOOP.				70	9-3			M016R420					Branch to S (direct) if H5-	
+137	    IF GOOD, TRY SUBSTITUTION.					M12			M016R430						SUBSTITUTION METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO OUTPUT.
+137	     IF PROOF, QUIT+. IF NOT, LOOP.				70	9-3	J38		M016R440					Branch to S (direct) if H5-	
+137	9-20 SUBPROCESS--BUMP AND TEST		9-20		10	N2			M016R470					Input S (direct) to H0, after pushing H0	
+138	    IF 1W3 GREATER THAN 1.				11	W3			M016R480					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+138	TEST IF 1W3 GREATER THAN N2.					J115			M016R490						TEST if (0) > (1)
+138	    IF NO, QUIT SUBPROCESS--.				70	0		NO OUTPUT	M016R500					Branch to S (direct) if H5-	
+138	    IF YES,				10	N1			M016R510					Input S (direct) to H0, after pushing H0	
+138					11	W3			M016R520					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+138	SUBTRACT 1, QUIT SUBPROCESS+.				11	W3	J111	OUTPUT 1W3	M016R530					Input S (indirect) to H0, after pushing H0	[Work cell 3] [then] (1) - (2) => (0), leave (0)
+138	9-100 SUBPROCESS FOR SUBSEGMENT		9-100		60	W6		1W6=SEGLOC	M016R540					Copy (0) to S (direct)	
+138	    REPLACEMENT IN LOCATION (0).				51	W1			M016R550					Replace (0) by S (indirect)	[Work cell 1]
+138					12	W6			M016R560					Input S (DOUBLE indirect) to H0, after pushing H0	
+138	CREATE LIST OF FEASIBLE DEFS.					M62			M016R570						CREATE A LIST OF FEASIBLE MATCHES FOR SEGMENT (0) FROM MAP (1).
+138	SAVE LIST FOR LATER ARASURE.				40	H0			M016R580					Preserve (Push) S (direct)	[Communication Cell]
+138					10	9-200			M016R590					Input S (direct) to H0, after pushing H0	
+138	GENERATE DEFS FOR LEFT SIDE MATCH.					J100			M016R600						Gen symbols on list (1) for(0)
+138	    IF MATCHED, GO CLEAN UP.				70	9-101			M016R610					Branch to S (direct) if H5-	
+138	    IF FAILED, ERASE OLD LIST,					J71			M016R620						ERASE list (0)
+138					11	W2			M016R630					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+138					12	W6			M016R640					Input S (DOUBLE indirect) to H0, after pushing H0	
+138	CREATE NEW LIST OF FEASIBLE DEFS.					M62			M016R650						CREATE A LIST OF FEASIBLE MATCHES FOR SEGMENT (0) FROM MAP (1).
+138	SAVE LIST FOR LATER ERASURE.				40	H0			M016R660					Preserve (Push) S (direct)	[Communication Cell]
+138					10	9-300			M016R670					Input S (direct) to H0, after pushing H0	
+138	GENERATE DEFS FOR RIGHT SIDE MATCH.					J100			M016R680						Gen symbols on list (1) for(0)
+138	ERASE LIST AND QUIR + FOR GEN.		9-101			J71	J4		M016R690						ERASE list (0) [then] Set H5+
+138	9-200 SUBPROCESS, TRY REPLACEMENT		9-200		60	W7		1W7=DEF	M016R700					Copy (0) to S (direct)	
+138	    BY MATCHING SEGMENT TO				11	W4		1W4=CPROB	M016R710					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+138	    LEFT SIDES.				11	W7			M016R720					Input S (indirect) to H0, after pushing H0	
+138	MAKE FREE VARIABLES DISJOINT.					M110			M016R730						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+138	FIND LEFT SEGMENT OF DEF.					P13			M016R740						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+138	    IF NONE, QUIT + FOR GEN.				70	J4			M016R750					Branch to S (direct) if H5-	Set H5+
+138	    IF FOUND,				12	W6			M016R760					Input S (DOUBLE indirect) to H0, after pushing H0	
+138	MATCH SEGMENT TO LEFT SIDE.					M113			M016R770						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+138	    IF NO MATCH, QUIT + FOR GEN.				70	J4			M016R780					Branch to S (direct) if H5-	Set H5+
+138	    IF MATCHED, SAVE LIST,				60	W8		1W8=SUBST	M016R790					Copy (0) to S (direct)	
+138					51	W7			M016R800					Replace (0) by S (indirect)	
+138	FIND RIGHT SIDE OF DEF.					P14	9-301		M016R810						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+138	9-300 SUBPROCESS, TRY REPLACEMENT		9-300		60	W7		1W7=DEF	M016R820					Copy (0) to S (direct)	
+138	    BY MATCHING SEGMENT TO				11	W4		1W4=CPROB	M016R830					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+138	    RIGHT SIDES.				11	W7			M016R840					Input S (indirect) to H0, after pushing H0	
+138	MAKE FREE VARIABLES DISJOINT					M110			M016R850						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+138	FIND RIGHT SEGMENT OF DEF.					P14			M016R860						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+138	    IF NONE, QUIT + FOR GEN.				70	J4			M016R870					Branch to S (direct) if H5-	Set H5+
+138	    IF FOUND,				12	W6			M016R880					Input S (DOUBLE indirect) to H0, after pushing H0	
+138	MATCH SEGMENT TO RIGHT SIDE.					M113			M016R890						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+138	    IF NO MATCH, QUIT + FOR GEN.				70	J4			M016R900					Branch to S (direct) if H5-	Set H5+
+138	    IF MATCHED, SAVE LIST,				60	W8		1W8=SUBST	M016R910					Copy (0) to S (direct)	
+138					51	W7			M016R920					Replace (0) by S (indirect)	
+138	FIND LEFT SIDE OF DEF.					P13			M016R930						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+138	    IF NONE, CLEAN UP, QUIT +.		9-301		70	9-302			M016R935					Branch to S (direct) if H5-	
+138	    IF FOUND, COPY IT,					J74			M016R940						COPY list structure (0)
+138					12	W6			M016R945					Input S (DOUBLE indirect) to H0, after pushing H0	
+138	ERASE OLD SEGMENT, AND					J72			M016R950						ERASE list structure (0)
+138	REPLACE OLD WITH COPY FROM DEF.				21	W6			M016R955						
+139					11	W8			M016R960					Input S (indirect) to H0, after pushing H0	
+139					11	W4			M016R965					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+139	SUBSTITUTE IN PROB TEX PER 1W8.					M115			M016R970						SUBSTITUTE IN SEGMENT (0) FROM SUBSTITUTION LIST (1).
+139					10	J4			M016R975					Input S (direct) to H0, after pushing H0	Set H5+
+139	SET 'NEW SUBPROBLEM FLAG' TO ON.				20	W5			M016R980						[Work cell 5]
+139	    SET H5 TO QUIT-.					J4			M016R985						Set H5+
+139			9-302		11	W8			M016R990					Input S (indirect) to H0, after pushing H0	
+139	ERASE 1W8, REVERSE H5 FOR GEN.					J72	J5		M016R995						ERASE list structure (0) [then] Reverse sense of H5
+139		1							    R						
+139	M17 SUBLEVEL REPLACEMENT METHOD FOR		M17			J48			M017R000						
+139	    PROBLEM (0). ADD ALL NEW				60	W0		1W0=PROB	M017R010					Copy (0) to S (direct)	[Work cell 0]
+139	    SUBPROBLEMS TO UNTRIED LIST.				50	L5			M017R020					Replace (0) by S (direct)	HOLDS LIST STRUCTURE MAP OF TRUE EXPRESSIONS.
+139	    H5-MEANS NO SOL'N, NO OUTPUT				11	K5			M017R030					Input S (indirect) to H0, after pushing H0	HOLDS -DEFINITIONAL EQUIVALENCE.
+139	    H5+MEANS (0) IS A SOL'N.					J10			M017R040						FIND value of attribute (0) of (1)
+139	(M17 TRIES ALL LEVELS A ONCE)				70	J38			M017R050					Branch to S (direct) if H5-	
+139					60	W2			M017R060					Copy (0) to S (direct)	[Work cell 2]
+139	FIND MAP OF DEF. LEFT SIDES.					J81			M017R070						FIND the 1th symbol on list (0)
+139	    IF NONE, QUIT-.				70	J38			M017R080					Branch to S (direct) if H5-	
+139					60	W1		1W1=LFTMAP	M017R090					Copy (0) to S (direct)	[Work cell 1]
+139					51	W2			M017R100					Replace (0) by S (indirect)	[Work cell 2]
+139	FIND MAP OF DEF. RIGHT SIDES.					J82			M017R110						FIND the 2th symbol on list (0)
+139	    IF NONE, QUIT-.				70	J38			M017R120					Branch to S (direct) if H5-	
+139					60	W2		1W2=RTMAP	M017R130					Copy (0) to S (direct)	[Work cell 2]
+139					51	W0			M017R140					Replace (0) by S (indirect)	[Work cell 0]
+139					40	H0			M017R142					Preserve (Push) S (direct)	[Communication Cell]
+139					10	Q17			M017R145					Input S (direct) to H0, after pushing H0	FIND CURRENT LEVEL OF SUBSEGMENT REPLACEMENT OF PROBLEM (0).
+139	CLEAR LEVEL					J14			M017R148						ERASE attribute (0) of (1)
+139	FIND LOWEST LEVEL IN PROBLEM.					Q17			M017R150						FIND CURRENT LEVEL OF SUBSEGMENT REPLACEMENT OF PROBLEM (0).
+139	     IF NONE, QUIT-. IF YES,				70	J38			M017R160					Branch to S (direct) if H5-	
+139					20	W3		1W3=CURLEV	M017R165						[Work cell 3]
+139	BUMP 1W3, TEST IF GREATER THAN 1.		9-3			9-20			M017R170						
+139	     IF NOT, QUIT-.				70	J38			M017R175					Branch to S (direct) if H5-	
+139	     IF YES,		9-10		11	W0			M017R180					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+139	COPY PROBLEM FOR REPLACEMENT.					P25			M017R190						COPY TEX (0) FOR SUBSTITUTION.
+139					60	W4		1W4=CPROB	M017R200					Copy (0) to S (direct)	[Work cell 4]
+139			9-11		10	J3			M017R210					Input S (direct) to H0, after pushing H0	Set H5-
+139	SET'NEW SUBPROBLEM FLAG' TO NO.				60	W5		1W5=FLAG	M017R220					Copy (0) to S (direct)	[Work cell 5]
+139					50	9-100			M017R230					Replace (0) by S (direct)	
+139	GENERATE SEGMENT LOCATIONS.					P26			M017R240						GENERATE LOCATIONS OF NON-VARIABLE SEGMENTS FROM TOTAL EXPRESSION (1) AT THE LEVEL OF DATA TERM(2) FOR PROCESS (0).
+139	BUMP 1W3 AND TEST IF GREATER THAN 1					9-20			M017R250						
+139	    IF NOT, GO TEST FLAG.				70	9-2			M017R260					Branch to S (direct) if H5-	
+139	    IF GREATER, COPY 1W4 AND					J120			M017R270						COPY (0)
+139					10	Q17			M017R280					Input S (direct) to H0, after pushing H0	FIND CURRENT LEVEL OF SUBSEGMENT REPLACEMENT OF PROBLEM (0).
+139					11	W4			M017R290					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+139	ASSIGN COPY TO PROBLEM COPY.					J11			M017R300						Assign (1) as value of attribute (0) of (2)
+139					11	W3			M017R310					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+139	    LOOP FOR NEXT LEVEL.				11	W4	9-11		M017R320					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+139	EXECUTE 'NEW SUBPROBLEM FLAG'		9-2		01	W5			M017R330		PQ=01				[Work cell 5]
+139	    IF YES, GO FINISH IT UP.				70		9-1		M017R340					Branch to S (direct) if H5-	
+139	    ALL DONE,				11	W4			M017R350					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+139	ERASE LEFTOVER COPY, QUIT.					J72	J38		M017R360						ERASE list structure (0)
+140	SET UP DERIVATION ASSOCIATIONS.		9-1		11	W4			M017R370					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+140					11	W0			M017R380					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+140	      AND				10	/16			M017R390					Input S (direct) to H0, after pushing H0	
+140					10	M16			M017R400					Input S (direct) to H0, after pushing H0	SUBLEVEL REPLACEMENT METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO SOLUTION. ADDS GOOD NEW SUBPROBLEMS TO UNTRIED LIST. M16 TRIES FOR A SUBPROBLEM AT EACH SUBLEVEL OF PROBLEM (0).
+140	FINISH BUILDING THE NEW SUBPROBLEM.					M19			M017R410						FINISH BUILDING NEW SUBPROBLEM TEX (3) FROM (2) VIA THEOREM (1) BY METHOD(0). H5- MEANS NEW TEX WAS ERASED DUE TO LOW UTILITY. H5+ MEANS OUTPUT TEX (0) HAS SATISFACTORY UTILITY.
+140	    IF NO GOOD, QUIT -.				70	J38			M017R420					Branch to S (direct) if H5-	
+140	    IF GOOD, TRY SUBSTITUTION.					M12			M017R430						SUBSTITUTION METHOD FOR PROBLEM (0). SETS H5+ AND OUTPUTS SUCCESSFUL SUBPROBLEM IF SOLUTION IS FOUND. SETS H5- IF NO OUTPUT.
+140	     IF PROOF, QUIT+. IF NOT, QUIT-					J38	0		M017R440						
+140	9-20 SUBPROCESS--BUMP AND TEST		9-20		10	N2			M017R470					Input S (direct) to H0, after pushing H0	
+140	    IF 1W3 GREATER THAN 1.				11	W3			M017R480					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+140	TEST IF 1W3 GREATER THAN N2.					J115			M017R490						TEST if (0) > (1)
+140	    IF NO, QUIT SUBPROCESS--.				70	0		NO OUTPUT	M017R500					Branch to S (direct) if H5-	
+140	    IF YES,				10	N1			M017R510					Input S (direct) to H0, after pushing H0	
+140					11	W3			M017R520					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+140	SUBTRACT 1, QUIT SUBPROCESS+.				11	W3	J111	OUTPUT 1W3	M017R530					Input S (indirect) to H0, after pushing H0	[Work cell 3] [then] (1) - (2) => (0), leave (0)
+140	9-100 SUBPROCESS FOR SUBSEGMENT		9-100		60	W6		1W6=SEGLOC	M017R540					Copy (0) to S (direct)	
+140	    REPLACEMENT IN LOCATION (0).				51	W1			M017R550					Replace (0) by S (indirect)	[Work cell 1]
+140					12	W6			M017R560					Input S (DOUBLE indirect) to H0, after pushing H0	
+140	CREATE LIST OF FEASIBLE DEFS.					M62			M017R570						CREATE A LIST OF FEASIBLE MATCHES FOR SEGMENT (0) FROM MAP (1).
+140	SAVE LIST FOR LATER ARASURE.				40	H0			M017R580					Preserve (Push) S (direct)	[Communication Cell]
+140					10	9-200			M017R590					Input S (direct) to H0, after pushing H0	
+140	GENERATE DEFS FOR LEFT SIDE MATCH.					J100			M017R600						Gen symbols on list (1) for(0)
+140	    IF MATCHED, GO CLEAN UP.				70	9-101			M017R610					Branch to S (direct) if H5-	
+140	    IF FAILED, ERASE OLD LIST,					J71			M017R620						ERASE list (0)
+140					11	W2			M017R630					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+140					12	W6			M017R640					Input S (DOUBLE indirect) to H0, after pushing H0	
+140	CREATE NEW LIST OF FEASIBLE DEFS.					M62			M017R650						CREATE A LIST OF FEASIBLE MATCHES FOR SEGMENT (0) FROM MAP (1).
+140	SAVE LIST FOR LATER ERASURE.				40	H0			M017R660					Preserve (Push) S (direct)	[Communication Cell]
+140					10	9-300			M017R670					Input S (direct) to H0, after pushing H0	
+140	GENERATE DEFS FOR RIGHT SIDE MATCH.					J100			M017R680						Gen symbols on list (1) for(0)
+140	ERASE LIST AND QUIR + FOR GEN.		9-101			J71	J4		M017R690						ERASE list (0) [then] Set H5+
+140	9-200 SUBPROCESS, TRY REPLACEMENT		9-200		60	W7		1W7=DEF	M017R700					Copy (0) to S (direct)	
+140	    BY MATCHING SEGMENT TO				11	W4		1W4=CPROB	M017R710					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+140	    LEFT SIDES.				11	W7			M017R720					Input S (indirect) to H0, after pushing H0	
+140	MAKE FREE VARIABLES DISJOINT.					M110			M017R730						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+140	FIND LEFT SEGMENT OF DEF.					P13			M017R740						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+140	    IF NONE, QUIT + FOR GEN.				70	J4			M017R750					Branch to S (direct) if H5-	Set H5+
+140	    IF FOUND,				12	W6			M017R760					Input S (DOUBLE indirect) to H0, after pushing H0	
+140	MATCH SEGMENT TO LEFT SIDE.					M113			M017R770						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+140	    IF NO MATCH, QUIT + FOR GEN.				70	J4			M017R780					Branch to S (direct) if H5-	Set H5+
+140	    IF MATCHED, SAVE LIST,				60	W8			M017R790					Copy (0) to S (direct)	
+140					51	W7			M017R800					Replace (0) by S (indirect)	
+140	FIND RIGHT SIDE OF DEF.					P14	9-301		M017R810						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+140	9-300 SUBPROCESS, TRY REPLACEMENT		9-300		60	W7		1W7=DEF	M017R820					Copy (0) to S (direct)	
+140	    BY MATCHING SEGMENT TO				11	W4		1W4=CPROB	M017R830					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+140	    RIGHT SIDES.				11	W7			M017R840					Input S (indirect) to H0, after pushing H0	
+140	MAKE FREE VARIABLES DISJOINT					M110			M017R850						MAKE FREE VARIABLES OF TOTAL EXPRESSIONS (0),(1) DISJOINT. SUBSTITUTES NEW VARIABLES IN (1) AS REQUIRED.
+140	FIND RIGHT SEGMENT OF DEF.					P14			M017R860						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+140	    IF NONE, QUIT + FOR GEN.				70	J4			M017R870					Branch to S (direct) if H5-	Set H5+
+140	    IF FOUND,				12	W6			M017R880					Input S (DOUBLE indirect) to H0, after pushing H0	
+140	MATCH SEGMENT TO RIGHT SIDE.					M113			M017R890						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. H5+ MEANS OUTPUT (0) IS EXPANDED SUBSTITUTION LIST.
+141	    IF NO MATCH, QUIT + FOR GEN.				70	J4			M017R900					Branch to S (direct) if H5-	Set H5+
+141	    IF MATCHED, SAVE LIST,				60	W8		1W8=SUBST	M017R910					Copy (0) to S (direct)	
+141					51	W7			M017R920					Replace (0) by S (indirect)	
+141	FIND LEFT SIDE OF DEF.					P13			M017R930						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+141	    IF NONE, CLEAN UP, QUIT +.		9-301		70	9-302			M017R935					Branch to S (direct) if H5-	
+141	    IF FOUND, COPY IT,					J74			M017R940						COPY list structure (0)
+141					12	W6			M017R945					Input S (DOUBLE indirect) to H0, after pushing H0	
+141	ERASE OLD SEGMENT, AND					J72			M017R950						ERASE list structure (0)
+141	REPLACE OLD WITH COPY FROM DEF.				21	W6			M017R955						
+141					11	W8			M017R960					Input S (indirect) to H0, after pushing H0	
+141					11	W4			M017R965					Input S (indirect) to H0, after pushing H0	[Work cell 4]
+141	SUBSTITUTE IN PROB TEX PER 1W8.					M115			M017R970						SUBSTITUTE IN SEGMENT (0) FROM SUBSTITUTION LIST (1).
+141					10	J4			M017R975					Input S (direct) to H0, after pushing H0	Set H5+
+141	SET 'NEW SUBPROBLEM FLAG' TO ON.				20	W5			M017R980						[Work cell 5]
+141	    SET H5 TO QUIT-.					J4			M017R985						Set H5+
+141			9-302		11	W8			M017R990					Input S (indirect) to H0, after pushing H0	
+141	ERASE 1W8, REVERSE H5 FOR GEN.					J72	J5		M017R995						ERASE list structure (0) [then] Reverse sense of H5
+141		1							    R						
+141	M19 FINISH BUILDING NEW SUBPROBLEM		M19			J53		1W3=NEWTEX	M019R000						Preserve W0-W3; MOVE (0)-(3) into W0-W3
+141	   (3) FROM (2) VIA THM(1) BY				11	W3		1W2=PROBLM	M019R010					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+141	   METHOD (0). MEASURE UTILITY.				11	W2		1W1=THM	M019R020					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+141	   H5-, NO OUTPUT,TEX ERASED.				10	Q10		1W0=METHOD	M019R030					Input S (direct) to H0, after pushing H0	FIND PROBLEM EXPRESSION (0) DERIVED FROM.
+141	   H5+ MEANS OUTPUT (0) IS OK.					J11			M019R040						Assign (1) as value of attribute (0) of (2)
+141					11	W3			M019R050					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+141	FILL				11	W0			M019R060					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+141	QUT				10	Q11			M019R070					Input S (direct) to H0, after pushing H0	FIND METHOD OF DERIVATION FOR EXPRESSION (0).
+141	DESCRIPTION.					J11			M019R080						Assign (1) as value of attribute (0) of (2)
+141					11	W3			M019R090					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+141					11	W1			M019R100					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+141					10	Q12			M019R110					Input S (direct) to H0, after pushing H0	FIND THEOREM USED TO DERIVE PROBLEM (C).
+141						J11			M019R120						Assign (1) as value of attribute (0) of (2)
+141					11	W3			M019R130					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+141	MARK LOCAL FOR FOUND LIST.					J136			M019R135						Make (0) local, leave (0)
+141	EVALUATE UTILITY.					M43			M019R140						MEASURE UTILITY OF (0). H5+ IF GOOD, H5- IF NO GOOD.
+141					11	W3			M019R150					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+141	     IF N.G., REJECT IT.				70	9-1			M019R160					Branch to S (direct) if H5-	
+141	     IF O.K., ADD TO UNTRIED LIST.					M51			M019R170						ADD PROBLEM (0) TO UNTRIED PROBLEMS LIST.
+141					11	W3			M019R180					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+141	QUIT +, OUTPUT NEW PROBLEM.					J33	J4		M019R190						Restore W0-W3 [then] Set H5+
+141			9-1		11	K31			M019R200					Input S (indirect) to H0, after pushing H0	HOLDS Y0 IF REJECTED SUBPROBLEMS ARE TO BE PRINTED.
+141					10	Y			M019R210					Input S (direct) to H0, after pushing H0	
+141	TEST IF PRINTING REJECTS.					J2			M019R220						TEST (0) (1)
+141	     IF NO, SKIP IT.				70	9-2			M019R230					Branch to S (direct) if H5-	
+141	     IF YES, PRINT IT.					M81			M019R240						PRINT REJECTED PROBLEM.
+141					11	W3			M019R250					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+141	ERASE N. G. SUBPROBLEM.		9-2			J72			M019R260						ERASE list structure (0)
+141	QUIT -.					J33	J3		M019R270						Restore W0-W3 [then] Set H5-
+141		1							    R						
+141	M40 TEST IF TOTAL EXPRESSIONS		M40			J51		1W0=TEX1	M040R000						Preserve W0-W1; MOVE (0)-(1) into W0-W1
+141	    (0) AND (1) MATCH.				11	W1		1W1=TEX2	M040R010					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+141	FIND MAIN SEGMENT.					J81			M040R020						FIND the 1th symbol on list (0)
+142					70	9-0			M040R030					Branch to S (direct) if H5-	
+142					11	W0			M040R040					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+142	FIND MAIN SEGMENT.					J81			M040R050						FIND the 1th symbol on list (0)
+142					70	9-1			M040R060					Branch to S (direct) if H5-	
+142	TEST IF SEGMENTS MATCH.					M41	J31		M040R070						TEST MATCH OF SEGMENTS (0),(1) WITHOUT SUBSTITUTION. [then] Restore W0-W1
+142	TEST IF OTHER MAIN SEGMENT		9-0		11	W0			M040R080					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+142	EXISTS.					J81			M040R090						FIND the 1th symbol on list (0)
+142						J5			M040R100						Reverse sense of H5
+142	NO, QUIT W/H5+ FOR MATCH				70	9-1	J31		M040R110					Branch to S (direct) if H5-	 [then] Restore W0-W1
+142	YES, QUIT W/H5- FOR NO MATCH.		9-1		30	H0	J31		M040R120					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W1
+142		1							    R						
+142	M41 TEST IF SEGMENTS (0) AND (1)		M41			J51		1W0=SEG1	M041R000						Preserve W0-W1; MOVE (0)-(1) into W0-W1
+142	    MATCH.				11	W0		1W1=SEG2	M041R010					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+142	TEST IF 1ST IS VARIABLE.					P8			M041R020						TEST IF (0) IS VARIABLE TERM.
+142	    IF NOT, EXAMINE SUBSEGMENTS.				70	9-1			M041R030					Branch to S (direct) if H5-	
+142	    IF YES,				11	W0			M041R040					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+142					11	W1			M041R050					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+142	TEST IF SAME VARIABLE.					J2			M041R060						TEST (0) (1)
+142	    IF YES, QUIT, H5+.				70		J31		M041R070					Branch to S (direct) if H5-	 [then] Restore W0-W1
+142	    IF NO,				11	W1			M041R080					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+142	TEST IF 2ND IS FREE VARIABLE.					P9			M041R090						TEST IF (0) IS FREE VARIABLE.
+142	    IF NO, QUIT, H5-.				70	J31			M041R100					Branch to S (direct) if H5-	Restore W0-W1
+142	    IF YES,				11	W0			M041R110					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+142	TEST IF 1ST IS FREE VARIABLE.					P9	J31		M041R120						TEST IF (0) IS FREE VARIABLE. [then] Restore W0-W1
+142	EXAMINE SUBSEGMENTS.		9-1		11	W1			M041R130					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+142	TEST IF NOT SEGMENT.					P8			M041R140						TEST IF (0) IS VARIABLE TERM.
+142	    IF NOT, QUIT, H5-				70		9-2		M041R150					Branch to S (direct) if H5-	
+142	    IF YES,				12	W0			M041R160					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+142					12	W1			M041R170					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+142	TEST IF SAME CONNECTIVES.					J2			M041R180						TEST (0) (1)
+142	    IF NOT, QUIT, H5-				70	J31			M041R190					Branch to S (direct) if H5-	Restore W0-W1
+142	    IF YES,				11	W0			M041R200					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+142	FIND LEFT SUBSEGMENT.					J81			M041R210						FIND the 1th symbol on list (0)
+142	    IF NONE, CHECK OTHER SIDE.				70	9-3			M041R220					Branch to S (direct) if H5-	
+142					11	W1			M041R230					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+142	FIND OTHER LEFT SUBSEGMENT.					J81			M041R240						FIND the 1th symbol on list (0)
+142	    IF NONE, QUIT, H5-.				70	9-7			M041R250					Branch to S (direct) if H5-	
+142	TEST IF LEFT SEGMENTS MATCH.					M41			M041R260						TEST MATCH OF SEGMENTS (0),(1) WITHOUT SUBSTITUTION.
+142	    IF NOT, QUIT, H5-				70	J31			M041R270					Branch to S (direct) if H5-	Restore W0-W1
+142					11	W0			M041R280					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+142	FIND RIGHT SUBSEGMENT.					J82			M041R290						FIND the 2th symbol on list (0)
+142	    IF NONE, CHECK OTHER SIDE.				70	9-4			M041R300					Branch to S (direct) if H5-	
+142					11	W1			M041R310					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+142	FIND OTHER RIGHT SUBSEGMENTS.					J82			M041R320						FIND the 2th symbol on list (0)
+142	    IF NONE, QUIT, H5-				70	9-7			M041R330					Branch to S (direct) if H5-	
+142	TEST IF RIGHT SEGMENTS MATCH,					M41	J31	AND QUIT.	M041R340						TEST MATCH OF SEGMENTS (0),(1) WITHOUT SUBSTITUTION. [then] Restore W0-W1
+142	QUIT, REVERSE H5.		9-2			J5	J31		M041R350						Reverse sense of H5 [then] Restore W0-W1
+142	NO FIRST SEGMENT ON 1W0,		9-3		11	W1			M041R360					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+142	FIND FIRST SEGMENT ON 1W1.					J81			M041R370						FIND the 1th symbol on list (0)
+142	    IF NONE, H5+. ELSE H5-.		9-5		70	9-2	9-6		M041R380					Branch to S (direct) if H5-	
+142	NO SECOND SEGMENT ON 1W0,		9-4		11	W1			M041R390					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+143	FIND SECOND SEGMENT ON 1W1.					J82	9-5		M041R400						FIND the 2th symbol on list (0)
+143	REVERSE H5 AND		9-6			J5			M041R410						Reverse sense of H5
+143	QUIT, DISCARD (0).		9-7		30	H0	J31		M041R420					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W1
+143		1							    R						
+143	M42 ADD PROBLEM (0) TO FOUND LIST.		M42			J42			M042R000						Preserve W0-W2
+143	    IF CANNOT, SET H5 -.				60	W0		1W0=PROB	M042R010					Copy (0) to S (direct)	[Work cell 0]
+143					50	L11			M042R030					Replace (0) by S (direct)	LIST OF FOUND PROBLEMS.
+143					11	W0			M042R040					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+143	GET NUMBER OF LEVELS					Q2			M042R050						FIND NO. OF LEVELS OF EXPRESSION (0).
+143	    IF NONE, QUIT -.				70	9-300			M042R055					Branch to S (direct) if H5-	
+143	GET SUBLIST					9-100			M042R060						
+143					11	W0			M042R070					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+143	GET NUMBER OF DISTINCT VARIABLES					Q3			M042R080						FIND NO. OF DISTINCT VARIABLES OF EXPRESSION (0).
+143	    IF NONE, QUIT -.				70	9-300			M042R085					Branch to S (direct) if H5-	
+143	GET SUBLIST					9-100			M042R090						
+143					11	W0			M042R100					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+143	GET NUMBER OF VARIABLE PLACES					Q4			M042R110						FIND NO. OF VARIABLE PLACES CF EXPRESSION (0).
+143	    IF NONE, QUIT -.				70	9-300			M042R115					Branch to S (direct) if H5-	
+143	GET SUBLIST					9-100			M042R120						
+143					40	H0			M042R130					Preserve (Push) S (direct)	[Communication Cell]
+143					10	9-200			M042R140					Input S (direct) to H0, after pushing H0	
+143	GENERATE SUBLIST FOR MATCH					J100			M042R150						Gen symbols on list (1) for(0)
+143					70	9-1			M042R160					Branch to S (direct) if H5-	
+143	INSERT AT END OF LIST				11	W0			M042R170					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+143						J32	J65		M042R180						Restore W0-W2 [then] INSERT (0) at end of list (1)
+143			9-1		30	H0	J32		M042R190					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W2
+143	9-200 SUBPROCESS.		9-200		11	W0			M042R200					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+143	COMPARE EXPRESSIONS					M40	J5		M042R210						TEST MATCH OF TOTAL EXPRESSIONS (0),(1) WITHOUT SUBSTITUTION. [then] Reverse sense of H5
+143	9-100 SUBPROCESS, GET SUBLIST.		9-100		64	W1		1W1=D.T.	M042R220						[Work cell 1]
+143	LOCATE SUBLIST.					P55			M042R230						LOCATE LIST FOLLOWING DATA TERM (0) ON LIST (1). H5+ MEANS OUTPUT (0) 15 CELL HOLDING SUBLIST. H5- MEANS OUTPUT (0) IS CELL AFTER WHICH TO INSERT.
+143					70		J80		M042R240					Branch to S (direct) if H5-	 [then] FIND the 0th symbol on list (0)
+143					40	H0			M042R250					Preserve (Push) S (direct)	[Communication Cell]
+143	CREATE NEW SUBLIST.					J90			M042R260						Create list of 0 symbols, (0-0) to (0)
+143						J136			M042R270						Make (0) local, leave (0)
+143	SAVE SUBLIST FOR OUTPUT.				60	W2		1W2=SUBLST	M042R280					Copy (0) to S (direct)	[Work cell 2]
+143	INSERT NEW SUBLIST.					J64			M042R290						INSERT (0) after symbol in cell (1)
+143					11	W1			M042R300					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+143	COPY DATA TERM.					J120			M042R310						COPY (0)
+143	MARK LOCAL.					J136			M042R320						Make (0) local, leave (0)
+143	INSERT BEFORE NEW SUBLIST.					J64			M042R330						INSERT (0) after symbol in cell (1)
+143	GET SUBLIST AND QUIT.				11	W2	0		M042R340					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+143			9-300		30	H0	J32		M042R350					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W2
+143		1							    R						
+143	M43 MEASURE UTILITY SUBPROBLEM (0).		M43			J43			M043R000						Preserve W0-W3
+143	    SET H5+ IF GOOD, H5- IF N.G.				60	W0		1W0=PROB	M043R010					Copy (0) to S (direct)	[Work cell 0]
+143	FIND MEX.					J81			M043R020						FIND the 1th symbol on list (0)
+143					70	J33			M043R030					Branch to S (direct) if H5-	Restore W0-W3
+143	GO THRU 'NOTS'					P4			M043R040						GO THRU NOTS OF SEGMENT (0). LEAVE FIRST UNNOTTED SEGME H5— MEANS NO OUTPUT DUE TO FAULTY EXPRESSION.
+143					70	J33			M043R045					Branch to S (direct) if H5-	Restore W0-W3
+143	SAVE UNNOTTED MEX.				60	W1		1W1=MEX	M043R050					Copy (0) to S (direct)	[Work cell 1]
+143	TEST IF VARIABLE					P8			M043R060						TEST IF (0) IS VARIABLE TERM.
+144						J5			M043R070						Reverse sense of H5
+144	IF H5-, QUIT (VARIABLE ONLY)				70	J33			M043R080					Branch to S (direct) if H5-	Restore W0-W3
+144					12	W1		2W1=MCONN	M043R090					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+144					11	K1		1K1='OR'	M043R100					Input S (indirect) to H0, after pushing H0	HOLDS -OR-.
+144	TEST IF MAIN CONNECTIVE 'OR'					J2			M043R110						TEST (0) (1)
+144	IF NOT 'OR', LOOK ON FOUND LIST				70	9-10			M043R120					Branch to S (direct) if H5-	
+144					11	W1			M043R130					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+144	LOCATE RIGHT SIDE					J60			M043R140						LOCATE next symbol after cell (0)
+144					70	9-0			M043R150					Branch to S (direct) if H5-	
+144	GET RIGHT SIDE				12	H0			M043R160					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+144						J6			M043R170						Reverse (0) and (1)
+144	LOCATE LEFT SIDE					J60			M043R180						LOCATE next symbol after cell (0)
+144					70	9-1			M043R190					Branch to S (direct) if H5-	
+144	GET LEFT SIDE				52	H0			M043R200					Replace (0) by S (DOUBLE indirect)	[Communication Cell]
+144	TEST IF SIDES MATCH.					M114			M043R210						MATCH SEGMENTS (0),(1) WITH SUBSTITUTION AS REQUIRED. NO OUTPUT, H5- MEANS THE MATCH FAILED.
+144						J5			M043R220						Reverse sense of H5
+144	IF SAME QUIT W/H5-				70	J33			M043R230					Branch to S (direct) if H5-	Restore W0-W3
+144			9-10		11	W0			M043R240					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+144	ADD TO FOUND LIST IF CAN					M42	J33		M043R260						ADD PROBLEM(0) TO FOUND PROBLEMS LIST IF CAN. H5- MEANS THIS PROBLEM WAS PREVIOUSLY FOUND. [then] Restore W0-W3
+144			9-1		30	H0			M043R270					Restore (Pop) S (direct)	[Communication Cell]
+144			9-0		30	H0	J33		M043R280					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W3
+144		1							    R						
+144	M50 ADD TEX(0) TO TRUE EXPRESSIONS		M50		40	H0			M050R000					Preserve (Push) S (direct)	[Communication Cell]
+144	   LIST AND TRUE EXPRESSIONS MAP.					J50			M050R010						Preserve W0-W0;MOVE (0)-(0) into W0-W0
+144	   MAKE ALL VARIABLES FREE.					P27			M050R020						REPLACE BOUND VARIABLES BY FREE VARIABLES IN TEX (0).
+144					10	L1			M050R030					Input S (direct) to H0, after pushing H0	
+144					11	W0			M050R040					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+144	ADD TO LIST					J65			M050R050						INSERT (0) at end of list (1)
+144					10	L4			M050R060					Input S (direct) to H0, after pushing H0	LIST STRUCTURE MAP OF ALL TRUE EXPRESSIONS.
+144					11	W0			M050R070					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+144	ADD TO MAP					M54			M050R080						ADD EXPRESSION (0) TO MAP OF TRUE EXPRESSIONS.
+144					11	W0			M050R090					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+144	PRINT EXPRESSION AND QUIT.					M70	J30		M050R100						PRINT EXPRESSION (0). [then] Restore W0-W0
+144		1							    R						
+144	M51 PRINT NEW SUBPROBLEM (0) AND		M51			J41			M051R000						Preserve W0-W1
+144	    ADD TO UNTRIED SUBPROBLEM LIST.				60	W0		1W0=PROB	M051R010					Copy (0) to S (direct)	[Work cell 0]
+144					10	K10			M051R020					Input S (direct) to H0, after pushing H0	PREVIOUS SUBPROBLEM NUMBER. (DATA TERM)
+144	TALLY PREVIOUS SUBPROBLEM NUMBER.					J125			M051R030						Tally 1 in (0), leave (0)
+144						J120			M051R040						COPY (0)
+144						J136			M051R050						Make (0) local, leave (0)
+144					10	Q8			M051R060					Input S (direct) to H0, after pushing H0	FIND PROBLEM NO. OF EXPRESSION (0).
+144	ASSIGN PROBLEM NO.					J11			M051R070						Assign (1) as value of attribute (0) of (2)
+144					10	L10			M051R080					Input S (direct) to H0, after pushing H0	LIST OF UNTRIED PROBLEMS.
+144					11	W0			M051R110					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+144	FIND NO. OF LEVELS					Q2			M051R120						FIND NO. OF LEVELS OF EXPRESSION (0).
+144	    IF NONE, QUIT -.				70	9-3			M051R125					Branch to S (direct) if H5-	
+144					60	W1		1W1=LEVELS	M051R130					Copy (0) to S (direct)	[Work cell 1]
+144	LOCATE CORRESPONDING LIST.					P55			M051R140						LOCATE LIST FOLLOWING DATA TERM (0) ON LIST (1). H5+ MEANS OUTPUT (0) 15 CELL HOLDING SUBLIST. H5- MEANS OUTPUT (0) IS CELL AFTER WHICH TO INSERT.
+144					70	9-1			M051R150					Branch to S (direct) if H5-	
+144	GET LIST.				52	H0			M051R160					Replace (0) by S (DOUBLE indirect)	[Communication Cell]
+144					11	W0			M051R170					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+145	ADD NEW SUBPROBLEM.					J65	9-2		M051R190		180 IS MISSING RIGHT AT THE END OF PAGE 144 - HOPE IT'S NOT A PRINTING ERROR				INSERT (0) at end of list (1)
+145			9-1		40	H0			M051R200					Preserve (Push) S (direct)	[Communication Cell]
+145					11	W0			M051R210					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+145	CREATE LIST OF ONE SUBPROBLEM.					J91			M051R223						Create list of 1 symbols, (1-1) to (0)
+145						J136			M051R226						Make (0) local, leave (0)
+145	INSERT NEW LIST.					J64			M051R230						INSERT (0) after symbol in cell (1)
+145					11	W1			M051R240					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+145	COPY LEVEL DATA TERM.					J120			M051R250						COPY (0)
+145						J136			M051R260						Make (0) local, leave (0)
+145	INSERT BEFORE NEW LIST.					J64	9-2		M051R270						INSERT (0) after symbol in cell (1)
+145			9-2		11	W0			M051R280					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+145	PRINT NEW SUBPROBLEM.					M75	J31		M051R290						PRINT NEW SUBPROBLEM (0). [then] Restore W0-W1
+145			9-3		30	H0	J31		M051R300					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W1
+145		1							    R						
+145	M54 ADD TOTAL EXPRESSION (0) TO		M54		40	W0			M054R000					Preserve (Push) S (direct)	[Work cell 0]
+145	   MAP OF TRUE EXPRESSIONS (1).				60	W0		1W0=THMNAM	M054R010					Copy (0) to S (direct)	[Work cell 0]
+145						J81			M054R020						FIND the 1th symbol on list (0)
+145					70	9-0		(0)=MEX	M054R030					Branch to S (direct) if H5-	
+145						J6			M054R040						Reverse (0) and (1)
+145	ADD MAIN SEGMENT (1) TO MAP (0).					9-100	J30		M054R050						 [then] Restore W0-W0
+145			9-0		30	H0	J30		M054R060					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W0
+145	9-100 SUBPROCESS, ADD SEGMENT (1)		9-100		04	J43		1W0=THMNAM	M054R070		PQ=04				Preserve W0-W3
+145	                  TO MAP (0).				20	W1		1W1=MAP	M054R080						[Work cell 1]
+145					60	W2		1W2=SEGMNT	M054R090					Copy (0) to S (direct)	[Work cell 2]
+145	TEST IF SIMPLE VARIABLE.					P8			M054R100						TEST IF (0) IS VARIABLE TERM.
+145	   IF NO, CONTINUE DOWN MAP.				70	9-102			M054R110					Branch to S (direct) if H5-	
+145	   IF YES, ADD THNAME.				11	W1			M054R120					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+145	TEST IF NAME LIST IN MAP HEAD.					J79			M054R130						TEST if cell (0) is not empty
+145	   IF NO, GO MAKE ONE.				70	9-101			M054R140					Branch to S (direct) if H5-	
+145	   IF YES,				12	W1			M054R150					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+145					11	W0			M054R160					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+145	INSERT NAME AND QUIT.					J64	J33		M054R170						INSERT (0) after symbol in cell (1) [then] Restore W0-W3
+145			9-101		11	W0			M054R180					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+145	CREATE LIST OF ONE NAME.					J91			M054R190						Create list of 1 symbols, (1-1) to (0)
+145						J136			M054R200						Make (0) local, leave (0)
+145	PLACE IN MAP HEAD AND QUIT.				21	W1	J33		M054R210						[Work cell 1] [then] Restore W0-W3
+145	INPUT MAP HOLDER.		9-102		10	W1			M054R220					Input S (direct) to H0, after pushing H0	[Work cell 1]
+145	INPUT SEGMENT CONNECTIVE.				12	W2			M054R230					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 2]
+145	FIND SUBMAPS LIST.					J10			M054R240						FIND value of attribute (0) of (1)
+145	   IF FOUND, CONTINUE.				70		9-110		M054R250					Branch to S (direct) if H5-	
+145	   IF NONE,				10	W1			M054R260					Input S (direct) to H0, after pushing H0	[Work cell 1]
+145						J90			M054R270						Create list of 0 symbols, (0-0) to (0)
+145	CREATE 1ST LOCAL SUBMAP.					J136			M054R280						Make (0) local, leave (0)
+145					12	W2			M054R290					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 2]
+145	TEST IF 2ND SUBLIST NEEDED.					P6			M054R300						TEST IF CONNECTIVE (0) IS NON-UNARY.
+145	   IF NO, SKIP IT.				70	9-111			M054R310					Branch to S (direct) if H5-	
+145	   IF YES,				40	H0			M054R320					Preserve (Push) S (direct)	[Communication Cell]
+145	CREATE 2ND LOCAL SUBMAP.					J120			M054R330						COPY (0)
+145						J92	9-112		M054R340						Create list of 2 symbols, (2-1) to (0)
+145	CREATE SUBMAP LIST.		9-111			J91			M054R350						Create list of 1 symbols, (1-1) to (0)
+145			9-112			J136			M054R360						Make (0) local, leave (0)
+146					60	W3		1W3=MAPLST	M054R370					Copy (0) to S (direct)	[Work cell 3]
+146					12	W2			M054R380					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 2]
+146	ASSIGN AS SUBMAP LIST OF CONNECTIVE					J11			M054R390						Assign (1) as value of attribute (0) of (2)
+146					11	W3	9-110		M054R400		UNUSUAL TO SEE AN EXPLICIT LINK TO THE NEXT LINE			Input S (indirect) to H0, after pushing H0	[Work cell 3]
+146			9-110		20	W3		1W3=MAPLST	M054R410						[Work cell 3]
+146					11	W2			M054R420					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+146	FIND 1ST SUB SEGMENT.					J81			M054R430						FIND the 1th symbol on list (0)
+146	   IF NONE, QUIT.				70	J33			M054R440					Branch to S (direct) if H5-	Restore W0-W3
+146					11	W3			M054R450					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+146	FIND 1ST SUB MAP.					J81			M054R460						FIND the 1th symbol on list (0)
+146	   IF NONE, QUIT.				70	9-114			M054R470					Branch to S (direct) if H5-	
+146	ADD SEGMENT (1) TO SUBMAP (0).					9-100			M054R480						
+146					12	W2			M054R490					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 2]
+146	TEST IF MORE SEGMENTS.					P6			M054R500						TEST IF CONNECTIVE (0) IS NON-UNARY.
+146	   IF NO, QUIT.				70	J33			M054R510					Branch to S (direct) if H5-	Restore W0-W3
+146					11	W2			M054R520					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+146	FIND 2ND SUBSEGMENT.					J82			M054R530						FIND the 2th symbol on list (0)
+146	   IF NONE, QUIT.				70	J33			M054R540					Branch to S (direct) if H5-	Restore W0-W3
+146					11	W3			M054R550					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+146	FIND 2ND SUBMAP.					J82			M054R560						FIND the 2th symbol on list (0)
+146	   IF NONE, QUIT.				70	9-114			M054R570					Branch to S (direct) if H5-	
+146	ADD SEGMENT (1) TO SUBMAP (0).					9-100	J33		M054R580						 [then] Restore W0-W3
+146			9-114		30	H0	J33		M054R600					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W3
+146		1							    R						
+146	M60 FIND NEXT UNTRIED PROBLEM.		M60		10	L10			M060R000					Input S (direct) to H0, after pushing H0	LIST OF UNTRIED PROBLEMS.
+146	     H5 - MEANS NONE REMAINING.		9-1			J60			M060R010						LOCATE next symbol after cell (0)
+146	LOCATE NEXT SUBLIST OF PROBLEMS.					J60			M060R020						LOCATE next symbol after cell (0)
+146	     IF NONE, QUIT -.				70	J8			M060R030					Branch to S (direct) if H5-	Restore H0
+146	     IF SOME, GET SUBLIST AND				12	H0			M060R040					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+146	FIND FIRST PROBLEM.					J81			M060R050						FIND the 1th symbol on list (0)
+146	     IF NONE, LOCATE NEXT LIST.				70	9-1			M060R060					Branch to S (direct) if H5-	
+146	     IF FOUND,GET LOCATION OF LIST,					J6			M060R070						Reverse (0) and (1)
+146	GET NAME OF LIST, AND				52	H0			M060R080					Replace (0) by S (DOUBLE indirect)	[Communication Cell]
+146	LOCATE FIRST PROBLEM.					J60			M060R090						LOCATE next symbol after cell (0)
+146	     IF NONE, MACHINE ERROR--HALT.				70	J7			M060R100		DID THE MACHINE MAKE MISTAKES?			Branch to S (direct) if H5-	Halt, proceed on GO
+146	     IF LOCATED, DELETE FROM LIST,					J68			M060R110			I'LL BET IT DID - JEFF			DELETE symbol in cell (0)
+146	MARK OUTPUT REGIONAL, QUIT+.					J138	J4		M060R120						Make (0) internal, leave (0) [then] Set H5+
+146		1							    R						
+146	M62 CREATE A LIST OF TRUE		M62			J45			M062R000						
+146	    EXPRESSIONS FROM MAP (1) FOR				20	W0		1W0=SEG	M062R010						[Work cell 0]
+146	    FEASIBLE MATCH WITH SEGMENT				60	W1		1W1=MAP	M062R020					Copy (0) to S (direct)	[Work cell 1]
+146	    (0).  OUTPUT MAY BE EMPTY.				52	W1			M062R030					Replace (0) by S (DOUBLE indirect)	[Work cell 1]
+146						J73			M062R040						COPY list (0)
+146	SAVE COPY OF LIST IN MAP HEAD.				60	W2		1W2=THMLST	M062R050					Copy (0) to S (direct)	[Work cell 2]
+146					11	W0			M062R060					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+146	TEST IF SEGMENT IS SIMPLE VAR.					P8			M062R070						TEST IF (0) IS VARIABLE TERM.
+146	    IF YES, QUIT WITH OUTPUT.				70		J35		M062R080					Branch to S (direct) if H5-	
+146	    IF NO,				51	W0			M062R090					Replace (0) by S (indirect)	[Work cell 0]
+146	LOCATE 1ST SUBSEGMENT.					J60			M062R100						LOCATE next symbol after cell (0)
+146	    IF NONE, OUTPUT 1W2, QUIT.				70	9-1			M062R110					Branch to S (direct) if H5-	
+146					60	W3		1W3=SEGLOC	M062R120					Copy (0) to S (direct)	[Work cell 3]
+147					50	W1			M062R130					Replace (0) by S (direct)	[Work cell 1]
+147					12	W0			M062R140					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+147	FIND LIST OF APPROPRIATE SUBMAPS.					J10			M062R150						FIND value of attribute (0) of (1)
+147	    IF NONE, OUTPUT 1W2, QUIT.				70	9-0			M062R160					Branch to S (direct) if H5-	
+147	LOCATE 1ST SUBMAP.					J60			M062R170						LOCATE next symbol after cell (0)
+147	    IF NONE, OUTPUT 1W2, QUIT.				70	9-1			M062R180					Branch to S (direct) if H5-	
+147	    IF THERE, SAVE LOCATION,				60	W4		1W4=MAPLOC	M062R190					Copy (0) to S (direct)	[Work cell 4]
+147					52	W4			M062R200					Replace (0) by S (DOUBLE indirect)	[Work cell 4]
+147	SET UP H0 AND				12	W3			M062R210					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 3]
+147	CREATE LIST FROM MAP (1) FOR (0).					M62			M062R220						CREATE A LIST OF FEASIBLE MATCHES FOR SEGMENT (0) FROM MAP (1).
+147					12	W0			M062R230					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+147	TEST IF CONNECTIVE WAS NON-UNARY.					P6			M062R240						TEST IF CONNECTIVE (0) IS NON-UNARY.
+147	    IF UNARY, FIX OUTPUT, QUIT.				70	9-2			M062R250					Branch to S (direct) if H5-	
+147	    IF NON-UNARY, SAVE LIST AND				60	W5		1W5=ANDLST	M062R260					Copy (0) to S (direct)	[Work cell 5]
+147			9-4		51	W3			M062R270					Replace (0) by S (indirect)	[Work cell 3]
+147	LOCATE NEXT SUBSEGMENT.					J60			M062R280						LOCATE next symbol after cell (0)
+147					60	W3			M062R290					Copy (0) to S (direct)	[Work cell 3]
+147	    IF NONE, FIX OUTPUT, QUIT.				70	9-3			M062R300					Branch to S (direct) if H5-	
+147					51	W4			M062R310					Replace (0) by S (indirect)	[Work cell 4]
+147	LOCATE NEXT SUBMAP.					J60			M062R320						LOCATE next symbol after cell (0)
+147					60	W4			M062R330					Copy (0) to S (direct)	[Work cell 4]
+147	    IF NONE, FIX OUTPUT, QUIT.				70	9-3			M062R340					Branch to S (direct) if H5-	
+147					52	W4			M062R350					Replace (0) by S (DOUBLE indirect)	[Work cell 4]
+147					12	W3			M062R360					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 3]
+147	CREATE LIST FROM MAP (1) FOR (0),					M62			M062R370						CREATE A LIST OF FEASIBLE MATCHES FOR SEGMENT (0) FROM MAP (1).
+147	AND' RESULT WITH LIST 1W5, LOOP.					9-100	9-4		M062R380		LEADING SINGLE QUOTE IN COMMENT NOT SHOWING BUT SEEMS TO BE PRESENT				
+147			9-3		51	W5			M062R390					Replace (0) by S (indirect)	[Work cell 5]
+147	FIX OUTPUT - - -		9-2		11	W2			M062R400					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+147	OR' W5 WITH 1W2,					J6			M062R410		LEADING SINGLE QUOTE IN COMMENT...				Reverse (0) and (1)
+147	LEAVE RESULT AS 1W2.					J76			M062R420						INSERT list (0) after (1), locate last symbol
+147	OUTPUT 1W2, CLEAR CONTEXT.		9-1		51	W2	J35		M062R430					Replace (0) by S (indirect)	[Work cell 2]
+147			9-0		11	W2	J35		M062R440					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+147	SUBPROCESS - 'AND' (0) WITH 1W5.		9-100		11	W5			M062R450					Input S (indirect) to H0, after pushing H0	[Work cell 5]
+147					10	9-200			M062R460					Input S (direct) to H0, after pushing H0	
+147	GENERATE 1W5 FOR PROCESS MARKING.					J100			M062R470						Gen symbols on list (1) for(0)
+147					40	H0			M062R480					Preserve (Push) S (direct)	[Communication Cell]
+147					10	9-300			M062R490					Input S (direct) to H0, after pushing H0	
+147	GENERATE '(0)' TO UNMARK MARKED.					J100			M062R500						Gen symbols on list (1) for(0)
+147	ERASE '(0)'					J71			M062R510						ERASE list (0)
+147					11	W5			M062R520					Input S (indirect) to H0, after pushing H0	[Work cell 5]
+147	LOCATE NEXT OF 1W5.		9-101			J60			M062R530						LOCATE next symbol after cell (0)
+147	    IF NONE, QUIT SUBPROCESS.				70	0			M062R540					Branch to S (direct) if H5-	
+147			9-102		12	H0			M062R550					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+147	TEST IF EXPRESSION MARKED.					J133			M062R560						TEST if list (0) has been marked processed
+147	    IF NO, LOOP TO NEXT.				70	9-101			M062R570					Branch to S (direct) if H5-	
+147	    IF YES, UNMARK IT,				32	H0			M062R580						[Communication Cell]
+147	SAVE LOCATION AND DELETE THIS				40	H0			M062R590					Preserve (Push) S (direct)	[Communication Cell]
+147	EXPRESSION DUE NOT ON BOTH LISTS.					J68			M062R600						DELETE symbol in cell (0)
+147	    IF MORE, LOOP WITH NEXT.				70	0	9-102		M062R610					Branch to S (direct) if H5-	
+147	SUBPROCESS - MARK PROCESSED.		9-200			J137	J8		M062R620						Mark list (0) processed, leave (0) [then] Restore H0
+147	SUBPROCESS - UNMARK IF MARKED.		9-300		40	H0			M062R630					Preserve (Push) S (direct)	[Communication Cell]
+148						J133			M062R640						TEST if list (0) has been marked processed
+148					70	9-201			M062R650					Branch to S (direct) if H5-	
+148					31	H0	J8		M062R660						[Communication Cell] [then] Restore H0
+148			9-201		30	H0	J4		M062R670					Restore (Pop) S (direct)	[Communication Cell] [then] Set H5+
+148		1							    R						
+148	M63 CREATE A LIST OF TRUE		M63			J6			M063R000						Reverse (0) and (1)
+148	    EXPRESSIONS FROM MAP (0) FOR					J81			M063R010						FIND the 1th symbol on list (0)
+148	    FEASIBLE MATCH WITH TEX (1).				70		M62		M063R020					Branch to S (direct) if H5-	 [then] CREATE A LIST OF FEASIBLE MATCHES FOR SEGMENT (0) FROM MAP (1).
+148	    OUTPUT MAY BE AN EMPTY LIST.				30	H0	J90		M063R030					Restore (Pop) S (direct)	[Communication Cell] [then] Create list of 0 symbols, (0-0) to (0)
+148		1							    R						
+148	M70 PRINT EXPRESSION (0), WITH OR		M70			J154			M070R000						Clear print line
+148	    WITHOUT A SUFFIX.				40	H0			M070R010					Preserve (Push) S (direct)	[Communication Cell]
+148	ENTER NAME.					M79			M070R020						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+148					10	N8			M070R030					Input S (direct) to H0, after pushing H0	
+148	TAB TO COLUMN (0).					J160			M070R040						Tab to column (0)
+148					40	H0			M070R050					Preserve (Push) S (direct)	[Communication Cell]
+148	FIND MEX.					J81			M070R060						FIND the 1th symbol on list (0)
+148	     IF NONE, SKIP IT.				70	9-1			M070R070					Branch to S (direct) if H5-	
+148	ENTER MEX.					M73			M070R080						ENTER SEGMENT (0).
+148	FIND SUFFIX.		9-1			Q18			M070R090						FIND SUFFIX OF EXPRESSION (0).
+148	     IF NONE, PRINT WITHOUT IT.				70	J155			M070R100					Branch to S (direct) if H5-	Print line
+148					10	N1			M070R110					Input S (direct) to H0, after pushing H0	
+148	BUMP COLUMN.					J161			M070R120						Increment column by (0)
+148	ENTER SUFFIX AND PRINT.					J157	J155		M070R130						Enter data term (0) left-justified [then] Print line
+148		1							    R						
+148	M71 PRINT PROOF SEQUENCE FROM (0).		M71			J50		1W0=TEX	M071R000						Preserve W0-W0;MOVE (0)-(0) into W0-W0
+148						J154			M071R010						Clear print line
+148						J155			M071R020						Print line
+148	SKIP TWO LINES.					J155			M071R030						Print line
+148					10	T2			M071R040					Input S (direct) to H0, after pushing H0	
+148	ENTER 'PROOF FOUND' AND					M76			M071R050						ENTER LIST OF DATA TERMS (0).
+148	PRINT.					J155			M071R060						Print line
+148						J154			M071R070						Clear print line
+148	SKIP ONE LINE.					J155			M071R080						Print line
+148					11	W0			M071R090					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+148	FIND PROVING THEOREM.					Q13			M071R100						FIND PROVING THEOREM FOR PROBLEM (0).
+148					70		9-1		M071R110					Branch to S (direct) if H5-	
+148	      IF NONE, USE DUMMY CHARACTER.				10	/14			M071R120					Input S (direct) to H0, after pushing H0	
+148	ENTER 'GIVEN'.		9-1		10	T1			M071R130					Input S (direct) to H0, after pushing H0	
+148	PRINT FIRST LINE OF PROOF.					M80			M071R140						PRINT PROOF LINE FOR METHOD (0) AND TEX (1).
+148	INPUT TEX AND				11	W0			M071R150					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+148	SUBSTITUTION'.				10	T3			M071R160		LEADING SINGLE QUOTE...			Input S (direct) to H0, after pushing H0	
+148	PRINT NEXT EVEN LINE.		9-6			M80			M071R170						PRINT PROOF LINE FOR METHOD (0) AND TEX (1).
+148					11	W0			M071R180					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+148	FIND THEOREM USED IN DERIVATION.					Q12			M071R190						FIND THEOREM USED TO DERIVE PROBLEM (C).
+148	     IF NONE, FINISH WITH Q.E.D.				70	9-2			M071R200					Branch to S (direct) if H5-	
+148					10	T1			M071R210					Input S (direct) to H0, after pushing H0	
+148	PRINT NEXT ODD LINE.					M80			M071R220						PRINT PROOF LINE FOR METHOD (0) AND TEX (1).
+148					11	W0			M071R230					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+148	FIND METHOD OF DERIVATION					Q11			M071R240						FIND METHOD OF DERIVATION FOR EXPRESSION (0).
+148					70	9-3			M071R250					Branch to S (direct) if H5-	
+149	FIND EXTERNAL NAME OF METHOD.					Q16			M071R260						FIND EXTERNAL NAME OF (0) IN TABLE T10.
+149					70		9-4		M071R270					Branch to S (direct) if H5-	
+149	     IF NONE, USE BLANKS.		9-3		10	T5			M071R280					Input S (direct) to H0, after pushing H0	
+149			9-4		11	W0			M071R290					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+149	FIND PROBLEM USED IN DERIVATION.					Q10			M071R300						FIND PROBLEM EXPRESSION (0) DERIVED FROM.
+149					70		9-5		M071R310					Branch to S (direct) if H5-	
+149	      IF NONE, USE DUMMY CHARACTER.				10	/14			M071R320					Input S (direct) to H0, after pushing H0	
+149			9-5		60	W0			M071R330					Copy (0) to S (direct)	[Work cell 0]
+149	LOOP TO PRINT NEXT EVEN LINE.					J6	9-6		M071R340						Reverse (0) and (1)
+149			9-2			J154			M071R350						Clear print line
+149					10	K41			M071R360					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING METHODS IN PROOF SEQUENCES.
+149	TAB TO COLUMN K41.					J160			M071R370						Tab to column (0)
+149					10	T4			M071R380					Input S (direct) to H0, after pushing H0	
+149	ENTER 'Q.E.D. AND					M76			M071R390						ENTER LIST OF DATA TERMS (0).
+149	PRINT.					J155			M071R400						Print line
+149	PRINT LIMITS, CLEAR CONTEXT/QUIT.					M77	J30		M071R410						PRINT CURRENT STATUS OF LIMITS. [then] Restore W0-W0
+149		1							    R						
+149	PRINT -NO PROOF FOUND-		M72			J154			M072R000						Clear print line
+149					10	T6			M072R010					Input S (direct) to H0, after pushing H0	
+149	ENTER MESSAGE					M76			M072R020						ENTER LIST OF DATA TERMS (0).
+149	PRINT MESSAGE, LIMITS					J155	M77		M072R030						Print line [then] PRINT CURRENT STATUS OF LIMITS.
+149		1							    R						
+149	ENTER SEGMENT (0)		M73		40	H0			M073R000					Preserve (Push) S (direct)	[Communication Cell]
+149	TEST IF VARIABLE					P8			M073R010						TEST IF (0) IS VARIABLE TERM.
+149	IF YES, ENTER VARIABLE.				70		M79		M073R020					Branch to S (direct) if H5-	 [then] ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+149					12	H0			M073R030					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+149					11	K2			M073R040					Input S (indirect) to H0, after pushing H0	HOLDS -NOT-.
+149	TEST IF CONNECTIVE NOT					J2			M073R050						TEST (0) (1)
+149					70	9-1			M073R060					Branch to S (direct) if H5-	
+149					12	H0			M073R070					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+149	ENTER NOT.					M79			M073R080						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+149						J81			M073R090						FIND the 1th symbol on list (0)
+149					70	J7	9-200		M073R095					Branch to S (direct) if H5-	Halt, proceed on GO
+149					70	0	9-200		M073R100					Branch to S (direct) if H5-	
+149			9-1			J41			M073R110						Preserve W0-W1
+149					60	W0		1W0=SEG	M073R120					Copy (0) to S (direct)	[Work cell 0]
+149	LOCAT FIRST SEGMENT.					J60			M073R130						LOCATE next symbol after cell (0)
+149					20	W1		1W1=LOC'N	M073R140						[Work cell 1]
+149	IF NONE, QUIT.				70	J31			M073R150					Branch to S (direct) if H5-	Restore W0-W1
+149					12	W1		2W1=SUBSEG	M073R160					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+149	ENTER SEGMENT.					9-200			M073R170						
+149					11	W1			M073R180					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+149	LOCATE NEXT SUBSEGMENT.		9-2			J60			M073R190						LOCATE next symbol after cell (0)
+149					20	W1			M073R195						[Work cell 1]
+149	IF NONE, QUIT.				70	J31			M073R200					Branch to S (direct) if H5-	Restore W0-W1
+149					12	W0		2W0=CONN	M073R205					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+149	ENTER CONNECTIVE.					M79			M073R210						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+149					12	W1			M073R215					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+149	ENTER SEGMENT.					9-200			M073R220						
+149					11	W1	9-2		M073R225					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+149			9-200		40	H0			M073R230					Preserve (Push) S (direct)	[Communication Cell]
+150						P4			M073R235						GO THRU NOTS OF SEGMENT (0). LEAVE FIRST UNNOTTED SEGME H5— MEANS NO OUTPUT DUE TO FAULTY EXPRESSION.
+150					70	9-201			M073R238					Branch to S (direct) if H5-	
+150	TEST IF VARIABLE					P8			M073R240						TEST IF (0) IS VARIABLE TERM.
+150					70		M73		M073R250					Branch to S (direct) if H5-	 [then] ENTER SEGMENT (0).
+150					10	K51			M073R260					Input S (direct) to H0, after pushing H0	DATA TERM '('
+150	ENTER LEFT PAREN.					J157			M073R270						Enter data term (0) left-justified
+150	ENTER SUBEXPRESSION					M73			M073R280						ENTER SEGMENT (0).
+150	ENTER RIGHT PAREN.				10	K52	J157		M073R290					Input S (direct) to H0, after pushing H0	DATA TERM ')' [then] Enter data term (0) left-justified
+150			9-201		50	/14	M79		M073R300					Replace (0) by S (direct)	 [then] ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+150		1							    R						
+150	M74 ENTER TOTAL EXPRESSION (0),		M74		40	H0			M074R000					Preserve (Push) S (direct)	[Communication Cell]
+150	    WITH OR WITHOUT SUFFIX.					J81			M074R010						FIND the 1th symbol on list (0)
+150					70	J8			M074R020					Branch to S (direct) if H5-	Restore H0
+150	ENTER MAIN EXPRESSION.					M73			M074R030						ENTER SEGMENT (0).
+150	FIND SUFFIX.					Q18			M074R040						FIND SUFFIX OF EXPRESSION (0).
+150	     IF NONE, QUIT.				70	0			M074R050					Branch to S (direct) if H5-	
+150	     IF ONE,				10	N1			M074R060					Input S (direct) to H0, after pushing H0	
+150	BUMP COLUMN AND ENTER SUFFIX.					J161	J157		M074R070						Increment column by (0) [then] Enter data term (0) left-justified
+150		1							    R						
+150	M75 PRINT NEW SUBPROBLEM (0).		M75			J154			M075R000						Clear print line
+150					10	K47			M075R010					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING NAME OF NEW SUBPROBLEM.
+150	TAB TO COLUMN K47.					J160			M075R020						Tab to column (0)
+150					40	H0		PSV PROB	M075R030					Preserve (Push) S (direct)	[Communication Cell]
+150	ENTER SUBPROBLEM NAME (NO.).					M79			M075R040						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+150					10	N3			M075R050					Input S (direct) to H0, after pushing H0	
+150	BUMP COLUMN.					J161			M075R060						Increment column by (0)
+150					40	H0		PSV PROB	M075R070					Preserve (Push) S (direct)	[Communication Cell]
+150	ENTER SUBPROBLEM EXPRESSION.					M74			M075R080						ENTER TOTAL EXPRESSION (0)
+150					11	W25			M075R090					Input S (indirect) to H0, after pushing H0	
+150					10	K48			M075R100					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING 'THEOREM, METHOD' OF NEW PROBLEMS.
+150	TEST IF EXPRESSION WAS TOO BIG.					J116			M075R110						TEST if(0) < (1)
+150	     IF YES, DON'T RESET.				70		9-2		M075R120					Branch to S (direct) if H5-	
+150	     IF NO, RESET TO K48.				10	K48			M075R130					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING 'THEOREM, METHOD' OF NEW PROBLEMS.
+150						J160			M075R140						Tab to column (0)
+150			9-2		10	N2			M075R160					Input S (direct) to H0, after pushing H0	
+150	BUMP COLUMN.					J161			M075R170						Increment column by (0)
+150					40	H0			M075R180					Preserve (Push) S (direct)	[Communication Cell]
+150	FIND THEOREM.					Q12			M075R190						FIND THEOREM USED TO DERIVE PROBLEM (C).
+150	     IF NONE, SKIP IT.				70	9-1			M075R200					Branch to S (direct) if H5-	
+150						M79			M075R210						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+150	ENTER COMMA.		9-1		10	K54			M075R220					Input S (direct) to H0, after pushing H0	DATA TERM ','
+150						J157			M075R230						Enter data term (0) left-justified
+150					10	N1			M075R240					Input S (direct) to H0, after pushing H0	
+150	BUMP COLUMN.					J161			M075R250						Increment column by (0)
+150	FIND METHOD.					Q11			M075R260						FIND METHOD OF DERIVATION FOR EXPRESSION (0).
+150	     IF NONE, PRINT NOW.				70	J155			M075R270					Branch to S (direct) if H5-	Print line
+150	FIND EXTERNAL NAME.					Q16			M075R280						FIND EXTERNAL NAME OF (0) IN TABLE T10.
+150	     IF NONE, PRINT NOW.				70	J155			M075R290					Branch to S (direct) if H5-	Print line
+150	ENTER TEXT AND PRINT.					M76	J155		M075R300						ENTER LIST OF DATA TERMS (0). [then] Print line
+150		1							    R						
+150	M76 ENTER LIST OF DATA TERMS.		M76		10	J157			M076R000					Input S (direct) to H0, after pushing H0	Enter data term (0) left-justified
+151						J100	0		M076R010						Gen symbols on list (1) for(0)
+151		1							    R						
+151	M77 PRINT LIMITS OF PROOF.		M77			J154			M077R000						Clear print line
+151						J155			M077R010						Print line
+151	DOUBLE SPACE.					J155			M077R020						Print line
+151					10	K12			M077R030					Input S (direct) to H0, after pushing H0	EFFORT BASE (AND TOTAL).
+151					10	H3			M077R040					Input S (direct) to H0, after pushing H0	[Tally of interpretation cycles]
+151					10	K12			M077R050					Input S (direct) to H0, after pushing H0	EFFORT BASE (AND TOTAL).
+151	SET K12 TO ACTUAL EFFORT.					J111			M077R060						(1) - (2) => (0), leave (0)
+151					10	K22			M077R070					Input S (direct) to H0, after pushing H0	LIMIT ON EFFORT.
+151	INPUT 'EFFORT'				10	T7			M077R080					Input S (direct) to H0, after pushing H0	
+151	PRINT LINE.					9-100			M077R090						
+151					10	K10			M077R100					Input S (direct) to H0, after pushing H0	PREVIOUS SUBPROBLEM NUMBER. (DATA TERM)
+151					10	K20			M077R110					Input S (direct) to H0, after pushing H0	LIMIT ON NO. OF SUBPROBLEMS.
+151	INPUT 'SUBPROBLEMS'				10	T8			M077R120					Input S (direct) to H0, after pushing H0	
+151	PRINT LINE.					9-100			M077R130						
+151					10	K11			M077R140					Input S (direct) to H0, after pushing H0	SUBSTITUTION COUNT.
+151					10	K21			M077R150					Input S (direct) to H0, after pushing H0	LIMIT ON NO. OF SUBSTITUTIONS.
+151	INPUT 'SUBSTITUTIONS'				10	T9	9-100		M077R160					Input S (direct) to H0, after pushing H0	
+151	9-100 SUBPROCESS, PRINT LINE.		9-100			J154			M077R170						Clear print line
+151	ENTER MESSAGE.					M76			M077R180						ENTER LIST OF DATA TERMS (0).
+151					10	K44			M077R190					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING 'LIMIT'
+151	TAB TO COLUMN K44.					J160			M077R200						Tab to column (0)
+151					10	T21			M077R210					Input S (direct) to H0, after pushing H0	
+151	ENTER 'LIMIT'					M76			M077R220						ENTER LIST OF DATA TERMS (0).
+151					10	N1			M077R230					Input S (direct) to H0, after pushing H0	
+151	BUMP COLUMN.					J161			M077R240						Increment column by (0)
+151	ENTER LIMIT.					J157			M077R250						Enter data term (0) left-justified
+151					10	K45			M077R260					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING 'ACTUAL'
+151	TAB TO COLUMN K45.					J160			M077R270						Tab to column (0)
+151					10	T20			M077R280					Input S (direct) to H0, after pushing H0	
+151	ENTER 'ACTUAL'					M76			M077R290						ENTER LIST OF DATA TERMS (0).
+151					10	N1			M077R300					Input S (direct) to H0, after pushing H0	
+151	BUMP COLUMN.					J161			M077R310						Increment column by (0)
+151	ENTER ACTUAL AND PRINT LINE.					J157	J155		M077R320						Enter data term (0) left-justified [then] Print line
+151		1							    R						
+151	M78 PRINT 'TO PROVE' PROBLEM (0).		M78			J154		(0)=PROB	M078R000						Clear print line
+151	INPUT TEXT.				10	T22			M078R010					Input S (direct) to H0, after pushing H0	
+151	ENTER MESSAGE.					M76			M078R020						ENTER LIST OF DATA TERMS (0).
+151					40	W22			M078R030					Preserve (Push) S (direct)	
+151					10	N3			M078R040					Input S (direct) to H0, after pushing H0	
+151	SET UP TO PRINT ON NEW PAGE.				20	W22			M078R050						
+151						J155			M078R060						Print line
+151	RESTORE SPACING AND PRINT (0).				30	W22	M70		M078R070					Restore (Pop) S (direct)	 [then] PRINT EXPRESSION (0).
+151		1							    R						
+151	M79 ENTER NAME OF (0).		M79		40	H0		PSV (0)	M079R000					Preserve (Push) S (direct)	[Communication Cell]
+151	FIND EXTERNAL NAME.					Q7			M079R010						ATTRIBUTE--EXTERNAL NAME.
+151	    IF THERE,				70	9-1			M079R020					Branch to S (direct) if H5-	
+151	        ENTER IT, DISCARD (0).					J157	J8		M079R030						Enter data term (0) left-justified [then] Restore H0
+151	    IF NOT THERE,		9-1		40	H0		PSV (0)	M079R040					Preserve (Push) S (direct)	[Communication Cell]
+151	FIND SUBPROBLEM NUMBER.					Q8			M079R050						FIND PROBLEM NO. OF EXPRESSION (0).
+152	IF NOT THERE, ENTER INTERNAL.				70	J156			M079R060					Branch to S (direct) if H5-	Enter symbol (0) left-justified
+152	IF THERE, ENTER NO.					J157			M079R070						Enter data term (0) left-justified
+152	   AND ENTER PERIOD.				50	K53	J157		M079R080					Replace (0) by S (direct)	DATA TERM '.' [then] Enter data term (0) left-justified
+152		1							    R						
+152	M80 PRINT PROOF LINE.		M80			J154			M080R000						Clear print line
+152	    INPUT (0) IS METHOD OR 'GIVEN'				10	K41			M080R010					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING METHODS IN PROOF SEQUENCES.
+152	    INPUT (1) IS TEX					J160			M080R020						Tab to column (0)
+152	ENTER METHOD					M76			M080R030						ENTER LIST OF DATA TERMS (0).
+152					10	K42			M080R040					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING NAMES IN PROOF SEQUENCES.
+152						J160			M080R050						Tab to column (0)
+152					40	H0			M080R060					Preserve (Push) S (direct)	[Communication Cell]
+152	ENTER NAME					M79			M080R070						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+152					10	K43			M080R080					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING EXPRESSIONS IN. PROOF SEQUENCES.
+152						J160			M080R090						Tab to column (0)
+152	ENTER EXPRESSION AND PRINT.					M74	J155		M080R100						ENTER TOTAL EXPRESSION (0) [then] Print line
+152		1							    R						
+152	M81 PRINT REJECTED PROBLEM (0).		M81			J154			M081R000						Clear print line
+152					10	K47			M081R010					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING NAME OF NEW SUBPROBLEM.
+152	TAB TO COLUMN K47.					J160			M081R020						Tab to column (0)
+152					40	H0			M081R030					Preserve (Push) S (direct)	[Communication Cell]
+152	ENTER NAME.					M79			M081R040						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+152					10	N3			M081R050					Input S (direct) to H0, after pushing H0	
+152	BUMP COLUMN.					J161			M081R060						Increment column by (0)
+152					40	H0			M081R070					Preserve (Push) S (direct)	[Communication Cell]
+152	ENTER TEX.					M74			M081R080						ENTER TOTAL EXPRESSION (0)
+152					11	W25			M081R090					Input S (indirect) to H0, after pushing H0	
+152					10	K48			M081R100					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING 'THEOREM, METHOD' OF NEW PROBLEMS.
+152	TEST IF TEX TOO LONG.					J116			M081R110						TEST if(0) < (1)
+152	    IF YES, SKIP RESET.				70		9-2		M081R120					Branch to S (direct) if H5-	
+152	    IF NO,				10	K48			M081R130					Input S (direct) to H0, after pushing H0	D.T. COLUMN FOR PRINTING 'THEOREM, METHOD' OF NEW PROBLEMS.
+152	TAB TO COLUMN K48					J160			M081R140						Tab to column (0)
+152			9-2		10	N2			M081R150					Input S (direct) to H0, after pushing H0	
+152	BUMP COLUMN.					J161			M081R160						Increment column by (0)
+152					40	H0			M081R170					Preserve (Push) S (direct)	[Communication Cell]
+152	FIND THEOREM.					Q12			M081R180						FIND THEOREM USED TO DERIVE PROBLEM (C).
+152	    IF NONE, SKIP IT.				70	9-1			M081R190					Branch to S (direct) if H5-	
+152	    IF THERE, ENTER NAME.					M79			M081R200						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+152					10	K54			M081R210					Input S (direct) to H0, after pushing H0	DATA TERM ','
+152	ENTER COMMA, AND					J157			M081R220						Enter data term (0) left-justified
+152					10	N1			M081R230					Input S (direct) to H0, after pushing H0	
+152	BUMP COLUMN.					J161			M081R240						Increment column by (0)
+152	FIND METHOD.		9-1			Q11			M081R250						FIND METHOD OF DERIVATION FOR EXPRESSION (0).
+152	    IF NONE, SKIP IT.				70	9-3			M081R260					Branch to S (direct) if H5-	
+152	    IF THERE, FIND EXTERNAL NAME.					Q16			M081R270						FIND EXTERNAL NAME OF (0) IN TABLE T10.
+152	    IF NONE, SKIP IT.				70	9-3			M081R280					Branch to S (direct) if H5-	
+152	    IF THERE, ENTER TEXT,					M76			M081R290						ENTER LIST OF DATA TERMS (0).
+152					10	K53			M081R300					Input S (direct) to H0, after pushing H0	DATA TERM '.'
+152	ENTER PERIOD, AND					J157			M081R310						Enter data term (0) left-justified
+152					10	N2			M081R320					Input S (direct) to H0, after pushing H0	
+152	BUMP COLUMN.					J161			M081R330						Increment column by (0)
+152			9-3		10	T19			M081R340					Input S (direct) to H0, after pushing H0	
+153	ENTER MESSAGE AND PRINT.					M76	J155		M081R350						ENTER LIST OF DATA TERMS (0). [then] Print line
+153		1							    R						
+153	M82 PRINT 'REMEMBER PROVED THEOREM'		M82			J154			M082R000						Clear print line
+153						J155			M082R010						Print line
+153						J155			M082R020						Print line
+153					10	T23			M082R030						
+153	ENTER MESSAGE.					M76			M082R040						ENTER LIST OF DATA TERMS (0).
+153						J155			M082R050						Print line
+153						J154	J155		M082R060						Clear print line [then] Print line
+153		1							    R						
+153	M88 PRINT BAD LIST FORM EXPRESSION.		M88			J154			M088R000						Clear print line
+153					10	T24			M088R010						
+153	ENTER 'BAD EXPRESSION'					M76			M088R020						ENTER LIST OF DATA TERMS (0).
+153					10	N3			M088R030						
+153	BUMP COLUMN.					J161			M088R040						Increment column by (0)
+153					10	M79			M088R050						ENTER NAME OF (0). USE EXTERNAL NAME IF CAN.
+153	GEN SYMBOLS FOR ENTRY, PRINT.					J100	J155		M088R060						Gen symbols on list (1) for(0) [then] Print line
+153		1							    R						
+153	M89 READ NEXT LOGIC EXPRESSION		M89		40	W0			M089R000						[Work cell 0]
+153	    FROM NORMAL INPUT UNIT.				40	W25			M089R010						
+153	    H5- MEANS NONE THERE.				40	W30			M089R020						
+153	CLEAR AND		9-10			J154			M089R050						Clear print line
+153	FILL BUFFER.					J180			M089R060						Read line
+153	   IF EOF, QUIT, H5-.				70	9-0			M089R070						
+153					10	N1			M089R080						
+153						J120			M089R090						COPY (0)
+153	LOCATE 1ST OF NAME.					J184			M089R110						Set (0) to next non-blank, leave (0)
+153	   IF BLANK CARD, QUIT, H5-.				70	9-1			M089R120						
+153					20	W25		1W25=1ST	M089R125						
+153						J90			M089R130						Create list of 0 symbols, (0-0) to (0)
+153						J124			M089R140						Clear (0), leave (0)
+153	DETERMINE EXTENT.					J183			M089R150						Set (0) to next blank, leave (0)
+153	   IF REST OF CARD, RESET, GET NEXT				70	9-2			M089R160						
+153					20	W30		1W30=EXTNT	M089R170						
+153	INPUT NAME.					J181			M089R180						Input line symbol
+153					40	H0			M089R190						[Communication Cell]
+153	TEST IF REGIONAL.					J130			M089R200						TEST if (0) is regional symbol
+153	   IF NOT, RESET, GET NEXT.				70	9-4			M089R210						
+153					40	H0			M089R213						[Communication Cell]
+153	TEST IF NAME IS A CHARACTER SYMBOL.					P18			M089R215						TEST IF (0) IS A. CHARACTER SYMBOL.
+153	     IF YES, RESET, GET NEXT.				70	9-4			M089R217						
+153					20	W0		1W0=EXPR.	M089R220						[Work cell 0]
+153	   IF OK, GET EXTERNAL NAME.				11	W30			M089R230						
+153					11	W25			M089R240						
+153					11	W25			M089R250						
+153	RESET COLUMN TO 1ST OF NAME.					J111			M089R260						(1) - (2) => (0), leave (0)
+153					50	K51			M089R265						DATA TERM '('
+153	CREATE PROTOTYPE DATA TERM.					J120			M089R270						COPY (0)
+153	MARK LOCAL.					J136			M089R280						Make (0) local, leave (0)
+153	SET D.T. TO HOLD NAME.					J182			M089R290						Input line data term (0)
+153					11	W0			M089R300						[Work cell 0]
+154						J6			M089R310						Reverse (0) and (1)
+154					10	Q7			M089R320						ATTRIBUTE--EXTERNAL NAME.
+154	ASSIGN D.T. AS EXTERNAL NAME.					J11			M089R330						Assign (1) as value of attribute (0) of (2)
+154					11	W25			M089R340						
+154	LOCATE 1ST OF EXPRESSION.					J184			M089R350						Set (0) to next non-blank, leave (0)
+154	   IF NONE, RESET, GET NEXT.				70	9-5			M089R360						
+154	FIND CHARACTER SYMBOL AT 1W25.		9-3			J186			M089R370						Input line character
+154	     IF NONE, EXPRESSION FINI.				70	9-6			M089R380						
+154	     IF FOUND, GET ALTERNATE,					P19			M089R390						GET APPROPRIATE CHARACTER SYMBOL FOR (0).
+154					11	W0			M089R400						[Work cell 0]
+154						J6			M089R410						Reverse (0) and (1)
+154	ADD AT END OF LIST EXPRESSION,					J65			M089R420						INSERT (0) at end of list (1)
+154	TALLY 1W25 AND LOOP FOR NEXT.					J125	9-3		M089R430		I think this needs to get W25 back before the incr. I've added a new command in LT Fixed				Tally 1 in (0), leave (0)
+154	LOCATE FIRST OF SUFFIX.		9-6			J184			M089R440						Set (0) to next non-blank, leave (0)
+154	   IF NONE, SKIP IT.				70	9-7			M089R480						
+154					51	W30			M089R490						
+154						J124			M089R495						Clear (0), leave (0)
+154	DETERMINE EXTENT.					J183			M089R500						Set (0) to next blank, leave (0)
+154	   IF NONE, SKIP IT.				70	9-7			M089R510						
+154					50	K51			M089R520						DATA TERM '('
+154	CREATE PROTOTYPE.					J120			M089R530						COPY (0)
+154	SET D. T. TO SUFFIX.					J182			M089R540		I think D. T. is Data Term				Input line data term (0)
+154					11	W0			M089R550						[Work cell 0]
+154						J6			M089R560						Reverse (0) and (1)
+154					10	Q18			M089R570						FIND SUFFIX OF EXPRESSION (0).
+154	ASSIGN AS SUFFIX OF 1W0.					J11			M089R580						Assign (1) as value of attribute (0) of (2)
+154					11	W0	9-8		M089R590						[Work cell 0]
+154	ADJUST FOR EXTRA IN H0.		9-7		51	W0	9-8		M089R600						[Work cell 0]
+154	SET H5+		9-8			J4			M089R610						Set H5+
+154					11	W25			M089R620						
+154	DISCARD COLUMN D.T.					J9			M089R630						ERASE cell (0)
+154					11	W30			M089R640						
+154	DISCARD EXTENT D.T.		9-1			J9			M089R650						ERASE cell (0)
+154			9-0		30	W25			M089R660						
+154					30	W30	J30		M089R670						 [then] Restore W0-W0
+154	RESET		9-5		11	W0			M089R700						[Work cell 0]
+154	AFTER					J15			M089R710						ERASE all attributes of (0)
+154	A		9-4			J8			M089R720						Restore H0
+154	BAD				11	W30			M089R730						
+154	EXPRESSION		9-2			J9			M089R740						ERASE cell (0)
+154	AND				11	W25			M089R750						
+154	GET NEXT CARD.					J9	9-10		M089R760						ERASE cell (0)
+154		1							    R						
+154	M90 TEST IF PROBLEM LIMITS REACHED.		M90		10	K20			M090R000						
+154					10	K10			M090R010						
+154	TEST NO. OF SUBPROBLEMS SET UP					J116			M090R020						
+154					70	J5			M090R030						
+154					10	K21			M090R040						
+154					10	K11			M090R050						
+154	TEST NO. OF SUBSTITUTIONS					J116			M090R060						
+154					70	J5			M090R070						
+154					10	K12			M090R080		THIS PAGE HAS 52 LINES			Input S (direct) to H0, after pushing H0	EFFORT BASE (AND TOTAL).
+155					10	H3			M090R090						
+155						J90			M090R100						
+155	COMPUTE EFFORT					J111			M090R110						
+155					40	H0			M090R120						
+155					10	K22			M090R130						
+155						J6			M090R140						
+155	TEST EFFORT.					J116			M090R150						
+155						J9	J5		M090R160						
+155		1							    R						
+155	M110 MAKE FREE VARIABLES OF TOTAL		M110			J47			M110R000						
+155	    EXPRESSIONS (0) AND (1)					J21			M110R010						
+155	    DISJOINT. (SUBSTITUTES IN (1).)				11	W1			M110R020						
+155	CREATE FREE VAR. LIST FOR (1)					M116			M110R030						
+155					70	J37			M110R040						
+155					20	W3			M110R050						
+155					11	W0			M110R060						
+155	CREATE FREE VAR. LIST FOR (0)					M116			M110R070						
+155					70	9-1			M110R080						
+155					20	W2			M110R090						
+155	CREATE EMPTY SUBSTITUTION LIST.					J90			M110R100						
+155					20	W4			M110R110						
+155	CREATE EMPTY LIST OF MARKED					J90			M110R114						
+155	PROCESSED				20	W7			M110R116						
+155					10	L2			M110R120						
+155	SET LOCATION ON SYSTEM FREE				20	W5			M110R130						
+155	 VARIABLE LIST				11	W2			M110R140						
+155					10	9-100			M110R150						
+155	MARK ALL OF (0)-S FREE VARS.					J100			M110R160						
+155					11	W3			M110R170						
+155					10	9-200			M110R180						
+155	ADD DUPLICATES TO SUBSTITUTION LIST					J100			M110R190						
+155					11	W4			M110R200						
+155	TEST IF ANY DUPLICATES.					J78			M110R210						
+155					70		9-6		M110R220						
+155	UNMARK ALL MARKED VARIABLES					9-400	9-2		M110R225						
+155			9-6		11	W4			M110R230						
+155	LOCATE NEXT DUPLICATE		9-5			J60			M110R240						
+155					20	W6			M110R250						
+155					70	9-3			M110R260						
+155			9-4		11	W5			M110R270						
+155	LOCATE NEXT SYSTEM FREE VAR.					J60			M110R280						
+155					20	W5			M110R290						
+155	HALT DUE TO NOT ENOUGH FREE VAR.				70	J7			M110R300						
+155					12	W5			M110R310						
+155	TEST IF USED IN EITHER.					J133			M110R320						
+155					70		9-4		M110R330						
+155					11	W6			M110R340						
+155					12	W5			M110R350						
+155	INSERT AS SUBSTITUTOR.					J64			M110R360						
+155					11	W6			M110R370						
+155						J60	9-5		M110R380						
+156	NUMARK ALL MARKED VARIABLES.		9-3			9-400			M110R390						
+156					11	W4			M110R420						
+156					11	W1			M110R430						
+156	GET MAIN SEGMENT OF (1).					J81			M110R440						
+156					70	J7			M110R450						
+156	SUBSTITUTE.					M115			M110R460						
+156			9-2		11	W4			M110R470						
+156						J71			M110R480						
+156					11	W2			M110R490						
+156						J71			M110R500						
+156			9-1		11	W3			M110R510						
+156						J71	J37		M110R520						
+156	MARK PROCESSED		9-100			J137			M110R525						
+156					11	W7			M110R530						
+156						J6			M110R535						
+156	ADD TO LIST 1W7 FOR UNMARKING					J64	J4		M110R540						
+156	ADD THOSE MARKED TO SUBST. LIST.		9-200		40	H0			M110R550						
+156	MARK THOSE NOT MARKED.					J133			M110R560						
+156					70	9-100			M110R570						
+156					11	W4			M110R580						
+156						J6	J64		M110R590						
+156	UNMARK PROCESSED.		9-300		31	H0			M110R600						
+156					30	H0	J4		M110R610						
+156	UNMARK PROCESSED ALL VARIABLES		9-400		11	W7			M110R620						
+156	ON LIST 1W7				10	9-300			M110R630						
+156						J100	0		M110R640						
+156		1							    R						
+156	M111 MATCH SEGMENTS (0) AND (1),		M111			J90			M111R000						
+156	   H5+ MEANS OUTPUT (0) IS LIST				20	9-10			M111R010		Uh-oh -- this seems to be randomly using a local symbol!				
+156	    OF PAIRS--1ST IS FREE VAR.,					9-100			M111R020						
+156	    2ND IS SUBSTITUTOR.				11	9-10			M111R030						
+156	    H5- MEANS NO MATCH, NO OUTPUT.				70	J71	0		M111R040						
+156	9-100 MATCH SUBPROCESS		9-100		04	J51			M111R050						
+156	    (EXPECTS FREE VARIABLES DISJOIN		9-104		11	W0			M111R060						
+156	IS (0) A VARIABLE.					P8			M111R070						
+156					70	9-101			M111R080						
+156					11	W0			M111R090						
+156	IS (0) A FREE VARIABLE.					P9			M111R100						
+156					70	9-102			M111R110						
+156					10	9-10			M111R120						
+156					11	W0			M111R130						
+156	IS THERE ALREADY A SUBSTITUTOR					J10			M111R140						
+156	 FOR (0).				70	9-103			M111R150						
+156	SET SUBSTITUTOR AS (0) AND MATCH.				20	W0	9-104		M111R160						
+156			9-103		10	9-10			M111R170						
+156					11	W1			M111R180						
+156					40	H0			M111R185						
+156	TEST IF (1) IS A VARIABLE					P8			M111R190						
+156					70	9-105			M111R195						
+156					40	H0			M111R200						
+156					11	W0			M111R205						
+157	(1) IS VARIABLE, TEST (1)=(0)					J2			M111R210						
+157					70	9-114			M111R215						
+157	NO SUBSTITUTOR, QUIT W/H5+		9-116		30	H0			M111R220						
+157					30	H0	J31		M111R225						
+157	IF NOT, MAKE EXPRESSION INTERNAL		9-105			J138			M111R230						
+157	ASSIGN (1) AS SUBSTITUTOR FOR (0)		9-114		11	W0			M111R235						
+157			9-109			J11			M111R240						
+157						J31	J4		M111R250						
+157	( (0) IS VARIABLE, NOT FREE. )		9-102		11	W1			M111R260						
+157	IS (1) A VARIABLE.					P8			M111R270						
+157					70	J31			M111R280						
+157					11	W1			M111R290						
+157	IS (1) A FREE VARIABLE.					P9			M111R300						
+157					70	9-106			M111R310						
+157			9-111		10	9-10			M111R320						
+157					11	W1			M111R330						
+157	IS THERE ALREADY A SUBSTITUTOR					J10			M111R340						
+157	 FOR (1).				70	9-107			M111R350						
+157	SET SUBSTITUTOR AS (1) AND MATCH.				20	W1	9-104		M111R360						
+157			9-107		10	9-10			M111R370						
+157					11	W0			M111R380						
+157					40	H0			M111R390						
+157	TEST IF (0) IS A VARIABLE					P8			M111R400						
+157					70	9-108			M111R405						
+157					40	H0			M111R410						
+157					11	W1			M111R415						
+157	(0) IS VARIABLE, TEST (0)=(1)					J2			M111R420						
+157					70	9-115	9-116		M111R425						
+157	IF NOT, MAKE EXPRESSION INTERNAL		9-108			J138			M111R430						
+157	ASSIGN (0) AS SUBSTITUTOR FOR (1)		9-115		11	W1	9-109		M111R435						
+157	(BOTH ARE VARIABLES, NOT FREE)		9-106		11	W0			M111R440						
+157					11	W1			M111R450						
+157	ARE VARIABLES IDENTICAL.					J2	J31		M111R460						
+157	( (0) IS EXPRESSION. )		9-101		11	W1			M111R470						
+157	IS (1) A VARIABLE					P8			M111R480						
+157					70	9-110			M111R490						
+157					11	W1			M111R500						
+157	IS (1) A FREE VARIABLE.					P9			M111R510						
+157					70	J31	9-111		M111R520						
+157	( BOTH ARE EXPRESSIONS. )		9-110		12	W0			M111R530						
+157					12	W1			M111R540						
+157	ARE CONNECTIVES IDENTICAL					J2			M111R550						
+157					70	J31			M111R560						
+157			9-113		11	W0			M111R570						
+157	LOCATE NEXT SUBSEGMENT ON (0)					J60			M111R580						
+157					20	W0			M111R590						
+157					70	9-112			M111R600						
+157					11	W1			M111R610						
+157	LOCATE NEXT SUBSEGMENT ON (1)					J60			M111R620						
+157					20	W1			M111R630						
+157					70	J31			M111R640						
+158					12	W0			M111R650						
+158					12	W1			M111R660						
+158	MATCH SUBSEGMENTS					9-100			M111R670						
+158					70	J31	9-113		M111R680						
+158			9-112		11	W1			M111R690						
+158	LOCATE NEXT SUBSEGMENT ON (1)					J60			M111R700						
+158					20	W1			M111R710						
+158						J5	J31		M111R720						
+158		1							    R						
+158	M112 EXPAND SUBSTITUTION LIST (0).		M112		40	H0			M112R000						
+158	     REPLACE EXPRESSIONS WITH					J51			M112R010						
+158	     COMPLETELY SUBSTITUTED LOCALLY		9-1		11	W0			M112R020						
+158	     NAMED COPIES.					J60			M112R030						
+158	LOCATE NEXT SUBSTATION					J60			M112R040						
+158					20	W0			M112R050						
+158					70	J31			M112R060						
+158					12	W0			M112R070						
+158	DELINEATE SEGENT AT THIS STATION					9-100			M112R080						
+158					21	W0	9-1		M112R090						
+158	SEGMENT DELINEATION SUBPROCESS.		9-100		 4	J50			M112R100		JUST TO NOTE UNUSUAL PQ=" 4"				
+158					11	W0			M112R110						
+158	IS INPUT A VARIABLE.					P8			M112R120						
+158					11	W0			M112R130						
+158					70	9-101			M112R140						
+158	IS INPUT A FREE VARIABLE.					P9			M112R150						
+158					70	9-102			M112R160						
+158					11	W0			M112R170						
+158	DELINEATE FREE VARIABLE.					9-200	J30		M112R180						
+158			9-102		11	W0	J30		M112R190						
+158	CREATE SUBSTITUTED LOCAL COPY		9-101			J74			M112R200						
+158						J136			M112R210						
+158					60	W0			M112R220						
+158					10	9-300			M112R230						
+158	GENERATE FREE VARIABLE LOCATIONS.					P28	9-102		M112R240						
+158			9-300			J50			M112R250						
+158					12	W0			M112R260						
+158	DELINEATE FREE VARIABLE					9-200			M112R270						
+158					21	W0			M112R280						
+158						J30	J4		M112R290						
+158			9-200		 4	J50			M112R300		JUST TO NOTE UNUSUAL PQ=" 4"				
+158					10	W1			M112R310						
+158					11	W0			M112R320						
+158	FIND CORRESPONDING SUBSTITUTOR					J10			M112R330						
+158					70	9-201			M112R340						
+158	DELINEATE SUBSTITUTOR					9-100	J30		M112R350						
+158	OUTPUT FREE VARIABLE		9-201		11	W0	J30		M112R360						
+158		1							    R						
+158	MATCH SEGMENTS (0) AND (1) FOR		M113			M111			M113R000						
+158	SUBSTITUTION. SETS H5, IF + OUTPUT				70	0			M113R010						
+158	(0) IS EXPANDED SUBSTITUTION LIST.				40	H0			M113R020						
+158						M112	J4		M113R030						
+159		1							    R						
+159	TEST IF SEGMENT (0) MATCHES		M114			M111			M114R000						
+159	SEGMENT (1).				70	0	J71		M114R010						
+159		1							    R						
+159	M115 SUBSTITUTE IN SEGMENT (0)		M115			J42			M115R000						
+159	    FROM SUBSTITUTION LIST (1).				20	W0			M115R003						
+159	    SUBSTITUTES ONLY FOR VARIABLES.				60	W1			M115R007						
+159	SAMPLE SUBST. LIST.					J81			M115R010						
+159	    IF EMPTY, QUIT.				70	J32			M115R013						
+159					40	H0			M115R017						
+159	TEST IF FREE VARIABLE.					P9			M115R020						
+159					70	9-1			M115R023						
+159	     IF YES,				51	W0			M115R027						
+159	    GENERATE LOCATIONS OF				10	9-100			M115R030						
+159	    FREE VARIABLES.					P28	J32		M115R033						
+159	TEST IF BOUND VARIABLE.		9-1			P8			M115R037						
+159	    IF YES,				70	J32			M115R040						
+159	    GENERATE LOCATIONS OF				11	W0			M115R043						
+159	    BOUND VARIABLES.				10	9-100			M115R047						
+159						P29	J32		M115R050						
+159	9-100 SUBPROCESS, SUBST. IN LOC(0).		9-100		60	W2			M115R055						
+159					50	W1			M115R060						
+159					12	W2			M115R070						
+159	FIND SUBSTITUTOR, IF ANY					J10			M115R080						
+159					70	J4			M115R090						
+159					40	H0			M115R100						
+159	TEST IF A VARIABLE					P8			M115R110						
+159					70		9-101		M115R120						
+159	IF AN EXPRESSION, COPY IT.					J74			M115R130						
+159						J136			M115R140						
+159	STORE IN LOCATION		9-101		21	W2	J4		M115R150						
+159		1							    R						
+159	CREATE LIST OF FREE VARIABLES IN		M116			J90			M116R000						
+159	TEX (0). SETS H5, NO OUTPUT IF -.					J50			M116R010						
+159	GET MAIN SEGMENT.					J81			M116R020						
+159					70	9-1			M116R030						
+159					10	9-100			M116R040						
+159	GENERATE LOCATIONS OF FREE VARS.					P28			M116R060						
+159			9-1		11	W0			M116R070						
+159					40	H0			M116R080						
+159					30	W0			M116R090						
+159	TEST IF ANY FREE VARS.					J78			M116R100						
+159					70	J71	0		M116R110						
+159			9-100		52	H0			M116R120						
+159					11	W0			M116R130						
+159						J6			M116R140						
+159	ADD TO OUTPUT IF NOT ALREADY ON.					J66	J4		M116R150						
+159		1							    R						
+159	M117 FIND LIST OF BOUND VARIABLES		M117			P31			M117R000						
+159	    IN TEX (0).				40	H0			M117R010						
+159	    H5- MEANS NO OUTPUT.					J78			M117R020						
+160					70	J9	0		M117R030					Branch to S (direct) if H5-	ERASE cell (0)
+160		1							    R						
+160	P2 TEST IF IS A BOUND VARIABLE.		P2			Q9			P002R000						ATTRIBUTE--BOUND VARIABLE.
+160					70	0	J8		P002R010					Branch to S (direct) if H5-	 [then] Restore H0
+160		1							    R						
+160	CLEAR DESCRIPTIONS OF TOTAL		P3		40	H0			P003R000					Preserve (Push) S (direct)	[Communication Cell]
+160	EXPRESSION (0)				10	Q2			P003R010					Input S (direct) to H0, after pushing H0	FIND NO. OF LEVELS OF EXPRESSION (0).
+160						J14			P003R020						ERASE attribute (0) of (1)
+160					40	H0			P003R030					Preserve (Push) S (direct)	[Communication Cell]
+160					10	Q3			P003R040					Input S (direct) to H0, after pushing H0	FIND NO. OF DISTINCT VARIABLES OF EXPRESSION (0).
+160						J14			P003R050						ERASE attribute (0) of (1)
+160					10	Q4	J14		P003R060					Input S (direct) to H0, after pushing H0	FIND NO. OF VARIABLE PLACES CF EXPRESSION (0). [then] ERASE attribute (0) of (1)
+160		1							    R						
+160	P4 GC THRU NOTS OF SEGMENT (0),		P4		12	H0			P004R000					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+160	LEAVE 1ST UNNOTTED SEGMENT.				11	K2			P004R010					Input S (indirect) to H0, after pushing H0	HOLDS -NOT-.
+160	H5- VEANS NO OUTPUT.					J2			P004R020						TEST (0) (1)
+160	QUIT, H5+ MEANS NORMAL EXIT.				70	J4			P004R030					Branch to S (direct) if H5-	Set H5+
+160	FIND SUBSEGMENT OF NOT.					J81			P004R040						FIND the 1th symbol on list (0)
+160	IF NONE QUIT -9 ELSE LOOP.				70	0	P4		P004R050					Branch to S (direct) if H5-	 [then] GO THRU NOTS OF SEGMENT (0). LEAVE FIRST UNNOTTED SEGME H5— MEANS NO OUTPUT DUE TO FAULTY EXPRESSION.
+160		1							    R						
+160	P5 TEST IF MAIN CONNECTIVE		P5			P16			P005R000						FIND MAIN CONNECTIVE OF TOTAL EXPRESSION (0).
+160	OF TOTAL EXPRESSION (0)				70	0			P005R010					Branch to S (direct) if H5-	
+160	IS IMPLIES.				11	K6	J2		P005R020					Input S (indirect) to H0, after pushing H0	HOLDS -IMPLIES- [then] TEST (0) (1)
+160		1							    R						
+160	P6 TEST IF (13) IS NOT UNARY.		P6			Q14			P006R000						FIND TYPE OF CONNECTIVE (0).
+160					70	0	J1		P006R010					Branch to S (direct) if H5-	 [then] Execute (0) after restoring H0
+160		1							    R						
+160	P7-TEST IF (0) IS CONNECTIVE		P7			Q14			P007R000						FIND TYPE OF CONNECTIVE (0).
+160					70	0	J8		P007R010					Branch to S (direct) if H5-	 [then] Restore H0
+160		1							    R						
+160	TEST IF (0) IS VARIABLE		P8			Q5			P008R000						ATTRIBUTE--VARIABLE TERM.
+160					70	0	J8		P008R010					Branch to S (direct) if H5-	 [then] Restore H0
+160		1							    R						
+160	TEST IF (1) IS FREE VARIABLE		P9			Q6			P009R000						ATTRIBUTE--FREE VARIABLE.
+160					70	0	J8		P009R010					Branch to S (direct) if H5-	 [then] Restore H0
+160		1							    R						
+160	P12 FIND MEX OF TEX (0).		P12			J81	0		P012R000						FIND the 1th symbol on list (0)
+160		1							    R						
+160	P13 FIND LEFT SIDE CF TEX(0) .		P13			J81			P013R000						FIND the 1th symbol on list (0)
+160					70	0	J81		P013R010					Branch to S (direct) if H5-	 [then] FIND the 1th symbol on list (0)
+160		1							    R						
+160	P14 FIND RIGHT SIDE OF TEX(0).		P14			J81			P014R000						FIND the 1th symbol on list (0)
+160					70	0	J82		P014R010					Branch to S (direct) if H5-	 [then] FIND the 2th symbol on list (0)
+160		1							    R						
+160	P15 TEST IF (V) IS IN 		P15			Q15			P015R000						ATTRIBUTE--INTERNAL FORM.
+160	   INTERNAL (TREE) FORM.				70	0	J8		P015R010					Branch to S (direct) if H5-	 [then] Restore H0
+160		1							    R						
+160	P16 FIND MAIN CONNECTIVE OF		P16			J81			P016R000						FIND the 1th symbol on list (0)
+160	  TEX (0).				70	0			P016R010					Branch to S (direct) if H5-	
+160	  GO THRU NOTS.					P4			P016R020						GO THRU NOTS OF SEGMENT (0). LEAVE FIRST UNNOTTED SEGME H5— MEANS NO OUTPUT DUE TO FAULTY EXPRESSION.
+160					70	0	Q1		P016R030					Branch to S (direct) if H5-	 [then] FIND CONNECTIVE OF SEGMENT (0).
+161		1							    R						
+161	P17 CREATE COPY OF SEGMENT (0)		P17		40	H0			P017R000					Preserve (Push) S (direct)	[Communication Cell]
+161	IF NOT A SIMPLE VARIABLE.					P8			P017R010						TEST IF (0) IS VARIABLE TERM.
+161					70		0		P017R020					Branch to S (direct) if H5-	
+161	COPY AND MARK LOCAL.					J74	J136		P017R030						COPY list structure (0) [then] Make (0) local, leave (0)
+161		1							    R						
+161	P18 TEST IF (0) IS A		P18			P19			P018R000						GET APPROPRIATE CHARACTER SYMBOL FOR (0).
+161	CHARACTER SYMBOL.					Q7			P018R010						ATTRIBUTE--EXTERNAL NAME.
+161						J5			P018R020						Reverse sense of H5
+161					70	J8	0		P018R030					Branch to S (direct) if H5-	Restore H0
+161		1							    R						
+161	GET APPROPRIATE INTERNAL		P19		40	H0			P018R000					Preserve (Push) S (direct)	[Communication Cell]
+161	CHARACTER SYMBOL (0) FOR					Q19			P018R010						FIND APPROPRIATE CHARACTER FOR SYMB H0
+161	EXTERNAL CHARACTER SYMBOL (0).				70	0			P018R020					Branch to S (direct) if H5-	
+161	IF REPLACED, QUIT +.					J6	J8		P018R030						Reverse (0) and (1) [then] Restore H0
+161		1							    R						
+161	P20 MAKE FAKE TEX 'AITH LEFT SIDE		P20			P13			P020R000						FIND LEFT SEGMENT OF TOTAL EXPRESSION (0).
+161	OF TEX (0).				70	0	P24		P020R010					Branch to S (direct) if H5-	 [then] MAKE SEGMENT (0) INTO A NEW TOTAL EXPRESSION.
+161		1							    R						
+161	P21 MAKE FAKE TEX WITH RIGHT SIDE		P21			P14			P021R000						FIND RIGHT SEGMENT OF TOTAL EXPRESSION (0).
+161	OF TEX (0).				70	0	P24		P021R010					Branch to S (direct) if H5-	 [then] MAKE SEGMENT (0) INTO A NEW TOTAL EXPRESSION.
+161		1							    R						
+161	P22 CREATE NE SUBPROBLEM WITH		P22		40	W0			P022R000					Preserve (Push) S (direct)	[Work cell 0]
+161	SEGMENT (0) ON THE LEFTS,					P17			P022R010						COPY SEGMENT (0). IF (0) IS A VARIABLE, OUTPUT 1HE INPUT.
+161	SEGMENT (1) CN THE RIGHT.					J6			P022R020						Reverse (0) and (1)
+161	AND IMPLIES AS CONNECTIVE.					P17			P022R030						COPY SEGMENT (0). IF (0) IS A VARIABLE, OUTPUT 1HE INPUT.
+161	CREATE MEX.					J92			P022R040						Create list of 2 symbols, (2-1) to (0)
+161						J136			P022R050						Make (0) local, leave (0)
+161					60	W0			P022R060					Copy (0) to S (direct)	[Work cell 0]
+161	INSERT CONNECTIVE.				11	K6			P022R070					Input S (indirect) to H0, after pushing H0	HOLDS -IMPLIES-
+161					21	W0			P022R080						[Work cell 0]
+161	CREATE CLEAN UP, QUIT.					P24	J30		P022R090						MAKE SEGMENT (0) INTO A NEW TOTAL EXPRESSION. [then] Restore W0-W0
+161		1							    R						
+161	ERASE MADE EXPRESSION (0)		P23		40	H0			P023R000					Preserve (Push) S (direct)	[Communication Cell]
+161						J60			P023R010						LOCATE next symbol after cell (0)
+161	DELETE MAIN SEGMENT					J68	J72		P023R020						DELETE symbol in cell (0) [then] ERASE list structure (0)
+161		1							    R						
+161	P24 MAKE TEX FROM MEX (0).		P24			J91			P024R000						Create list of 1 symbols, (1-1) to (0)
+161					40	H0			P024R010					Preserve (Push) S (direct)	[Communication Cell]
+161					10	Q15			P024R020					Input S (direct) to H0, after pushing H0	ATTRIBUTE--INTERNAL FORM.
+161	DESCRIBE AS IN TREE FORM.				10	Q15	J11		P024R030					Input S (direct) to H0, after pushing H0	ATTRIBUTE--INTERNAL FORM. [then] Assign (1) as value of attribute (0) of (2)
+161		1							    R						
+161	P25 COPY TEX (0) FOR SUBSTITUTION.		P25			J74			P025R000						COPY list structure (0)
+161					40	H0			P025R010					Preserve (Push) S (direct)	[Communication Cell]
+161					10	Q7			P025R020					Input S (direct) to H0, after pushing H0	ATTRIBUTE--EXTERNAL NAME.
+161	CLEAR EXTERNAL NAME					J14			P025R030						ERASE attribute (0) of (1)
+161	AND CLEAR DESCRIPTIONS.				40	H0	P3		P025R040					Preserve (Push) S (direct)	[Communication Cell] [then] CLEAR DESCRIPTIONS OF EXPRESSION (0).
+161		1							    R						
+161	P26 GEENRATE SEGMENT LOCATIONS AT		P26		10	W1			P026R000					Input S (direct) to H0, after pushing H0	[Work cell 1]
+161	  LEVEL (2) OF PROBLEM (1) FOR					J17			P026R010						Gen set up: context (0), subprocess
+161	  PROCESS (0).					J81			P026R020						FIND the 1th symbol on list (0)
+162					70	9-1			P026R030					Branch to S (direct) if H5-	
+162					40	H0			P026R060					Preserve (Push) S (direct)	[Communication Cell]
+162	TEST IF MEX IS A VARIABLE.					P8			P026R070						TEST IF (0) IS VARIABLE TERM.
+162	IF YES, QUIT.				70		9-2		P026R080					Branch to S (direct) if H5-	
+162	IF NO, REVERSES,					J6			P026R090						Reverse (0) and (1)
+162					10	N1			P026R100					Input S (direct) to H0, after pushing H0	
+162	CREATE COUNTER WITH VALUE 1, AND					J120			P026R110						COPY (0)
+162	SAVE BOTH LEVEL AND COUNTER.					J21		1W1=LEVEL	P026R120						MOVE (0)-(1) into W0-W1
+162					10	9-100		1W0=COUNT	P026R130					Input S (direct) to H0, after pushing H0	
+162	GENERATE SUBSEGMENT					9-200			P026R140						
+162	LOCATIONS FOR 9-100.				11	W0			P026R150					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+162	ERASE COUNTER AND QUIT.					J9	J19		P026R160						ERASE cell (0) [then] Gen clean up
+162	POP H0, POP HO,		9-2		30	H0			P026R170					Restore (Pop) S (direct)	[Communication Cell]
+162	AND QUIT.		9-1		30	H0	J19		P026R180					Restore (Pop) S (direct)	[Communication Cell] [then] Gen clean up
+162	SUBPROCESS 9-100.		9-100		11	W0			P026R190					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+162					11	W1			P026R200					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+162	TEST IF THIS IS THE LEVEL.					J114			P026R210						TEST if (0) = (1)
+162	IF YES, FIRE J18.				70		J18		P026R220					Branch to S (direct) if H5-	 [then] Execute subprocess of Gen
+162					52	H0			P026R225					Replace (0) by S (DOUBLE indirect)	[Communication Cell]
+162	IF NO, GENERATE				10	9-100			P026R230					Input S (direct) to H0, after pushing H0	
+162	SUBSEGMENTS FOR 9-100.					9-200	0		P026R240						
+162	SUBGENERATOR 9-200.		9-200		14	W0			P026R250						[Work cell 0]
+162						J17			P026R260						Gen set up: context (0), subprocess
+162					11	W0			P026R270					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+162	CREATE NEW SUBLEVEL COUNTER.					J120			P026R280						COPY (0)
+162	BUMP COUNTER.					J125			P026R290						Tally 1 in (0), leave (0)
+162					20	W0			P026R300						[Work cell 0]
+162					40	W0			P026R310					Preserve (Push) S (direct)	[Work cell 0]
+162	LOCATE NEXT SEGMENT PLACE.		9-201			J60			P026R320						LOCATE next symbol after cell (0)
+162	IF NONE, QUIT.				70	9-203			P026R330					Branch to S (direct) if H5-	
+162	IF FOUND, PRESERVE LOCATION,				40	H0			P026R340					Preserve (Push) S (direct)	[Communication Cell]
+162					12	H0			P026R350					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+162	TEST IF SEGMENT IS A VARIABLE.					P8			P026R360						TEST IF (0) IS VARIABLE TERM.
+162	IF NO, FIRE J18.				70	9-202			P026R370					Branch to S (direct) if H5-	
+162	IF YES, LOOP TO LOCATE.				30	H0	9-201		P026R380					Restore (Pop) S (direct)	[Communication Cell]
+162			9-202			J18			P026R390						Execute subprocess of Gen
+162	IF J18 QUIT+, LOOP TO LOCATE,				70		9-201		P026R400					Branch to S (direct) if H5-	
+162	IF J18 QUIT-,		9-203		51	W0			P026R410					Replace (0) by S (indirect)	[Work cell 0]
+162					30	W0			P026R420					Restore (Pop) S (direct)	[Work cell 0]
+162	ERASE COUNTER AND QUIT.					J9	J19		P026R430						ERASE cell (0) [then] Gen clean up
+162		1							    R						
+162	P27 REPLACE BOUND BY FREE IN (0).		P27			J43			P027R000						Preserve W0-W3
+162					60	W0		1W0=TEX	P027R010					Copy (0) to S (direct)	[Work cell 0]
+162	CREATE LIST OF BOUND OF 1W0.					P31			P027R020						CREATE LIST OF BOUND VARIABLES IN EXPRESSION (0).
+162					60	W1		1W1=BNDLST	P027R030					Copy (0) to S (direct)	[Work cell 1]
+162	LOCATE FIRST BOUND.					J60			P027R040						LOCATE next symbol after cell (0)
+162					20	W2		1W2=BNDLOC	P027R050						[Work cell 2]
+162	IF NO BOUND, QUIT.				70	9-1			P027R060					Branch to S (direct) if H5-	
+162					11	W0			P027R070					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+162	CREATE LIST OF FREE OF 1W0.					P30			P027R080						CREATE LIST OF FREE VARIABLES IN EXPRESSION (0).
+162					60	W3		1W3=FREELS	P027R090					Copy (0) to S (direct)	[Work cell 3]
+163					10	J137			P027R100					Input S (direct) to H0, after pushing H0	Mark list (0) processed, leave (0)
+163	GEN FREE VAR TO BE MARKED.					J100			P027R110						Gen symbols on list (1) for(0)
+163					10	L2		L2=SYSFREE	P027R120					Input S (direct) to H0, after pushing H0	LIST OF FREE VARIABLES.
+163					10	9-100			P027R130					Input S (direct) to H0, after pushing H0	
+163	GEN SYS FREE VAR. TO REPLACE.					J100			P027R140						Gen symbols on list (1) for(0)
+163	H5+ MEANS NOT ENOUGH FREE VAR.				70		J7		P027R150					Branch to S (direct) if H5-	 [then] Halt, proceed on GO
+163					11	W1		1W1=SUBLST	P027R160					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+163					11	W0			P027R170					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+163	FIND MAIN SEGMENT.					J81			P027R175						FIND the 1th symbol on list (0)
+163					70		9-2		P027R180					Branch to S (direct) if H5-	
+163	IF NONE, SKIP IT.					J8	9-3		P027R185						Restore H0
+163	REPLACE IN MEX FROM 1W1.		9-2			M115			P027R190						SUBSTITUTE IN SEGMENT (0) FROM SUBSTITUTION LIST (1).
+163			9-3		11	W3			P027R195					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+163					10	9-200			P027R200					Input S (direct) to H0, after pushing H0	
+163	GEN FREE VAR TO BE UNMARKED.					J100			P027R210						Gen symbols on list (1) for(0)
+163					11	W3			P027R220					Input S (indirect) to H0, after pushing H0	[Work cell 3]
+163	ERASE CREATED FREE LIST.					J71			P027R230						ERASE list (0)
+163			9-1		11	W1			P027R240					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+163	ERASE BOUND LIST.					J71	J33		P027R250						ERASE list (0) [then] Restore W0-W3
+163	9-100 SUBPROCESS, INSERT (0)		9-100		40	H0			P027R260					Preserve (Push) S (direct)	[Communication Cell]
+163	AFTER SYMBOL. IN 1W2					J133			P027R270						TEST if list (0) has been marked processed
+163	IF (0) IS UNMARKED.				70		J8		P027R280					Branch to S (direct) if H5-	 [then] Restore H0
+163	THEN ADVANCE TO NEXT				11	W2			P027R290					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+163	AFTER CELL HOLDING					J6			P027R300						Reverse (0) and (1)
+163	INSERTED SYMBOL.					J64			P027R310						INSERT (0) after symbol in cell (1)
+163					11	W2			P027R320					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+163						J60			P027R330						LOCATE next symbol after cell (0)
+163						J60			P027R340						LOCATE next symbol after cell (0)
+163	QUIT, H5- MEANS QUIT GENERATOR.				20	W2	0		P027R350						[Work cell 2]
+163	9-200 SUBPROCESS. UNMARK PROCESSED.		9-200		31	H0	J8		P027R360						[Communication Cell] [then] Restore H0
+163		1							    R						
+163	GENERATE LOCATIONS OF FREE		P28		10	W0			P028R000					Input S (direct) to H0, after pushing H0	[Work cell 0]
+163	VARIABLES WITHIN SEGMENT (1)					J17			P028R010						Gen set up: context (0), subprocess
+163	FOR PROCESS (0).				60	W0			P028R020					Copy (0) to S (direct)	[Work cell 0]
+163						P8			P028R030						TEST IF (0) IS VARIABLE TERM.
+163	TEST IF INPUT SEGMENT IS VARIABLE.				70		J19		P028R040					Branch to S (direct) if H5-	 [then] Gen clean up
+163	IF SO, QUIT.		9-2		11	W0			P028R050					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+163	LOCATE NEXT SUBSEGMENT.					J60			P028R060						LOCATE next symbol after cell (0)
+163					20	W0			P028R070						[Work cell 0]
+163					70	J19			P028R080					Branch to S (direct) if H5-	Gen clean up
+163					12	W0			P028R090					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+163	TEST IF SUBSEGMENT IS FREE VAR.					P9			P028R100						TEST IF (0) IS FREE VARIABLE.
+163					70	9-1			P028R110					Branch to S (direct) if H5-	
+163					11	W0			P028R120					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+163	IF SO, GENERATE LOCATION.					J18			P028R130						Execute subprocess of Gen
+163			9-3		70	J19	9-2		P028R140					Branch to S (direct) if H5-	Gen clean up
+163			9-1		12	W0			P028R150					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+163	TEST IS SUBSEGMENT IS VARIABLE.					P8			P028R160						TEST IF (0) IS VARIABLE TERM.
+163					70		9-2		P028R170					Branch to S (direct) if H5-	
+163	IF NOT, GENERATE SUBSEGMENT.				12	W0			P028R180					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+163					10	J18			P028R190					Input S (direct) to H0, after pushing H0	Execute subprocess of Gen
+164						P28	9-3		P028R200						GENERATE LOCATIONS OF FREE VARIABLES IN SEGMENT (1) FOR (0).
+164		1							    R						
+164	P29 GENERATE LOCATIONS OF BOUND		P29		10	W0			P029R000					Input S (direct) to H0, after pushing H0	[Work cell 0]
+164	VARIABLES WITHIN SEGMENT (1)					J17			P029R010						Gen set up: context (0), subprocess
+164	FOR PROCESS (0).				60	W0			P029R020					Copy (0) to S (direct)	[Work cell 0]
+164	TEST IF INPUT SEGMENT IS VARIABLE.					P8			P029R030						TEST IF (0) IS VARIABLE TERM.
+164	IF YES, QUIT H5+.				70		J19		P029R040					Branch to S (direct) if H5-	 [then] Gen clean up
+164	IF NO, 		9-2		11	W0			P029R050					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+164	LOCATE NEXT SEGMENT					J60			P029R060						LOCATE next symbol after cell (0)
+164					20	W0			P029R070						[Work cell 0]
+164	IF NONE, QUIT, H5+.				70	J19			P029R080					Branch to S (direct) if H5-	Gen clean up
+164					12	W0			P029R090					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+164	TEST IF FREE VARIABLE.					P9			P029R100						TEST IF (0) IS FREE VARIABLE.
+164	IF YES, GET NEXT.				70		9-2		P029R110					Branch to S (direct) if H5-	
+164	IF NO,				12	W0			P029R120					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+164	TEST IF BOUND VARIABLE.					P8			P029R130						TEST IF (0) IS VARIABLE TERM.
+164	IF NO, GENERATE ON SEGMENT.				70	9-1			P029R140					Branch to S (direct) if H5-	
+164	IF YES, FEED LOCATION				11	W0			P029R150					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+164	TO PROCESS. 					J18			P029R160						Execute subprocess of Gen
+164	IF H5-, SUBPROCESS SAID QUIT.		9-3		70	J19	9-2		P029R170					Branch to S (direct) if H5-	Gen clean up
+164	INPUT SEGMENT.		9-1		12	W0			P029R180					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 0]
+164	INPUT PROCESS.				10	J18			P029R190					Input S (direct) to H0, after pushing H0	Execute subprocess of Gen
+164	GENERATE LOCATIONS OF BND. VAR.					P29	9-3		P029R200						GENERATE LOCATIONS OF BOUND VARIABLES IN SEGMENT (1) FOR (0).
+164		1							    R						
+164	P30 CREATE LIST OF FREE VARIABLES		P30			J90			P030R000						Create list of 0 symbols, (0-0) to (0)
+164	IN TEX (0).					J50		1W0=LIST	P030R010						Preserve W0-W0;MOVE (0)-(0) into W0-W0
+164	FIND MAIN SEGMENT					J81			P030R020						FIND the 1th symbol on list (0)
+164	IF NONE, CLEAN UP, QUIT.				70	9-1			P030R030					Branch to S (direct) if H5-	
+164					10	9-100			P030R040					Input S (direct) to H0, after pushing H0	
+164	GEN. LOCATIONS OF FREE VARIABLES.					P28			P030R050						GENERATE LOCATIONS OF FREE VARIABLES IN SEGMENT (1) FOR (0).
+164			9-1		11	W0	J30		P030R060					Input S (indirect) to H0, after pushing H0	[Work cell 0] [then] Restore W0-W0
+164	SUBPROCESS, ADD FREE VARIABLE		9-100		52	H0			P030R070					Replace (0) by S (DOUBLE indirect)	[Communication Cell]
+164	2H0 TO LIST 1WC IF NOT ON.				11	W0			P030R080					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+164						J6			P030R090						Reverse (0) and (1)
+164	QUIT, H5+ FOR GEN.					J66	J4		P030R100						INSERT (0) at end if not on list (1) [then] Set H5+
+164		1							    R						
+164	P31 CREATE LIST OF BOUND VARIABLES.		P31			J90			P031R000						Create list of 0 symbols, (0-0) to (0)
+164	IN TEX (0).					J50		1W0=LIST	P031R010						Preserve W0-W0;MOVE (0)-(0) into W0-W0
+164	FIND MAIN SEGMENT.					J81			P031R020						FIND the 1th symbol on list (0)
+164	IF NONE, CLEAN UP, QUIT.				70	9-1			P031R030					Branch to S (direct) if H5-	
+164					10	9-100			P031R040					Input S (direct) to H0, after pushing H0	
+164	GENERATE LOCATIONS OF BOUND VAR.					P29			P031R050						GENERATE LOCATIONS OF BOUND VARIABLES IN SEGMENT (1) FOR (0).
+164			9-1		11	W0	J30		P031R060					Input S (indirect) to H0, after pushing H0	[Work cell 0] [then] Restore W0-W0
+164	SUBPROCESS, ADD BOUND VARIABLE		9-100		52	H0			P031R070					Replace (0) by S (DOUBLE indirect)	[Communication Cell]
+164	2H0 TO LIST 1W0 IF NOT ON.				11	W0			P031R080					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+164						J6			P031R090						Reverse (0) and (1)
+164	QUIT, H5+ FOR GEN.					J66	J4		P031R100						INSERT (0) at end if not on list (1) [then] Set H5+
+164		1							    R						
+164	P50 CONVERT LOGIC EXPRESSION (0) TO		P50		40	H0			P050R000					Preserve (Push) S (direct)	[Communication Cell]
+164	INTERNAL (TREE) FORM IF IN					P15			P050R010						TEST IF TOTAL EXPRESSION (0) IS IN TREE FORM.
+164	EXTERNAL (LIST) FORM. ENTIRE				70		J8		P050R020					Branch to S (direct) if H5-	Restore H0
+165	EXPRESSION MUST BE ENCLOSED					J41			P050R030						Preserve W0-W1
+165	IN PARENTHESES. NO OUTPUT.				60	W0			P050R040					Copy (0) to S (direct)	[Work cell 0]
+165	H5- MEANS FAILURE.					P51			P050R050						REPLACE ALL DELIMITED SYMBOLS IN EXPRESSION (0) IF (0) IS IN LIST FORM.
+165					11	W0			P050R060					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+165	CREATE NEW MAIN SEGMENT.					P52			P050R070						CREATE A TREE FORM MAIN SEGMENT FROM LIST FORM EXPRESSION (0). H5- MEANS NO OUTPUT DUE TO A FAULTY INPUT EXPRESSION.
+165	IF FAILED, QUIT.				70	J31			P050R075					Branch to S (direct) if H5-	Restore W0-W1
+165	SAVE NEW MEX.				60	W1			P050R080					Copy (0) to S (direct)	[Work cell 1]
+165					51	W0			P050R090					Replace (0) by S (indirect)	[Work cell 0]
+165	SAVE OLD HEAD.					J75			P050R100						Divide list after location (0); name of remainder is output (0)
+165	DISCARD OLD LIST.					J71			P050R110						ERASE list (0)
+165					11	W0			P050R120					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+165					11	W1			P050R130					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+165	INSERT MEX UNDER OLD HEAD.					J64			P050R140						INSERT (0) after symbol in cell (1)
+165					11	W0			P050R190					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+165					10	Q15			P050R200					Input S (direct) to H0, after pushing H0	ATTRIBUTE--INTERNAL FORM.
+165					10	Q15			P050R210					Input S (direct) to H0, after pushing H0	ATTRIBUTE--INTERNAL FORM.
+165	DESCRIBE AS IN INTERNAL FORM.					J11	J31		P050R220						Assign (1) as value of attribute (0) of (2) [then] Restore W0-W1
+165		1							    R						
+165	P51 REPLACE ALL DELIMITED EXTERNAL		P51		40	H0			P051R000					Preserve (Push) S (direct)	[Communication Cell]
+165	CONNECTIVES IN EXPRESSION (0)					P15			P051R010						TEST IF TOTAL EXPRESSION (0) IS IN TREE FORM.
+165	IF (0) IS IN EXTERNAL				70		J8		P051R020					Branch to S (direct) if H5-	 [then] Restore H0
+165	LIST FORM.					J42			P051R025						Preserve W0-W2
+165					60	W0		1W0=LIST	P051R030					Copy (0) to S (direct)	[Work cell 0]
+165			9-10		11	K7			P051R040					Input S (indirect) to H0, after pushing H0	HOLDS DELIMIER SYMBOL FOR DELIMITABLE CHARACTERS.
+165	LOCATE FIRST DELIMITER IN LIST.					J62			P051R050						LOCATE (0) on list (1) (1st occurrence)
+165					70	9-0			P051R060					Branch to S (direct) if H5-	
+165					60	W1		1W1=LOCIST	P051R070					Copy (0) to S (direct)	[Work cell 1]
+165	LOCATE CONNECTIVE (EXTERNAL FORM).					J60			P051R080						LOCATE next symbol after cell (0)
+165					60	W2		1W2=LOCONN	P051R090					Copy (0) to S (direct)	[Work cell 2]
+165	LOCATE SECOND DELIMITER IN LIST.					J60			P051R100						LOCATE next symbol after cell (0)
+165	IF NOT ALL THERE, QUIT.				70	9-0			P051R110					Branch to S (direct) if H5-	
+165					12	H0			P051R120					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+165					11	K7			P051R130					Input S (indirect) to H0, after pushing H0	HOLDS DELIMIER SYMBOL FOR DELIMITABLE CHARACTERS.
+165	TEST IF 2ND IS SAME AS 1ST.					J2			P051R140						TEST (0) (1)
+165	IF NOT, TRY ON REMAINDER.				70	9-10			P051R150					Branch to S (direct) if H5-	
+165	IF YES, DELETE 2ND,					J68			P051R160						DELETE symbol in cell (0)
+165					10	L8			P051R170					Input S (direct) to H0, after pushing H0	DESCRIPTION LIST TABLE OF DELIMITABLE CHARACTERS.
+165					12	W2			P051R180					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 2]
+165	FIND INTERNAL FORM,					J10			P051R190						FIND value of attribute (0) of (1)
+165					70	9-1			P051R200					Branch to S (direct) if H5-	
+165	REPLACE EXTERNAL,				21	W2			P051R210						[Work cell 2]
+165	DELETE FIRST DELIMITER.		9-1		11	W1			P051R220					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+165	RESET AND DO IT AGAIN.					J68			P051R230						DELETE symbol in cell (0)
+165	ALL DONE, CLEAN UP AND QUIT.				11	W0	9-10		P051R240					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+165			9-0		30	H0	J32		P051R250					Restore (Pop) S (direct)	[Communication Cell] [then] Restore W0-W2
+165		1							    R						
+165	P52 CREATE MAIN SEGMENT FROM		P52			J41			P052R000						Preserve W0-W1
+165	LIST (0). H5- MEANS NO OUTPUT				20	W1		1W1=CURLOC	P052R020						[Work cell 1]
+165	DUE TO BAD EXPRESSION.					9-100	J31		P052R030						 [then] Restore W0-W1
+165	9-100 SUBPROCESS CREATE NEXT SGMNT.		9-100		04	J0			P052R040						No operation
+165	H5- MEANS NO OUTPUT.				11	W1		1W1=CURLOC	P052R050					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+166	LOCATE FIRST OF EXPRESSION					J60			P052R060						LOCATE next symbol after cell (0)
+166					20	W1			P052R070						[Work cell 1]
+166	IF NONE, QUIT.				70	9-101			P052R080					Branch to S (direct) if H5-	
+166					12	W1			P052R090					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+166					10	(			P052R100					Input S (direct) to H0, after pushing H0	
+166	TEST IF OPENING PAREN.					J2			P052R110						TEST (0) (1)
+166	IF YES, BUILD SEGMENT.				70		9-110		P052R120					Branch to S (direct) if H5-	
+166					12	W1			P052R130					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+166					11	K2		1K2= NOT	P052R140					Input S (indirect) to H0, after pushing H0	HOLDS -NOT-.
+166	TEST IF NOT.					J2			P052R150						TEST (0) (1)
+166	IF YES, BUILD SEGMENT.				70		9-120		P052R160					Branch to S (direct) if H5-	
+166					12	W1			P052R170					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+166	TEST IF VARIABLE.					P8			P052R180						TEST IF (0) IS VARIABLE TERM.
+166	IF NO QUIT.				70	9-101			P052R190					Branch to S (direct) if H5-	
+166	OUTPUT VARIABLE.				12	W1	0		P052R200					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+166			9-101		11	W1			P052R205					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+166					10	/14	J63		P052R210					Input S (direct) to H0, after pushing H0	 [then] INSERT (0) before symbol in cell (1)
+166	TAKE ERROR ACTION, THEN		9-103			9-101			P052R220						
+166	ERASE USELESS SEGMENT.		9-102		11	W0			P052R230					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+166						J72	J30		P052R240						ERASE list structure (0) [then] Restore W0-W0
+166	OUTPUT SEGMENT.		9-104		11	W0			P052R250					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+166						J136	J30		P052R260						Make (0) local, leave (0) [then] Restore W0-W0
+166	BUILD SEGMENT		9-110			9-200		1W0=NEWSEG	P052R270						
+166	CREATE 1ST SUBSEGMENT.					9-100			P052R280						
+166	IF NONE, CLEAN UP, QUIT.				70	9-102			P052R290					Branch to S (direct) if H5-	
+166	INSERT 1ST SUBSEGMENT.					9-300			P052R300						
+166					11	W1			P052R310					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+166	LOCATE NEXT SYMBOL.					J60			P052R320						LOCATE next symbol after cell (0)
+166					60	W1			P052R330					Copy (0) to S (direct)	[Work cell 1]
+166					52	W1			P052R340					Replace (0) by S (DOUBLE indirect)	[Work cell 1]
+166	TEST IF CONNECTIVE.					P7			P052R350						TEST IF (0) IS A CONNECTIVE.
+166	IF NOT CLEAN UP, QUIT.				70	9-103			P052R360					Branch to S (direct) if H5-	
+166					12	W1			P052R370					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+166	INSERT CONNECTIVE.				21	W0			P052R380						[Work cell 0]
+166	CREATE 2ND SUBSEGMENT.					9-100			P052R390						
+166	IF NONE, CLEAN UP, QUIT.				70	9-102			P052R400					Branch to S (direct) if H5-	
+166	INSERT 2ND SUBSEGMENT.					9-300			P052R410						
+166					11	W1			P052R420					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+166	LOCATE NEXT SYMBOL.					J60			P052R430						LOCATE next symbol after cell (0)
+166					60	W1			P052R440					Copy (0) to S (direct)	[Work cell 1]
+166					52	W1			P052R450					Replace (0) by S (DOUBLE indirect)	[Work cell 1]
+166					10	)			P052R460					Input S (direct) to H0, after pushing H0	
+166	TEST IF CLOSING PAREN.					J2			P052R470						TEST (0) (1)
+166	IF NO, CLEANUP, QUIT.				70	9-103	9-104		P052R480					Branch to S (direct) if H5-	
+166	BUILD NOTTED SEGMENT.		9-120			9-200			P052R490						
+166					12	W1			P052R500					Input S (DOUBLE indirect) to H0, after pushing H0	[Work cell 1]
+166	NOT THE HEAD.				21	W0			P052R510						[Work cell 0]
+166	CREATE SUBSEGMENT.					9-100			P052R520						
+166	IF NONE, CLEAN UP AND QUIT.				70	9-102			P052R530					Branch to S (direct) if H5-	
+166	INSERT 					9-300	9-104		P052R540						
+166	9-200 SUBPROCESS, SET UP EMPTY SEG.		9-200			J90	J50		P052R550						Create list of 0 symbols, (0-0) to (0) [then] Preserve W0-W0;MOVE (0)-(0) into W0-W0
+167	9-300 SUBPROCESS, INSERT SEGMENT.		9-300		11	W0			P052R560					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+167						J6	J65		P052R570						Reverse (0) and (1) [then] INSERT (0) at end of list (1)
+167		1							    R						
+167	P55 LOCATE SUBLIST FOLLOWING		P55			J41			P055R000						Preserve W0-W1
+167	DATA TERM (0) ON LIST (1))				20	W0			P055R010						[Work cell 0]
+167	H5+ MEANS OUTPUT (0) IS		9-3		60	W1			P055R020					Copy (0) to S (direct)	[Work cell 1]
+167	CELL HOLDING SUBLIST.					J60			P055R030						LOCATE next symbol after cell (0)
+167	H5- MEANS OUTPUT (0) IS				70	J31			P055R040					Branch to S (direct) if H5-	Restore W0-W1
+167	CELL AFTER WHICH TO INSERT.				12	H0			P055R050					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+167					11	W0			P055R060					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+167	TEST IF PAST.					J116			P055R070						TEST if(0) < (1)
+167	IF YES, QUIT, H5-.				70		9-1		P055R080					Branch to S (direct) if H5-	
+167					12	H0			P055R090					Input S (DOUBLE indirect) to H0, after pushing H0	[Communication Cell]
+167					11	W0			P055R100					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+167	TEST IF EQUAL.					J114			P055R110						TEST if (0) = (1)
+167	IF YES, QUIT, H5+.				70		9-2		P055R120					Branch to S (direct) if H5-	
+167	IF NO, MOVE DOWN THE LIST.					J60			P055R130						LOCATE next symbol after cell (0)
+167					70	J7	9-3		P055R140					Branch to S (direct) if H5-	Halt, proceed on GO
+167	SET UP CELL TO INSERT AFTER.		9-1		51	W1			P055R150					Replace (0) by S (indirect)	[Work cell 1]
+167						J3	J31		P055R160						Set H5- [then] Restore W0-W1
+167	SET UP CELL HOLDING SUBLIST.		9-2			J60			P055R170						LOCATE next symbol after cell (0)
+167					70	J7	J31		P055R180					Branch to S (direct) if H5-	Halt, proceed on GO [then] Restore W0-W1
+167		1							    R						
+167	Q1 FIND CONNECTIVE OF SEGMENT (0).		Q1			J80			Q001R000						FIND the 0th symbol on list (0)
+167					70	0			Q001R010					Branch to S (direct) if H5-	
+167					40	H0			Q001R020					Preserve (Push) S (direct)	[Communication Cell]
+167	TEST IF IT IS .4 CONNECTIVE.					P7			Q001R030						TEST IF (0) IS A CONNECTIVE.
+167					70	J8	0		Q001R040		Typo discovered by RL 20250813			Branch to S (direct) if H5-	Restore H0
+167		1							    R						
+167	Q2 FIND NO. OF LEVELS OF TEX (0).		Q2		40	H0			Q002R000					Preserve (Push) S (direct)	[Communication Cell]
+167	H5- MEANS DEFECTIVE EXPRESSION.				10	Q2			Q002R010					Input S (direct) to H0, after pushing H0	FIND NO. OF LEVELS OF EXPRESSION (0).
+167	FIND VALUE ON DESCRIPTION LIST.					J10			Q002R020						FIND value of attribute (0) of (1)
+167	IF NONE, GO COUNT LEVELS.				70	9-0			Q002R030					Branch to S (direct) if H5-	
+167	IF THERE, CLEAN UP, QUIT +.					J6	J8		Q002R040						Reverse (0) and (1) [then] Restore H0
+167			9-0		10	N10			Q002R050					Input S (direct) to H0, after pushing H0	
+167						J120			Q002R060						COPY (0)
+167	CREATE LEVEL DATA TERM = ZERO.					J136			Q002R070						Make (0) local, leave (0)
+167					40	H0			Q002R080					Preserve (Push) S (direct)	[Communication Cell]
+167	CREATE COUNTER.					J120		1W0=COUNTR	Q002R090						COPY (0)
+167	SAVE COUNTER, LEVEL, TEX.					J52		1W1=LEVEL	Q002R100						Preserve W0-W2; MOVE (0)-(2) into W0-W2
+167					11	W2		1W2=TEX	Q002R110					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+167	FIND MEX.					J81			Q002R120						FIND the 1th symbol on list (0)
+167	IF NONE, CLEANUP, QUIT-.				70	9-1			Q002R130					Branch to S (direct) if H5-	
+167	IF THERE, COUNT LEVELS.					9-100			Q002R140						
+167			9-1		11	W0			Q002R150					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+167	ERASE COUNTER.					J9			Q002R160						ERASE cell (0)
+167	INPUT LEVEL,				11	W1			Q002R170					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+167	IF H5-, ERASE LEVEL, QUIT-.				70	9-2			Q002R180					Branch to S (direct) if H5-	
+167	IF H5+				11	W2			Q002R190					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+167	ASSIGN LEVEL 1W1 AS VALUE				11	W1			Q002R200					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+167	OF Q2 OF TEX 1W2.				10	Q2			Q002R210					Input S (direct) to H0, after pushing H0	FIND NO. OF LEVELS OF EXPRESSION (0).
+168	QUIT +, OUTPUT (0) IS LEVEL.					J11	J32		Q002R220						Assign (1) as value of attribute (0) of (2) [then] Restore W0-W2
+168			9-2			J9	J32		Q002R230						ERASE cell (0) [then] Restore W0-W2
+168	9-100 SUBPROCESS. COUNT SUBLEVELS.		9-100		11	W0			Q002R240					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+168						J120			Q002R250						COPY (0)
+168	CREATE COUNTER EQUAL TO THIS LEVEL.					J125			Q002R260						Tally 1 in (0), leave (0)
+168	PRESERVE PREVIOUS COUNTER.					J50			Q002R270						Preserve W0-W0;MOVE (0)-(0) into W0-W0
+168					40	H0			Q002R300					Preserve (Push) S (direct)	[Communication Cell]
+168	TEST IF SIMPLE VARIABLE.					P8			Q002R310						TEST IF (0) IS VARIABLE TERM.
+168	IF YES, UPDATE LEVEL.				70		9-102		Q002R320					Branch to S (direct) if H5-	
+168	IF NO, COUNT SUBLEVELS,				10	9-100			Q002R330					Input S (direct) to H0, after pushing H0	
+168	THEN QUIT + OR-.					J100	9-101		Q002R340						Gen symbols on list (1) for(0)
+168	UPDATE LEVEL.		9-102		51	W1			Q002R350					Replace (0) by S (indirect)	[Work cell 1]
+168					11	W0			Q002R360					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+168	TEST IF COUNTER GREATER THAN LEVEL.					J115			Q002R370						TEST if (0) > (1)
+168	IF NO QUIT +.				70	9-103			Q002R380					Branch to S (direct) if H5-	
+168					11	W0			Q002R390					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+168	IF YES,				11	W1			Q002R400					Input S (indirect) to H0, after pushing H0	[Work cell 1]
+168	SET LEVEL SAME AS COUNTER.					J121			Q002R410						Set (0) identical to (1), leave (0)
+168					30	H0			Q002R420					Restore (Pop) S (direct)	[Communication Cell]
+168	SET H5+.		9-103			J4			Q002R430						Set H5+
+168	ERASE COUNTER OF THIS LEVEL.		9-101		11	W0			Q002R440					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+168	RESTORE PREVIOUS COUNTER, QUIT.				30	W0	J9		Q002R450					Restore (Pop) S (direct)	[Work cell 0] [then] ERASE cell (0)
+168		1							    R						
+168	Q3 FIND NO. OF DISTINCT VARIABLES		Q3		40	H0			Q003R000					Preserve (Push) S (direct)	[Communication Cell]
+168	IN TOTAL EXPRESSION (0).				10	Q3			Q003R010					Input S (direct) to H0, after pushing H0	FIND NO. OF DISTINCT VARIABLES OF EXPRESSION (0).
+168						J10			Q003R020						FIND value of attribute (0) of (1)
+168	FIND AS VALUE IN DESC. LIST.				70	9-0			Q003R030					Branch to S (direct) if H5-	
+168	IF THFRE, CLEAN UP, QUIT +.					J6	J8		Q003R040						Reverse (0) and (1) [then] Restore H0
+168	IF NONE, COUNT VARIABLES.		9-0			J42			Q003R050						Preserve W0-W2
+168					60	W0		1W0=TEX	Q003R060					Copy (0) to S (direct)	[Work cell 0]
+168	CREATE FREE LIST,					P30			Q003R070						CREATE LIST OF FREE VARIABLES IN EXPRESSION (0).
+168	SAVE IT,				60	W1		1W1=FREE	Q003R080					Copy (0) to S (direct)	[Work cell 1]
+168	COUNT IT,					J126			Q003R090						Count list (0)
+168	MARK COUNT LOCAL,					J136			Q003R100						Make (0) local, leave (0)
+168	AND SAVE FOR OUTPUT.				60	W2		1W2=OUTPUT	Q003R110					Copy (0) to S (direct)	[Work cell 2]
+168					51	W1			Q003R120					Replace (0) by S (indirect)	[Work cell 1]
+168	ERASE FREE LIST.					J71			Q003R130						ERASE list (0)
+168					11	W0			Q003R140					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+168	CREATE BOUND LIST,					P31			Q003R150						CREATE LIST OF BOUND VARIABLES IN EXPRESSION (0).
+168	SAVE IT,				60	W1		1W1=BOUND	Q003R160					Copy (0) to S (direct)	[Work cell 1]
+168	COUNT IT,					J126			Q003R170						Count list (0)
+168					40	H0			Q003R180					Preserve (Push) S (direct)	[Communication Cell]
+168					11	W2			Q003R190					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+168					11	W2			Q003R200					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+168	ADD IT TO OUTPUT DATA TERM.					J110			Q003R210						(1) + (2) => (0), leave (0)
+168					51	W1			Q003R220					Replace (0) by S (indirect)	[Work cell 1]
+168	ERASE BOUND LIST.					J71			Q003R230						ERASE list (0)
+168	COUNT BOUND LIST.					J9			Q003R240						ERASE cell (0)
+168					11	W0			Q003R250					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+168					11	W2			Q003R260					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+168					10	Q3			Q003R270					Input S (direct) to H0, after pushing H0	FIND NO. OF DISTINCT VARIABLES OF EXPRESSION (0).
+169	ASSIGN AS VALUE OF Q3.					J11			Q003R280						Assign (1) as value of attribute (0) of (2)
+169					11	W2			Q003R290					Input S (indirect) to H0, after pushing H0	[Work cell 2]
+169	CLEAN UP AND QUIT.					J32	J4		Q003R300						Restore W0-W2 [then] Set H5+
+169		1							    R						
+169	Q4 FIND NO. OF VARIABLE PLACES		Q4		40	H0			Q004R000					Preserve (Push) S (direct)	[Communication Cell]
+169	IN TEX (0).				10	Q4			Q004R010					Input S (direct) to H0, after pushing H0	FIND NO. OF VARIABLE PLACES CF EXPRESSION (0).
+169	FIND AS VALUE OF DESC. LIST.					J10			Q004R020						FIND value of attribute (0) of (1)
+169	IF NONE, GC COUNT PLACES.				70	9-0			Q004R030					Branch to S (direct) if H5-	
+169	IF THERE, CLEAN UP, QUIT, H5+.					J6	J8		Q004R040						Reverse (0) and (1) [then] Restore H0
+169			9-0		40	H0			Q004R050					Preserve (Push) S (direct)	[Communication Cell]
+169	SET UP THREE COPIES OF TEX NAME.				40	H0			Q004R060					Preserve (Push) S (direct)	[Communication Cell]
+169						J90			Q004R070						Create list of 0 symbols, (0-0) to (0)
+169	CREATE D.T. WITH VALUE = 0.					J136			Q004R080						Make (0) local, leave (0)
+169						J124			Q004R090						Clear (0), leave (0)
+169						J6			Q004R100						Reverse (0) and (1)
+169					10	9-100			Q004R110					Input S (direct) to H0, after pushing H0	
+169	GENERATE FREE LOCATIONS FOR TALLY.					P28			Q004R120						GENERATE LOCATIONS OF FREE VARIABLES IN SEGMENT (1) FOR (0).
+169						J6			Q004R130						Reverse (0) and (1)
+169					10	9-100			Q004R140					Input S (direct) to H0, after pushing H0	
+169	GENERATE BOUND LOCATIONS FOR TALLY.					P29			Q004R150						GENERATE LOCATIONS OF BOUND VARIABLES IN SEGMENT (1) FOR (0).
+169					40	W0			Q004R160					Preserve (Push) S (direct)	[Work cell 0]
+169	SAVE OUTPUT D.T.				60	W0		1W0=OUTPUT	Q004R170					Copy (0) to S (direct)	[Work cell 0]
+169					10	Q4			Q004R180					Input S (direct) to H0, after pushing H0	FIND NO. OF VARIABLE PLACES CF EXPRESSION (0).
+169	ASSIGN AS VALUE OF 04 OF TEX.					J11			Q004R190						Assign (1) as value of attribute (0) of (2)
+169					11	W0	J30		Q004R200					Input S (indirect) to H0, after pushing H0	[Work cell 0] [then] Restore W0-W0
+169	DISCARD (0). TALLY (1).		9-100		30	H0	J125		Q004R210					Restore (Pop) S (direct)	[Communication Cell] [then] Tally 1 in (0), leave (0)
+169		1							    R						
+169	ATTRIBUTE-VARIABLE		Q5		10	Q5	J10		Q005R000					Input S (direct) to H0, after pushing H0	ATTRIBUTE--VARIABLE TERM. [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	ATTRIBUTE-FREE VARIABLE		Q6		10	Q6	J10		Q006R000					Input S (direct) to H0, after pushing H0	ATTRIBUTE--FREE VARIABLE. [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	ATTRIBUTE--EXTERNAL NAME		Q7		10	Q7	J10		Q007R000					Input S (direct) to H0, after pushing H0	ATTRIBUTE--EXTERNAL NAME. [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	FIND PROBLEM NUMBER OF (0)		Q8		10	Q8	J10		Q008R000					Input S (direct) to H0, after pushing H0	FIND PROBLEM NO. OF EXPRESSION (0). [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	Q9 ATTRIBUTE--BOUND VARIABLE.		Q9		10	Q9	J10		Q009R000					Input S (direct) to H0, after pushing H0	ATTRIBUTE--BOUND VARIABLE. [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	FIND PROBLEM (0) DERIVED FROM		Q10		10	Q10	J10		Q010R000					Input S (direct) to H0, after pushing H0	FIND PROBLEM EXPRESSION (0) DERIVED FROM. [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	FIND METHOD OF DERIVATION FOR (0)		Q11		10	Q11	J10		Q011R000					Input S (direct) to H0, after pushing H0	FIND METHOD OF DERIVATION FOR EXPRESSION (0). [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	FIND THEOREM USED FOR (0)		Q12		10	Q12	J10		Q012R000					Input S (direct) to H0, after pushing H0	FIND THEOREM USED TO DERIVE PROBLEM (C). [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	FIND PROVING THEOREM FOR (0)		Q13		10	Q13	J10		Q013R000					Input S (direct) to H0, after pushing H0	FIND PROVING THEOREM FOR PROBLEM (0). [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	Q14 FIND TYPE OF CONNECTIVE (0).		Q14		10	Q14	J10		Q014R000					Input S (direct) to H0, after pushing H0	FIND TYPE OF CONNECTIVE (0). [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	Q15 ATTRIBUTE INTERNAL FORM.		Q15		10	Q15	J10		Q015R000					Input S (direct) to H0, after pushing H0	ATTRIBUTE--INTERNAL FORM. [then] FIND value of attribute (0) of (1)
+169		1							    R						
+169	Q16 FIND EXTERNAL NAME OF (0)		Q16		10	T10			Q016R000		WWW THIS ONE SEEMS WRONG -- T10? Q16?			Input S (direct) to H0, after pushing H0	
+169	IN TABLE T10.					J6	J10		Q016R010						Reverse (0) and (1) [then] FIND value of attribute (0) of (1)
+170		1							    R						
+170	Q17 FIND LEVEL OF SUBSEGMENT		Q17		40	W0			Q017R000					Preserve (Push) S (direct)	[Work cell 0]
+170	REPLACEMENT IN TEX (0).				60	W0			Q017R010					Copy (0) to S (direct)	[Work cell 0]
+170					10	Q17			Q017R020					Input S (direct) to H0, after pushing H0	FIND CURRENT LEVEL OF SUBSEGMENT REPLACEMENT OF PROBLEM (0).
+170	FIND CURRENT LEVEL.					J10			Q017R030						FIND value of attribute (0) of (1)
+170	IF NONE,				70		J30		Q017R040					Branch to S (direct) if H5-	 [then] Restore W0-W0
+170					11	W0			Q017R050					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+170	FIND NUMBER OF LEVELS,					Q2			Q017R060						FIND NO. OF LEVELS OF EXPRESSION (0).
+170	IF NONE, QUIT -.				70	J30			Q017R065					Branch to S (direct) if H5-	Restore W0-W0
+170	COPY,					J120			Q017R070						COPY (0)
+170	SAVE ONE FOR OUTPUT,				40	H0			Q017R080					Preserve (Push) S (direct)	[Communication Cell]
+170					11	W0			Q017R090					Input S (indirect) to H0, after pushing H0	[Work cell 0]
+170						J6			Q017R100						Reverse (0) and (1)
+170	AND ASSIGN AS CURRENT LEVEL.				10	Q17			Q017R110					Input S (direct) to H0, after pushing H0	FIND CURRENT LEVEL OF SUBSEGMENT REPLACEMENT OF PROBLEM (0).
+170					30	W0	J11		Q017R120					Restore (Pop) S (direct)	[Work cell 0] [then] Assign (1) as value of attribute (0) of (2)
+170		1							    R						
+170	Q18 FIND SUFFIX OF EXPRESSION (0).		Q18		10	Q18	J10		Q018R000					Input S (direct) to H0, after pushing H0	FIND SUFFIX OF EXPRESSION (0). [then] FIND value of attribute (0) of (1)
+170		1							    R						
+170	Q19 FIND CHARACTER SYMBOL FOR (0).		Q19		10	L9			Q019R000					Input S (direct) to H0, after pushing H0	DESCRIPTION LIST TABLE OF CHARACTER SYMBOLS FOR READING TEXT.
+						J6	J10		Q019R010						Reverse (0) and (1) [then] FIND value of attribute (0) of (1)

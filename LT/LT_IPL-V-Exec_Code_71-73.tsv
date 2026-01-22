@@ -1,0 +1,106 @@
+Page	Comments	Type	Name	Sign	PQ	Symb	Link	Comments	ID		Notes			PQ MEANING	SYMB [then] LINK MEANING
+71	LOGIC THEORIST TEST	9													
+71*	RELOAD FROM TAPE 2	5			40	2			R		SUPPRESS				
+71	MODIFIED ROUTINES	5			00										
+71		1							R						
+71	 Q17 FIND LEVEL OF SUBSEGMENT		Q17		40	W0			Q017R000						
+71	REPLACE IN TEX (0).				60	W0			Q017R010						
+71					10	Q17			Q017R020						
+71	FIND CURRENT LEVEL					J10			Q017R030						
+71	IF NONE,				70		J30		Q017R040						
+71					11	W0			Q017R050						
+71	FIND NUMBER OF LEVELS					Q2			Q017R060						
+71	IF NONE, QUIT -.				70	J30			Q017R065						
+71	COPY,					J120			Q017R070						
+71	SAVE ONE FOR OUTPUT,				40	H0			Q017R080						
+71					11	W0			Q017R090						
+71						J6			Q017R100						
+71	AND ASSIGN AS CURRENT LEVEL.				10	Q17			Q017R110						
+71					30	W0	J11		Q017R120						
+72	MODIFIED DATA	5			01				D						
+72	/16 DUMMY EXPRESSION --		/16			9-1			/016D000						
+72	DEFINITIONS'					9-2	0		/016D010						
+72			9-1			0			/016D020						
+72						Q15			/016D030						
+72						Q15			/016D040						
+72						Q7			/016D050						
+72							0		/016D060						
+72	EXTERNAL NAME				21				/016D070						
+72	CONNECTIVE 'I'.		9-2			I0			/016D080						
+72						9-10			/016D090						
+72						9-20	0		/016D100						
+72	DUMMY VARIABLE 'DEFIN'.		9-10				0		/016D110						
+72						0			/016D120						
+72						Q5			/016D130						
+72						Q5			/016D140						
+72						Q9			/016D150						
+72						Q9			/016D160						
+72						Q7			/016D170						
+							0		/016D180						
+72	EXTERNAL NAME				21	DEFIN			/016D190						
+72	DUMMY VARIABLE 'TIONS'.		9-20				0		/016D200						
+72						0			/016D210						
+72						Q5			/016D220						
+72						Q5			/016D230						
+72						Q9			/016D240						
+72						Q9			/016D250						
+72						Q7			/016D260						
+72							0		/016D270						
+72	EXTERNAL NAME				21	TIONS			/016D280						
+72	RUN DATA HEADER	5			01				D -						
+72	LIMIT ON NUMBER OF SUBPROBLEMS		K20	_+	01		50		K020D000						
+72	LIMIT ON NUMBER OF SUBSTITUTIONS		K21	_+	01		50		K021D000						
+72	LIMIT ON EFFORT		K22	_+	01	20	0000		K022D000						
+72	R= ADD PROVED THEOREMS TO THEOREMS		K30			R			K030D000						
+72	Y = PRINT REJECTED SUBPROBLEMS.		K31			YES			K031D000						
+72	L6 LIST OF METHODS FOR ORIG PROBS		L6			0			L006D000						
+72						M16			L006D010						
+72						M17			L006D020						
+72	L7 LIST OF METHODS FOR PROBLEMS.		L7			0			L007D000						
+72	REPLACEMENT.					M13			L007D010						
+72	DETACHMENT.					M11			L007D010						
+72	FORWARD CHAINING.					M14			L007D010						
+72	BACKWARD CHAINING.					M15			L007D010						
+72	W12 SET-UP ENTRY SNAP ACTION.		W12			X13	0		W012D000						
+72	W13 SET-UP EXIT SNAP ACTION.		W13			X13	0		W013D000						
+72			W15			X15	0		W015D000						
+72			X21			0			X021D000						
+72			X22			0			X022D000						
+72	DESCRIPTION LIST OF TRAP ACTIONS.		X23			0			X023D000						
+73	KICK OFF FOR PROVING THEOREMS	5				X1									
+73	*1.01 ((PIQ).=.(-PVQ))  DEF.										May need 3 spaces (tried this in the fixed input set)				
+73	*2.33 ((PVQVR).=.((PVQ)VR)) DEF.														
+73	*3.01 ((P*Q).=.-(-(PV-Q)) DEF.														
+73	*4.01 ((P=Q).=.((PIQ)*(QIP))) DEF.														
+73	*1.2  ((AVA)IA)														
+73	*1.3  (BI(AVB))														
+73	*1.4  ((AVB)I(BVA))														
+73	*1.5  ((AV(BVC))I(BV(AVC)))														
+73	*1.6  ((BIC)I((AVB)I(AVC)))														
+73															
+73	*2.01 ((PI-P)I-P)														
+73	*2.02 (QI(PIQ))														
+73	*2.03 (((PI-Q)I(QI-P))														
+73	*2.04 ((PI(QIR))I(QI(PIR)))														
+73	*2.05 ((QIR)I((PIQ)I(PIR)))														
+73	*2.06 ((PIQ)I((QIR)I(PIR)))														
+73	*2.07 (PI(PVP))														
+73	*2.08 (PIP)														
+73	*2.10 (-PVP)														
+73	*2.11 (PV-P)														
+73	*2.12 (PI--P)														
+73	*2.13 (PV---P)														
+73	*2.14 (--PIP)														
+73	*2.15 ((-PIQ)I(-QIP))														
+73	*2.20 (PI(PVQ))														
+73	*2.21 (-PI(PIQ))														
+73	*2.24 (PI(-PVQ))														
+73	*3.13 (-(P*Q)I(-PV-Q))														
+73	*3.14 ((-PV-Q)I-(P*Q))														
+73	*3.24 -(P*-P)														
+73	*4.13 (P=--P)														
+73	*4.20 (P=P)														
+73	*4.24 (P=(P*P))														
+73	*4.25 (P=(PVP))														
+73															
+73	TRANSCIPTION END														
