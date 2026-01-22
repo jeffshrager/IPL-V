@@ -2899,6 +2899,37 @@
 ;; Remember to turn on/off memory at K030D000
 
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
+*1.01  ((PIQ).=.(-PVQ))  DEF.
+*2.33  ((PVQVR).=.((PVQ)VR))  DEF.
+*3.01  ((P*Q).=.-(-(PV-Q))  DEF.
+*4.01  ((P=Q).=.((PIQ)*(QIP)))  DEF.
 *1.2   ((AVA)IA)
+*1.3   (BI(AVB))
+*1.4   ((AVB)I(BVA))
+*1.5   ((AV(BVC))I(BV(AVC)))
+*1.6   ((BIC)I((AVB)I(AVC)))
 
-*2.07  ((PVP)IP)
+*2.01  ((PI-P)I-P)
+*2.02  (QI(PIQ))
+*2.03  (((PI-Q)I(QI-P))
+*2.04  ((PI(QIR))I(QI(PIR)))
+*2.05  ((QIR)I((PIQ)I(PIR)))
+*2.06  ((PIQ)I((QIR)I(PIR)))
+*2.07  (PI(PVP))
+*2.08  (PIP)
+*2.10  (-PVP)
+*2.11  (PV-P)
+*2.12  (PI--P)
+*2.13  (PV---P)
+*2.14  (--PIP)
+*2.15  ((-PIQ)I(-QIP))
+*2.20  (PI(PVQ))
+*2.21  (-PI(PIQ))
+*2.24  (PI(-PVQ))
+*3.13  (-(P*Q)I(-PV-Q))
+*3.14  ((-PV-Q)I-(P*Q))
+*3.24  -(P*-P)
+*4.13  (P=--P)
+*4.20  (P=P)
+*4.24  (P=(P*P))
+*4.25  (P=(PVP))
