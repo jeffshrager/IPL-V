@@ -1,4 +1,4 @@
-;; (load (compile-file "iplv.lisp"))
+;;; (load (compile-file "iplv.lisp"))
 
 ;;; I recovered to here after an errant exploration into using local
 ;;; symbol stacks instead of the (correct) general stack mechanism for
