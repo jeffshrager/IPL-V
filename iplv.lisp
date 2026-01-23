@@ -2992,7 +2992,7 @@ Which actually looks like it correctly takes off 2 agrs, but then there's {|||} 
 ;;; (fsym "symbol")
 
 (progn ;; LT 
-  (set-trace-mode :default)
+  (set-trace-mode :none)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
