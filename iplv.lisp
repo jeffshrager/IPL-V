@@ -1799,10 +1799,22 @@
 	(let ((cell (<== H0)))
 	  (setf (cell-q cell) 2)))
 
-  ;; This is deeply upsetting -- it pushes a non-system element -- the
-  ;; head of a list, meaning that any named cell can be pushed and
-  ;; restored. I think that ipush and ipop will do the thing, but
-  ;; ... who knows!
+  (defj J137 ([0]) "MARK LIST (0) PROCESSED"
+	;; List (0) is preserved, its [new] head made empty (Q =
+	;; 4, SYMB = 0), and P set to be 1. Restoring (0) will return
+	;; (0) to its initial state. This will work even with data
+	;; terms. The output (0) is the input (0).
+	(let* ((head-cell (<== [0]))
+	       (current-first-cell-name (cell-link head-cell))
+	       (current-first-cell (<== current-first-cell-name))
+	       (new-first-cell-name (newsym))
+	       (new-first-cell (make-cell! :name new-first-cell-name :p 1 :q 4 :symb "0" :link current-first-cell-name))
+	       )
+	  (setf (cell-link head-cell) new-first-cell-name)
+	  (!! :jdeep "   .....J137 created new cell ~s in list: ~s" new-first-cell head-cell)
+	  (!! :jdeep (pl [0]))
+	  ))
+
 
   (defj J137 (l) "MARK LIST (0) PROCESSED"
 	;; List (0) is preserved [ipushed], its [new] head made empty (Q =
@@ -2980,7 +2992,7 @@ Which actually looks like it correctly takes off 2 agrs, but then there's {|||} 
 ;;; (fsym "symbol")
 
 (progn ;; LT 
-  (set-trace-mode :none)
+  (set-trace-mode :default)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
