@@ -1621,22 +1621,24 @@
 
   (defj J110 ([0] [1] [2]) "(1) + (2) = (O)" 
 	;; The number (0) is set equal to the algebraic difference between numbers
-	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
+	;; (1) and (2). The output (0) is the input (0). [So the stack management is a bit messy.]
 	(let* ((n1 (numget [1]))
 	       (n2 (numget [2]))
 	       (r (+ n1 n2)))
 	  (!! :jdeep "             .....J110: ~a + ~a = ~a" n1 n2 r)
-	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
+	  (poph0 3)
+	  (ipush "H0" [0])
 	  (numset [0] r)))
 
   (defj J111 ([0] [1] [2]) "(1) - (2) -> (O)." 
 	;; The number (0) is set equal to the algebraic difference between numbers
-	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
+	;; (1) and (2). The output (0) is the input (0). [So the stack management is a bit messy.]
 	(let* ((n1 (numget [1]))
 	       (n2 (numget [2]))
 	       (r (- n1 n2)))
 	  (!! :jdeep "             .....J111: ~a - ~a = ~a" n1 n2 r)
-	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
+	  (poph0 3)
+	  (ipush "H0" [0])
 	  (numset [0] r)))
 
   (defj J114 ([0] [1]) "TEST IF (0) = (1)" 
@@ -2052,11 +2054,9 @@
 
 ;;; Used to pop the inputs of JFns. You need to be VERY CAREFUL about
 ;;; when in the JFn you do pop the args bcs the JFn may want to use
-;;; H0! If n is negative, it pops the top of the underlying stack w/o
-;;; replacing the main (some JFns need this to happen).
+;;; H0! 
 
-(defun PopH0 (n)
-  (dotimes (i (abs n)) (if (< n 0) (ipop (H0+)) (ipop "H0"))))
+(defun PopH0 (n) (dotimes (i (abs n)) (ipop "H0")))
 
 ;;; This version of equal understands various special features of
 ;;; strings and numbers that are specific to IPL-V, esp. that right
@@ -2834,20 +2834,20 @@
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
-  (set-trace-mode :default)
+'(progn ;; F1 test
+  (set-trace-mode :none)
   ;(setf *!!* '() *cell-tracing-on* nil)
-  (setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
+  ;(setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
-  (trace ipush ipop force-replace)
-  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  ;(trace ipush ipop force-replace)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "misccode/F1.liplv")
   )
 
-'(progn ;; Ackermann test
+(progn ;; Ackermann test
   (set-trace-mode :default)
-  (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
+  ;(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
+  (setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
   ;(setf *!!* '(:s :run :jcalls :jdeep) *cell-tracing-on* t)
   ;(trace ipop poph0 ipush force-replace)
