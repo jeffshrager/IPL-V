@@ -245,7 +245,7 @@
      ,(if (stringp (car args))
 	  (if (member key '(:load :run))
 	      `(format t ,(car args) ,@(cdr args)) ;; Run already puts this info out
-	      `(format t (concatenate 'string  ,(car args) " ~a@~a[~a]~%") *fname-hint* ,@(cdr args) (h3-cycles) ,key))
+	      `(format t (concatenate 'string ,(car args) " % ~a@~a[~a]~%") ,@(cdr args) *fname-hint* (h3-cycles) ,key))
 	  `(progn ,@args))))
 
 ;;; Cell dereferencing: Used when you need a cell. <=! is more
@@ -316,20 +316,20 @@
 ;;; to/from the symtab.
 
 (defun ipush (stack-name &optional newval)
-  (!! :dr-memory "IPUSHing ~a into ~a" newval stack-name)
   (let* ((old-head-cell (<== stack-name))
 	 (newval (or newval (cell-symbol old-head-cell)))
 	 ;; This will be the new name of the old head cell, and will be linked
 	 ;; from the new head cell.
-	 (new-second-entry-name (newsym)) 
+	 (new-second-entry-name (newsym))
 	 (new-head-cell
 	  ;; WWW This is safe, but looks dangerous becasue it's replacing the
 	  ;; old head, but we're aleady holding on to it just above.
 	  (make-cell! :name stack-name :symb newval :link new-second-entry-name)))
-    (!! :dr-memory "   ... old head=~a, new-head=~a -> ~a" old-head-cell new-head-cell)
-    ;; Now all we should have to do is jam the new second-entrym which is just
+    (!! :dr-memory "IPUSHing ~a into ~a" newval stack-name)
+    (!! :dr-memory "   ... old head=~a, new-head=~a" old-head-cell new-head-cell)
+    ;; Now all we should have to do is jam the new second-entry which is just
     ;; the renamed old-head-cell into the symtab.
-    (setf (cell-name old-head-cell) new-second-enrty)
+    (setf (cell-name old-head-cell) new-second-entry-name)
     (!! :dr-memory "   ... storing renamed old-head-cell: ~a" old-head-cell)
     (store old-head-cell))
   ;; No one should be using this result!
@@ -408,7 +408,7 @@
 (defun getstack (head-name depth)
   (cond ((zerop depth) nil)
 	(t (let ((head-cell (<== head-name)))
-	     (cons haed-cell (getstack (cell-link head-cell) (1- depth)))))))
+	     (cons head-cell (getstack (cell-link head-cell) (1- depth)))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -743,9 +743,7 @@
 
 (defun create-system-cells ()
   (loop for name in *all-system-cells*
-	do
-	(make-cell! :name name)
-	(!! :dr-memory "Created system cell: ~s and its stack." name))
+	do (make-cell! :name name))
   (setf (cell "S") "S-is-null")
   )
 
@@ -854,7 +852,7 @@
   (defj J4 () "SET H5 +" (H5+))
   (defj J5 () "REVERSE H5" (if (string-equal "+" (H5)) (H5-) (H5+)))
 
-  (defj J6 () "REVERSE (0) and (1)" ;; USED IN F1
+  (defj J6 () "REVERSE (0) and (1)" 
 	(let ((r1 (cell-symb (H0)))
 	      (r2 (cell-symb (first (H0+)))))
 	  ;; !!! This is what you always have to do: Precompute your
@@ -868,14 +866,14 @@
     ;; instruction in sequence. Aka....
     (break "J7: Processor halted ... use :C to continue."))
 
-  (defj J8 () "RESTORE H0" (ipop "H0")) ;; USED IN ACKERMAN
+  (defj J8 () "RESTORE H0" (ipop "H0")) 
 
   (defj J9 () "ERASE CELL (0)"
 	;; Maybe remhash the name from the symtab? FFF
 	(!! :jdeep "             .....J9 just pops H0; We don't need to do our own GC.")
 	(poph0 1))
 
-  (defj J10 ([0] [1]) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)" ;; USED IN LT
+  (defj J10 ([0] [1]) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)" 
 	;; If the symbol (0) is on the description list of list (1) as an
 	;; attribute, then its value--i.e., the symbol following it--is output
 	;; as (0) and H5 set + ; if not found, or if the description list
@@ -1225,7 +1223,7 @@
 	(!! :jdeep "             .....Here are the lists before:")
 	(let* ((list-cell (cell list-cell-name))
 	       (new-cell-name (newsym))
-	       (list-cell-symbol (cell-symb list-cell))
+	       (list-cell-symb (cell-symb list-cell))
 	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell))))
 	  (declare (ignore new-cell))
 	  (setf (cell-symb list-cell) new-symbol
@@ -1320,7 +1318,7 @@
 	(PopH0 2)
 	)
 
-  (defj J66 ([0] [1]) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" ;; USED IN F1
+  (defj J66 ([0] [1]) "INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT" 
 	;; J66 INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT. A
 	;; search of list (1) is made. against (0) (starting with the
 	;; cell after cell (1) . If (0) is found, J66 does nothing
@@ -1552,7 +1550,7 @@
   ;; is describable. J90 creates an empty list (also used to create
   ;; empty storage cells, and empty data terms).
 
-  (defj J90 () "Create a blank cell on H0"  ;; USED IN F1
+  (defj J90 () "Create a blank cell on H0"  
 	;; J90: Get a cell from the available space list, H2, and leave its name in HO.
 	;; J90 creates an empty list (also used to create empty storage cells, and empty data terms).
 	;; The output (0) is the name a the new list.
@@ -1565,7 +1563,7 @@
   (defj J92 () "Create a list of 2 entries" (J9n-helper 2))
   (defj J93 () "Create a list of 3 entries" (J9n-helper 3))
 
-  (defj J100 ([0] [1]) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" ;; USED IN LT
+  (defj J100 ([0] [1]) "GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)" 
 	;; J100 GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0). The subprocess
 	;; named (0) is performed successively with each of the symbols of list named
 	;; (1) as input. The order is the order on the list, starting with the first
@@ -1606,7 +1604,7 @@
 	  (poph0 -2) ;; This pops 2 items of the H0 stack UNDER the top. (Top unchanged!)
 	  (numset [0] r)))
 
-  (defj J111 ([0] [1] [2]) "(1) - (2) -> (O)." ;; USED IN ACKERMAN
+  (defj J111 ([0] [1] [2]) "(1) - (2) -> (O)." 
 	;; The number (0) is set equal to the algebraic difference between numbers
 	;; (1) and (2). The output (0) is the input (0). (The popping here is complex!)
 	(let* ((n1 (numget [1]))
@@ -1628,7 +1626,7 @@
 	(if (< (numget [0]) (numget [1])) (h5+) (h5-))
 	(poph0 2))
 
-  (defj J117 ([0]) "TEST IF (0) = 0." ;; USED IN ACKERMAN
+  (defj J117 ([0]) "TEST IF (0) = 0." 
 	(let* ((n (numget [0])))
 	  (!! :jdeep "             .....J117: Testing if ~s (~s: ~s) = 0?" [0] (<=! [0]) n)
 	  (if (zerop n) (H5+) (H5-)))
@@ -1658,7 +1656,7 @@
 	(poph0 2)
 	(ipush "H0" to))
 
-  (defj J124 ([0]) "CLEAR (0)" ;; USED IN LT
+  (defj J124 ([0]) "CLEAR (0)" 
 	;; The number (0) is set to be 0. If the cell is not a data
 	;; term, it is made an integer data term=0. If a number, its
 	;; type, integer, or floating point, is unaffected. It is left
@@ -1668,7 +1666,7 @@
 
 ;************************************* 
 
-  (defj J125 ([0]) "TALLY 1 IN (0)" ;; USED IN ACKERMAN
+  (defj J125 ([0]) "TALLY 1 IN (0)" 
 	;; An integer 1 is added to the number (0). The type of the result
 	;; is the same as the type of (0). It is left as the output
 	;; (0). [NNN: If there is no value in (0) this assumes zero and
@@ -1796,12 +1794,12 @@
   ;; kludge-convenience. For example, there is exactly one 80 column
   ;; input/output buffer and it's used for all input and output.
 
-  (defj J151 ([0]) "Print list (0)" ;; USED IN F1
+  (defj J151 ([0]) "Print list (0)" 
 	(print-linear-list [0])
 	(PopH0 1)
 	)
 
-  (defj J152 ([0]) "PRINT SYMBOL (0)" ;; USED IN ACKERMAN
+  (defj J152 ([0]) "PRINT SYMBOL (0)" 
 	;; Pop after!!
 	(PopH0 1)
 	(pretty-print-cell (cell [0])))
@@ -1891,7 +1889,7 @@
 	  (W25-set 0)
 	  ))
 	
-  (defj J181 () "INPUT LINE SYMBOL." ;; USED IN LT
+  (defj J181 () "INPUT LINE SYMBOL." 
 	;; INPUT LINE SYMBOL. The IPL symbol in the field starting in column
 	;; 1W25, of size 1W30, in line 1W24, is input to HO and H5 is set +. The
 	;; symbol is regional if the first (leftmost) column holds a regional
@@ -1922,7 +1920,7 @@
 		(ipush "H0" string)
 		(H5-)))))
 
-  (defj J182 ([0]) "INPUT LINE DATATERM (0)" ;; USED IN LT
+  (defj J182 ([0]) "INPUT LINE DATATERM (0)" 
 	;; J182 INPUT LINE DATA TERM (0). The field specified as J181
 	;; is taken as the value of a data term. Input data term (0)
 	;; is set to that value and left as output (0). H5 is set +.
@@ -2641,7 +2639,7 @@
      ;; Preserve H1: Put S into H1 (H1 now contains the name of the cell holding
      ;; the first instruction of the subprogram list); go to INTERPRET-Q.
      (setf *fname-hint* S)
-     (ipush "H1" (cell S)) ;; %%% FFF UUU This has an ugly compensatory hack in ipush that should be unwound at some point! (see: "IPH1HACK")
+     (ipush "H1" S) 
      (trace-cells)
      (go INTERPRET-Q)
    BRANCH
@@ -2814,14 +2812,14 @@
 (progn ;; F1 test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil)
-  ;(setf *!!* '(:dr-memory :jdeep :jcalls) *cell-tracing-on* t)
+  (setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
-  ;(trace force-replace) 
-  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
+  (trace ipush ipop)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "misccode/F1.liplv")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-trace-mode :default)
   (setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
   ;(setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2855,78 +2853,6 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-With
-
-  K30=R
-
-Something breaks here:
-
-@133184+ >>>>> {Q013R000::Q13|10|Q13|J10 [FIND PROVING THEOREM FOR (0);]} (Push the symb (name) itself on H0)
-   H0={H0||Q13|0} ++ ({|||0} {||**EMPTY**|})
-   W0={W0|||0} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
-   W1={W1|||} ++ ({||**EMPTY**|})
-   W2={W2|||} ++ ({||**EMPTY**|})
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q13" "")
-             .....In J10 trying to find the value of NIL in "Q13"! @133185[JDEEP]
-
-FFF III NNN DD      QQQ  1  333     III NNN     
-F    I  N N D D     Q Q 11    3      I  N N     
-FFF  I  N N D D     QQ   1   33      I  N N     
-F    I  N N D D      Q   1    3      I  N N     
-F   III N N DD       QQ 111 333     III N N     
-
-debugger invoked on a TYPE-ERROR @535E74C7 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
-
-Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
-
-restarts (invokable by number or by possibly-abbreviated name):
-  0: [ABORT] Exit debugger, returning to top level.
-
-((LAMBDA ([0] [1]) :IN SETUP-J-FNS) "Q13" "")
-; Using form offset instead of character position.
-
-   source: (CELL-SYMB LIST-HEAD)
-0] 
-
-The {|||0} in H0[1] comes from...
-
-@133183+ >>>>> {M071R090::M71-931|11|W0|M71-932} (Push cntnts of the cell named by symb, onto H0)
-   H0={H0|||0} ++ ({||**EMPTY**|})
-   W0={W0|||0} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
-   W1={W1|||} ++ ({||**EMPTY**|})
-   W2={W2|||} ++ ({||**EMPTY**|})
-
-The W0 comes from:
-
-@133169+ >>>>> {M071R000::M71||J50|M71-923 [M71 PRINT PROOF SEQUENCE FROM (0).;1W0=TEX]} (Execute fn named by symb name itself)
-   H0={H0|||} ++ ({||**EMPTY**|})
-   W0={W0||*210|} ++ ({||*210|0} {|||} {||**EMPTY**|})
-   W1={W1|||} ++ ({||**EMPTY**|})
-   W2={W2|||} ++ ({||**EMPTY**|})
-   .......... Calling J50 [PRESERVE W0-W0 THEN MOVE(0)-(0) into W0-W0] (No Args)
-   H0={H0||**EMPTY**|} ++ NIL
-   W0={W0|||0} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
-   W1={W1|||} ++ ({||**EMPTY**|})
-   W2={W2|||} ++ ({||**EMPTY**|})
-
-...
-
-@133163- >>>>> {M012R120::M12-245||J100|M12-246 [GENERATE THEOREMS.;]} (Execute fn named by symb name itself)
-   H0={H0||M12-9-100|0} ++ ({||9-8393|0} {|||} {||**EMPTY**|})
-   W0={W0||9-3153|} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
-   W1={W1||*210|} ++ ({|||} {||**EMPTY**|})
-   W2={W2|||} ++ ({|||} {||**EMPTY**|})
-   .......... Calling J100 [GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0)]: ([0] [1])=("M12-9-100" "9-8393")
-             .....J100 GENERATE SYMBOLS FROM LIST NIL FOR SUBPROCESS "9-8393" M12-9-100@133163[JDEEP]
-   H0={H0|||} ++ ({||**EMPTY**|})
-   W0={W0||9-3153|} ++ ({||*210|} {||*210|0} {|||} {||**EMPTY**|})
-   W1={W1||*210|} ++ ({|||} {||**EMPTY**|})
-   W2={W2|||} ++ ({|||} {||**EMPTY**|})
-
-Which actually looks like it correctly takes off 2 agrs, but then there's {|||} ????
-
-
-
 
 |#
 
@@ -2937,7 +2863,7 @@ Which actually looks like it correctly takes off 2 agrs, but then there's {|||} 
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-trace-mode :none)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
