@@ -19,13 +19,22 @@
 
 (defstruct (cell (:print-function print-cell) (:predicate cell?))
   (comments "")
-  (type "")
-  (name "") ;; This field is actually not a part of the cell and maybe shouldn't exist??? FFF
-  (sign "")
+  (type "0")
+  ;; The name actually isn't part of the cell, it's the address where
+  ;; the cell lives. At stability (that is, not in the middle of a
+  ;; function) this should always match the symbol table entry that
+  ;; the cell lives in. In many (maybe most) cases we probably could
+  ;; get this in another way, like passing in the cell's address
+  ;; (name) along with the cell, and using that in process, but this
+  ;; is simpler and more direct, although it is yet another thing to
+  ;; go wrong! (Not having it would make push and pop way simpler, but
+  ;; also harder to debug!)
+  (name "") 
+  (sign "0")
   (p 0)
   (q 0)
-  (symb "")
-  (link "")
+  (symb "0")
+  (link "0")
   (comments.1 "")
   (id "")
   )
@@ -316,6 +325,7 @@
 ;;; to/from the symtab.
 
 (defun ipush (stack-name &optional newval)
+  (!! :dr-memory "Entering IPUSH, ~a = ~a" stack-name (getstack stack-name))
   (let* ((old-head-cell (<== stack-name))
 	 (newval (or newval (cell-symb old-head-cell)))
 	 ;; This will be the new name of the old head cell, and will be linked
@@ -332,6 +342,7 @@
     (setf (cell-name old-head-cell) new-second-entry-name)
     (!! :dr-memory "   ... storing renamed old-head-cell: ~a" old-head-cell)
     (store old-head-cell))
+  (!! :dr-memory "Exiting IPUSH, ~a = ~a" stack-name (getstack stack-name))
   ;; No one should be using this result!
   :someone-called-ipush-and-used-the-result!!)
 
@@ -341,13 +352,25 @@
 ;;; shows up, we know something went really wrong!)
 
 (defun ipop (stack-name)
+  (!! :dr-memory "Entering IPOP, ~a = ~a" stack-name (getstack stack-name))
   (let* ((old-head (<== stack-name))
-	 (new-head (<== (cell-link old-head))))
-    (setf (cell-name new-head) stack-name)
-    (store new-head)
-    (setf (cell-name old-head)
-	  (format nil "BAD POP OF ~a @ ~a" stack-name (h3-cycles)))
-    (!! :dr-memory "IPOP created new head: ~a (old head: ~a)" new-head old-head)
+	 (head-link (cell-link old-head)))
+    ;; If this is the top of the stack, the link will be 0. In this
+    ;; case we just replace the symbol with "0" and the stack is
+    ;; empty.
+    (if (not (zero? head-link))
+	;; There's more to the stack:
+	(let* ((new-head (<== head-link )))
+	  (setf (cell-name new-head) stack-name)
+	  (store new-head)
+	  (setf (cell-name old-head) (format nil "BAD POP OF ~a @ ~a" stack-name (h3-cycles)))
+	  (!! :dr-memory "IPOP created new head: ~a (old head: ~a)" new-head old-head)
+	  )
+	;; The stack is empty (link = "0"):
+	(progn 
+	  (setf (cell-symb old-head) "0") ;; Link should already be zero (I hope!)
+	  (!! :dr-memory "IPOP cleared stack: ~a" old-head)))
+    (!! :dr-memory "Exiting IPOP, ~a = ~a" stack-name (getstack stack-name))
     ;; No one should be using this result!
     :someone-called-ipop-and-used-the-result!!))
 
@@ -402,8 +425,9 @@
 	    (if (listp name-or-expr)
 		(let ((r (eval name-or-expr)))
 		  (when r (format t "   ~s => ~s~%" name-or-expr r)))
-		(format t "   ~a=~s ++ ~s~%" name-or-expr (<== name-or-expr)
-			(getstack (<== name-or-expr) *stack-display-depth*)))))))
+		(format t "   ~a=~s ++ ~s~%" name-or-expr
+			(<== name-or-expr)
+			(cdr (getstack (<== name-or-expr) *stack-display-depth*))))))))
 
 (defun getstack (head-name &optional depth)
   (cond ((or (and depth (zerop depth)) (zero? head-name)) nil)
@@ -728,6 +752,7 @@
 
 (defun reset! ()
   (clrhash *symtab*) 
+  ;;(initialize-system-cell-stacks)
   (setup-j-fns)
   (clrhash *col->vals*)
   )
@@ -2654,9 +2679,10 @@
 ;;; holding the original.
 
 (defun force-replace (tosymb fromsymb)
-  (let* ((fromcell (cell fromsymb)))
-    (!! :dr-memory "Force replacing ~s with ~s: ~s" tosymb fromsymb fromcell)
-    (setf (gethash tosymb *symtab*) (make-cell :sign "" :p 0 :q 0 :symb fromsymb :link ""))))
+  (let* ((fromcell (<== fromsymb))
+	 (new-cell (make-cell :symb fromsymb)))
+    (!! :dr-memory "Force replacing ~s with ~s" tosymb new-cell)
+    (setf (gethash tosymb *symtab*) new-cell)))
 
 (defun call-ipl-prim (symb)
   (break "!!!!!!!! UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
@@ -2810,10 +2836,10 @@
 
 (progn ;; F1 test
   (set-trace-mode :default)
-  (setf *!!* '() *cell-tracing-on* nil)
+  ;(setf *!!* '() *cell-tracing-on* nil)
   (setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
-  (trace ipush ipop)
+  (trace ipush ipop force-replace)
   (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "misccode/F1.liplv")
   )
