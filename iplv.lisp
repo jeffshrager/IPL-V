@@ -405,10 +405,10 @@
 		(format t "   ~a=~s ++ ~s~%" name-or-expr (<== name-or-expr)
 			(getstack (<== name-or-expr) *stack-display-depth*)))))))
 
-(defun getstack (head-name depth)
-  (cond ((or (zerop depth) (zero? head-name)) nil)
+(defun getstack (head-name &optional depth)
+  (cond ((or (and depth (zerop depth)) (zero? head-name)) nil)
 	(t (let ((head-cell (<== head-name)))
-	     (cons head-cell (getstack (cell-link head-cell) (1- depth)))))))
+	     (cons head-cell (getstack (cell-link head-cell) (and depth (1- depth))))))))
 
 (defun store-cells (cells)
   (loop for cell in cells
@@ -854,7 +854,7 @@
 
   (defj J6 () "REVERSE (0) and (1)" 
 	(let ((r1 (cell-symb (H0)))
-	      (r2 (cell-symb (first (H0+)))))
+	      (r2 (cell-symb (H0+))))
 	  ;; !!! This is what you always have to do: Precompute your
 	  ;; answers, then pop the inputs and push the outputs:
 	  (poph0 2)
@@ -2511,10 +2511,9 @@
 	 (let* ((arglist (second (function-lambda-expression fn)))
 		(args (if (null arglist) ()
 			  (check-jfn-arglist-for-red-flags***
-			   (cons (cell-symb (H0))
-				 (loop for arg in (cdr arglist)
-				       as val in (h0+)
-				       collect (cell-symb val)))))))
+			   (loop for arg in arglist
+				 as val in (getstack "H0") ;; FFF %%% Walk this so we don't need the whole stack
+				 collect (cell-symb val))))))
 	   (when *fname-hint* 
 	     (!! :jcalls (format t (if arglist "   .......... Calling ~a [~a]: ~s=~s~%"
 				    "   .......... Calling ~a [~a] (No Args)~*~*~%")
