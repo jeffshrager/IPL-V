@@ -317,7 +317,7 @@
 
 (defun ipush (stack-name &optional newval)
   (let* ((old-head-cell (<== stack-name))
-	 (newval (or newval (cell-symbol old-head-cell)))
+	 (newval (or newval (cell-symb old-head-cell)))
 	 ;; This will be the new name of the old head cell, and will be linked
 	 ;; from the new head cell.
 	 (new-second-entry-name (newsym))
@@ -346,10 +346,10 @@
     (setf (cell-name new-head) stack-name)
     (store new-head)
     (setf (cell-name old-head)
-	  (format nil "BAD POP OF ~a @ ~a" stack-name (h3-cycles))))
+	  (format nil "BAD POP OF ~a @ ~a" stack-name (h3-cycles)))
     (!! :dr-memory "IPOP created new head: ~a (old head: ~a)" new-head old-head)
     ;; No one should be using this result!
-    :someone-called-ipop-and-used-the-result!!)
+    :someone-called-ipop-and-used-the-result!!))
 
 ;;; This is used in JFns to deref args H0
 
@@ -406,7 +406,7 @@
 			(getstack (<== name-or-expr) *stack-display-depth*)))))))
 
 (defun getstack (head-name depth)
-  (cond ((zerop depth) nil)
+  (cond ((or (zerop depth) (zero? head-name)) nil)
 	(t (let ((head-cell (<== head-name)))
 	     (cons head-cell (getstack (cell-link head-cell) (1- depth)))))))
 
