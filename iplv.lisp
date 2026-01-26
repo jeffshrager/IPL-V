@@ -306,45 +306,57 @@
   (!! :dr-memory " TO: ~s" curcell)
   curcell)
 
-;;; IPUSH and IPOP are the core functions of the machine. They push/pop cells
-;;; onto IPL lists that begin with the indicated symbol. This is used for the
-;;; storage cell mostly, but also in some cases when non-storage cell lists are
-;;; treated as stacks (for example, the PQ=31 screw case at M062R660). Note that
-;;; these work only on NON-DESCRIBLE SIMPLE LISTS, that is, where the head cell
-;;; contains the head symbol, not a 0, or description list. If no newval is
-;;; given, the top symbol is copied down to the pushed cell. Note that we don't
-;;; need to copy anything but the symbol. There are certain cases where other
-;;; elements of the stacked cell are tested (for example in stack process
-;;; marking and testing -- J133 and J137 -- but these marks get added and tested
-;;; by those functions, and only need to be on top. They get popped off with the
-;;; top cell. Thus when we PUSH we need to actually rename the top cell and
-;;; stick it back into the symbol table under the new name, and then create a
-;;; new top cell, and put THAT into the symbol table where the old top cell
-;;; was. (Alt. we could copy all the contents down.) But POPPING is easier, but
-;;; all of this takes a little but of care with adding and removing things
-;;; to/from the symtab.
+;;; IPUSH and IPOP are the core functions of the machine. They
+;;; push/pop cells onto IPL lists that begin with the indicated
+;;; symbol. This is used for the storage cell mostly, but also in some
+;;; cases when non-storage cell lists are treated as stacks (for
+;;; example, the PQ=31 screw case at M062R660). Note that these work
+;;; only on NON-DESCRIBLE SIMPLE LISTS, that is, where the head cell
+;;; contains the head symbol, not a 0, or description list. If no
+;;; newval is given, the top symbol is copied down to the pushed
+;;; cell. Note that we don't need to copy anything but the
+;;; symbol. There are certain cases where other elements of the
+;;; stacked cell are tested (for example in stack process marking and
+;;; testing -- J133 and J137 -- but these marks get added and tested
+;;; by those functions, and only need to be on top. They get popped
+;;; off with the top cell. Thus when we PUSH we need to actually
+;;; rename the top cell and stick it back into the symbol table under
+;;; the new name, and then create a new top cell, and put THAT into
+;;; the symbol table where the old top cell was. (Alt. we could copy
+;;; all the contents down.) But POPPING is easier, but all of this
+;;; takes a little but of care with adding and removing things to/from
+;;; the symtab. There is a slight infelicitude when the first push
+;;; happens because if the symbol of the head is zero, we just set the
+;;; symbol, not push a new cell, because that would make there be a
+;;; zero in the head.
 
 (defun ipush (stack-name &optional newval)
   (!! :dr-memory "Entering IPUSH, ~a = ~a" stack-name (getstack stack-name))
   (let* ((old-head-cell (<== stack-name))
-	 (newval (or newval (cell-symb old-head-cell)))
-	 ;; This will be the new name of the old head cell, and will be linked
-	 ;; from the new head cell.
-	 (new-second-entry-name (newsym))
-	 (new-head-cell
-	  ;; WWW This is safe, but looks dangerous becasue it's replacing the
-	  ;; old head, but we're aleady holding on to it just above.
-	  (make-cell! :name stack-name :symb newval :link new-second-entry-name)))
-    (!! :dr-memory "IPUSHing ~a into ~a" newval stack-name)
-    (!! :dr-memory "   ... old head=~a, new-head=~a" old-head-cell new-head-cell)
-    ;; Now all we should have to do is jam the new second-entry which is just
-    ;; the renamed old-head-cell into the symtab.
-    (setf (cell-name old-head-cell) new-second-entry-name)
-    (!! :dr-memory "   ... storing renamed old-head-cell: ~a" old-head-cell)
-    (store old-head-cell))
-  (!! :dr-memory "Exiting IPUSH, ~a = ~a" stack-name (getstack stack-name))
-  ;; No one should be using this result!
-  :someone-called-ipush-and-used-the-result!!)
+	 (newval (or newval (cell-symb old-head-cell))))
+    ;; Immediately see if we can just smash the 0 in the current head.
+    (if (zero? (cell-symb old-head-cell))
+	(progn 
+	  (!! :dr-memory "IPUSHing ~a into the blank stack: ~a" newval stack-name)
+	  (setf (cell-symb old-head-cell) newval))
+	(let* (
+	       ;; This will be the new name of the old head cell, and will be linked
+	       ;; from the new head cell.
+	       (new-second-entry-name (newsym))
+	       (new-head-cell
+		;; WWW This is safe, but looks dangerous becasue it's replacing the
+		;; old head, but we're aleady holding on to it just above.
+		(make-cell! :name stack-name :symb newval :link new-second-entry-name)))
+	  (!! :dr-memory "IPUSHing ~a into ~a" newval stack-name)
+	  (!! :dr-memory "   ... old head=~a, new-head=~a" old-head-cell new-head-cell)
+	  ;; Now all we should have to do is jam the new second-entry which is just
+	  ;; the renamed old-head-cell into the symtab.
+	  (setf (cell-name old-head-cell) new-second-entry-name)
+	  (!! :dr-memory "   ... storing renamed old-head-cell: ~a" old-head-cell)
+	  (store old-head-cell)))
+    (!! :dr-memory "Exiting IPUSH, ~a = ~a" stack-name (getstack stack-name))
+    ;; No one should be using this result!
+    :someone-called-ipush-and-used-the-result!!))
 
 ;;; IPOP is simpler: It just stores the old second entry in the list back into
 ;;; the head named symbol. (For possible error tracking, we smash the name of
@@ -1694,11 +1706,11 @@
 ;************************************* 
 
   (defj J125 ([0]) "TALLY 1 IN (0)" 
-	;; An integer 1 is added to the number (0). The type of the result
-	;; is the same as the type of (0). It is left as the output
-	;; (0). [NNN: If there is no value in (0) this assumes zero and
-	;; set the number to 1"
-	;; NO POP! "It is left as the output (0)." !!
+	;; An integer 1 is added to the number (0). The type of the
+	;; result is the same as the type of (0). It is left as the
+	;; output (0). [NNN: If there is no value in (0) this assumes
+	;; zero and set the number to 1"] Nb. NO POP! "It is left as
+	;; the output (0)." !!
 	(let* ((curval (numget [0])))
 	  (!! :jdeep "             .....J125: Tally (0) currently: ~s" [0])
 	  (numset [0]
@@ -2197,15 +2209,18 @@
 
 (defun numget (sym)
   (let* ((data-cell (cell sym))
-	 (n (cell-link data-cell)))
+	 (n (progn (!! :jdeep "Numget trying to  get the number from ~a" data-cell)
+		   (cell-link data-cell))))
     (if (not (numberp n))
 	(break "Numget was asked to get a non-number ~s from ~s (~s)." n data-cell sym)
 	(if (>= n 0) n (break "Numget was asked to get a negative number ~a from  ~s (~s)." n data-cell sym)))))
 
 (defun numset (sym n)
+  (!! :jdeep "NUMSET asked to set ~s to ~s" sym n)
   (let* ((data-cell (cell sym)))
+    (!! :jdeep "   ... NUMSET data cell is: ~s" data-cell)
     (unless (numberp (cell-link data-cell))
-      (!! :jdeep "             .....NUMSET was asked to set ~s (via ~s) which doesn't already have a number in the link."
+      (!! :jdeep "NUMSET asked to set ~s (via ~s) which doesn't already have a number in the link."
 	  data-cell sym))
     (setf (cell-link data-cell) n (cell-p data-cell) 0) (cell-q data-cell) 1))
 
@@ -2834,7 +2849,7 @@
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; F1 test
   (set-trace-mode :none)
   ;(setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
@@ -2847,10 +2862,10 @@
 (progn ;; Ackermann test
   (set-trace-mode :default)
   ;(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  (setf *trace-cell-names-or-exprs* '("H0" "K1" "M0" "N0") *cell-tracing-on* t)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
-  ;(setf *!!* '(:s :run :jcalls :jdeep) *cell-tracing-on* t)
-  ;(trace ipop poph0 ipush force-replace)
+  (setf *!!* '(:run :jcalls :jdeep)) ;; :dr-memory :s :run-deep 
+  (trace numget numset ipush ipop poph0)
   (load-ipl "misccode/Ackermann.liplv" :adv-limit 25000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
