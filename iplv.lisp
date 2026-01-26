@@ -433,13 +433,13 @@
 (defun trace-cell-safe-for-trace-expr ()
   (when *cell-tracing-on*
     (loop for name-or-expr in *trace-cell-names-or-exprs* do
-	  (ignore-errors ;; In case there's no number, or some other f'up in the eval
 	    (if (listp name-or-expr)
 		(let ((r (eval name-or-expr)))
 		  (when r (format t "   ~s => ~s~%" name-or-expr r)))
 		(format t "   ~a=~s ++ ~s~%" name-or-expr
 			(<== name-or-expr)
-			(cdr (getstack (<== name-or-expr) *stack-display-depth*))))))))
+			(ignore-errors ;; In case there's no number, or some other f'up in the eval
+			  (cdr (getstack (<== name-or-expr) *stack-display-depth*))))))))
 
 (defun getstack (head-name &optional depth)
   (cond ((or (and depth (zerop depth)) (zero? head-name)) nil)
@@ -1677,16 +1677,15 @@
 	;; (0) is local; otherwise, it is internal.
 	;; (No pop bcs H0 is replaced -- Maybe pop and push?)
 	;; (?? Can this be replaced with FORCE-REPLACE ??)
-	(let ((old-cell (cell [0])))
-	  (setf (h0) ;; This is probably redundant since the make-cell! set it in the symtab
-		(make-cell!
-		 :name "H0"
-		 :symb (cell-name 
-			(make-cell! :name (newsym)
-				    :p (cell-p old-cell)
-				    :q (cell-q old-cell)
-				    :symb (cell-symb old-cell)
-				    :link (cell-link old-cell)))))))
+	(let* ((old-cell (cell [0]))
+	       (new-cell-name (newsym)))
+	  (make-cell!
+	   :name new-cell-name
+	   :p (cell-p old-cell)
+	   :q (cell-q old-cell)
+	   :symb (cell-symb old-cell)
+	   :link (cell-link old-cell))
+	  (setf (cell-symb (H0)) new-cell-name)))
   
   (defj J121 (to from) "SET (O) IDENTICAL TO (1)"
 	;; The contents of the cell named (1) is places in the cell
@@ -2859,10 +2858,10 @@
   (load-ipl "misccode/F1.liplv")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-trace-mode :default)
   ;(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  (setf *trace-cell-names-or-exprs* '("H0" "H1" "K1" "M0" "N0") *cell-tracing-on* t)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1" "A0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
   (setf *!!* '(:run :jcalls :jdeep)) ;; :dr-memory :s :run-deep 
   (trace numget numset ipush ipop poph0)
@@ -2903,8 +2902,8 @@
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 
-'(progn ;; LT 
-  (set-trace-mode :none)
+(progn ;; LT 
+  (set-trace-mode :default)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
