@@ -2848,7 +2848,7 @@
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-trace-mode :none)
   ;(setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
@@ -2872,9 +2872,19 @@
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
 
-'(progn ;; Test of call stack state machine.
+(progn ;; R3 from Newell et al. pp30-32
   (set-trace-mode :default)
   (setf *trace-cell-names-or-exprs* '("H0" "H1") *cell-tracing-on* t)
+  (setf *!!* '(:load :run :jcalls :jdeep)) ;; :dr-memory :s :run-deep 
+  (trace ipush ipop)
+  (load-ipl "misccode/R3.liplv" :adv-limit 100)
+  )
+
+
+'(progn ;; Test of call stack state machine. -- might be wrong!
+  (set-trace-mode :default)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1") *cell-tracing-on* t)
+  (trace ipush ipop)
   (load-ipl "misccode/T123.liplv" :adv-limit 100)
   )
 
@@ -2902,7 +2912,7 @@
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 
-(progn ;; LT 
+'(progn ;; LT 
   (set-trace-mode :default)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
