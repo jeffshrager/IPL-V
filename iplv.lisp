@@ -1739,18 +1739,22 @@
 			       (ipush "H0" count-cell-name))
 		)))
 
+  ;; The concept of a local symbol is a little messed up in my
+  ;; emulator. In the original IPL machine these symbols get cells
+  ;; that get marked local or global using Q=2 or 0 -- I think. Maybe
+  ;; I should do that, but I don't, really. What I do it use the
+  ;; symbol's name to tell if it's local if it has a dash in it. This
+  ;; precludes allowing global symbols with dashes, but that doesn't
+  ;; worrry my much ... for now, anyway. Some of the IPL-V code I've
+  ;; come across does have -s in it...and 9- might be a better test,
+  ;; or I could do The Right Thing. ... Hahahahahah!
+
   (defj J130 ([0]) "TEST IF (O) IS REGIONAL SYMBOL"
-	;; Tests if Q = 0 in [0].
-	(if 
-	 (= 0 (cell-q (<== [0])))
-	 (H5+) (H5-))
+	(if (find #\- [0]) (H5-) (H5+))
 	(poph0 1))
 
   (defj J132 ([0]) "TEST IF (O) IS LOCAL SYMBOL"
-	;; Tests if Q = 2 in [0]'s cell. 
-	(if 
-	 (= 2 (cell-q (<== [0])))
-	 (H5+) (H5-))
+	(if (find #\- [0]) (H5+) (H5-))
 	(poph0 1))
 
   (defj J133 (l) "TEST IF LIST (0) HAS BEEN MARKED PROCESSED"
@@ -2848,7 +2852,15 @@
 
 ;; Comment (or just ') progn blocks out as needed.
 
-'(progn ;; F1 test
+(progn ;; R3 from Newell et al. pp30-32
+  (set-trace-mode :default)
+  (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0") *cell-tracing-on* t)
+  (setf *!!* '(:run :jcalls)) ;; :dr-memory :s :run-deep :run-full :load :jdeep
+  ;;(trace ipush ipop)
+  (load-ipl "misccode/R3.liplv" :adv-limit 100)
+  )
+
+(progn ;; F1 test
   (set-trace-mode :none)
   ;(setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
@@ -2858,28 +2870,19 @@
   (load-ipl "misccode/F1.liplv")
   )
 
-'(progn ;; Ackermann test
-  (set-trace-mode :default)
+(progn ;; Ackermann test
+  (set-trace-mode :none)
   ;(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  (setf *trace-cell-names-or-exprs* '("H0" "H1" "A0" "K1" "M0" "N0") *cell-tracing-on* t)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "A0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
-  (setf *!!* '(:run :jcalls :jdeep)) ;; :dr-memory :s :run-deep 
-  (trace numget numset ipush ipop poph0)
+  ;(setf *!!* '(:run :jcalls :jdeep)) ;; :dr-memory :s :run-deep 
+  ;(trace numget numset ipush ipop poph0)
   (load-ipl "misccode/Ackermann.liplv" :adv-limit 25000)
   (print (cell "N0"))
   (if (= 61 (cell-link (cell "N0")))
       (format t "~%*********************************~%* Ackerman (3,3) = 61 -- Check! *~%*********************************~%")
       (error "Oops! Ackermann (3,3) should have been 61, but was ~s" (cell "N0")))
   )
-
-(progn ;; R3 from Newell et al. pp30-32
-  (set-trace-mode :default)
-  (setf *trace-cell-names-or-exprs* '("H0" "H1") *cell-tracing-on* t)
-  (setf *!!* '(:load :run :jcalls :jdeep)) ;; :dr-memory :s :run-deep 
-  (trace ipush ipop)
-  (load-ipl "misccode/R3.liplv" :adv-limit 100)
-  )
-
 
 '(progn ;; Test of call stack state machine. -- might be wrong!
   (set-trace-mode :default)
