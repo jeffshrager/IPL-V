@@ -2267,9 +2267,8 @@
 (defun J2n=move-0-to-n-into-w0-wn (n)
   (loop for nn from 0 to n 
 	as wcell-name in *w-cells*
-	as HCell = (let ((top (H0))) (ipop "H0") top)
-	;; FFF ??? Could use FORCE-REPLACE?
-	do (ipop wcell-name) (ipush wcell-name (cell-symb HCell))))
+	as symb = (prog1 (cell-symb (H0)) (ipop "H0"))
+	do (ipop wcell-name) (ipush wcell-name symb)))
 
 (defun J3n=restore-wn (n)
   (loop for nn from 0 to n as wname in *w-cells* do (ipop wname)))
@@ -2951,10 +2950,11 @@
 
 	  ;; Basic tracer:
 
-  	     ;; (520
-	     ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	     ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	     ;;  )
+  	      ;; (2900
+	      ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	      ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
+	      ;;  (trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	      ;;  )
 
 	  ;;(2875 (break))
 
