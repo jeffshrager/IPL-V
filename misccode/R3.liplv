@@ -1,3 +1,6 @@
+;;; NB. This has added some setup code called RUN that
+;;; is implied in the book.
+
 (:comments :type :name :sign :pq :symb :link :comments.1 :id)
 ("" "1" "" "" "00" "" "" "" "")
 ("" "" "L6" "" "" "0" "" "" "")

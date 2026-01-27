@@ -356,7 +356,7 @@
 	  (store old-head-cell)))
     (!! :dr-memory "Exiting IPUSH, ~a = ~a" stack-name (getstack stack-name))
     ;; No one should be using this result!
-    :someone-called-ipush-and-used-the-result!!))
+    :!ipush-result!))
 
 ;;; IPOP is simpler: It just stores the old second entry in the list back into
 ;;; the head named symbol. (For possible error tracking, we smash the name of
@@ -384,7 +384,7 @@
 	  (!! :dr-memory "IPOP cleared stack: ~a" old-head)))
     (!! :dr-memory "Exiting IPOP, ~a = ~a" stack-name (getstack stack-name))
     ;; No one should be using this result!
-    :someone-called-ipop-and-used-the-result!!))
+    :!ipop-result!))
 
 ;;; This is used in JFns to deref args H0
 
@@ -2628,10 +2628,10 @@
        (3 (ipop S)) 
        (4 (ipush S))                         ;; Preserve (push down) S
        ;; REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
-       (5 (force-replace "H0" S))
+       (5 (setf (cell-symb (H0)) S))
        ;; "A copy of (0) is put in S; the current symbol in S is lost,
-       ;; and (0) is unaffected."
-       (6 (force-replace S (cell-symb (H0))))
+       ;; and (0) is unaffected." 
+       (6 (setf (cell-symb (<== S)) (cell-symb (H0))))
        (7 (go BRANCH)) ;; Branch to S if H5-
        )
      (go ADVANCE)
@@ -2692,6 +2692,7 @@
      (go ADVANCE)
      ))
 
+#|
 ;;; Note that this can't just replace the target, it has to make a
 ;;; copy and put that in place, because someone is likely to be
 ;;; holding the original.
@@ -2701,6 +2702,7 @@
 	 (new-cell (make-cell :symb fromsymb)))
     (!! :dr-memory "Force replacing ~s with ~s" tosymb new-cell)
     (setf (gethash tosymb *symtab*) new-cell)))
+|#
 
 (defun call-ipl-prim (symb)
   (break "!!!!!!!! UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
@@ -2872,10 +2874,10 @@
 
 (progn ;; Ackermann test
   (set-trace-mode :none)
-  ;(setf *!!* '() *cell-tracing-on* nil *stack-depth-limit* 100)
-  ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "A0" "K1" "M0" "N0") *cell-tracing-on* t)
+  ;(set-trace-mode :default)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "A0" "K1" "M0" "N0") *cell-tracing-on* t)
   ;(setf *trace-exprs* '((9 (break))))
-  ;(setf *!!* '(:run :jcalls :jdeep)) ;; :dr-memory :s :run-deep 
+  ;(setf *!!* '(:run :jcalls)) ;; :dr-memory :s :run-deep :jdeep
   ;(trace numget numset ipush ipop poph0)
   (load-ipl "misccode/Ackermann.liplv" :adv-limit 25000)
   (print (cell "N0"))
