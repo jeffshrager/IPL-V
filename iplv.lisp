@@ -446,6 +446,9 @@
 	(t (let ((head-cell (<== head-name)))
 	     (cons head-cell (getstack (cell-link head-cell) (and depth (1- depth))))))))
 
+(defun getstack-symbs (head-name)
+  (mapcar #'cell-symb (getstack head-name)))
+
 (defun store-cells (cells)
   (loop for cell in cells
 	as name = (cell-name cell)
@@ -2090,7 +2093,8 @@
   (let* ((head-name (newsym)) ;; Needed for tracing later
 	 (head (make-cell! :name head-name :p 0 :q 0 :symb "0" :link "0"))
 	 ;; The order is (n-1) first, (n-2) second, ... (0) last.
-	 (symbols `(,@(reverse (loop for hn in (H0+) as m from 1 to (1- n) collect (cell-symb hn))) ,(cell-symb (h0))))
+	 (symbols `(,@(reverse (loop for hn in (cdr (getstack-symbs "H0")) as m from 1 to (1- n) collect hn))
+		      ,(cell-symb (h0))))
 	 )
     (!! :jdeep "            .....J9n creating a list @~s from: ~s " head symbols)
     (loop for sym in symbols
@@ -2854,7 +2858,7 @@
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; R3 from Newell et al. pp30-32
+'(progn ;; R3 from Newell et al. pp30-32
   (set-trace-mode :default)
   (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0") *cell-tracing-on* t)
   (setf *!!* '(:run :jcalls)) ;; :dr-memory :s :run-deep :run-full :load :jdeep
@@ -2862,7 +2866,7 @@
   (load-ipl "misccode/R3.liplv" :adv-limit 100)
   )
 
-(progn ;; F1 test
+'(progn ;; F1 test
   (set-trace-mode :none)
   ;(setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
@@ -2872,7 +2876,7 @@
   (load-ipl "misccode/F1.liplv")
   )
 
-(progn ;; Ackermann test
+'(progn ;; Ackermann test
   (set-trace-mode :none)
   ;(set-trace-mode :default)
   ;(setf *trace-cell-names-or-exprs* '("H0" "A0" "K1" "M0" "N0") *cell-tracing-on* t)
@@ -2917,7 +2921,7 @@
 ;;; *!!* <= :jdeep :run :jcalls :dr-memory :s :run-full :alerts :load :gentrace
 ;;; (fsym "symbol")
 
-'(progn ;; LT 
+(progn ;; LT 
   (set-trace-mode :default)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
@@ -2947,10 +2951,10 @@
 
 	  ;; Basic tracer:
 
-  	    ;; ("M001R000"
-	    ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	    ;;  )
+  	     (450
+	      (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	      (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
+	      )
 
 	  ;;(2875 (break))
 
