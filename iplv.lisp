@@ -2922,7 +2922,7 @@
 ;;; (fsym "symbol")
 
 (progn ;; LT 
-  (set-trace-mode :default)
+  (set-trace-mode :none)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
@@ -2951,10 +2951,10 @@
 
 	  ;; Basic tracer:
 
-  	     (450
-	      (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	      (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	      )
+  	     ;; (520
+	     ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	     ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
+	     ;;  )
 
 	  ;;(2875 (break))
 
