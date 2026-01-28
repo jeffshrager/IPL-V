@@ -2879,52 +2879,6 @@
   )
 
 #| Current issue (see notes.txt for the issue stack):
-
-   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q5" "9-2267")
-             .....In J10 trying to find the value of "Q5" in "9-2267"! % NIL@2613[JDEEP]
-             .....In J10 list-head = {9-2267|22|1.2  |}
-                     dlist-name = "1.2  "
-                     target = "Q5" % NIL@2613[JDEEP]
-
-0] (pl "9-2267")
-(pl "9-2267")
-
-+------------------------- "9-2267" {9-2267|22|1.2  |} -------------------------+
-(0) {9-2267|22|1.2  |}
-+--------------------------End "9-2267" -------------------------------------------+
-
-That's right, but I don't think that that's what was intended to be
-passed. It looks like *12 is still marked as processed: The
-{*12|04|0|9-4409} mark was never removed.
-
-+------------------------- "*12" {*12|04|0|9-4409} -------------------------+
-(0) {*12|04|0|9-4409}
-(0) {9-4409||9-2275|9-2591}
-   (1) {9-2275||0|9-2277}
-   (1) {9-2277||Q7|9-2276}
-      (2) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
-      (2) "J10"
-   (1) {9-2276||9-2267|9-2597}
-
-It gets marked here:
-
-vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at "M62-9-200"
-@2267+ >>>>> {M062R620::M62-9-200||J137|J8 [SUBPROCESS - MARK PROCESSED.;]} (Execute fn named by symb name itself)
-   H0={H0||*12|9-4458} ++ ({9-4458||9-4448|0})
-
-Here is says that is NOT marked processed!
-
-@2273+ >>>>> {M062R640::M62-905||J133|M62-906} (Execute fn named by symb name itself)
-   H0={H0||*12|9-4468} ++ ({9-4468||*12|9-4465} {9-4465||9-4448|0})
-   W0={W0||9-3174|9-4329} ++ ({9-4329||9-3174|9-4319} {9-4319||*299|9-3492} {9-3492||*299|0})
-   W1={W1||L4|9-4330} ++ ({9-4330||*299|0})
-   .......... Calling J133 [TEST IF LIST (0) HAS BEEN MARKED PROCESSED]: (L)=("*12")
-   H0={H0||*12|9-4465} ++ ({9-4465||9-4448|0})
-   W0={W0||9-3174|9-4329} ++ ({9-4329||9-3174|9-4319} {9-4319||*299|9-3492} {9-3492||*299|0})
-   W1={W1||L4|9-4330} ++ ({9-4330||*299|0})
-@2274- >>>>> {M062R650::M62-906|70|M62-9-201|M62-907} (Goto by H5: -symb|+link itself)
-
-
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (ds) (trace!)
@@ -2944,11 +2898,6 @@ Here is says that is NOT marked processed!
   ;;(setf *newsym-trap* '("9-2267"))
   (setf *trace-exprs*
 	'(
-	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
-	  ;; See notes re special JFn:JP055R005JEFF (in LTFixed)
-	  ;;("P055R000" (setf (cell-symb (car (H0+))) "L11")) ;; FFF should be patched in the original code!
-  	  ;("P055R000" (???) (format t "~%~%") (backtrace! 25) (format t "~%~%") (pl (cell-symb (car (H0+)))))
-
 	  ;; NOTE: The key can be partial, as "P052R"; uses
 	  ;; (search...) for strings, or an expr, for example to trace
 	  ;; when local is created: (= *gensym-counter* 3434)
