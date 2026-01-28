@@ -41,10 +41,15 @@
 
 (defvar *symtab* (make-hash-table :test #'equal))
 
-(defun newsym (&optional (prefix "9")) (string (gensym (concatenate 'string prefix "-"))))
+(defvar *newsym-trap* nil) ;; Add symbols to this as strings to break when they are created.
+
+(defun newsym (&optional (prefix "9"))
+  (let* ((newsym (string (gensym (concatenate 'string prefix "-")))))
+    (if (member newsym *newsym-trap* :test #'string-equal)
+	(break (format nil "Created symbol ~a @ ~a" newsym (cell-link (<== "H3"))))
+	newsym)))
 
 (defun store (cell &optional (name (cell-name cell)))
-  ;;(!! :dr-memory "== Store ==> ~s [mem]" cell) Causes compiler race condition
   (setf (gethash name *symtab*) cell)
   cell)
   
@@ -244,7 +249,7 @@
 
 (defvar *!!* nil) 
 
-(defmacro H3-cycles () `(cell-link (cell "H3")))
+(defmacro H3-cycles () '(cell-link (<== "H3")))
 
 (defmacro !! (key &rest args) 
   `(when (or (equal *!!* t)
@@ -1813,7 +1818,7 @@
 	(ipush l) ;; This will leave a copy in the main symtab.
 	(let ((newmain (cell l))) ;; This should be the NEW copy of the pushed head.
 	  ;; Now we mark the new main cell as indicated.
-	  (setf (cell-q newmain) 4 (cell-symb newmain) "0")
+	  (setf (cell-q newmain) 4 (cell-p newmain) 1 (cell-symb newmain) "0")
 	  ))
 
   (defj J138 ([0]) "J138 MAKE SYMBOL (O) INTERNAL"
@@ -2875,49 +2880,50 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
-I think that the J17/18/19 set is doing something wrong:
+   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q5" "9-2267")
+             .....In J10 trying to find the value of "Q5" in "9-2267"! % NIL@2613[JDEEP]
+             .....In J10 list-head = {9-2267|22|1.2  |}
+                     dlist-name = "1.2  "
+                     target = "Q5" % NIL@2613[JDEEP]
 
->>>>>>>>>>> THE J17(etc) code is holding cells that it shouldn't be holding!
+0] (pl "9-2267")
+(pl "9-2267")
 
-@3244+ >>>>> {P031R100::P31-1571||J66|J4 [QUIT, H5+ FOR GEN.;]} (Execute fn named by symb name itself)
-   H0={H0||Q0|9-5480} ++ ({9-5480||9-5445|9-5479} {9-5479||9-5337|0})
-   W0={W0||9-5445|9-5449} ++ ({9-5449||*202|9-5354} {9-5354||*202|9-5201} {9-5201||*202|9-5187})
-   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
-   .......... Calling J66 [INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT]: ([0] [1])=("Q0" "9-5445")
-             .....J66 trying to insert "Q0" in "9-5445" % NIL@3244[JDEEP]
-             .....J66 hit end, adding "Q0" to the end of the list! % NIL@3244[JDEEP]
-   H0={H0||9-5337|0} ++ NIL
-   W0={W0||9-5445|9-5449} ++ ({9-5449||*202|9-5354} {9-5354||*202|9-5201} {9-5201||*202|9-5187})
-   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
-   .......... Calling J4 [SET H5 +] (No Args)
-   H0={H0||9-5337|0} ++ NIL
-   W0={W0||9-5445|9-5449} ++ ({9-5449||*202|9-5354} {9-5354||*202|9-5201} {9-5201||*202|9-5187})
-   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
-Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^  0: (IPUSH "W0" {BAD POP OF W0 @ 3241||9-3878|9-5457})
-   H0={H0||9-5337|0} ++ NIL
-   W0={W0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5483} ++ ({9-5483||9-5445|9-5449} {9-5449||*202|9-5354} {9-5354||*202|9-5201})
-   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
-@3247+ >>>>> {P029R170::P29-9-3|70|J19|P29-9-2 [IF H5-, SUBPROCESS SAID QUIT.;]} (Goto by H5: -symb|+link itself)
-   H0={H0||9-5337|0} ++ NIL
-   W0={W0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5483} ++ ({9-5483||9-5445|9-5449} {9-5449||*202|9-5354} {9-5354||*202|9-5201})
-   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
-@3248+ >>>>> {P029R050::P29-9-2|11|W0|P29-1543 [IF NO, ;]} (Push cntnts of the cell named by symb, onto H0)
-   H0={H0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5484} ++ ({9-5484||9-5337|0})
-   W0={W0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5483} ++ ({9-5483||9-5445|9-5449} {9-5449||*202|9-5354} {9-5354||*202|9-5201})
-   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
-@3249+ >>>>> {P029R060::P29-1543||J60|P29-1544 [LOCATE NEXT SEGMENT;]} (Execute fn named by symb name itself)
-   H0={H0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5484} ++ ({9-5484||9-5337|0})
-   W0={W0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5483} ++ ({9-5483||9-5445|9-5449} {9-5449||*202|9-5354} {9-5354||*202|9-5201})
-   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
++------------------------- "9-2267" {9-2267|22|1.2  |} -------------------------+
+(0) {9-2267|22|1.2  |}
++--------------------------End "9-2267" -------------------------------------------+
 
-debugger invoked on a TYPE-ERROR @52A51622 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value {BAD POP OF W0 @ 3241||9-3878|9-5457} is not of type (OR STRING SYMBOL CHARACTER) when binding SB-IMPL::STRING2
+That's right, but I don't think that that's what was intended to be
+passed. It looks like *12 is still marked as processed: The
+{*12|04|0|9-4409} mark was never removed.
 
-Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
++------------------------- "*12" {*12|04|0|9-4409} -------------------------+
+(0) {*12|04|0|9-4409}
+(0) {9-4409||9-2275|9-2591}
+   (1) {9-2275||0|9-2277}
+   (1) {9-2277||Q7|9-2276}
+      (2) {Q007R000::Q7|10|Q7|J10 [ATTRIBUTE--EXTERNAL NAME;]}
+      (2) "J10"
+   (1) {9-2276||9-2267|9-2597}
 
-restarts (invokable by number or by possibly-abbreviated name):
-  0: [ABORT] Exit debugger, returning to top level.
+It gets marked here:
 
-(SB-KERNEL:TWO-ARG-STRING-EQUAL "H0" {#1=BAD POP OF W0 @ 3241||9-3878|9-5457#1#}) [external]
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvv Entering IPL-EVAL at "M62-9-200"
+@2267+ >>>>> {M062R620::M62-9-200||J137|J8 [SUBPROCESS - MARK PROCESSED.;]} (Execute fn named by symb name itself)
+   H0={H0||*12|9-4458} ++ ({9-4458||9-4448|0})
+
+Here is says that is NOT marked processed!
+
+@2273+ >>>>> {M062R640::M62-905||J133|M62-906} (Execute fn named by symb name itself)
+   H0={H0||*12|9-4468} ++ ({9-4468||*12|9-4465} {9-4465||9-4448|0})
+   W0={W0||9-3174|9-4329} ++ ({9-4329||9-3174|9-4319} {9-4319||*299|9-3492} {9-3492||*299|0})
+   W1={W1||L4|9-4330} ++ ({9-4330||*299|0})
+   .......... Calling J133 [TEST IF LIST (0) HAS BEEN MARKED PROCESSED]: (L)=("*12")
+   H0={H0||*12|9-4465} ++ ({9-4465||9-4448|0})
+   W0={W0||9-3174|9-4329} ++ ({9-4329||9-3174|9-4319} {9-4319||*299|9-3492} {9-3492||*299|0})
+   W1={W1||L4|9-4330} ++ ({9-4330||*299|0})
+@2274- >>>>> {M062R650::M62-906|70|M62-9-201|M62-907} (Goto by H5: -symb|+link itself)
+
 
 |#
 
@@ -2930,10 +2936,12 @@ restarts (invokable by number or by possibly-abbreviated name):
 
 (progn ;; LT 
   (set-trace-mode :none)
+  ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
-  ;(setf *jfn-arg-traps* '("9-2941"))
+  ;;(setf *jfn-arg-traps* '("9-2941"))
+  ;;(setf *newsym-trap* '("9-2267"))
   (setf *trace-exprs*
 	'(
 	  ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
@@ -2958,10 +2966,10 @@ restarts (invokable by number or by possibly-abbreviated name):
 
 	  ;; Basic tracer:
 
-  	  ;; (3200
-	  ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace  :jdeep :dr-memory :gentrace
+  	  ;; (1234
+	  ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
 	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	  ;; 				;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	  ;;  ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
 	  ;;  )
 
 	  ;;(3200 (break))

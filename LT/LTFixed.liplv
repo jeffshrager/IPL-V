@@ -2900,8 +2900,5 @@
 
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
 *1.2   ((AVA)IA)
-*1.3   (BI(AVB))
 
-*2.02  (QI(PIQ))
 *2.99  ((PVP)IP)
-*2.07  (PI(PVP))
