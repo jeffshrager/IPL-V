@@ -1679,7 +1679,6 @@
 	;; identical contents to (0). The name is local if the input
 	;; (0) is local; otherwise, it is internal.
 	;; (No pop bcs H0 is replaced -- Maybe pop and push?)
-	;; (?? Can this be replaced with FORCE-REPLACE ??)
 	(let* ((old-cell (cell [0]))
 	       (new-cell-name (newsym)))
 	  (make-cell!
@@ -2604,32 +2603,17 @@
        (1 (ipush "H0" S)) ;; Input S (after preserving HO) "A copy of
 
        (2 ;; Output to S (then restore HO)
-
-	;; ********************************************************
 	;; (0) is put in cell S; then H0 is restored." (Note: No S
-	;; push!)  It's actually unclear what the right way to do this
-	;; is. Here are two hypotheses; One works, the other doesn't,
-	;; but I'm not sure I understand why. It actually seems to me
-	;; that it should be the other way around!  There's something
-	;; really wrong here since these ought to be identical, except
-	;; that the force-replace creates a new cell. So someone
-	;; someplace is holding a cell struct that shouldn't be, but
-	;; apparently needs to be. UUU WWW !!! This bodes poorly for
-	;; the overall correctness and stability of the interpreter!
-
+	;; push!) 
 	(setf (cell-symb (cell S)) (cell-symb (H0))) ;; THIS ONE WORKS!
-	;; (force-replace S (cell-symb (H0)))        ;; THIS ONE DOES NOT WORK!
-
 	(ipop "H0")
 	)
-	;; ******************************************************
-
        ;; "A copy of the symbol most recently stored in the push down
        ;; list of S is moved into S." (This is actually slightly
        ;; ambiguous -- if it's name wasn't "RESTORE" it could be
        ;; interpreted as COPYing the top of the S stack into S.)
        (3 (ipop S)) 
-       (4 (ipush S))                         ;; Preserve (push down) S
+       (4 (ipush S)) ;; Preserve (push down) S
        ;; REPLACE (0) BY S. A copy of S is put in HO; the current (0) is lost.
        (5 (setf (cell-symb (H0)) S))
        ;; "A copy of (0) is put in S; the current symbol in S is lost,
@@ -2694,18 +2678,6 @@
      (when (string-equal (H5) "-") (setf link S) (go ADVANCE-W/FORCED-LINK))
      (go ADVANCE)
      ))
-
-#|
-;;; Note that this can't just replace the target, it has to make a
-;;; copy and put that in place, because someone is likely to be
-;;; holding the original.
-
-(defun force-replace (tosymb fromsymb)
-  (let* ((fromcell (<== fromsymb))
-	 (new-cell (make-cell :symb fromsymb)))
-    (!! :dr-memory "Force replacing ~s with ~s" tosymb new-cell)
-    (setf (gethash tosymb *symtab*) new-cell)))
-|#
 
 (defun call-ipl-prim (symb)
   (break "!!!!!!!! UNIMPLEMENTED: (call-ipl-prim ~s)" symb))
@@ -2870,7 +2842,6 @@
   ;(setf *!!* '() *cell-tracing-on* nil)
   ;(setf *!!* '(:run :run-full :dr-memory :jdeep :jcalls) *cell-tracing-on* t)
   ;(push :run-full *!!*)
-  ;(trace ipush ipop force-replace)
   ;(setf *trace-cell-names-or-exprs* '("H0" "H1" "W0" "W1") *cell-tracing-on* t)
   (load-ipl "misccode/F1.liplv")
   )
@@ -2902,14 +2873,49 @@
   (load-ipl "EPAM/EPAMFixed.liplv" :adv-limit 10000)
   )
 
-;;; WWW If this ends early with a BAD EXPRESSION (or other "normal
-;;; error"), you're likely to get redisual errors from the loader
-;;; trying to read more data after "normal" termination of the
-;;; program.
-
-
 #| Current issue (see notes.txt for the issue stack):
 
+I think that the J17/18/19 set is doing something wrong:
+
+@3244+ >>>>> {P031R100::P31-1571||J66|J4 [QUIT, H5+ FOR GEN.;]} (Execute fn named by symb name itself)
+   H0={H0||Q0|9-5480} ++ ({9-5480||9-5445|9-5479} {9-5479||9-5337|0})
+   W0={W0||9-5445|9-5449} ++ ({9-5449||*202|9-5354} {9-5354||*202|9-5201} {9-5201||*202|9-5187})
+   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
+   .......... Calling J66 [INSERT (0) AT END OF LIST (1) IF NOT ALREADY ON IT]: ([0] [1])=("Q0" "9-5445")
+             .....J66 trying to insert "Q0" in "9-5445" % NIL@3244[JDEEP]
+             .....J66 hit end, adding "Q0" to the end of the list! % NIL@3244[JDEEP]
+   H0={H0||9-5337|0} ++ NIL
+   W0={W0||9-5445|9-5449} ++ ({9-5449||*202|9-5354} {9-5354||*202|9-5201} {9-5201||*202|9-5187})
+   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
+   .......... Calling J4 [SET H5 +] (No Args)
+   H0={H0||9-5337|0} ++ NIL
+   W0={W0||9-5445|9-5449} ++ ({9-5449||*202|9-5354} {9-5354||*202|9-5201} {9-5201||*202|9-5187})
+   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
+Exiting from IPL-EVAL ^^^^^^^^^^^^^^^^^^^^^^^^^^^  0: (IPUSH "W0" {BAD POP OF W0 @ 3241||9-3878|9-5457})
+   H0={H0||9-5337|0} ++ NIL
+   W0={W0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5483} ++ ({9-5483||9-5445|9-5449} {9-5449||*202|9-5354} {9-5354||*202|9-5201})
+   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
+@3247+ >>>>> {P029R170::P29-9-3|70|J19|P29-9-2 [IF H5-, SUBPROCESS SAID QUIT.;]} (Goto by H5: -symb|+link itself)
+   H0={H0||9-5337|0} ++ NIL
+   W0={W0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5483} ++ ({9-5483||9-5445|9-5449} {9-5449||*202|9-5354} {9-5354||*202|9-5201})
+   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
+@3248+ >>>>> {P029R050::P29-9-2|11|W0|P29-1543 [IF NO, ;]} (Push cntnts of the cell named by symb, onto H0)
+   H0={H0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5484} ++ ({9-5484||9-5337|0})
+   W0={W0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5483} ++ ({9-5483||9-5445|9-5449} {9-5449||*202|9-5354} {9-5354||*202|9-5201})
+   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
+@3249+ >>>>> {P029R060::P29-1543||J60|P29-1544 [LOCATE NEXT SEGMENT;]} (Execute fn named by symb name itself)
+   H0={H0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5484} ++ ({9-5484||9-5337|0})
+   W0={W0||{BAD POP OF W0 @ 3241||9-3878|9-5457}|9-5483} ++ ({9-5483||9-5445|9-5449} {9-5449||*202|9-5354} {9-5354||*202|9-5201})
+   W1={W1||9-5359|9-5355} ++ ({9-5355||9-5210|9-5202} {9-5202||9-3852|0})
+
+debugger invoked on a TYPE-ERROR @52A51622 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value {BAD POP OF W0 @ 3241||9-3878|9-5457} is not of type (OR STRING SYMBOL CHARACTER) when binding SB-IMPL::STRING2
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [ABORT] Exit debugger, returning to top level.
+
+(SB-KERNEL:TWO-ARG-STRING-EQUAL "H0" {#1=BAD POP OF W0 @ 3241||9-3878|9-5457#1#}) [external]
 
 |#
 
@@ -2921,7 +2927,7 @@
 ;;; (fsym "symbol")
 
 (progn ;; LT 
-  (set-trace-mode :none)
+  (set-trace-mode :default)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
@@ -2950,13 +2956,13 @@
 
 	  ;; Basic tracer:
 
-  	      ;; (2900
-	      ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	      ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	      ;;  (trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	      ;;  )
+  	  ;; (3200
+	  ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
+	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
+	  ;;  (trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	  ;;  )
 
-	  ;;(2875 (break))
+	  ;;(3200 (break))
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
