@@ -2879,6 +2879,43 @@
   )
 
 #| Current issue (see notes.txt for the issue stack):
+
+   .......... Calling J155 [Print line] (No Args)
+::::::::::::::::::::::::::::::::                                                                                 
+   H0={H0||0|0} ++ NIL
+   W0={W0||0|9-4827} ++ ({9-4827||*211|9-4061} {9-4061||*211|0})
+   W1={W1||0|0} ++ NIL
+@2679+ >>>>> {M071R090::M71-931|11|W0|M71-932} (Push cntnts of the cell named by symb, onto H0)
+   H0={H0||0|0} ++ NIL
+   W0={W0||0|9-4827} ++ ({9-4827||*211|9-4061} {9-4061||*211|0})
+   W1={W1||0|0} ++ NIL
+@2680+ >>>>> {M071R100::M71-932||Q13|M71-933 [FIND PROVING THEOREM.;]} (Execute fn named by symb name itself)
+   H0={H0||0|0} ++ NIL
+   W0={W0||0|9-4827} ++ ({9-4827||*211|9-4061} {9-4061||*211|0})
+   W1={W1||0|0} ++ NIL
+@2680+ >>>>> {Q013R000::Q13|10|Q13|J10 [FIND PROVING THEOREM FOR (0);]} (Push the symb (name) itself on H0)
+   H0={H0||Q13|0} ++ NIL
+   W0={W0||0|9-4827} ++ ({9-4827||*211|9-4061} {9-4061||*211|0})
+   W1={W1||0|0} ++ NIL
+   .......... Calling J10 [FIND THE VALUE OF ATTRIBUTE (0) OF (1)]: ([0] [1])=("Q13")
+
+debugger invoked on a SB-INT:SIMPLE-PROGRAM-ERROR @535E7CB0 in thread #<THREAD "main thread" RUNNING {1001670003}>: invalid number of arguments: 1
+
+Type HELP for debugger help, or (SB-EXT:EXIT) to exit from SBCL.
+
+restarts (invokable by number or by possibly-abbreviated name):
+  0: [REPLACE-FUNCTION] Call a different function with the same arguments
+  1: [CALL-FORM       ] Call a different form
+  2: [ABORT           ] Exit debugger, returning to top level.
+
+((LAMBDA ([0] [1]) :IN SETUP-J-FNS) "Q13") [external]
+; Using form offset instead of character position.
+
+   source: (DEFJ J10 ([0] [1]) "FIND THE VALUE OF ATTRIBUTE (0) OF (1)" (POPH0 2) (!! :JDEEP "             .....In J10 trying to find the value of ~s in ~s!" [0] [1]) (!! :JDEEP (ANNOUNCE "Find ~a in ~a" [0] [1])) (LET* ((LIST-HEAD (CELL [1])) (DLIST-NAME (CELL-SYMB LIST-HEAD)) (TARGET [0])) (!! :JDEEP "             .....In J10 list-head = ~s
+                     dlist-name = ~s
+                     target = ~s" LIST-HEAD DLIST-NAME TARGET) (IF (ZERO? DLIST-NAME) (PROGN (!! :JDEEP "             .....In J10 -- no dl, so we're done with H5-") (H5-)) (LOOP WITH DL-ATTRIBUTE-CELL = (CELL (CELL-LINK #)) DO (IF (NULL DL-ATTRIBUTE-CELL) (PROGN # # #)) (!! :JDEEP "             .....In J10 dl-attribute-cell = ~s" DL-ATTRIBUTE-CELL) (IF (IPL-STRING-EQUAL TARGET #) (LET* # # # # #) (LET* # #))))))
+0] 
+
 |#
 
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (ds) (trace!)
@@ -2915,11 +2952,11 @@
 
 	  ;; Basic tracer:
 
-  	  ;; (1234
-	  ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
-	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	  ;;  ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	  ;;  )
+  	  (2600
+	   (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
+	   (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	   ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	   )
 
 	  ;;(3200 (break))
 
