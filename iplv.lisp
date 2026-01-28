@@ -1269,7 +1269,7 @@
 	(let* ((list-cell (cell list-cell-name))
 	       (new-cell-name (newsym))
 	       (list-cell-symb (cell-symb list-cell))
-	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symbol :link (cell-link list-cell))))
+	       (new-cell (make-cell! :name new-cell-name :symb list-cell-symb :link (cell-link list-cell))))
 	  (declare (ignore new-cell))
 	  (setf (cell-symb list-cell) new-symbol
 		(cell-link list-cell) new-cell-name))
