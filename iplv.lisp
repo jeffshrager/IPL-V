@@ -1096,7 +1096,7 @@
 	       (wvals (loop for wname in wnames
 			    as wcell = (cell wname)
 			    do (ipop wname)
-			    collect wcell)))
+			    collect (cell-symb wcell))))
 	  (!! :gentrace "             J18 (tag=~s): collected wvals = ~s" gentag wvals)
 	  (!! :gentrace "             J18: After Wn ipops:") (!! :gentrace (trace-cells))
 	  (!! :gentrace "             J18: *genstack* = ~s" *genstack*)
@@ -2877,6 +2877,8 @@
 
 I think that the J17/18/19 set is doing something wrong:
 
+>>>>>>>>>>> THE J17(etc) code is holding cells that it shouldn't be holding!
+
 @3244+ >>>>> {P031R100::P31-1571||J66|J4 [QUIT, H5+ FOR GEN.;]} (Execute fn named by symb name itself)
    H0={H0||Q0|9-5480} ++ ({9-5480||9-5445|9-5479} {9-5479||9-5337|0})
    W0={W0||9-5445|9-5449} ++ ({9-5449||*202|9-5354} {9-5354||*202|9-5201} {9-5201||*202|9-5187})
@@ -2927,7 +2929,7 @@ restarts (invokable by number or by possibly-abbreviated name):
 ;;; (fsym "symbol")
 
 (progn ;; LT 
-  (set-trace-mode :default)
+  (set-trace-mode :none)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
@@ -2957,9 +2959,9 @@ restarts (invokable by number or by possibly-abbreviated name):
 	  ;; Basic tracer:
 
   	  ;; (3200
-	  ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace
-	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"
-	  ;;  (trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	  ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :gentrace  :jdeep :dr-memory :gentrace
+	  ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	  ;; 				;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
 	  ;;  )
 
 	  ;;(3200 (break))
