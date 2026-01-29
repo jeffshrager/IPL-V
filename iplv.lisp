@@ -1569,14 +1569,15 @@
   ;; so that J81 finds symbol in first list cell, etc. J80 finds symbol in head;
   ;; and sets H5- if (0) is a termination symbol. 
 
-  (defj J80 ([0]) "FIND THE HEAD SYMBOL OF (0)"
-	(h5+)
-	(if (zero? [0])
-	    (progn (H5-) (poph0 1))
-	    (let* ((r (cell-symb (cell [0]))))
-	      (if (zero? r)
-		  (progn (H5-) (poph0 1))
-		  (progn (poph0 1) (ipush "H0" r))))))
+  (defj J80 ([0]) "FIND THE HEAD SYMBOL OF (0)" ;; J80 is special case for the description symbol
+	(let* ((head (<== [0]))
+	       (head-symb (cell-symb head)))
+	  (poph0 1)
+	  (if (zero? head-symb)
+	      (h5-)
+	      (progn
+		(ipush "H0" head-symb)
+		(h5+)))))
 
 ;;; FIND THE NTH SYMBOL ON LIST (0) Ten routines, J80-J89. Set H5+ if
 ;;; the Nth symbol exists, - if not. Assume list (0) is de-scribable,
@@ -1584,10 +1585,10 @@
 ;;; symbol in head; and sets H5- if (0) is a termination symbol.
 
   (defj J81 ([0]) "FIND THE 1st (non-head) SYMBOL OF (0)"
-	(j8n-helper (cell-link (cell [0])) 1))
+	(j8n-helper (cell-link (<== [0])) 1))
 
   (defj J82 ([0]) "FIND THE 2nd (non-head0 SYMBOL OF (0)"
-	(j8n-helper (cell-link (cell [0])) 2))
+	(j8n-helper (cell-link (<== [0])) 2))
 	      
   ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0
   ;; < n < 9. The order is (n-1) first, (n-2) second, ..., (0)
@@ -2174,17 +2175,12 @@
 	      (setf (cell-symb listhead) dlname)
 	      dlhead)))))
 	      
-;;; Assumes a linear list.
+;;; See notes at defj: Assumes a linear list.
 
-(defun j8n-helper (cell-name nth)
-  (cond ((zero? cell-name)
-	 (poph0 1)
-	 (H5-))
-        ((= nth 1) (H5+)
-	 (let* ((r (cell-symb (cell cell-name))))
-	   (poph0 1)
-	   (ipush "H0" r)))
-	(t (j8n-helper (cell-link (cell cell-name)) (1- nth)))))
+(defun j8n-helper (next-entry n)
+  (cond ((zero? next-entry) (h5-))
+	((= n 1) (ipush "H0" next-entry) (h5+))
+	(t (j8n-helper (cell-link (<== next-entry)) (1- n)))))
 
 (defun j62-helper-search-list-for-symb (target incell inlink)
   (cond ((zero? inlink)
@@ -2926,7 +2922,8 @@ restarts (invokable by number or by possibly-abbreviated name):
 ;;; (fsym "symbol")
 
 (progn ;; LT 
-  (set-trace-mode :none)
+  (set-trace-mode :default)
+  (trace j8n-helper ipush)
   ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)
   ;;(setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
