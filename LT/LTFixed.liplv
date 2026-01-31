@@ -836,16 +836,12 @@
 ("CREATE LIST OF ONE NAME." "" "" "" "" "J91" "" "" "M054R190")
 ("" "" "" "" "" "J136" "" "" "M054R200")
 ("PLACE IN MAP HEAD AND QUIT." "" "" "" "21" "W1" "J33" "" "M054R210")
-
-;;; This is insane: By putting W1 in H0 where you'd usually have a
-;;; list, J10 takes the symbol in W1 as the dlist to be searched!
-;;; (Also R260)
-("INPUT MAP HOLDER." "" "9-102" "" "10" "W1" "" "" "M054R220") 
-
+;;; If you make the 10W1s at R220 and R260 11W1s, M54 goes into a loop!
+("INPUT MAP HOLDER." "" "9-102" "" "10" "W1" "" "" "M054R220") ;; !!!!!!!!!!!
 ("INPUT SEGMENT CONNECTIVE." "" "" "" "12" "W2" "" "" "M054R230")
 ("FIND SUBMAPS LIST." "" "" "" "" "J10" "" "" "M054R240")
 ("   IF FOUND, CONTINUE." "" "" "" "70" "" "9-110" "" "M054R250")
-("   IF NONE," "" "" "" "10" "W1" "" "" "M054R260") ;; See R220
+("   IF NONE," "" "" "" "10" "W1" "" "" "M054R260") ;; !!!!!!!!!!!
 ("" "" "" "" "" "J90" "" "" "M054R270")
 ("CREATE 1ST LOCAL SUBMAP." "" "" "" "" "J136" "" "" "M054R280")
 ("" "" "" "" "12" "W2" "" "" "M054R290")
