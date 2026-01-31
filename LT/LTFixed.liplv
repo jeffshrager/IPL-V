@@ -40,7 +40,7 @@
 ("TEST UTILITY." "" "" "" "" "M43" "" "" "M001R030")
 
 ;;; Consider removing this like to ignore utility and just do the proof:
-;("     IF NO GOOD, QUIT." "" "" "" "70" "9-4" "" "" "M001R040")
+("     IF NO GOOD, QUIT." "" "" "" "70" "9-4" "" "" "M001R040")
 
 ("" "" "" "" "11" "W0" "" "" "M001R050")
 ("PRINT 'TO PROVE' PROBLEM 1W0." "" "" "" "" "M78" "" "" "M001R060")
@@ -837,19 +837,15 @@
 ("" "" "" "" "" "J136" "" "" "M054R200")
 ("PLACE IN MAP HEAD AND QUIT." "" "" "" "21" "W1" "J33" "" "M054R210")
 
-;;; 20260129 - I think this is wrong as it puts "W1" instead of
-;;; W1's contents, which makes no sense (and rapidly breaks!)
-;;; ("INPUT MAP HOLDER." "" "9-102" "" "10" "W1" "" "" "M054R220")
-("INPUT MAP HOLDER." "" "9-102" "" "11" "W1" "" "" "M054R220")
+;;; This is insane: By putting W1 in H0 where you'd usually have a
+;;; list, J10 takes the symbol in W1 as the dlist to be searched!
+;;; (Also R260)
+("INPUT MAP HOLDER." "" "9-102" "" "10" "W1" "" "" "M054R220") 
 
 ("INPUT SEGMENT CONNECTIVE." "" "" "" "12" "W2" "" "" "M054R230")
 ("FIND SUBMAPS LIST." "" "" "" "" "J10" "" "" "M054R240")
 ("   IF FOUND, CONTINUE." "" "" "" "70" "" "9-110" "" "M054R250")
-
-;;; 20260129 - See problem as above
-;;; ("   IF NONE," "" "" "" "10" "W1" "" "" "M054R260")
-("   IF NONE," "" "" "" "11" "W1" "" "" "M054R260")
-
+("   IF NONE," "" "" "" "10" "W1" "" "" "M054R260") ;; See R220
 ("" "" "" "" "" "J90" "" "" "M054R270")
 ("CREATE 1ST LOCAL SUBMAP." "" "" "" "" "J136" "" "" "M054R280")
 ("" "" "" "" "12" "W2" "" "" "M054R290")
@@ -1981,8 +1977,11 @@
 ("FIND MEX." "" "" "" "" "J81" "" "" "Q002R120")
 ("IF NONE, CLEANUP, QUIT-." "" "" "" "70" "9-1" "" "" "Q002R130")
 ("IF THERE, COUNT LEVELS." "" "" "" "" "9-100" "" "" "Q002R140")
-("" "" "9-1" "" "11" "W0" "" "" "Q002R150") ;; Rupert noticed this problem, but it was correct in the spreadsheet?? (20250813)
-    ;; Maybe it was a previously discovered typo that I fixed in the spreadsheet but failed to move to here.
+
+;;; Rupert noticed this problem, but it was correct in the spreadsheet?? (20250813)
+;;; Maybe it was a previously discovered typo that I fixed in the spreadsheet but failed to move to here.
+("" "" "9-1" "" "11" "W0" "" "" "Q002R150") 
+
 ("ERASE COUNTER." "" "" "" "" "J9" "" "" "Q002R160")
 ("INPUT LEVEL," "" "" "" "11" "W1" "" "" "Q002R170")
 ("IF H5-, ERASE LEVEL, QUIT-." "" "" "" "70" "9-2" "" "" "Q002R180")

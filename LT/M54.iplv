@@ -1,0 +1,60 @@
+     M54 ADD TOTAL EXPRESSION (0) TO      M54   40W0                    M054R000
+        MAP OF TRUE EXPRESSIONS (1).            60W0          1W0=THMNAMM054R010
+                                                00J81                   M054R020
+                                                709-0         (0)=MEX   M054R030
+                                                00J6                    M054R040
+     ADD MAIN SEGMENT (1) TO MAP (0).           009-100 J30             M054R050
+                                          9-0   30H0    J30             M054R060
+     9-100 SUBPROCESS, ADD SEGMENT (1)    9-100 04J43         1W0=THMNAMM054R070
+                       TO MAP (0).              20W1          1W1=MAP   M054R080
+                                                60W2          1W2=SEGMNTM054R090
+     TEST IF SIMPLE VARIABLE.                   00P8                    M054R100
+        IF NO, CONTINUE DOWN MAP.               709-102                 M054R110
+        IF YES, ADD THNAME.                     11W1                    M054R120
+     TEST IF NAME LIST IN MAP HEAD.             00J79                   M054R130
+        IF NO, GO MAKE ONE.                     709-101                 M054R140
+        IF YES,                                 12W1                    M054R150
+                                                11W0                    M054R160
+     INSERT NAME AND QUIT.                      00J64   J33             M054R170
+                                          9-101 11W0                    M054R180
+     CREATE LIST OF ONE NAME.                   00J91                   M054R190
+                                                00J136                  M054R200
+     PLACE IN MAP HEAD AND QUIT.                21W1    J33             M054R210
+     INPUT MAP HOLDER.                    9-102 10W1                    M054R220
+     INPUT SEGMENT CONNECTIVE.                  12W2                    M054R230
+     FIND SUBMAPS LIST.                         00J10                   M054R240
+        IF FOUND, CONTINUE.                     70      9-110           M054R250
+        IF NONE,                                10W1                    M054R260
+                                                00J90                   M054R270
+     CREATE 1ST LOCAL SUBMAP.                   00J136                  M054R280
+                                                12W2                    M054R290
+     TEST IF 2ND SUBLIST NEEDED.                00P6                    M054R300
+        IF NO, SKIP IT.                         709-111                 M054R310
+        IF YES,                                 40H0                    M054R320
+     CREATE 2ND LOCAL SUBMAP.                   00J120                  M054R330
+                                                00J92   9-112           M054R340
+     CREATE SUBMAP LIST.                  9-111 00J91                   M054R350
+                                          9-112 00J136                  M054R360
+                                                60W3          1W3=MAPLSTM054R370
+                                                12W2                    M054R380
+     ASSIGN AS SUBMAP LIST OF CONNECTIVE        00J11                   M054R390
+                                                11W3    9-110           M054R400
+                                          9-110 20W3          1W3=MAPLSTM054R410
+                                                11W2                    M054R420
+     FIND 1ST SUB SEGMENT.                      00J81                   M054R430
+        IF NONE, QUIT.                          70J33                   M054R440
+                                                11W3                    M054R450
+     FIND 1ST SUB MAP.                          00J81                   M054R460
+        IF NONE, QUIT.                          709-114                 M054R470
+     ADD SEGMENT (1) TO SUBMAP (0).             009-100                 M054R480
+                                                12W2                    M054R490
+     TEST IF MORE SEGMENTS.                     00P6                    M054R500
+        IF NO, QUIT.                            70J33                   M054R510
+                                                11W2                    M054R520
+     FIND 2ND SUBSEGMENT.                       00J82                   M054R530
+        IF NONE, QUIT.                          70J33                   M054R540
+                                                11W3                    M054R550
+     FIND 2ND SUBMAP.                           00J82                   M054R560
+        IF NONE, QUIT.                          709-114                 M054R570
+     ADD SEGMENT (1) TO SUBMAP (0).             009-100 J33             M054R580
+                                          9-114 30H0    J33             M054R600
