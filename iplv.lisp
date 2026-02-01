@@ -141,7 +141,7 @@
 		      (in-list? sym (cell-link cell) top-cell (1- limit))))))))
 
 ;;; This throws an annoying warning and is a non-critical deugging tool
-'(defun rj () ;; report on jfns
+(defun rj () ;; report on jfns
   (let ((*print-length* nil))
     (loop for (jname ncalls expl argcounts) in
 	  (sort (loop for jname being the hash-keys of *jfn-calls*
@@ -1241,20 +1241,15 @@
 (defj J62 ([0] [1]) "LOCATE (O) ON LIST (1)" 
       ;; LOCATE (0) ON LIST (1). A search of list with name (1) is
       ;; made, testing each symbol against (0) (starting with cell
-      ;; after cell (1)). If (0) is found, the output (0) is the
-      ;; name of the cell containing it and H5 is set + . Hence, J62
-      ;; locates the first occurrence of (0) if there are
-      ;; several. If (0) is not found, the output (0) is the name of
-      ;; the last cell on the list, and H5 set - . [This is a bit of
-      ;; a problem, because the target could be a cell name or a
-      ;; string, which is ambiguous if we're handed a string. We
-      ;; heuristically see if the string can be a cell, in which
-      ;; case we use that cell's symb. ... Is this complexity needed
-      ;; anylonger with <== and <=!?]  Prob. actually safe to
-      ;; pre-pop.
+      ;; after cell (1)). If (0) is found, the output (0) is the name
+      ;; of the cell containing it and H5 is set + . Hence, J62
+      ;; locates the first occurrence of (0) if there are several. If
+      ;; (0) is not found, the output (0) is the name of the last cell
+      ;; on the list, and H5 set -.
       (let* ((target [0])
 	     (list-head (cell [1])))
 	(!! :jdeep "             .....J62 trying to locate target:~s in linear list starting with cell ~s" target list-head)
+	(!! :jdeep (pll [1]))
 	;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
 	(let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
 	  (poph0 2) 
@@ -1527,29 +1522,37 @@
 	    (ipush "H0" r))))
 
   (defj J76 ([0] [1]) "INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL" 
-	;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List (0) is
-	;; assume to desescribable. Its head is erased (if local, the symbol in
-	;; the head is erased as a list structure). The string of list cells is
-	;; inserted after cell (1): LINK of cell (1) is the name of the first
-	;; list cell, and LINK of the last cell of the string is the name of the
-	;; cell originally occurring after cell (1). The output (0) is the name
-	;; of the last cell in the inserted string and H5 is set +. If list (0)
-	;; has no list cells, then the output (0) is the input (1) and H5 is set
-	;; -. [Again, I think that this is intended only to work on linear lists
-	;; since there's no "last symbol" in a non-linear list.]
+	;; INSERT LIST (O) AFTER CELL (1) AND LOCATE LAST SYMBOL. List
+	;; (0) is assume to be desescribable. Its head is erased (if
+	;; local, the symbol in the head is erased as a list
+	;; structure). The string of list cells is inserted after cell
+	;; (1): LINK of cell (1) is the name of the first list cell,
+	;; and LINK of the last cell of the string is the name of the
+	;; cell originally occurring after cell (1). The output (0) is
+	;; the name of the last cell in the inserted string and H5 is
+	;; set +. If list (0) has no list cells, then the output (0)
+	;; is the input (1) and H5 is set -. [Again, I think that this
+	;; is intended only to work on linear lists since there's no
+	;; "last symbol" in a non-linear list.]
 	(!! :jdeep "             .....J76 is inserting ~a after ~a" [0] [1])
+	(!! :jdeep (pl [0]))
 	(let* ((l0 (<== [0]))
 	       (c1 (<== [1]))
 	       (c1link (cell-link c1))
-	       (last-cell-in-l0 (last-cell-of-linear-list l0)))
+	       (last-cell-in-l0 (last-cell-of-linear-list l0))
+	       (name-of-last-cell-in-l0 (cell-name last-cell-in-l0)))
+	  (!! :jdeep "             .....J76 l0~a, c1=~a, last-cell-in-l0=~a" l0 c1 last-cell-in-l0)
 	  (cond ((zero? (cell-link l0))
 		 (poph0 2)
 		 (ipush "H0" (cell-name c1))
+		 (!! :jdeep "             .....J76 failed with H5-")
 		 (H5-))
 		(t (setf (cell-link c1) (cell-link l0))
 		   (setf (cell-link last-cell-in-l0) c1link)
 		   (poph0 2)
-		   (ipush "H0" (Cell-name last-cell-in-l0))))))
+		   (h5+)
+		   (!! :jdeep "             .....J76 returning ~a on H0" name-of-last-cell-in-l0)
+		   (ipush "H0" name-of-last-cell-in-l0)))))
 
   (defj J78 ([0]) "TEST IF LIST (0) IS NOT EMPTY"
 	;; H5 is set - if LINK of (0) is a termination symbol, and set + if not.
@@ -2194,11 +2197,11 @@
 
 (defun j62-helper-search-list-for-symb (target incell inlink)
   (cond ((zero? inlink)
-	 (H5-)
-	 incell)
+	 (!! :jdeep "   ...In J62, fail to find ~a, returning ~a and H5-" target incell)
+	 (H5-) incell)
 	((ipl-string-equal (cell-symb incell) target)
-	 (H5+)
-	 incell)
+	 (!! :jdeep "   ...In J62, found ~a, returning ~a and H5+" target incell)
+	 (H5+) incell)
 	(t (j62-helper-search-list-for-symb target (cell inlink) (cell-link incell)))
 	))
 
