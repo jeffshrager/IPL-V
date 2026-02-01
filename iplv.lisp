@@ -2850,7 +2850,7 @@
 '(progn ;; R3 from Newell et al. pp30-32
   (set-trace-mode :default)
   (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0") *cell-tracing-on* t)
-  (setf *!!* '(:run :jcalls)) ;; :dr-memory :s :run-deep :run-full :load :jdeep
+  (setf *!!* '(:run :jcalls)) ;; :dr-memory :s :run-full :load :jdeep
   ;;(trace ipush ipop)
   (load-ipl "misccode/R3.liplv" :adv-limit 100)
   )
@@ -2893,27 +2893,32 @@
 
 #| Current issue (see notes.txt for the issue stack):
 
+This is comparing a "-0" (negation) with something that's obviously
+NOT any sort of connective. It seems to have lost one level of indirection above here bcs:
 
-@505- >>>>> {M054R370::M54-821|60|W3|M54-822 [;1W3=MAPLST]} (Copy of (0) replaces S; S lost; H0 n.c.)
-   H0={H0||9-2732|9-2734} ++ ({9-2734||W1|0})
-   W0={W0||*12|9-2714} ++ ({9-2714||*12|9-2684} {9-2684||*12|9-2677} {9-2677||*12|0})
-   W1={W1||9-2699|9-2715} ++ ({9-2715||L4|0})
-   W2={W2||*12|9-2716} ++ ({9-2716||*12|0})
-@506- >>>>> {M054R380::M54-822|12|W2|M54-823} (Push 2nd deref on H0)
-   H0={H0||9-2276|9-2736} ++ ({9-2736||9-2732|9-2734} {9-2734||W1|0})
-   W0={W0||*12|9-2714} ++ ({9-2714||*12|9-2684} {9-2684||*12|9-2677} {9-2677||*12|0})
-   W1={W1||9-2699|9-2715} ++ ({9-2715||L4|0})
-   W2={W2||*12|9-2716} ++ ({9-2716||*12|0})
-@507- >>>>> {M054R390::M54-823||J11|M54-824 [ASSIGN AS SUBMAP LIST OF CONNECTIVE;]} (Execute fn named by symb name itself)
-   H0={H0||9-2276|9-2736} ++ ({9-2736||9-2732|9-2734} {9-2734||W1|0})
-   W0={W0||*12|9-2714} ++ ({9-2714||*12|9-2684} {9-2684||*12|9-2677} {9-2677||*12|0})
-   W1={W1||9-2699|9-2715} ++ ({9-2715||L4|0})
-   W2={W2||*12|9-2716} ++ ({9-2716||*12|0})
-   .......... Calling J11 [ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)]: ([0] [1] [2])=("9-2276" "9-2732" "W1")
-             .....ADD-TO-DLIST entry: dlisthead = {9-2699|02|0|9-2700}, att="9-2276", val="9-2732" % NIL@507[JDEEP]
-             .....ADD-TO-DLIST is checking next-att-cell={9-2700||9-2691|0}, last-val-cell={9-2699|02|0|9-2700} % NIL@507[JDEEP]
+(<== "9-2462") => {9-2462|02|I0|9-2546}
 
-debugger invoked on a TYPE-ERROR @535EA997 in thread #<THREAD "main thread" RUNNING {1001670003}>: The value NIL is not of type COMMON-LISP-USER::CELL
+So there's the connective it wanted.
+
+I checked mode 2, and that's correct, so there's a missing indirection
+someplace ABOVE here. It might be that the structure itself is
+incorrectly organized -- has an extra level of list structure, or
+something like that.
+
+@425- >>>>> {M073R050::M73-966||J2|M73-967 [TEST IF CONNECTIVE NOT;]} (Execute fn named by symb name itself)
+   H0={H0||-0|9-2681} ++ ({9-2681||9-2462|9-2680} {9-2680||9-2592|9-2674} {9-2674||*12|0})
+   W0={W0||*12|0} ++ NIL
+   W1={W1||0|0} ++ NIL
+   W2={W2||0|0} ++ NIL
+   .......... Calling J2 [TEST (0) == (1)?]: ([0] [1])=("-0" "9-2462")
+
+JJJ 22      CCC OOO M M PPP AAA RRR III NNN GGG         000     999     22  4   666 22  ??? 
+ J    2     C   O O MMM P P A A R R  I  N N G G         0 0     9 9       2 4   6     2  ?  
+ J   2      C   O O MMM PPP AAA RR   I  N N GGG     --- 0 0 === 999 ---  2  4 4 666  2   ?? 
+ J  2       C   O O M M P   A A R R  I  N N   G         0 0       9     2   444 6 6 2       
+JJ  222     CCC OOO M M P   A A R R III N N GGG         000       9     222   4 666 222  ?  
+   H0={H0||9-2592|9-2674} ++ ({9-2674||*12|0})
+
 
 |#
 
@@ -2922,8 +2927,8 @@ debugger invoked on a TYPE-ERROR @535EA997 in thread #<THREAD "main thread" RUNN
 (progn ;; LT 
   (set-trace-mode :none)
   (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
-  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
-  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+  ;(setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
+  ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;;(trace j8n-helper ipush) 
@@ -2948,13 +2953,13 @@ debugger invoked on a TYPE-ERROR @535EA997 in thread #<THREAD "main thread" RUNN
 
 	  ;; Basic tracer:
 
-  	    ;; ("M054R000"
-	    ;; (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
-	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	    ;;  ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	    ;;  )
+  	    (375
+	     (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
+	     (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	     ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	     )
 
-	  ;;(3200 (break))
+	  (426 (break))
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
