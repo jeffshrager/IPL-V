@@ -1588,12 +1588,14 @@
 ;;; symbol in head; and sets H5- if (0) is a termination symbol.
 
   (defj J81 ([0]) "FIND THE 1st (non-head) SYMBOL OF (0)" 
+	(poph0 1)
 	(j8n-helper (cell-link (<== [0])) 1)
-	(poph0 1))
+	)
 
   (defj J82 ([0]) "FIND THE 2nd (non-head0 SYMBOL OF (0)"
+	(poph0 1)
 	(j8n-helper (cell-link (<== [0])) 2)
-	(poph0 1))
+	)
 	      
   ;; J9n CREATE A LIST OF THE n SYMBOLS (n-1), (n-2), ..., (1), (0), 0
   ;; < n < 9. The order is (n-1) first, (n-2) second, ..., (0)
@@ -2920,8 +2922,8 @@ debugger invoked on a TYPE-ERROR @535EA997 in thread #<THREAD "main thread" RUNN
 (progn ;; LT 
   (set-trace-mode :none)
   (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
-  ;(setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
-  ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
+  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;;(trace j8n-helper ipush) 
@@ -2946,11 +2948,11 @@ debugger invoked on a TYPE-ERROR @535EA997 in thread #<THREAD "main thread" RUNN
 
 	  ;; Basic tracer:
 
-  	   ("M054R000"
-	    (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
-	    (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	    ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	    )
+  	    ;; ("M054R000"
+	    ;; (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
+	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	    ;;  ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	    ;;  )
 
 	  ;;(3200 (break))
 
