@@ -141,7 +141,7 @@
 		      (in-list? sym (cell-link cell) top-cell (1- limit))))))))
 
 ;;; This throws an annoying warning and is a non-critical deugging tool
-(defun rj () ;; report on jfns
+`(defun rj () ;; report on jfns
   (let ((*print-length* nil))
     (loop for (jname ncalls expl argcounts) in
 	  (sort (loop for jname being the hash-keys of *jfn-calls*
@@ -190,7 +190,7 @@
    	    (if (eq :descend entry) (incf indent 3) (decf indent 3)))))
 
 (defvar *rxtbl* (make-hash-table :test #'equal))
-(defun rx () ;; report on execs (card ids executed)
+'(defun rx () ;; report on execs (card ids executed)
   (clrhash *rxtbl*)
   (loop for entry in *card-cycles.ids-executed*
 	as id = (when (listp entry) (cdr entry))
@@ -397,7 +397,6 @@
 ;;; This is used in JFns to deref args H0
 
 (defmacro H1 () `(cell "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
-(defmacro H1+ () `(stack "H1")) ;; WWW DO NOT CONFUSE H1 with (1) !!!
 
 ;;; WWW H5 MUST be set using these functions!
 
@@ -492,13 +491,13 @@
 (defun report-system-cells (&optional (all? *report-all-system-cells?*))
   (format t "~%~%------ RUN REGISTERS ------~%")
   (loop for cellname in (if all? *all-system-cells* *system-cells*)
-	do (format t "  ~a=~s ~s~%" cellname (cell cellname) (stack cellname)))
+	do (format t "  ~a=~s ~s~%" cellname (cell cellname) (getstack cellname)))
   (format t "-----------------------~%~%")
   ;; Check for disasters
   (loop for cellname in *system-cells*
 	with warn = nil
 	as cell = (cell cellname)
-	as stack = (stack cellname)
+	as stack = (getstack cellname)
 	do (cond ((illegal-value? cell) (format t "!!!!! ~s contains a zero or blank !!!!!~%" cellname) (setf warn t))
 		 ((loop for entry in stack if (illegal-value? entry) do (return t))
 		  (format t "!!!!! An entry in ~s's stack is zero or blank !!!!!~%" cellname) (setf warn t))
@@ -1308,10 +1307,8 @@
 	(let* ((list-cell (cell list-cell-name))
 	       (list-cell-symb (cell-symb list-cell))
 	       (list-cell-link (cell-link list-cell))
-	       (new-cell-name (newsym))
-	       (new-cell (make-cell! :name new-cell-name
-				     :symb new-symbol
-				     :link list-cell-link)))
+	       (new-cell-name (newsym)))
+	  (make-cell! :name new-cell-name :symb new-symbol :link list-cell-link)
 	  ;;; If the cell we've been handed is heuristically an empty
 	  ;;; list header, we soft flag this and add the new cell to
 	  ;;; the end.
@@ -1813,7 +1810,6 @@
 	;; terms. The output (0) is the input (0).
 	(let* ((head-cell (<== [0]))
 	       (current-first-cell-name (cell-link head-cell))
-	       (current-first-cell (<== current-first-cell-name))
 	       (new-first-cell-name (newsym))
 	       (new-first-cell (make-cell! :name new-first-cell-name :p 1 :q 4 :symb "0" :link current-first-cell-name))
 	       )
@@ -2924,8 +2920,8 @@ debugger invoked on a TYPE-ERROR @535EA997 in thread #<THREAD "main thread" RUNN
 (progn ;; LT 
   (set-trace-mode :none)
   (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
-  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
-  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
+  ;(setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
+  ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
   ;;(trace j8n-helper ipush) 
@@ -2950,9 +2946,9 @@ debugger invoked on a TYPE-ERROR @535EA997 in thread #<THREAD "main thread" RUNN
 
 	  ;; Basic tracer:
 
-  	   (2600
+  	   ("M054R000"
 	    (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
-	    (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	    (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
 	    ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
 	    )
 
