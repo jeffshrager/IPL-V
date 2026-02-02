@@ -1567,10 +1567,12 @@
 	(if (or (zero? [0]) (zero? (cell-symb (cell [0])))) (H5-) (H5+))
 	(poph0 1))
 
-  ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <== n <== 9. (Ten routines: J80-J89)
-  ;; Set H5 + if the nth symbol exists, - if not. Assume list (0) describable,
-  ;; so that J81 finds symbol in first list cell, etc. J80 finds symbol in head;
-  ;; and sets H5- if (0) is a termination symbol. 
+  ;; J8n: FIND THE nth SYMBOL ON LIST (0) 0 <== n <== 9. (Ten
+  ;; routines: J80-J89) Set H5 + if the nth symbol exists, - if
+  ;; not. Assume list (0) describable, so that J81 finds symbol in
+  ;; first list cell [Nb. NOT the symbol OF the first list cell!],
+  ;; etc. J80 finds symbol in head; and sets H5- if (0) is a
+  ;; termination symbol.
 
   (defj J80 ([0]) "FIND THE HEAD SYMBOL OF (0)" ;; J80 is special case for the description symbol
 	(let* ((head (<== [0]))
@@ -2190,7 +2192,7 @@
 
 (defun j8n-helper (next-entry n)
   (cond ((zero? next-entry) (h5-))
-	((= n 1) (ipush "H0" next-entry) (h5+))
+	((= n 1) (ipush "H0" (cell-symb (<== next-entry))) (h5+))
 	(t (j8n-helper (cell-link (<== next-entry)) (1- n)))))
 
 (defun j62-helper-search-list-for-symb (target incell inlink)
@@ -2891,39 +2893,6 @@
   (load-ipl "EPAM/EPAMFixed.liplv" :adv-limit 10000)
   )
 
-#| Current issue (see notes.txt for the issue stack):
-
-This is comparing a "-0" (negation) with something that's obviously
-NOT any sort of connective. It seems to have lost one level of indirection above here bcs:
-
-(<== "9-2462") => {9-2462|02|I0|9-2546}
-
-So there's the connective it wanted.
-
-I checked mode 2, and that's correct, so there's a missing indirection
-someplace ABOVE here. It might be that the structure itself is
-incorrectly organized -- has an extra level of list structure, or
-something like that.
-
-@425- >>>>> {M073R050::M73-966||J2|M73-967 [TEST IF CONNECTIVE NOT;]} (Execute fn named by symb name itself)
-   H0={H0||-0|9-2681} ++ ({9-2681||9-2462|9-2680} {9-2680||9-2592|9-2674} {9-2674||*12|0})
-   W0={W0||*12|0} ++ NIL
-   W1={W1||0|0} ++ NIL
-   W2={W2||0|0} ++ NIL
-   .......... Calling J2 [TEST (0) == (1)?]: ([0] [1])=("-0" "9-2462")
-
-JJJ 22      CCC OOO M M PPP AAA RRR III NNN GGG         000     999     22  4   666 22  ??? 
- J    2     C   O O MMM P P A A R R  I  N N G G         0 0     9 9       2 4   6     2  ?  
- J   2      C   O O MMM PPP AAA RR   I  N N GGG     --- 0 0 === 999 ---  2  4 4 666  2   ?? 
- J  2       C   O O M M P   A A R R  I  N N   G         0 0       9     2   444 6 6 2       
-JJ  222     CCC OOO M M P   A A R R III N N GGG         000       9     222   4 666 222  ?  
-   H0={H0||9-2592|9-2674} ++ ({9-2674||*12|0})
-
-
-|#
-
-;;; If you make the 10W1s at R220 and R260 11W1s, M54 goes into a loop!
-
 (progn ;; LT 
   (set-trace-mode :none)
   (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
@@ -2953,13 +2922,13 @@ JJ  222     CCC OOO M M P   A A R R III N N GGG         000       9     222   4 
 
 	  ;; Basic tracer:
 
-  	    (375
-	     (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
-	     (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	     ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	     )
+  	    ;; (1
+	    ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
+	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	    ;;  ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	    ;;  )
 
-	  (426 (break))
+	  ;;(426 (break))
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues

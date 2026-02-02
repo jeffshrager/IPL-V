@@ -1,3 +1,60 @@
+;;; If you make the 10W1s at R220 and R260 11W1s, M54 goes into a loop!
+
+These representations look correct per Steffrud:5. (BTW, I put 1.5 in and it failed
+completely! wherea that also used to work, at least as far as printing went!)
+
+This is comparing a "-0" (negation) with something that's obviously
+NOT any sort of connective. It seems to have lost one level of indirection above here bcs:
+
+(<== "9-2462") => {9-2462|02|I0|9-2546}
+
+So there's the connective it wanted.
+
+I checked mode 2, and that's correct, so there's a missing indirection
+someplace ABOVE here. It might be that the structure itself is
+incorrectly organized -- has an extra level of list structure, or
+something like that.
+
+@425- >>>>> {M073R050::M73-966||J2|M73-967 [TEST IF CONNECTIVE NOT;]} (Execute fn named by symb name itself)
+   H0={H0||-0|9-2681} ++ ({9-2681||9-2462|9-2680} {9-2680||9-2592|9-2674} {9-2674||*12|0})
+   W0={W0||*12|0} ++ NIL
+   W1={W1||0|0} ++ NIL
+   W2={W2||0|0} ++ NIL
+   .......... Calling J2 [TEST (0) == (1)?]: ([0] [1])=("-0" "9-2462")
+
+JJJ 22      CCC OOO M M PPP AAA RRR III NNN GGG         000     999     22  4   666 22  ??? 
+ J    2     C   O O MMM P P A A R R  I  N N G G         0 0     9 9       2 4   6     2  ?  
+ J   2      C   O O MMM PPP AAA RR   I  N N GGG     --- 0 0 === 999 ---  2  4 4 666  2   ?? 
+ J  2       C   O O M M P   A A R R  I  N N   G         0 0       9     2   444 6 6 2       
+JJ  222     CCC OOO M M P   A A R R III N N GGG         000       9     222   4 666 222  ?  
+   H0={H0||9-2592|9-2674} ++ ({9-2674||*12|0})
+
+This is comparing a "-0" (negation) with something that's obviously
+NOT any sort of connective. It seems to have lost one level of indirection above here bcs:
+
+(<== "9-2462") => {9-2462|02|I0|9-2546}
+
+So there's the connective it wanted.
+
+I checked mode 2, and that's correct, so there's a missing indirection
+someplace ABOVE here. It might be that the structure itself is
+incorrectly organized -- has an extra level of list structure, or
+something like that.
+
+@425- >>>>> {M073R050::M73-966||J2|M73-967 [TEST IF CONNECTIVE NOT;]} (Execute fn named by symb name itself)
+   H0={H0||-0|9-2681} ++ ({9-2681||9-2462|9-2680} {9-2680||9-2592|9-2674} {9-2674||*12|0})
+   W0={W0||*12|0} ++ NIL
+   W1={W1||0|0} ++ NIL
+   W2={W2||0|0} ++ NIL
+   .......... Calling J2 [TEST (0) == (1)?]: ([0] [1])=("-0" "9-2462")
+
+JJJ 22      CCC OOO M M PPP AAA RRR III NNN GGG         000     999     22  4   666 22  ??? 
+ J    2     C   O O MMM P P A A R R  I  N N G G         0 0     9 9       2 4   6     2  ?  
+ J   2      C   O O MMM PPP AAA RR   I  N N GGG     --- 0 0 === 999 ---  2  4 4 666  2   ?? 
+ J  2       C   O O M M P   A A R R  I  N N   G         0 0       9     2   444 6 6 2       
+JJ  222     CCC OOO M M P   A A R R III N N GGG         000       9     222   4 666 222  ?  
+   H0={H0||9-2592|9-2674} ++ ({9-2674||*12|0})
+
 So, these are identical, but I'm not sure they ar right becuase I didn't get rto a ranch that actually prints anything. I guess I have to go back to a different very old commit on an old repo. Scary!
 
 Here's *12 by the latest build:
@@ -174,3 +231,17 @@ This is from a much older version, and prints (more-or-less) correctly:
          (3) {A000D070::A0+1787||A0+1788|0}
          [@4...]
 +--------------------------End "*12" -------------------------------------------+
+
+It puts the name in the buffer, but then this seems to fuck up:
+
+@417+ >>>>> {M070R060::M70-917||J81|M70-918 [FIND MEX.;]} (Execute fn named by symb name itself)
+   H0={H0||*12|9-2672} ++ ({9-2672||*12|0})
+   W0={W0||*12|0} ++ NIL
+   W1={W1||0|0} ++ NIL
+   W2={W2||0|0} ++ NIL
+   .......... Calling J81 [FIND THE 1st (non-head) SYMBOL OF (0)]: ([0])=("*12")
+   H0={H0||9-2592|9-2674} ++ ({9-2674||*12|0})
+   W0={W0||*12|0} ++ NIL
+   W1={W1||0|0} ++ NIL
+   W2={W2||0|0} ++ NIL
+@418+ >>>>> {M070R070::M70-918|70|M70-9-1|M70-919 [     IF NONE, SKIP IT.;]} (Goto by H5: -symb|+link itself)
