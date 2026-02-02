@@ -2922,11 +2922,11 @@
 
 	  ;; Basic tracer:
 
-  	    ;; (1
-	    ;;  (setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
-	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	    ;;  ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	    ;;  )
+  	    ("M042R000"
+	     (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
+	     (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	     ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	     )
 
 	  ;;(426 (break))
 
@@ -2934,5 +2934,5 @@
 	  ;; trace cells otherwise messy recusion cycle ensues
 
 	  ))
-  (load-ipl "LT/LTFixed.liplv" :adv-limit 5000)
+  (load-ipl "LT/LTFixed.liplv" :adv-limit 500000)
   )
