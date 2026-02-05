@@ -1762,14 +1762,14 @@
 		)))
 
   ;; The concept of a local symbol is a little messed up in my
-  ;; emulator. In the original IPL machine these symbols get cells
-  ;; that get marked local or global using Q=2 or 0 -- I think. Maybe
-  ;; I should do that, but I don't, really. What I do it use the
-  ;; symbol's name to tell if it's local if it has a dash in it. This
-  ;; precludes allowing global symbols with dashes, but that doesn't
-  ;; worrry my much ... for now, anyway. Some of the IPL-V code I've
-  ;; come across does have -s in it...and 9- might be a better test,
-  ;; or I could do The Right Thing. ... Hahahahahah!
+  ;; emulator (and very confusing in IPL!) In the original IPL machine
+  ;; these symbols get cells that get marked local or global using Q=2
+  ;; or 0 (4?). Maybe I should do that, but I don't, really. What I do
+  ;; it use the symbol's name to tell if it's local if it has a dash
+  ;; in it. This precludes allowing global symbols with dashes, but
+  ;; that doesn't worrry my much ... for now, anyway. Some of the
+  ;; IPL-V code I've come across does have -s in it...and 9- might be
+  ;; a better test, or I could do The Right Thing. ... Hahahahahah!
 
   (defj J130 ([0]) "TEST IF (O) IS REGIONAL SYMBOL"
 	(if (find #\- [0]) (H5-) (H5+))
@@ -1792,18 +1792,19 @@
 	      (H5+) (H5-))))
 
   (defj J136 (H0) "MAKE SYMBOL (O) LOCAL." 
-	;; !!! SEE NOTES AT J73/74 !!!
-	;; The output (0) is the input (0) with Q = 2. Since all
-	;; copies of this symbol carry along the Q value, if a symbol
-	;; is made local when created, it will be local in all its
-	;; occurrences. [I have no idea what his last sentence means,
-	;; but I actually think that this doesn't matter.]  (No pop
-	;; bcs output is the input). 20250514: Experiments show that
-	;; this is always called on a symb that's already local (as in
-	;; it starts with 9-) so although this does set the Q of the
-	;; target cell to 2, it probably doesn't actually do anything
-	;; useful. Note long complex converstions with Claude and
-	;; ChatGPT about this in notes.txt.]
+	;; !!! SEE NOTES AT J73/74 !!!  The output (0) is the input
+	;; (0) with Q = 2. Since all copies of this symbol carry along
+	;; the Q value, if a symbol is made local when created, it
+	;; will be local in all its occurrences. [This last sentence
+	;; means, I think, that since all copies of the symbol point
+	;; to the same cell -- and the PQ is in the cell, NOT the
+	;; symbol! -- when we set the Q of the cell to 2, all the
+	;; symbols pointing to this cell are automatically
+	;; localized. There's this confusion between local symbols and
+	;; local cells, and local symbols with 9- (or in our case any
+	;; -) in their name, and local cells with q=2 (and non-local
+	;; q=4). This might want to check that the symbol has a - in
+	;; it.]
 	(let ((cell (<== H0)))
 	  (setf (cell-q cell) 2)))
 
