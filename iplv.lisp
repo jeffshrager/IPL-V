@@ -265,25 +265,9 @@
 	      `(format t (concatenate 'string ,(car args) " % ~a@~a[~a]~%") ,@(cdr args) *fname-hint* (h3-cycles) ,key))
 	  `(progn ,@args))))
 
-;;; Cell dereferencing: Used when you need a cell. <=! is more
-;;; powerful in that it can create the cell if it's not found, and is
-;;; slightly heuristic. <== should be used where possible, and only
-;;; use <=! when you need the heuristication and/or auto-creation.
-
 (defun <== (cell-or-symb)
   (!! :dr-memory "<== retreiving ~s" cell-or-symb)
   (if (cell? cell-or-symb) cell-or-symb (gethash cell-or-symb *symtab*)))
-
-(defun <=! (cell-or-symb &key create-if-does-not-exist?) ;; cell-or-symb can be a cell or a name
-  (!! :dr-memory "<=! retreiving ~s" cell-or-symb)
-  (or (<== cell-or-symb)
-      (if (stringp cell-or-symb)
-	  (if create-if-does-not-exist?
-	      (let ((new-cell (make-cell! :name cell-or-symb)))
-		(!! :dr-memory "<=! created ~s" new-cell)
-		new-cell)
-	      (error "In <=! ~s isn't a cell and you didn't ask to create it!"
-		     cell-or-symb)))))
 
 (defmacro cell-name% (cell-or-symb)
   `(cell-name (<== ,cell-or-symb)))
@@ -1143,9 +1127,9 @@
 			(trace-cells)))
 	;; Has no input. Does three things: 1. Restores WO through
 	;; Wn. 2. Restores all the cells of the hideout. 3. Places in
-	;; H5. the recorded sign, which will be + if the generator went to
-	;; completion (last subprocess communicated + ), and - if the
-	;; generator was stopped (last subprocess communicated - ).
+	;; H5 the recorded sign, which will be + if the generator went to
+	;; completion (last subprocess communicated +), and - if the
+	;; generator was stopped (last subprocess communicated -).
 	(let* ((gentry (pop *genstack*))
 	       (gentag (gentry-gentag gentry))
 	       (wn (gentry-wn gentry))
@@ -1367,7 +1351,7 @@
 	;; with a branching list!]
 	(let ((target [0]))
 	  (!! :jdeep "             .....J66 trying to insert ~s in ~s" target [1])
-	  (loop with list-cell = (<=! [1])
+	  (loop with list-cell = (<== [1])
 		as link = (cell-link list-cell)
 		do
 		(cond ((string-equal (cell-symb list-cell) target)
@@ -1392,7 +1376,7 @@
 	;; cell (see discussion in § 9.4, DELETE). [This is weird! It
 	;; moves the next symbol up and then deletes the NEXT
 	;; cell....?]
-	(let* ((this-cell (<== [0])) ;; was <=!
+	(let* ((this-cell (<== [0]))
 	       (next-cell-name (cell-link this-cell)))
 	  (if (zero? next-cell-name)
 	      (progn (!! "J68 hit the end of the list.")
@@ -1885,7 +1869,7 @@
 	;; H5 is set + . If (0) exceeds the remaining space, no entry
 	;; is made and H5 is set - .
 	(PopH0 1)
-	(let* ((s [0]) ;;(cell-symb (<=! [0])))
+	(let* ((s [0])
 	       (l (length s))
 	       (p (W25-get)))
 	  (!! :io "             .....J156 trying to add ~s at pos ~a in print butter." s p)
@@ -2455,7 +2439,7 @@
 		 ))))))
 	     
 (defun pretty-print-cell (cell)
-  (setf cell (<=! cell))
+  (setf cell (<== cell))
   (format t "~%+--------------------- ~s ---------------------+~%" cell)
   (format t "| ~s~70T|~%" cell)
   (format t "+---------------------------------------------------------------------+~%")
