@@ -1635,7 +1635,9 @@
 	      ;; This is added to fix a screw case where a subprocess fails but the
 	      ;; generator keeps running. If the subprocess sets H5-, we must terminate!
 	      (when (string-equal "-" (H5)) (return))
-	      finally (unless inputs-popped (poph0 2)) ;; In case NOTHING is called still need to do the pops!!
+	      finally 
+	      (unless inputs-popped (poph0 2)) ;; In case NOTHING is called still need to do the pops!!
+	      (H5+) ;; If we exit the loop normally (i.e. emptied the list) then signal "done"
 	      ))
 
   (defj J110 ([0] [1] [2]) "(1) + (2) = (O)" 
@@ -2912,11 +2914,11 @@
 
 	  ;; Basic tracer:
 
-  	    ("M042R000"
-	     (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
-	     (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	     ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	     )
+  	    ;; (2600
+	    ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
+	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	    ;;  ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	    ;;  )
 
 	  ;;(426 (break))
 

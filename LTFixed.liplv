@@ -2889,7 +2889,14 @@
 ; *4.25  (P=(PVP))
 ;; Remember to turn on/off memory at K030D000
 
+;*2.92   ((PVP)IP)
+;*2.93   ((QVP)IP)
+;*2.94   ((QVP)IQ)
+;*2.95   ((QV-P)I-P)
+
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
 *1.2   ((AVA)IA)
 
-*2.97  ((PVP)IP)
+*2.91   ((PVP)IP)
+*2.92   ((PVQ)IQ)
+*2.93   ((PVQ)IP)
