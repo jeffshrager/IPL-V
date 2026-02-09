@@ -1313,6 +1313,8 @@
 	(!! :jdeep "             .....Here is the target list, after:")
 	(!! :jdeep (pl list-cell-name))
 	(!! :jdeep "             .....=========================================================")
+	(H5+) ;; We MUST set H5+ here, otherwise empty list insertions (esp. in clean setups)
+	      ;; will inherit failure status (H5-) from prior ops, causing spurious failures.
 	(poph0 2)
 	)
 
@@ -1630,6 +1632,9 @@
 	      (ipl-eval exec-symb)
 	      (setf cell-name (cell-link cell))
 	      (!! :jdeep "             .....J100 returned, H5=~s, next cell-name=~s" (H5) cell-name)
+	      ;; This is added to fix a screw case where a subprocess fails but the
+	      ;; generator keeps running. If the subprocess sets H5-, we must terminate!
+	      (when (string-equal "-" (H5)) (return))
 	      finally (unless inputs-popped (poph0 2)) ;; In case NOTHING is called still need to do the pops!!
 	      ))
 
@@ -1669,7 +1674,7 @@
 
   (defj J117 ([0]) "TEST IF (0) = 0." 
 	(let* ((n (numget [0])))
-	  (!! :jdeep "             .....J117: Testing if ~s (~s: ~s) = 0?" [0] (<=! [0]) n)
+	  (!! :jdeep "             .....J117: Testing if ~s (~s: ~s) = 0?" [0] (<== [0]) n)
 	  (if (zerop n) (H5+) (H5-)))
 	(poph0 1))
 
@@ -2919,5 +2924,5 @@
 	  ;; trace cells otherwise messy recusion cycle ensues
 
 	  ))
-  (load-ipl "LT/LTFixed.liplv" :adv-limit 500000)
+  (load-ipl "LTFixed.liplv" :adv-limit 500000)
   )
