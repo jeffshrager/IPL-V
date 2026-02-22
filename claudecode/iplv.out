@@ -1,0 +1,79 @@
+This is SBCL 2.2.6, an implementation of ANSI Common Lisp.
+More information about SBCL is available at <http://www.sbcl.org/>.
+
+SBCL is free software, provided as is, with absolutely no warranty.
+It is mostly in the public domain; some portions are provided under
+BSD-style licenses.  See the CREDITS and COPYING files in the
+distribution for more information.
+(ql:quickload "...")
+(ql:system-apropos "...")
+--- Loaded quicklisp ---
+To load "fiveam":
+  Load 1 ASDF system:
+    fiveam
+; Loading "fiveam"
+
+; compiling file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/claudecode/iplv.lisp" (written 19 FEB 2026 03:41:21 PM):
+
+; wrote /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/claudecode/iplv.fasl
+; compilation finished in 0:00:01.607
+WARNING: Cell "M14-9-1" is being added for missing local symbol "9-1"!
+WARNING: Cell "M15-9-1" is being added for missing local symbol "9-1"!
+WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
+*** WARNING: PQ "4" (in ("SEGMENT DELINEATION SUBPROCESS." "" "9-100" "" "4" "J50" "" "" "M112R100")) is ambugious and intepreted as p=0, q=4
+*** WARNING: PQ "4" (in ("SEGMENT DELINEATION SUBPROCESS." "" "9-100" "" "4" "J50" "" "" "M112R100")) is ambugious and intepreted as p=0, q=4
+*** WARNING: PQ "4" (in ("" "" "9-200" "" "4" "J50" "" "" "M112R300")) is ambugious and intepreted as p=0, q=4
+*** WARNING: PQ "4" (in ("" "" "9-200" "" "4" "J50" "" "" "M112R300")) is ambugious and intepreted as p=0, q=4
+*** WARNING: PQ "1" (in ("SUBSTITUTION COUNT" "" "K11" "+" "1" "" "    0" "" "K011D000")) is ambugious and intepreted as p=0, q=1
+*** WARNING: PQ "1" (in ("SUBSTITUTION COUNT" "" "K11" "+" "1" "" "    0" "" "K011D000")) is ambugious and intepreted as p=0, q=1
+*** WARNING: PQ "1" (in ("EFFORT BASE AND TOTAL" "" "K12" "+" "1" "" "0" "" "K012D000")) is ambugious and intepreted as p=0, q=1
+*** WARNING: PQ "1" (in ("EFFORT BASE AND TOTAL" "" "K12" "+" "1" "" "0" "" "K012D000")) is ambugious and intepreted as p=0, q=1
+*** WARNING: PQ "3" (in ("X19 MINOTOR POINT FORCER." "" "X19" "" "3" "J0" "0" "" "X019R000")) is ambugious and intepreted as p=0, q=3
+*** WARNING: PQ "3" (in ("X19 MINOTOR POINT FORCER." "" "X19" "" "3" "J0" "0" "" "X019R000")) is ambugious and intepreted as p=0, q=3
+:::::::::::::::::::::::::::::::: 1.21    (AVB)IA                                                                 
+:::::::::::::::::::::::::::::::: 1.22    (AVB)I(BVA)                                                             
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.91    (PVQ)IP                                                                 
+:::::::::::::::::::::::::::::::: 2.92    (PVQ)IQ                                                                 
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.91    (PVQ)IP                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         1.21      (AVB)IA                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  2.91      (PVQ)IP                       
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 0                                
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.91    (AVB)IA                                                                 
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.92    (PVQ)IQ                                                                 
+::::::::::::::::::::::::::::::::            .0   ((PVQ)IQ)VB              2.91  ,0 DETACHMENT                    
+::::::::::::::::::::::::::::::::            .0   ((PVQ)IQ)VB              1.21  ,0 DETACHMENT                    
+::::::::::::::::::::::::::::::::            .0   (PVQ)I(((PVQ)IQ)VB)  2.91  ,0 BACKWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (PVQ)I(((PVQ)IQ)VB)  1.21  ,0 BACKWARD CHAINING                 
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 0                                
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+Backtrace for: #<SB-THREAD:THREAD "main thread" RUNNING {10016B0003}>
+0: (SB-INT:SIMPLE-EVAL-IN-LEXENV (BACKTRACE) #<NULL-LEXENV>)
+1: (SB-INT:SIMPLE-EVAL-IN-LEXENV (PROGN (LOAD (COMPILE-FILE "iplv.lisp")) (BACKTRACE)) #<NULL-LEXENV>)
+2: (EVAL (PROGN (LOAD (COMPILE-FILE "iplv.lisp")) (BACKTRACE)))
+3: (SB-IMPL::PROCESS-EVAL/LOAD-OPTIONS ((:EVAL . "(progn (load (compile-file \"iplv.lisp\")) (backtrace))")))
+4: (SB-IMPL::TOPLEVEL-INIT)
+5: ((FLET SB-UNIX::BODY :IN SB-IMPL::START-LISP))
+6: ((FLET "WITHOUT-INTERRUPTS-BODY-3" :IN SB-IMPL::START-LISP))
+7: (SB-IMPL::%START-LISP)
+* 
