@@ -2276,8 +2276,8 @@
 ("EFFORT BASE AND TOTAL" "" "K12" "+" "1" "" "0" "" "K012D000")
 ("LIMIT ON NUMBER OF SUBPROBLEMS" "" "K20" "+" "01" "" "50" "" "K020D000")
 ("LIMIT ON NUMBER OF SUBSTITUTIONS" "" "K21" "+" "01" "" "50" "" "K021D000")
-("LIMIT ON EFFORT" "" "K22" "+" "01" "20000" "0000" "" "K022D000") ;; Using "real" numbers
-;("LIMIT ON EFFORT" "" "K22" "+" "01" "20" "0000" "" "K022D000") Original
+("LIMIT ON EFFORT" "" "K22" "+" "01" "" "20000" "" "K022D000") ;; Using "real" numbers
+;("LIMIT ON EFFORT" "" "K22" "+" "01" "0" "20" "" "K022D000") Original
 ("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)
 ("Y = PRINT REJECTED SUBPROBLEMS." "" "K31" "" "" "YES" "" "" "K031D000")
 ("K41 VALUE = METHOD COLUMN." "" "K41" "" "01" "" "10" "" "K041D000")
