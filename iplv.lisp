@@ -2833,6 +2833,12 @@
   (case mode
     (:none (setf *!!* nil))))
 
+(setf sb-int:*repl-prompt-fun*
+      (lambda (stream)
+	(format stream "H3 (IPL cycles)=~a" (h3-cycles))
+	;; Now do the normal package/prompt part
+	(sb-impl::repl-prompt-fun stream)))
+
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (ds) (trace!)  list
 ;;; printing: (pl cell) (pll cell) [pll for linear lists only] (rx)
 ;;; analyzes routine call stats ?? tells you various values like H5 H3
@@ -2914,11 +2920,11 @@
 
 	  ;; Basic tracer:
 
-  	     (19000
-	      (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
-	      ;; (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+  	   ;;  (19700
+	    ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
+	     ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
 	      ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	      )
+	    ;;  )
 
 	  ;;(426 (break))
 

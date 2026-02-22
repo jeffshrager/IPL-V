@@ -1484,7 +1484,7 @@
 ("" "" "" "" "12" "W0" "" "" "M112R070")
 ("DELINEATE SEGENT AT THIS STATION" "" "" "" "" "9-100" "" "" "M112R080")
 ("" "" "" "" "21" "W0" "9-1" "" "M112R090")
-("SEGMENT DELINEATION SUBPROCESS." "" "9-100" "" "4" "J50" "" "" "M112R100")
+("SEGMENT DELINEATION SUBPROCESS." "" "9-100" "" "04" "J50" "" "" "M112R100")
 ("" "" "" "" "11" "W0" "" "" "M112R110")
 ("IS INPUT A VARIABLE." "" "" "" "" "P8" "" "" "M112R120")
 ("" "" "" "" "11" "W0" "" "" "M112R130")
@@ -1504,7 +1504,7 @@
 ("DELINEATE FREE VARIABLE" "" "" "" "" "9-200" "" "" "M112R270")
 ("" "" "" "" "21" "W0" "" "" "M112R280")
 ("" "" "" "" "" "J30" "J4" "" "M112R290")
-("" "" "9-200" "" "4" "J50" "" "" "M112R300")
+("" "" "9-200" "" "04" "J50" "" "" "M112R300")
 ("" "" "" "" "10" "W1" "" "" "M112R310")
 ("" "" "" "" "11" "W0" "" "" "M112R320")
 ("FIND CORRESPONDING SUBSTITUTOR" "" "" "" "" "J10" "" "" "M112R330")
@@ -2276,7 +2276,7 @@
 ("EFFORT BASE AND TOTAL" "" "K12" "+" "1" "" "0" "" "K012D000")
 ("LIMIT ON NUMBER OF SUBPROBLEMS" "" "K20" "+" "01" "" "50" "" "K020D000")
 ("LIMIT ON NUMBER OF SUBSTITUTIONS" "" "K21" "+" "01" "" "50" "" "K021D000")
-("LIMIT ON EFFORT" "" "K22" "+" "01" "" "20000" "" "K022D000") ;; Using "real" numbers
+("LIMIT ON EFFORT" "" "K22" "+" "01" "" "200000" "" "K022D000") ;; Using "real" numbers
 ;("LIMIT ON EFFORT" "" "K22" "+" "01" "0" "20" "" "K022D000") Original
 ("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)
 ("Y = PRINT REJECTED SUBPROBLEMS." "" "K31" "" "" "YES" "" "" "K031D000")
@@ -2892,10 +2892,9 @@
 ;*2.92   ((PVQ)IQ)
 ;*2.93   ((PVQ)IP)
 
-
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
-*1.21  ((AVB)IA)
-*1.22  ((AVB)I(BVA))
+*1.2   ((AVA)IA)
 
-*2.91   ((PVQ)IP)
+*2.91   ((PVP)IP)
 *2.92   ((PVQ)IQ)
+*2.93   ((PVQ)IP)
