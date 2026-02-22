@@ -2932,5 +2932,5 @@
 	  ;; trace cells otherwise messy recusion cycle ensues
 
 	  ))
-  (load-ipl "LTFixed.liplv" :adv-limit 500000)
+  (load-ipl "LTFixed.liplv" :adv-limit 5000000)
   )
