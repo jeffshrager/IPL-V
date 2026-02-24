@@ -2894,7 +2894,7 @@
 (progn ;; LT 
   (set-trace-mode :none)
   (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
-  ;(setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
+  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
   ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
@@ -2911,7 +2911,7 @@
 	  ;; ((= *gensym-counter* 3042) (???))
 
 	  ;; Useful for localizing problems:
-	  ;;((zerop (mod (h3-cycles) 100)) (print (h3-cycles)))
+	  ;; ((zerop (mod (h3-cycles) 1000)) (print (h3-cycles)))
 
 	  ;;("M088R020" (break))
 
@@ -2920,13 +2920,13 @@
 
 	  ;; Basic tracer:
 
-  	   ;;  (19700
-	    ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
-	     ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	      ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	    ;;  )
+  	  ;; (19000
+	  ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
+	  ;;  ;; (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
+	  ;;  ;; (trace J2n=move-0-to-n-into-w0-wn ipop ipush)
+	  ;;  )
 
-	  ;;(426 (break))
+	  ;; (21000 (break))
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
