@@ -2911,8 +2911,8 @@
 	  ;; ((= *gensym-counter* 3042) (???))
 
 	  ;; Useful for localizing problems:
-	  ;; ((zerop (mod (h3-cycles) 1000)) (print (h3-cycles)))
-
+	  ((zerop (mod (h3-cycles) 100)) (print (h3-cycles)))
+	  (1000 (break))
 	  ;;("M088R020" (break))
 
 	  ;; ((and (string-equal "0" (cell-symb (h0))) (string-equal "0" (cell-link (h0))))

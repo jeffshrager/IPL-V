@@ -2356,9 +2356,10 @@
 
 	(if (or (not (= 2 old-q))
 		(numberp old-symb)
-		(local-symbol-by-name? old-symb))
+		(local-symbol-by-name? old-symb)
+		(regional-symbol? old-symb)) ;; Regional symbols must be preserved, never copied (per J74 spec)
 	    (setf (cell-symb new-cell) (j74-deep-copy-ipl-list old-symb))
-	    
+
 	    ;; Okay, so now we have the difficult case where q=2 or
 	    ;; (actually and/or) it's a local symbol. In thie case we
 	    ;; need to create a new symbol and not only put it here,
@@ -2833,6 +2834,12 @@
   (case mode
     (:none (setf *!!* nil))))
 
+(setf sb-int:*repl-prompt-fun*
+      (lambda (stream)
+	(format stream "H3 (IPL cycles)=~a" (h3-cycles))
+	;; Now do the normal package/prompt part
+	(sb-impl::repl-prompt-fun stream)))
+
 ;;; debugging tools: (pl cell) (pll cell) (rj) :c (ds) (trace!)  list
 ;;; printing: (pl cell) (pll cell) [pll for linear lists only] (rx)
 ;;; analyzes routine call stats ?? tells you various values like H5 H3
@@ -2888,7 +2895,7 @@
 (progn ;; LT 
   (set-trace-mode :none)
   (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
-  ;(setf *!!* '(:run :jcalls :jdeep) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
+  ;(setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
   ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
@@ -2914,17 +2921,17 @@
 
 	  ;; Basic tracer:
 
-  	    ;; (2600
-	    ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
-	    ;;  (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	    ;;  ;;(trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	    ;;  )
+	   ("M016R430"
+	    (format t "~%=== M016R430 REACHED (M12 CALLED ON (PVP)IP) cycle=~a ===~%~%" (h3-cycles))
+	    )
 
-	  ;;(426 (break))
+	   ("M016R440"
+	    (set-trace-mode :none)
+	    )
 
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
 
 	  ))
-  (load-ipl "LTFixed.liplv" :adv-limit 500000)
+  (load-ipl "LTFixed.liplv" :adv-limit 5000000)
   )
