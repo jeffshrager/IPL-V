@@ -136,6 +136,13 @@ later several typos were discovered by Rupert Lane, using [his
 "gridlock" process and software that can correctly extract code from
 PDFs](https://github.com/rupertl/gridlock).
 
+Note that the file called "LTFixed.liplv" is "Fixed" from a pure dump
+of the google sheet by virtue of various corrections and minor
+re-arrangement of the code to repaid typos and to make usage a little
+simpler (e.g., moving parameters to the end where they can be easily
+edited). Conveniently, Lisp comment chars (;) work in .liplv files, so
+these changes have ben documnted in the "Fixed" file.
+
 ## The Emulated IPL-V Machine
 
 The original IPL-V was also emulated, originally on the JOHNNIAC at
@@ -148,6 +155,14 @@ described in Newell et al's 1964 manual (see refs, below). (load-ipl
 
 After loading (ipl-eval...) is passed a `card` to start with, and
 execution begins.
+
+## Other IPL-V code
+
+If you look at the end of ilpv.lisp, where execution starts, you'll
+see that there are several other IPL-V programs that I've used
+variously for testing. Probably of greatest interest is Newell's
+implementation of the Ackermann function. There are also some of the
+examples from Newell et al's 1964 IPL-V manual.
 
 ## References
 
