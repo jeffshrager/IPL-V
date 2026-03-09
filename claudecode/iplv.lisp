@@ -1930,7 +1930,14 @@
 	;; space, no entry is made and H5 is set - .
 	(poph0 1)
 	(block J157A
-	  (let* ((s (cell-symb (cell a0)))
+	  (let* ((the-cell (cell a0))
+		 ;; IPL-V data terms: p=0,q=1 → integer (value in link);
+		 ;; p=2,q=1 → alpha (value in symb). J157 must handle both.
+		 ;; We check p/q on the cell rather than whether symb is blank,
+		 ;; because J121 can copy "0" (the struct default) into symb.
+		 (s (if (and (zerop (cell-p the-cell)) (= 1 (cell-q the-cell)))
+			(format nil "~a" (cell-link the-cell))
+			(cell-symb the-cell)))
 		 (l (length s))
 		 (p (W25-get)))
 	    (!! :io "             .....J157 called on ~s, string: ~s (w25=~a)" a0 s p)
