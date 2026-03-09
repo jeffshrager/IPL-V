@@ -2276,7 +2276,7 @@
 ("EFFORT BASE AND TOTAL" "" "K12" "+" "1" "" "0" "" "K012D000")
 ("LIMIT ON NUMBER OF SUBPROBLEMS" "" "K20" "+" "01" "" "50" "" "K020D000")
 ("LIMIT ON NUMBER OF SUBSTITUTIONS" "" "K21" "+" "01" "" "50" "" "K021D000")
-("LIMIT ON EFFORT" "" "K22" "+" "01" "" "20000" "" "K022D000") ;; Using "real" numbers
+("LIMIT ON EFFORT" "" "K22" "+" "01" "" "200000" "" "K022D000") ;; Using "real" numbers
 ;("LIMIT ON EFFORT" "" "K22" "+" "01" "0" "20" "" "K022D000") Original
 ;;; Moved to the end for convenience
 ;;;("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)

@@ -165,7 +165,8 @@ symbols.
   definitive reference for IPL-V J-function semantics, cell structure, and generator
   protocol.
 - **Simon's J-functions** (`simonsjs.txt`) — Simon's original assembly-level IPL-V
-  implementations of the J-functions; cross-checked when bugs arise.
+  implementations of the J-functions; cross-checked when bugs arise. (Thanks to the
+  Computer History Museum: [Simon’s J’s (Computer History Museum)](http://example.com)https://computerhistory.org/blog/simons-js/).
 
 ## License
 
