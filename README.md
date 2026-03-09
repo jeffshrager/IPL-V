@@ -127,6 +127,15 @@ start of a proof attempt. The 20,000-cycle limit is a soft cap: it stops the sea
 from *beginning* another subproblem exploration once exceeded, but cannot interrupt
 an in-progress search. Some successful proofs can exceed 20,000 total cycles.
 
+## The LT Code
+
+[LT was transcribed into a google
+sheet](https://docs.google.com/spreadsheets/d/1ibvbyoIT20R4gDqo2iSkk5mJBWsRrtQ6sr8Fj1nz910)
+from Stefferud' 1963 paper by Jeff Shrager and Anthony Hay. A bit
+later several typos were discovered by Rupert Lane, using [his
+"gridlock" process and software that can correctly extract code from
+PDFs](https://github.com/rupertl/gridlock).
+
 ## The Emulated IPL-V Machine
 
 The original IPL-V was also emulated, originally on the JOHNNIAC at
