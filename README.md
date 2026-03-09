@@ -127,41 +127,24 @@ start of a proof attempt. The 20,000-cycle limit is a soft cap: it stops the sea
 from *beginning* another subproblem exploration once exceeded, but cannot interrupt
 an in-progress search. Some successful proofs can exceed 20,000 total cycles.
 
-## Architecture
+## The Emulated IPL-V Machine
 
-### IPL-V Machine
+The original IPL-V was also emulated, originally on the JOHNNIAC at
+RAND, and then on a wide range of machines through the mid 1960s,
+before it was rolled by Lisp.
 
-The interpreter (`iplv.lisp`) implements the IPL-V abstract machine:
+My interpreter (`iplv.lisp`) implements the IPL-V abstract machine as
+described in Newell et al's 1964 manual (see refs, below). (load-ipl
+...) reads `.liplv` files, which are S-expression formated IPL-V.
 
-- **Cell**: the fundamental data unit, with fields `p`, `q`, `symb`, `link`
-- **`*symtab*`**: hash table mapping symbol names to cells (the "memory")
-- **H0**: main push-down stack — all J-function I/O flows through it
-- **H3**: cycle counter
-- **H5**: status flag (`"+"` success / `"-"` failure) — controls branching
-- **W0–W31**: working registers with their own push-down stacks
-- **J-functions**: ~60 primitive operations (`defj` macro), from `J0` (no-op) to
-  `J186` (read input)
+After loading (ipl-eval...) is passed a `card` to start with, and
+execution begins.
 
-### Execution
-
-`ipl-eval` runs one card at a time. Each card specifies:
-- **q field**: how to fetch the operand (q=0: use symb directly; q=1: indirect; q=2: double-indirect)
-- **p field**: what to do with it (p=0: execute; p=1: push to H0; p=2: output from H0; p=7: branch if H5–)
-- **symb**: the operation or operand
-- **link**: the next card (blank = sequential; non-blank = explicit jump)
-
-### Loader
-
-`load-ipl` reads `.liplv` files (S-expression format). Data sections (following a
-`type=5, q=1` marker) store integer values in `cell-link` (as Lisp integers) and
-alpha strings in `cell-symb`. Code sections link cards sequentially and resolve local
-symbols.
-
-## Reference Documents
+## References
 
 - **Stefferud (1963)** — *The Logic Theory Machine: A Model Heuristic Program*,
   RAND RM-3731. The primary reference for LT's M-routine semantics.
-- **Newell (1964)** — *Information Processing Language V Manual*, 2nd ed. The
+- **Newell, et al. (1964)** — *Information Processing Language V Manual*, 2nd ed. The
   definitive reference for IPL-V J-function semantics, cell structure, and generator
   protocol.
 - **Simon's J-functions** (`simonsjs.txt`) — Simon's original assembly-level IPL-V
