@@ -2902,6 +2902,7 @@
 ("BACKWARD CHAINING." "" "" "" "" "M15" "" "" "L007D010")
 
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
-*1.0  ((AVA)IA)
+*1.0  ((PI-P).=.(PVP)) DEF.
+*2.0  ((AVA)IA)
 
-*2.0  ((PVP)IP)
+*4.0  ((PI-P)IP)

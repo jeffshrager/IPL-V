@@ -734,6 +734,16 @@
 
 (defparameter *LT-Regional-Chars* "ABCDEFGIKLMNOPQRSTUVXYZ-*=,/+.()'")
 
+(defun theorem-cell-name? (string)
+  "Returns T for theorem cells named like *40, *21, *92, etc.
+   These start with * followed by one or more digits. They are registered
+   as regional by J181 (input), but must NOT be treated as regional
+   connector symbols by J74 (deep copy) — they are expression instances
+   that need to be copied, not shared."
+  (and (> (length string) 1)
+       (char= (aref string 0) #\*)
+       (every #'digit-char-p (subseq string 1))))
+
 (defun regional-symbol? (string)
   (and (find (aref string 0) *LT-Regional-Chars*)
        (or (= 1 (length string)) ;; case of single char symbols
@@ -1476,6 +1486,14 @@
 	(!! :jdeep "                  Incoming list:")
 	(!! :jdeep (pl [0]))
 	(clrhash *j74tbl*)
+	;; Per the original J74 spec (simonsjs.txt), J74 ALWAYS creates a new cell
+	;; (J90/newsym) as the copy head, even for regional inputs.  Unconditionally
+	;; seed [0] -> newsym so J74-deep-copy-ipl-list bypasses the regional-symbol
+	;; terminal case for the top-level input and creates a fresh copy cell.
+	;; The recursive calls still treat regional connector symbols (V0, I0, etc.)
+	;; as terminals (returned unchanged), preserving connectors inside the structure.
+	(unless (zero? [0])
+	  (setf (gethash [0] *j74tbl*) (newsym)))
 	(let* ((new-head
 		(if (zero? [0])
 		    (let* ((new-cell (make-cell! :p 0 :q 0 :symb "0" :link "0")))
@@ -2311,88 +2329,70 @@
   ;; the recursions, these list heads aren't the top of the graph.
 
   ;; Terminal case: Trying to copy things that can't ever be copied:
-  ;; Functions, zeros (list ends), and regional symbols. (Regarding
-  ;; regional symbols, you're thinking: "But if Q=2 then that needs to
-  ;; be localized!". But that would have been done ABOVE here, so by
-  ;; the time we get here, we would only be handed a regional symbol
-  ;; if the above cell symb link was NOT q=2.
-
+  ;; Functions, zeros (list ends), and regional connector symbols.
+  ;; Exception: if a regional symbol was pre-seeded in *j74tbl* (e.g.,
+  ;; the top-level [0] input, always seeded by defj J74), it MUST be
+  ;; copied -- don't return it unchanged.
   (if (or (zero? link) ;; this first bcs "" screws regional-symbol?
 	  (numberp link) ;; Actual numbers will only show up in data lists
 	  (functionp (gethash link *symtab*))
-	  (regional-symbol? link)) ;; This will have been replaced
-				   ;; above if it was tagged q=2
+	  (and (regional-symbol? link)       ;; Connector symbols (V0, I0, -0, etc.) preserved by name.
+	       (not (gethash link *j74tbl*)))) ;; Unless pre-seeded (the top-level input).
       link
 
-      ;; Okay, so we actually have a cell that needs to be
-      ;; copied. Let's make a new one for it and then all we should
-      ;; need to do is to fill it in, and do the correct recusions
-      ;; through it's link, and, if q=2, it's symb. So far this is
-      ;; just like J73 (although that only walks links, so we didn't
-      ;; even need the special protections from regional symbols and
-      ;; functions, as above.)
+      ;; Okay, so we actually have a cell that needs to be copied.
+      ;; Guard: if the cell doesn't exist (was erased), return link unchanged.
+      (let* ((old-cell (<== link)))
+	(when (null old-cell) (return-from J74-deep-copy-ipl-list link))
+	(let* ((old-name (cell-name old-cell))
+	       (old-p (cell-p old-cell))
+	       (old-q (cell-q old-cell))
+	       (old-symb (cell-symb old-cell))
+	       (old-link (cell-link old-cell))
+	       (old-id (cell-id old-cell))
+	       ;; Always use a newsym for new cells (proper deep copy).
+	       ;; Reuse existing mapping if already in *j74tbl*.
+	       (new-cell-name (or (gethash old-name *j74tbl*)
+				  (setf (gethash old-name *j74tbl*) (newsym))))
+	       (new-cell (make-cell!
+			  :name new-cell-name
+			  :p old-p
+			  :q old-q
+			  :symb :tbd
+			  :link (j74-deep-copy-ipl-list old-link)
+			  :id old-id)))
 
-      (let* ((old-cell (<== link))
-	     (old-name (cell-name old-cell))
-	     (old-p (cell-p old-cell))
-	     (old-q (cell-q old-cell))
-	     (old-symb (cell-symb old-cell))
-	     (old-link (cell-link old-cell))
-	     (old-id (cell-id old-cell))
-	     (new-cell-name (or (gethash old-name *j74tbl*) old-name))
-	     (new-cell (make-cell!
-			:name new-cell-name
-			:p old-p
-			:q old-q
-			:symb :tbd
-			:link (j74-deep-copy-ipl-list old-link)
-			:id old-id)))
+	  ;; Okay, now we have the new cell, and everything is correct
+	  ;; EXCEPT the symb. The simple case is where q is NOT =2 nor
+	  ;; is it local, in which case we just recurse on the symb and
+	  ;; jam it in place.
 
-	;; Okay, now we have the new cell, and everything is correct
-	;; EXCEPT the symb. The simple case is where q is NOT =2 nor
-	;; is is local, in which case we just recurse on the symb and
-	;; jam is in place. This is the part that may be able to be
-	;; refactored.
+	  (if (or (not (= 2 old-q))
+		  (numberp old-symb)
+		  (zero? old-symb)           ;; Guard: "" / "0" never treated as sublist refs
+		  (local-symbol-by-name? old-symb)
+		  (regional-symbol? old-symb)) ;; Regional symbols preserved, never renamed (prev. fix)
+	      (setf (cell-symb new-cell) (j74-deep-copy-ipl-list old-symb))
 
-	(if (or (not (= 2 old-q))
-		(numberp old-symb)
-		(local-symbol-by-name? old-symb))
-	    (setf (cell-symb new-cell) (j74-deep-copy-ipl-list old-symb))
-	    
-	    ;; Okay, so now we have the difficult case where q=2 or
-	    ;; (actually and/or) it's a local symbol. In thie case we
-	    ;; need to create a new symbol and not only put it here,
-	    ;; but also create a new subhead with that name, and copy
-	    ;; in the info from the old sub-head, and then recurse
-	    ;; down THIS cell. (??? WWW Possible screw case where it's
-	    ;; q=2 but also a 0! I don't know why this would happen,
-	    ;; but it's theoretically possible could.)
-
-	    (let* ((old-sub-head (<== old-symb))
-		   (new-subhead-name (setf (gethash old-symb *j74tbl*) (newsym))))
-	      (make-cell!
-	       :name new-subhead-name
-	       :p (cell-p old-sub-head)
-	       :q (cell-q old-sub-head)
-	       :symb (cell-symb old-sub-head) ;; This will get checked
-	       ;; on the recursion below.  This change here was a shot
-	       ;; in the dark bcs *13 was being munged (B -> Q) and I
-	       ;; thought maybe it was because of inappropriate
-	       ;; sharing bcs a list wasn't being copied through it's
-	       ;; links....or something, but it appears that this
-	       ;; makes no difference.
-	       :link (j74-deep-copy-ipl-list (cell-link old-sub-head)) 
-	       :id (cell-id old-sub-head))
-	      ;; Okay, so all we should have to do now is set this as
-	      ;; the sym of the new-cell, and recursively copy from
-	      ;; it.  ??? This is a little weird: It's gonna start
-	      ;; from the new cell it just created. As a result, we're
-	      ;; at least going to copy that cell TWICE...is this
-	      ;; really necessary?! Could this recursion take place in
-	      ;; the :symb set above??
-	      (setf (cell-symb new-cell) (j74-deep-copy-ipl-list new-subhead-name))))
-	;; And finally the result of the whole thing is just the new-cell-name.
-	new-cell-name)))
+	      ;; The difficult case: q=2 with a non-regional, non-local symb.
+	      ;; Create a new subhead cell for the sublist.
+	      ;; Guard: if the referenced sublist cell doesn't exist (was erased),
+	      ;; preserve the original reference rather than crashing.
+	      (let* ((old-sub-head (<== old-symb)))
+		(if (null old-sub-head)
+		    (setf (cell-symb new-cell) old-symb) ;; erased cell: keep original ref
+		    (let* ((new-subhead-name (setf (gethash old-symb *j74tbl*) (newsym))))
+		      (make-cell!
+		       :name new-subhead-name
+		       :p (cell-p old-sub-head)
+		       :q (cell-q old-sub-head)
+		       :symb (cell-symb old-sub-head)
+		       :link (j74-deep-copy-ipl-list (cell-link old-sub-head))
+		       :id (cell-id old-sub-head))
+		      (setf (cell-symb new-cell)
+			    (j74-deep-copy-ipl-list new-subhead-name))))))
+	  ;; The result of the whole thing is just the new-cell-name.
+	  new-cell-name))))
 
 (defun last-cell-of-linear-list (l)
   (cond ((zero? (cell-link l)) l)
@@ -2894,7 +2894,7 @@
 (progn ;; LT 
   (set-trace-mode :none)
   (setf *j15-mode* :clear-dl) ;; Documentation ambiguity, alt: :clear-dl :delete-dl
-  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
+  ;(setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :run :jcalls :jdeep :alerts :s :dr-memory :gentrace
   ;(setf *trace-cell-names-or-exprs* '("H0" "W0" "W1" "W2") *cell-tracing-on* t)
   ;; ************ NOTE P055R000 L11 HACK THAT MUST STAY IN PLACE! ************
   ;; (It's been over-riden by LTFixed code.)
@@ -2911,26 +2911,15 @@
 	  ;; ((= *gensym-counter* 3042) (???))
 
 	  ;; Useful for localizing problems:
-	  ((zerop (mod (h3-cycles) 100)) (print (h3-cycles)))
-	  (1000 (break))
+	  ;;((zerop (mod (h3-cycles) 100)) (print (h3-cycles)))
+
 	  ;;("M088R020" (break))
 
 	  ;; ((and (string-equal "0" (cell-symb (h0))) (string-equal "0" (cell-link (h0))))
 	  ;;  (???))
 
-	  ;; Basic tracer:
-
-  	  ;; (19000
-	  ;;  (setf *!!* '(:run :jcalls) *cell-tracing-on* t) ;; :s :run-full :jcalls :alerts :dr-memory :gentrace
-	  ;;  ;; (setf *trace-cell-names-or-exprs* '("H0" "W0" "W1""W2") *cell-tracing-on* t)  ;;    "W0" "W1" "W2" "W3"	
-	  ;;  ;; (trace J2n=move-0-to-n-into-w0-wn ipop ipush)
-	  ;;  )
-
-	  ;; (21000 (break))
-
 	  ;; Must call (trace-cell-safe-for-trace-expr) or (???) to
 	  ;; trace cells otherwise messy recusion cycle ensues
-
 	  ))
   (load-ipl "LTFixed.liplv" :adv-limit 5000000)
   )
