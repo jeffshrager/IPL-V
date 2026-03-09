@@ -1,3 +1,6 @@
+Restored session: Mon Mar  9 11:08:19 PDT 2026
+sbcl
+jeffshrager@MacBook-Pro-6 repo % sbcl
 This is SBCL 2.2.6, an implementation of ANSI Common Lisp.
 More information about SBCL is available at <http://www.sbcl.org/>.
 
@@ -13,10 +16,12 @@ To load "fiveam":
     fiveam
 ; Loading "fiveam"
 
-; compiling file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/claudecode/iplv.lisp" (written 09 MAR 2026 10:56:52 AM):
+* (load (compile-file "iplv.lisp"))
+(load (compile-file "iplv.lisp"))
+; compiling file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.lisp" (written 09 MAR 2026 10:56:52 AM):
 
-; wrote /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/claudecode/iplv.fasl
-; compilation finished in 0:00:01.649
+; wrote /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.fasl
+; compilation finished in 0:00:01.562
 WARNING: Cell "M14-9-1" is being added for missing local symbol "9-1"!
 WARNING: Cell "M15-9-1" is being added for missing local symbol "9-1"!
 WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
@@ -560,14 +565,5 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
 ::::::::::::::::::::::::::::::::                                                                                 
 :::::::::::::::::::::::::::::::: 4.25    A=(AVA)                                                                 
-Backtrace for: #<SB-THREAD:THREAD "main thread" RUNNING {10016B0003}>
-0: (SB-INT:SIMPLE-EVAL-IN-LEXENV (BACKTRACE) #<NULL-LEXENV>)
-1: (SB-INT:SIMPLE-EVAL-IN-LEXENV (PROGN (LOAD (COMPILE-FILE "iplv.lisp")) (BACKTRACE)) #<NULL-LEXENV>)
-2: (EVAL (PROGN (LOAD (COMPILE-FILE "iplv.lisp")) (BACKTRACE)))
-3: (SB-IMPL::PROCESS-EVAL/LOAD-OPTIONS ((:EVAL . "(progn (load (compile-file \"iplv.lisp\")) (backtrace))")))
-4: (SB-IMPL::TOPLEVEL-INIT)
-5: ((FLET SB-UNIX::BODY :IN SB-IMPL::START-LISP))
-6: ((FLET "WITHOUT-INTERRUPTS-BODY-3" :IN SB-IMPL::START-LISP))
-7: (SB-IMPL::%START-LISP)
-H3 (IPL cycles)=574339
+TH3 (IPL cycles)=574339
 * 
