@@ -1,27 +1,8 @@
-Restored session: Mon Mar  9 11:08:19 PDT 2026
-sbcl
-jeffshrager@MacBook-Pro-6 repo % sbcl
 This is SBCL 2.2.6, an implementation of ANSI Common Lisp.
-More information about SBCL is available at <http://www.sbcl.org/>.
+; compiling file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/claudecode/iplv.lisp" (written 09 MAR 2026 11:58:11 AM):
 
-SBCL is free software, provided as is, with absolutely no warranty.
-It is mostly in the public domain; some portions are provided under
-BSD-style licenses.  See the CREDITS and COPYING files in the
-distribution for more information.
-(ql:quickload "...")
-(ql:system-apropos "...")
---- Loaded quicklisp ---
-To load "fiveam":
-  Load 1 ASDF system:
-    fiveam
-; Loading "fiveam"
-
-* (load (compile-file "iplv.lisp"))
-(load (compile-file "iplv.lisp"))
-; compiling file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.lisp" (written 09 MAR 2026 10:56:52 AM):
-
-; wrote /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.fasl
-; compilation finished in 0:00:01.562
+; wrote /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/claudecode/iplv.fasl
+; compilation finished in 0:00:01.693
 WARNING: Cell "M14-9-1" is being added for missing local symbol "9-1"!
 WARNING: Cell "M15-9-1" is being added for missing local symbol "9-1"!
 WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
@@ -80,9 +61,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 5579                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -102,9 +83,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 4253                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -126,9 +107,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 22175                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 3                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 4                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -148,9 +129,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 9280                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -174,9 +155,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 31762                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 5                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 6                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -193,9 +174,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 1765                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 0                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 1                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -216,9 +197,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 5853                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 2                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 3                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -238,9 +219,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 3425                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -260,9 +241,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 4121                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -282,9 +263,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 5594                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -305,9 +286,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 11286                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 2                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 3                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -324,9 +305,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 :::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 24371                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 6                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 7                                
 :::::::::::::::::::::::::::::::: TO PROVE                                                                        
 :::::::::::::::::::::::::::::::: 2.15    (-PIQ)I(-QIP)                                                           
 ::::::::::::::::::::::::::::::::            .0   (--PVQ)I(--QVP)           ,0 SUBLEVEL REPLACEMENT               
@@ -345,9 +326,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 :::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 70601                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 13                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 14                               
 :::::::::::::::::::::::::::::::: TO PROVE                                                                        
 :::::::::::::::::::::::::::::::: 2.20    PI(PVQ)                                                                 
 ::::::::::::::::::::::::::::::::            .0   -PV(PVQ)                   1.01  ,0 REPLACEMENT                 
@@ -367,9 +348,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 22981                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 6                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 7                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -389,9 +370,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 5482                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -414,9 +395,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 :::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 50722                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 12                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 13                               
 :::::::::::::::::::::::::::::::: TO PROVE                                                                        
 :::::::::::::::::::::::::::::::: 3.13    (-(P*Q))I(-PV-Q)                                                        
 ::::::::::::::::::::::::::::::::            .0   (-(P*Q))I(PI-Q)         ,0 SUBLEVEL REPLACEMENT                 
@@ -436,9 +417,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 :::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 76990                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 14                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 15                               
 :::::::::::::::::::::::::::::::: TO PROVE                                                                        
 :::::::::::::::::::::::::::::::: 3.14    (-PV-Q)I(-(P*Q))                                                        
 ::::::::::::::::::::::::::::::::            .0   (PI-Q)I(-(P*Q))         ,0 SUBLEVEL REPLACEMENT                 
@@ -456,9 +437,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 :::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 62927                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 12                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 13                               
 :::::::::::::::::::::::::::::::: TO PROVE                                                                        
 :::::::::::::::::::::::::::::::: 3.24    -(P*-P)                                                                 
 ::::::::::::::::::::::::::::::::            .0   (P*-P)I(-(P*-P))       2.01  ,0 DETACHMENT                      
@@ -473,9 +454,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 :::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 50651                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 8                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 9                                
 :::::::::::::::::::::::::::::::: TO PROVE                                                                        
 :::::::::::::::::::::::::::::::: 4.13    P=--P                                                                   
 ::::::::::::::::::::::::::::::::            .0   (PI--P)*(--PIP)          4.01  ,0 REPLACEMENT                   
@@ -491,9 +472,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 8122                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 2                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 3                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -515,9 +496,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 7834                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 3                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 4                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
@@ -539,9 +520,9 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 :::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 39004                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 10                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 11                               
 :::::::::::::::::::::::::::::::: TO PROVE                                                                        
 :::::::::::::::::::::::::::::::: 4.25    P=(PVP)                                                                 
 ::::::::::::::::::::::::::::::::            .0   (PI(PVP))*((PVP)IP)  4.01  ,0 REPLACEMENT                       
@@ -557,13 +538,13 @@ WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
 ::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
-:::::::::::::::::::::::::::::::: EFFORT              LIMIT               ACTUAL 0                                
-:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT               ACTUAL                                  
-:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT               ACTUAL                                  
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 20000         ACTUAL 8727                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 2                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 3                                
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::                                                                                 
 ::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
 ::::::::::::::::::::::::::::::::                                                                                 
 :::::::::::::::::::::::::::::::: 4.25    A=(AVA)                                                                 
-TH3 (IPL cycles)=574339
+H3 (IPL cycles)=574339
 * 
