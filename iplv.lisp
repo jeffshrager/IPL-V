@@ -931,26 +931,41 @@
                      target = ~s" list-head dlist-name target)
 	  (if (zero? dlist-name)
 	      (progn (!! :jdeep "             .....In J10 -- no dl, so we're done with H5-") (H5-))
+	      ;; The DL is: dlist-head -> att1 -> val1 -> att2 -> val2 -> "0"
+	      ;; (built by J11-helper). dl-attribute-cell must always be an att-cell.
+	      ;; On a miss, advance TWO hops (att->val->next-att), not one.
+	      ;; The old one-hop advance (att->val) caused false matches when a
+	      ;; val-cell's symb happened to equal the search target (e.g., "A0"
+	      ;; stored as a substitution value), leading to a NIL crash.
 	      (loop with dl-attribute-cell = (cell (cell-link (cell dlist-name)))
-		    do ;; Note we're skipping the dl of the dl if any
-		    ;; The first could be the last. This is sort of messy. FFF Unduplicate code %%%
+		    do
 		    (if (null dl-attribute-cell)
 			(progn (!! :jdeep "             .....J10 failed (a) to find ~s." target)
 			       (H5-) (return nil)))
 		    (!! :jdeep "             .....In J10 dl-attribute-cell = ~s" dl-attribute-cell)
 		    (if (ipl-string-equal target (cell-symb dl-attribute-cell))
+			;; Match: value is the cell pointed to by att-cell.link
 			(let* ((cell (cell (cell-link dl-attribute-cell))))
 			  (!! :jdeep "             .....J10 found ~s at ~s, returning ~s"
 			      target dl-attribute-cell (cell-symb cell))
 			  (H5+)
 			  (ipush "H0" (cell-symb cell))
 			  (return t))
-			(let* ((next-att-link (cell-link dl-attribute-cell)))
-			  (if (zero? next-att-link)
-			      (progn
-				(!! :jdeep "             .....J10 failed (b) to find ~s." target)
-				(H5-) (return nil))
-			      (setf dl-attribute-cell (cell (cell-link dl-attribute-cell))))))))))
+			;; No match: skip att-cell AND its val-cell (two hops) to next att-cell.
+			(let* ((val-cell-name (cell-link dl-attribute-cell)))
+			  (when (zero? val-cell-name)
+			    (!! :jdeep "             .....J10 failed (b) no val-cell for ~s." target)
+			    (H5-) (return nil))
+			  (let* ((val-cell (cell val-cell-name)))
+			    (when (null val-cell)
+			      (!! :jdeep "             .....J10 failed (c) val-cell nil for ~s." target)
+			      (H5-) (return nil))
+			    (let* ((next-att-name (cell-link val-cell)))
+			      (if (zero? next-att-name)
+				  (progn
+				    (!! :jdeep "             .....J10 failed (d) ~s not found." target)
+				    (H5-) (return nil))
+				  (setf dl-attribute-cell (cell next-att-name)))))))))))
 
   (defj J11 ([0] [1] [2]) "ASSIGN (1) AS THE VALUE OF ATTRIBUTE (0) OF (2)" 
 	;; After J11, the symbol (1) is on the description list of

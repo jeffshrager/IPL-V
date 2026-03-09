@@ -2278,7 +2278,8 @@
 ("LIMIT ON NUMBER OF SUBSTITUTIONS" "" "K21" "+" "01" "" "50" "" "K021D000")
 ("LIMIT ON EFFORT" "" "K22" "+" "01" "" "20000" "" "K022D000") ;; Using "real" numbers
 ;("LIMIT ON EFFORT" "" "K22" "+" "01" "0" "20" "" "K022D000") Original
-("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)
+;;; Moved to the end for convenience
+;;;("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)
 ("Y = PRINT REJECTED SUBPROBLEMS." "" "K31" "" "" "YES" "" "" "K031D000")
 ("K41 VALUE = METHOD COLUMN." "" "K41" "" "01" "" "10" "" "K041D000")
 ("K42 VALUE = NAME COLUMN." "" "K42" "" "01" "" "40" "" "K042D000")
@@ -2880,7 +2881,6 @@
 ; *4.20  (P=P)
 ; *4.24  (P=(P*P))
 ; *4.25  (P=(PVP))
-;; Remember to turn on/off memory at K030D000
 
 ;*2.92   ((PVP)IP)
 ;*2.93   ((QVP)IP)
@@ -2901,8 +2901,41 @@
 ("FORWARD CHAINING." "" "" "" "" "M14" "" "" "L007D010")
 ("BACKWARD CHAINING." "" "" "" "" "M15" "" "" "L007D010")
 
-("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
-*1.0  ((PI-P).=.(PVP)) DEF.
-*2.0  ((AVA)IA)
+;; Turn on/off memory at K030D000
+("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)
 
-*4.0  ((PI-P)IP)
+("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
+*1.01  ((PIQ).=.(-PVQ)) DEF.
+*2.33  ((PVQVR).=.((PVQ)VR)) DEF.
+*3.01  ((P*Q).=.-(-(PV-Q)) DEF.
+*4.01  ((P=Q).=.((PIQ)*(QIP))) DEF.
+*1.2   ((AVA)IA)
+*1.3   (BI(AVB))
+*1.4   ((AVB)I(BVA))
+*1.5   ((AV(BVC))I(BV(AVC)))
+*1.6   ((BIC)I((AVB)I(AVC)))
+
+*2.01  ((PI-P)I-P)
+*2.02  (QI(PIQ))
+*2.03  (((PI-Q)I(QI-P))
+*2.04  ((PI(QIR))I(QI(PIR)))
+*2.05  ((QIR)I((PIQ)I(PIR)))
+*2.06  ((PIQ)I((QIR)I(PIR)))
+*2.07  (PI(PVP))
+*2.08  (PIP)
+*2.10  (-PVP)
+*2.11  (PV-P)
+*2.12  (PI--P)
+*2.13  (PV---P)
+*2.14  (--PIP)
+*2.15  ((-PIQ)I(-QIP))
+*2.20  (PI(PVQ))
+*2.21  (-PI(PIQ))
+*2.24  (PI(-PVQ))
+*3.13  (-(P*Q)I(-PV-Q))
+*3.14  ((-PV-Q)I-(P*Q))
+*3.24  -(P*-P)
+*4.13  (P=--P)
+*4.20  (P=P)
+*4.24  (P=(P*P))
+*4.25  (P=(PVP))

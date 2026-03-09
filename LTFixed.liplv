@@ -2278,7 +2278,8 @@
 ("LIMIT ON NUMBER OF SUBSTITUTIONS" "" "K21" "+" "01" "" "50" "" "K021D000")
 ("LIMIT ON EFFORT" "" "K22" "+" "01" "" "20000" "" "K022D000") ;; Using "real" numbers
 ;("LIMIT ON EFFORT" "" "K22" "+" "01" "0" "20" "" "K022D000") Original
-("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)
+;;; Moved to the end for convenience
+;;;("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)
 ("Y = PRINT REJECTED SUBPROBLEMS." "" "K31" "" "" "YES" "" "" "K031D000")
 ("K41 VALUE = METHOD COLUMN." "" "K41" "" "01" "" "10" "" "K041D000")
 ("K42 VALUE = NAME COLUMN." "" "K42" "" "01" "" "40" "" "K042D000")
@@ -2880,7 +2881,6 @@
 ; *4.20  (P=P)
 ; *4.24  (P=(P*P))
 ; *4.25  (P=(PVP))
-;; Remember to turn on/off memory at K030D000
 
 ;*2.92   ((PVP)IP)
 ;*2.93   ((QVP)IP)
@@ -2900,6 +2900,9 @@
 ("DETACHMENT." "" "" "" "" "M11" "" "" "L007D010")
 ("FORWARD CHAINING." "" "" "" "" "M14" "" "" "L007D010")
 ("BACKWARD CHAINING." "" "" "" "" "M15" "" "" "L007D010")
+
+;; Turn on/off memory at K030D000
+("R= ADD PROVED THEOREMS TO THEOREMS" "" "K30" "" "" "R" "" "" "K030D000") ;; "R" for remembering (tested at M002R070)
 
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
 *1.01  ((PIQ).=.(-PVQ)) DEF.
