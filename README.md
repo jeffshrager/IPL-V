@@ -167,9 +167,9 @@ examples from Newell et al's 1964 IPL-V manual.
 ## Acknowledgements
 
 The following folks (in random order) helped in a bunch of different
-ways: Ant Hay, Gemini, Rupert Lane, Leigh Klotz, Art Schwarz, David
-M. Berry, Claude, Ethan Ableman, Paul McJones. If I've forgotten you
-my apologies and please remind me!
+ways: Ant Hay, Gemini, Rupert Lane, Amy Majczyk, Leigh Klotz, Art
+Schwarz, David M. Berry, Claude, Ethan Ableman, Paul McJones. If I've
+forgotten you my apologies and please remind me!
 
 ## References
 
