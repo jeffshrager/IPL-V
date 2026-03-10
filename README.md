@@ -1,33 +1,54 @@
 # IPL-V Interpreter & Logic Theorist Simulation
 
-A faithful simulation of the **Logic Theorist** (LT) — one of the first automated
-theorem-proving programs in the history of artificial intelligence — running on a
-re-implemented **IPL-V** (Information Processing Language V) interpreter written in
-Common Lisp.
+A faithful simulation of the [**Logic
+Theorist**](https://en.wikipedia.org/wiki/Logic_Theorist) (LT) — one
+of the first automated theorem-proving programs in the history of
+artificial intelligence — running on an
+[**IPL-V**](https://en.wikipedia.org/wiki/Information_Processing_Language)
+(Information Processing Language V) interpreter written in Common
+Lisp.
 
 ## Historical Background
 
-The Logic Theorist was created by Allen Newell, J.C. Shaw, and Herbert Simon at the
-RAND Corporation and Carnegie Mellon University around 1955–1956. It was arguably the
-first program to perform a task that, if done by a human, would be called "thinking":
-it discovered proofs of theorems in propositional logic by heuristic search through a
-space of possible proof steps.
+The Logic Theorist was created by [Allen
+Newell](https://en.wikipedia.org/wiki/Allen_Newell), [J.C. (Cliff)
+Shaw](https://en.wikipedia.org/wiki/Cliff_Shaw), and [Herbert
+Simon](https://en.wikipedia.org/wiki/Herbert_A._Simon) at the RAND
+Corporation and Carnegie Tech (now CMU) around 1955–1956. It was
+arguably the first program to perform a task that, if done by a human,
+would be called "thinking": it discovered proofs of theorems in
+propositional logic by heuristic search through a space of possible
+proof steps.
 
-LT was implemented in **IPL-V**, a list-processing language designed by the same team.
-IPL-V is, in a meaningful sense, a direct ancestor of Lisp. It runs on an abstract
-register machine with a push-down stack (H0), working registers (W0–W31), and a
-symbol table of cells. Programs are written as sequences of "cards" (instructions),
-each naming a primitive operation (J-function), with conditional branching on a status
-flag (H5).
+LT was implemented in **IPL**, a list-processing language designed
+by the same team, and implemented initially on the
+[JOHNNIAC](https://en.wikipedia.org/wiki/JOHNNIAC), one of the first
+Turing-Von Neumann, so-called IAS or "Princeton" machines, built at
+RAND and named after Von Neumann. The JOHNNIAC had 4,096 40-bit words.
 
-This project re-implements the IPL-V interpreter in SBCL Common Lisp and runs the
-original LT program code (transcribed from the 1963 Stefferud technical report) against
-a suite of theorems from *Principia Mathematica*.
+IPL is, in a meaningful sense, a direct ancestor of Lisp. It runs on
+an abstract register machine with a push-down stack, working
+registers, and a symbol table of cells. Directly foreshadowing Lisp,
+symbol and list processing are the dominant paradigm in IPL-V:
+Everything, including routines, is a list of symbols (or,
+occasionally, numerical data). Again, like lisp, language primitives
+that are not basic machine functions (like pushing or popping a stack)
+are called "J-Functions" and are themselves written in IPL.
 
-## What It Proves
+IPL-V (IPL-five) was the only version of IPL publicly released. I
+implemented a complete IPL-V interpreter in Common Lisp based on the
+1964 IPL-V manual by Newell, et al. It runs the original LT program
+code, transcribed directly from the 1963 Stefferud technical report
+(see refs). I made a very small number of changes, mostly having to do
+with the fact that the original depended on some odd details of the
+BCD character set. More than 99% of the LT code running here is the
+original code from the Stefferud paper.
 
-The LT attempts to prove theorems in propositional logic using the axioms of
-*Principia Mathematica* (Chapter 2). The notation used in `LTFixed.liplv`:
+## What LT Proves
+
+The LT attempts to prove theorems in propositional logic using the
+axioms of *Principia Mathematica* (Chapter 2). The notation used by
+the original authors is:
 
 | Symbol | Meaning |
 |--------|---------|
@@ -85,12 +106,13 @@ on several of these within its search effort limits.
 
 From the `LT/` directory start SBCL and evaluate at the repl:
 
-    (load (compile-file "iplv.lisp"))
+    ```(load (compile-file "iplv.lisp"))```
 
-Output is written to the repl. A complete run takes approximately
-574,000 IPL machine cycles (and finishes in under a minute on modern
-hardware), who knows how long that might have been on the JOHNNIAC at
-RAND in 1956!
+Output is written to the repl. A complete run with the default inputs
+(as above) takes approximately 574,000 IPL machine cycles (and
+finishes in just a few seconds on modern hardware -- a little slower
+for output). Who knows how long that might have taken on the JOHNNIAC
+at RAND in 1956; probably hours.
 
 > **Note:** Do not change the compiler settings in `iplv.lisp` from
 > `(debug 3) (safety 3) (speed 0)`. These are required for correct behavior.
@@ -130,35 +152,35 @@ an in-progress search. Some successful proofs can exceed 20,000 total cycles.
 ## The LT Code
 
 [LT was transcribed into a google
-sheet](https://docs.google.com/spreadsheets/d/1ibvbyoIT20R4gDqo2iSkk5mJBWsRrtQ6sr8Fj1nz910)
-from Stefferud' 1963 paper by Jeff Shrager and Anthony Hay. A bit
+sheet](https://docs.google.com/spreadsheets/d/1ibvbyoIT20R4gDqo2iSkk5mJBWsRrtQ6sr8Fj1nz910/edit?gid=0#gid=0)
+from Stefferud's 1963 paper by Jeff Shrager and Anthony Hay. A bit
 later several typos were discovered by Rupert Lane, using [his
 "gridlock" process and software that can correctly extract code from
 PDFs](https://github.com/rupertl/gridlock).
 
 Note that the file called "LTFixed.liplv" is "Fixed" from a pure dump
 of the google sheet by virtue of various corrections and minor
-re-arrangement of the code to repaid typos and to make usage a little
+re-arrangement of the code to repair typos and to make usage a little
 simpler (e.g., moving parameters to the end where they can be easily
 edited). Conveniently, Lisp comment chars (;) work in .liplv files, so
-these changes have ben documnted in the "Fixed" file.
+these changes have been documnted in the "Fixed" file.
 
 ## The Emulated IPL-V Machine
 
 The original IPL-V was also emulated, originally on the JOHNNIAC at
 RAND, and then on a wide range of machines through the mid 1960s,
-before it was rolled by Lisp.
+before it was overtaken by Lisp.
 
 My interpreter (`iplv.lisp`) implements the IPL-V abstract machine as
 described in Newell et al's 1964 manual (see refs, below). (load-ipl
-...) reads `.liplv` files, which are S-expression formated IPL-V.
+...) reads `.liplv` files, which are S-expression formatted IPL-V.
 
 After loading (ipl-eval...) is passed a `card` to start with, and
 execution begins.
 
 ## Other IPL-V code
 
-If you look at the end of ilpv.lisp, where execution starts, you'll
+If you look at the end of iplv.lisp, where execution starts, you'll
 see that there are several other IPL-V programs that I've used
 variously for testing. Probably of greatest interest is Newell's
 implementation of the Ackermann function. There are also some of the
@@ -170,6 +192,14 @@ The following folks (in random order) helped in a bunch of different
 ways: Ant Hay, Gemini, Rupert Lane, Amy Majczyk, Leigh Klotz, Art
 Schwarz, David M. Berry, Claude, Ethan Ableman, Paul McJones. If I've
 forgotten you my apologies and please remind me!
+
+I want to also thank Al Newell and Herb Simon, who I studied under at
+CMU in the 1980s. IPL and LT were long since history by that time,
+and I never spoke with them about either of these; We barely even
+learned about these brilliant pioneering efforts. But something from
+my working with these giants stuck with me, and led me, after all
+these years, to want to understand what it was like when these
+brilliant scientist-engineers were inventing AI and cognitive science.
 
 ## References
 
