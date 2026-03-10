@@ -1,12 +1,22 @@
 # IPL-V Interpreter & Logic Theorist Simulation
 
-A faithful simulation of the [**Logic
-Theorist**](https://en.wikipedia.org/wiki/Logic_Theorist) (LT) — one
-of the first automated theorem-proving programs in the history of
-artificial intelligence — running on an
-[**IPL-V**](https://en.wikipedia.org/wiki/Information_Processing_Language)
-(Information Processing Language V) interpreter written in Common
-Lisp.
+The goal of this project is a faithful reanimation of the earliest AIs
+-- actally cogntiive models -- created by the team of Newell, Simon,
+and Shaw (NSS) at RAND and Carnegie Tech (now CMU) in the 1950s. These
+programs were created in a programming language called
+(https://en.wikipedia.org/wiki/Information_Processing_Language)[IPL],
+which NSS created specifically for building cognitive models.
+
+The first of these models, and the first one I have got working, it
+the [**Logic Theorist**](https://en.wikipedia.org/wiki/Logic_Theorist)
+(LT). LT was a heuristic theorem-prover for propositional logic. As
+such, LT was also the first AI.[note 1]
+
+Fortunately, LT was extremely well documented in a 1963 paper by
+Stefferud (see refs), as was the fifth version of IPL, IPL-V, in 1964
+manual by Newell et al. Here I have created my own IPL-V emulator, in
+Common Lisp, that correctly runs LT from the Stefferud paper with no
+significant changes.
 
 ## Historical Background
 
@@ -15,9 +25,9 @@ Newell](https://en.wikipedia.org/wiki/Allen_Newell), [J.C. (Cliff)
 Shaw](https://en.wikipedia.org/wiki/Cliff_Shaw), and [Herbert
 Simon](https://en.wikipedia.org/wiki/Herbert_A._Simon) at the RAND
 Corporation and Carnegie Tech (now CMU) around 1955–1956. It was
-arguably the first program to perform a task that, if done by a human,
-would be called "thinking": it discovered proofs of theorems in
-propositional logic by heuristic search through a space of possible
+arguably the first AI -- a program to perform a task that, if done by
+a human, would be called "thinking": it discovered proofs of theorems
+in propositional logic by heuristic search through a space of possible
 proof steps.
 
 LT was implemented in **IPL**, a list-processing language designed
@@ -106,7 +116,7 @@ on several of these within its search effort limits.
 
 From the `LT/` directory start SBCL and evaluate at the repl:
 
-    ```(load (compile-file "iplv.lisp"))```
+    `(load (compile-file "iplv.lisp"))`
 
 Output is written to the repl. A complete run with the default inputs
 (as above) takes approximately 574,000 IPL machine cycles (and
@@ -175,8 +185,8 @@ My interpreter (`iplv.lisp`) implements the IPL-V abstract machine as
 described in Newell et al's 1964 manual (see refs, below). (load-ipl
 ...) reads `.liplv` files, which are S-expression formatted IPL-V.
 
-After loading (ipl-eval...) is passed a `card` to start with, and
-execution begins.
+After loading (ipl-eval ...) is passed a symbol at which to begin
+execution.
 
 ## Other IPL-V code
 
