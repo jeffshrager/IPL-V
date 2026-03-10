@@ -7,7 +7,7 @@ programs were created in a programming language called
 [IPL](https://en.wikipedia.org/wiki/Information_Processing_Language),
 which NSS created specifically for building cognitive models.
 
-The first of these models, and the first one I have got working, it
+The first of these models, and the first one I have got working, is
 the [**Logic Theorist**](https://en.wikipedia.org/wiki/Logic_Theorist)
 (LT). LT was a heuristic theorem-prover for propositional logic. As
 such, LT was also the first AI.
@@ -32,7 +32,7 @@ proof steps.
 
 (Arguably Art Samuel's checkers player existed a couple years before
 LT. It was also heuristic, but Samuel's goal was to build a checkers
-players, vs. NSS whose explicit goal was to model human cognition, and
+player, vs. NSS whose explicit goal was to model human cognition, and
 did so in many domains. NSS had explicit hypotheses about how human's
 reasoned, and about the "physical symbol system" that underlies (by
 hypothesis) intellignce. I don't mean to be dissing Samuel's brilliant
@@ -43,10 +43,10 @@ LT was implemented in **IPL**, a list-processing language designed
 by the same team, and implemented initially on the
 [JOHNNIAC](https://en.wikipedia.org/wiki/JOHNNIAC), one of the first
 Turing-Von Neumann, so-called IAS or "Princeton" machines, built at
-RAND and named after Von Neumann. The JOHNNIAC had 4,096 40-bit words.
+RAND (and named after Von Neumann). The JOHNNIAC had 4,096 40-bit words.
 
 IPL is, in a meaningful sense, a direct ancestor of Lisp. It runs on
-an abstract register machine with a push-down stack, working
+an abstract register machine with push-down stacks, working
 registers, and a symbol table of cells. Directly foreshadowing Lisp,
 symbol and list processing are the dominant paradigm in IPL-V:
 Everything, including routines, is a list of symbols (or,
@@ -58,10 +58,10 @@ IPL-V (IPL-five) was the only version of IPL publicly released. I
 implemented a complete IPL-V interpreter in Common Lisp based on the
 1964 IPL-V manual by Newell, et al. It runs the original LT program
 code, transcribed directly from the 1963 Stefferud technical report
-(see refs). I made a very small number of changes, mostly having to do
-with the fact that the original depended on some odd details of the
-BCD character set. More than 99% of the LT code running here is the
-original code from the Stefferud paper.
+(see refs). I had to make a very small number of changes, mostly
+having to do with the fact that the original depended on some odd
+details of the BCD character set. More than 99% of the LT code running
+here is the original code from the Stefferud paper.
 
 ## What LT Proves
 
@@ -125,7 +125,9 @@ on several of these within its search effort limits.
 
 From the `LT/` directory start SBCL and evaluate at the repl:
 
-    `(load (compile-file "iplv.lisp"))`
+```
+    (load (compile-file "iplv.lisp"))
+```
 
 Output is written to the repl. A complete run with the default inputs
 (as above) takes approximately 574,000 IPL machine cycles (and
@@ -168,21 +170,26 @@ start of a proof attempt. The 20,000-cycle limit is a soft cap: it stops the sea
 from *beginning* another subproblem exploration once exceeded, but cannot interrupt
 an in-progress search. Some successful proofs can exceed 20,000 total cycles.
 
+The Stefferud paper describes all this in detail.
+
 ## The LT Code
 
 [LT was transcribed into a google
 sheet](https://docs.google.com/spreadsheets/d/1ibvbyoIT20R4gDqo2iSkk5mJBWsRrtQ6sr8Fj1nz910/edit?gid=0#gid=0)
-from Stefferud's 1963 paper by Jeff Shrager and Anthony Hay. A bit
+from Stefferud's 1963 paper by me and Anthony Hay. A bit
 later several typos were discovered by Rupert Lane, using [his
 "gridlock" process and software that can correctly extract code from
 PDFs](https://github.com/rupertl/gridlock).
 
-Note that the file called "LTFixed.liplv" is "Fixed" from a pure dump
-of the google sheet by virtue of various corrections and minor
-re-arrangement of the code to repair typos and to make usage a little
-simpler (e.g., moving parameters to the end where they can be easily
-edited). Conveniently, Lisp comment chars (;) work in .liplv files, so
-these changes have been documnted in the "Fixed" file.
+Note that the file called "LTFixed.liplv" is "Fixed" in the sense that
+it's not quite a pure dump of the code in the Stefferud paper. I had
+to make a small number of minor changes, mostly having to do with the
+fact that the JOHNNIAC was a BCD machine, so characters are handled
+... weirdly. Also, to make usage a little simpler I moved some of the
+parameters to the end where they can be easily edited. Conveniently,
+Lisp comment chars (;) work in .liplv files, so these changes have
+been documnted in the "Fixed" file. Overall, I think it's safe to say
+that more than 99% of the code is just as in the original paper.
 
 ## The Emulated IPL-V Machine
 
@@ -194,8 +201,27 @@ My interpreter (`iplv.lisp`) implements the IPL-V abstract machine as
 described in Newell et al's 1964 manual (see refs, below). (load-ipl
 ...) reads `.liplv` files, which are S-expression formatted IPL-V.
 
-After loading (ipl-eval ...) is passed a symbol at which to begin
-execution.
+After loading (ipl-eval ...) is passed a single symbol at which to
+begin execution, as specified in the "TYPE=5" card just before the
+axioms and theorems to be proved:
+
+  ```
+  ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
+  ```
+
+This will start at the symbol (routine called) "X1")
+
+## Inputs
+
+Immediately after the "TYPE=5" card (above) are the inputs to the
+program. There are two sections, separated by a blank line. The
+expressions before the blank are the axioms that proofs will depend
+upon, and the ones after the blank are the statements to be proved.
+
+**An important part of the LT is that it treats proven expressions as
+axioms, so that it can prove more and more complex expressions! In
+this sense, it learns -- maybe it world's first machine learning
+program? **
 
 ## Other IPL-V code
 
