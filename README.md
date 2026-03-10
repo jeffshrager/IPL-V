@@ -221,7 +221,7 @@ upon, and the ones after the blank are the statements to be proved.
 **An important part of the LT is that it treats proven expressions as
 axioms, so that it can prove more and more complex expressions! In
 this sense, it learns -- maybe it world's first machine learning
-program? **
+program?**
 
 ## Other IPL-V code
 
