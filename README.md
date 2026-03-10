@@ -4,13 +4,13 @@ The goal of this project is a faithful reanimation of the earliest AIs
 -- actally cogntiive models -- created by the team of Newell, Simon,
 and Shaw (NSS) at RAND and Carnegie Tech (now CMU) in the 1950s. These
 programs were created in a programming language called
-(https://en.wikipedia.org/wiki/Information_Processing_Language)[IPL],
+[IPL](https://en.wikipedia.org/wiki/Information_Processing_Language),
 which NSS created specifically for building cognitive models.
 
 The first of these models, and the first one I have got working, it
 the [**Logic Theorist**](https://en.wikipedia.org/wiki/Logic_Theorist)
 (LT). LT was a heuristic theorem-prover for propositional logic. As
-such, LT was also the first AI.[note 1]
+such, LT was also the first AI.
 
 Fortunately, LT was extremely well documented in a 1963 paper by
 Stefferud (see refs), as was the fifth version of IPL, IPL-V, in 1964
@@ -29,6 +29,15 @@ arguably the first AI -- a program to perform a task that, if done by
 a human, would be called "thinking": it discovered proofs of theorems
 in propositional logic by heuristic search through a space of possible
 proof steps.
+
+(Arguably Art Samuel's checkers player existed a couple years before
+LT. It was also heuristic, but Samuel's goal was to build a checkers
+players, vs. NSS whose explicit goal was to model human cognition, and
+did so in many domains. NSS had explicit hypotheses about how human's
+reasoned, and about the "physical symbol system" that underlies (by
+hypothesis) intellignce. I don't mean to be dissing Samuel's brilliant
+effort. He also built the first machine learning program, and the
+first GAN!)
 
 LT was implemented in **IPL**, a list-processing language designed
 by the same team, and implemented initially on the
@@ -204,12 +213,14 @@ Schwarz, David M. Berry, Claude, Ethan Ableman, Paul McJones. If I've
 forgotten you my apologies and please remind me!
 
 I want to also thank Al Newell and Herb Simon, who I studied under at
-CMU in the 1980s. IPL and LT were long since history by that time,
-and I never spoke with them about either of these; We barely even
-learned about these brilliant pioneering efforts. But something from
-my working with these giants stuck with me, and led me, after all
-these years, to want to understand what it was like when these
-brilliant scientist-engineers were inventing AI and cognitive science.
+CMU in the 1980s. IPL and LT were long since history by that time, and
+I never spoke with them about either of these; We barely even learned
+about these brilliant pioneering efforts in our classes. But something
+from my working with these giants stuck with me. At CMU I was working
+on modeling scientific and engineering reasoning, and continued to do
+so for more-or-less the rest of my career. Now, at the end of that
+career, I've been led back to try to understand how these brilliant
+scientist-engineers were inventing AI and cognitive science.
 
 ## References
 
