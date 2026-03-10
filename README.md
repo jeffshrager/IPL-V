@@ -164,6 +164,13 @@ variously for testing. Probably of greatest interest is Newell's
 implementation of the Ackermann function. There are also some of the
 examples from Newell et al's 1964 IPL-V manual.
 
+## Acknowledgements
+
+The following folks (in random order) helped in a bunch of different
+ways: Ant Hay, Gemini, Rupert Lane, Leigh Klotz, Art Schwarz, David
+M. Berry, Claude, Ethan Ableman, Paul McJones. If I've forgotten you
+my apologies and please remind me!
+
 ## References
 
 - **Stefferud (1963)** — *The Logic Theory Machine: A Model Heuristic Program*,
