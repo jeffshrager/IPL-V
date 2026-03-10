@@ -1,4 +1,4 @@
-# IPL-V Interpreter & Logic Theorist Simulation
+# An IPL-V interpreter in Common Lisp that runs the original Logic Theorist 
 
 The goal of this project is a faithful reanimation of the earliest AIs
 -- actally cogntiive models -- created by the team of Newell, Simon,
