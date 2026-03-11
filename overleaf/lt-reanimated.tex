@@ -27,30 +27,32 @@ Bennu Climate, Inc.\\
 \maketitle
 
 \begin{abstract}
+
 The Logic Theorist (LT), created by Allen Newell, J.C.\ (Cliff) Shaw,
 and Herbert Simon at the RAND Corporation and Carnegie Tech in
 1955--1956, is widely regarded as the first artificial intelligence
-program. LT was implemented in the Information Processing
-Language (IPL), a list-processing language that was an explicit
-precursor of Lisp. Unlike Lisp, however, IPL has been
-essentially extinct for over half a century; no implementations are
-known to have survived, and no community of practitioners
-remains. Here I describe the construction of a new IPL-V
-interpreter, written in Common Lisp, and the faithful reanimation of
-the original Logic Theorist from code transcribed directly from
-Stefferud's 1963 RAND technical report. The reanimated LT
-successfully proves 16 of 23 theorems from Chapter 2 of Whitehead and
-Russell's \textit{Principia Mathematica}, results that are
-historically consistent with the original. This effort
-continues a program of reanimating foundational AI systems on their
-original platforms, following the recent restoration of Weizenbaum's
-ELIZA on a reconstructed CTSS. A distinctive aspect of this
-project was the essential role played by large language models (LLMs)
-as collaborative debugging partners---learning an essentially dead
-programming language alongside the author, and ultimately proving
-indispensable in navigating thousands of lines of execution traces
-from a heuristic program whose correctness could not easily be
-verified.
+program. LT was implemented in the Information Processing Language
+(IPL), a list-processing language that was an explicit precursor of
+Lisp. Unlike Lisp, however, IPL has been essentially extinct for over
+half a century; no implementations are known to have survived, and no
+community of practitioners remains. Here I describe the construction
+of a new IPL-V interpreter, written in Common Lisp, and the faithful
+reanimation of the original Logic Theorist from code transcribed
+directly from Stefferud's 1963 RAND technical report. The reanimated
+LT successfully proves 16 of 23 theorems from Chapter 2 of Whitehead
+and Russell's \textit{Principia Mathematica}, results that are
+historically consistent with the original. This effort continues a
+program of reanimating foundational AI systems on their original
+platforms, following the recent restoration of Weizenbaum's ELIZA on a
+reconstructed CTSS.  A distinctive aspect of this project was the
+essential role played by large language models (LLMs) as collaborative
+debugging partners---learning an essentially dead programming language
+alongside the author, and ultimately proving indispensable in
+navigating thousands of lines of execution traces from a heuristic
+program whose correctness could not easily be verified. To our
+knowledge this is the first successful execution of the original Logic
+Theorist code in over half a century.
+
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -78,13 +80,13 @@ cognition across many domains. Samuel's effort was brilliant in its
 own right---he also built arguably the first machine learning program,
 and the first system to learn from self-play.}
 
-The Logic Theorist (LT) had already proved 38 of the first 52
-theorems in Chapter~2 of Whitehead and Russell's \textit{Principia
-Mathematica}~\cite{whitehead1910principia}, in some cases finding
-proofs more elegant than those produced by the human authors. For
-Theorem~2.85, LT discovered a shorter, more direct proof than the one
-published in \textit{Principia}. Simon showed the new proof to
-Bertrand Russell himself, who ``responded with
+The Logic Theorist (LT)\cite{LT1956} had already proved 38 of the
+first 52 theorems in Chapter~2 of Whitehead and Russell's
+\textit{Principia Mathematica}~\cite{whitehead1910principia}, in some
+cases finding proofs more elegant than those produced by the human
+authors. For Theorem~2.85, LT discovered a shorter, more direct proof
+than the one published in \textit{Principia}. Simon showed the new
+proof to Bertrand Russell himself, who ``responded with
 delight''~\cite[p.~167]{mccorduck2004machines}. Edward Feigenbaum,
 then an undergraduate taking a graduate course from Simon at GSIA,
 recalls the moment the project's significance was first announced. As
@@ -110,11 +112,12 @@ memory allocation, symbols as first-class objects, recursion, and
 higher-order functions. It was explicitly a direct ancestor of
 Lisp~\cite{mccarthy1960lisp}---McCarthy himself acknowledged IPL's
 influence. Yet while Lisp has thrived for nearly seven decades, IPL
-has been extinct since the mid-1960s. No implementations are known to
-survive. While numerous IPL-V implementations existed in the 1960s on
-various machines, none have persisted. The only modern attempt known to
-the author is Richman's unpublished IPL-V interpreter, written in
-Microsoft BASIC, which he used to run EPAM~IV in the early
+has been extinct since the mid-1960s; While numerous IPL-V
+implementations existed in the 1960s on various machines, no
+maintained implementations appear to be available in modern
+environments.  The only modern attempt known to the author is
+Richman's unpublished IPL-V interpreter, written in Microsoft BASIC,
+which he used to run EPAM~IV in the early
 1990s~\cite{richman1995epam}.\footnote{Richman wrote to the author
 (personal communication, Sep~26, 2025, quoted with permission): ``I
 just interpreted IPL-V in Microsoft Basic using the IPL-V manual that
@@ -334,15 +337,17 @@ The core of the interpreter is a function \texttt{ipl-eval}, which
 fetches and executes instructions by traversing the list named in the
 program counter (H1). \texttt{ipl-eval} is re-entrant, supporting the
 recursive subroutine calls that IPL-V requires. The J-functions are
-implemented as Lisp functions dispatched by name. I implemented only
-those J-functions actually used by LT (and a few test programs),
-amounting to several dozen of the approximately 150 defined in the
-manual.
+implemented as Lisp functions dispatched by name. While the
+interpreter implements the full IPL-V machine model, only the subset
+of J-functions required by LT (and a few test programs) is currently
+implemented, amounting to several dozen of the approximately 150
+defined in the manual.
 
 A complete run of LT---attempting proofs of 23 theorems---takes
-approximately 574,000 IPL machine cycles and finishes in a few seconds
-on modern hardware. On the JOHNNIAC at RAND in 1956, it likely
-required hours.
+approximately 574,000 IPL machine cycles, creating over 576,000
+symbols\footnote{Yeah, I was surprised too. It's really just a
+coincidence!}, and finishes in a few seconds on modern hardware. On
+the JOHNNIAC at RAND in 1956, it likely required hours.
 
 %% ============================================================
 \section{What the Logic Theorist Proves}
@@ -485,18 +490,21 @@ functions (J74 and others).
 
 \subsection{The Wall---and How LLMs Broke Through It}
 
-Once the interpreter was stable enough that LT ran without crashing,
-the character of the bugs changed entirely. The output was now
-thousands of lines of execution trace---machine cycles, register
-states, list operations---that \textit{might} be correct. LT was
-proving trivial theorems (those requiring substitution only), but it
-would not prove complex theorems that it should have, and would get
-into loops, failing to recognize when a proof had been found. The
-program was heuristic; it was supposed to explore and backtrack.
-Distinguishing a correct backtrack from one caused by a subtle bug
-required understanding both the IPL-V machine semantics and LT's
-high-level proof strategy simultaneously, while tracking state across
-tens of thousands of interpreted machine cycles.
+Unlike conventional programs where correctness can be verified
+stepwise, LT is a heuristic search program whose behavior emerges from
+many interacting procedures.  Once the interpreter was stable enough
+that LT ran without crashing, the character of the bugs changed
+entirely. The output was now thousands of lines of execution
+trace---machine cycles, register states, list operations---that
+\textit{might} be correct. LT was proving trivial theorems (those
+requiring substitution only), but it would not prove complex theorems
+that it should have, and would get into loops, failing to recognize
+when a proof had been found. The program was heuristic; it was
+supposed to explore and backtrack.  Distinguishing a correct backtrack
+from one caused by a subtle bug required understanding both the IPL-V
+machine semantics and LT's high-level proof strategy simultaneously,
+while tracking state across tens of thousands of interpreted machine
+cycles.
 
 This experience had an uncanny resonance with the original developers'
 accounts. In an interview conducted by Pamela McCorduck for her
@@ -526,10 +534,10 @@ this was a consequence of what you had specified.''
 \hfill---J.~C. Shaw, conversation with P.~McCorduck, June~16, 1975
 \end{quote}
 
-\noindent Sixty years later, with the same family of programs, I
-faced the identical challenge. I will be frank: at this point, I had
-almost given up. The cognitive load of holding the machine state in my
-head across thousands of trace lines, while simultaneously questioning
+\noindent Sixty years later, with the same family of programs, I faced
+the identical challenge. At this point progress had effectively
+stalled. The cognitive load of holding the machine state in my head
+across thousands of trace lines, while simultaneously questioning
 whether each line reflected correct or incorrect behavior, exceeded
 what I could sustain.
 
@@ -548,10 +556,9 @@ an essentially dead language: the manual is poorly OCR'd in places and
 obscure even where legible; the language itself is unlike any modern
 programming language; and there is no Stack Overflow, no GitHub
 corpus, no community of practitioners for the LLMs to have learned
-from. I may be the only person on the planet who knows the language
-fluently at this point---probably also Ed Feigenbaum. The LLMs'
-primary source of information about IPL-V was my own Lisp
-code---which, of course, still contained bugs.
+from. Few people remain who have direct experience programming in
+IPL-V.  The LLMs' primary source of information about IPL-V was my own
+Lisp code---which, of course, still contained bugs.
 
 This created a fascinating epistemological bootstrapping problem. The
 LLMs were inferring IPL-V semantics from my interpreter, sometimes
@@ -716,11 +723,12 @@ implementation of the machine it was designed for.
 
 The IPL-V interpreter developed for this project is not specific to
 the Logic Theorist. It implements the general IPL-V abstract machine
-and can, in principle, run any IPL-V program. The most significant
-targets for future reanimation are the General Problem Solver
-(GPS)~\cite{newell1959gps} and EPAM (Elementary Perceiver and
-Memorizer)~\cite{feigenbaum1961epam}, both originally written in
-IPL-V by members of the same research group. Archival work to locate
+and can, in principle, run any IPL-V program. I am in progress of
+building a corpus of early IPL-V AI programs. The most significant
+targets are the General Problem Solver (GPS)~\cite{newell1959gps} and
+EPAM (Elementary Perceiver and
+Memorizer)~\cite{feigenbaum1961epam}. EPAM source code is available in
+the Feigenbaum archives at Stanford, and archival work to locate
 complete source code for GPS is planned for spring 2026. Now that a
 proven IPL-V interpreter exists, running these programs should require
 substantially less effort than the initial construction of the
@@ -754,6 +762,9 @@ training---the cognition of scientists and engineers---has, in this
 project, become inseparable from its object.
 
 \begin{thebibliography}{99}
+
+\bibitem{LT1956}
+A. Newell, J. C. Shaw, and H. A. Simon, \textit{The Logic Theory Machine}, IRE Trans. Inf. Theory, vol. 2, no. 3, pp. 61–79, 1956.
 
 \bibitem{whitehead1910principia}
 A. N. Whitehead and B. Russell, \textit{Principia Mathematica}. Cambridge, UK: Cambridge Univ. Press, 1910--1913.
