@@ -18,7 +18,7 @@
 
 \begin{document}
 
-\title{Reanimating the First AI: The Logic Theorist Runs Again in IPL-V}
+\title{The Logic Theorist Proves Again: Reanimating the First AI in IPL-V}
 
 \author{Jeff~Shrager,~Ph.D.\\
 Bennu Climate, Inc.\\
@@ -30,26 +30,27 @@ Bennu Climate, Inc.\\
 The Logic Theorist (LT), created by Allen Newell, J.C.\ (Cliff) Shaw,
 and Herbert Simon at the RAND Corporation and Carnegie Tech in
 1955--1956, is widely regarded as the first artificial intelligence
-program. LT was implemented in the Information Processing Language
-(IPL), a list-processing language that was an explicit precursor of
-Lisp, acknowledged as such by McCarthy himself. Unlike Lisp, however,
-IPL has been essentially extinct for over half a century; no
-implementations are known to have survived, and no community of
-practitioners remains. Here I describe the construction of a new IPL-V
+program. LT was implemented in the Information Processing
+Language (IPL), a list-processing language that was an explicit
+precursor of Lisp. Unlike Lisp, however, IPL has been
+essentially extinct for over half a century; no implementations are
+known to have survived, and no community of practitioners
+remains. Here I describe the construction of a new IPL-V
 interpreter, written in Common Lisp, and the faithful reanimation of
 the original Logic Theorist from code transcribed directly from
 Stefferud's 1963 RAND technical report. The reanimated LT
-successfully proves 16 of 23 theorems from Chapter~2 of Whitehead and
+successfully proves 16 of 23 theorems from Chapter 2 of Whitehead and
 Russell's \textit{Principia Mathematica}, results that are
-historically consistent with the original. This effort continues a
-program of reanimating foundational AI systems on their original
-platforms, following the recent restoration of Weizenbaum's ELIZA on a
-reconstructed CTSS. A distinctive aspect of this project was the
-essential role played by large language models (LLMs) as collaborative
-debugging partners---learning an essentially dead programming language
-alongside the author, and ultimately proving indispensable in
-navigating thousands of lines of execution traces from a heuristic
-program whose correctness could not easily be verified.
+historically consistent with the original. This effort
+continues a program of reanimating foundational AI systems on their
+original platforms, following the recent restoration of Weizenbaum's
+ELIZA on a reconstructed CTSS. A distinctive aspect of this
+project was the essential role played by large language models (LLMs)
+as collaborative debugging partners---learning an essentially dead
+programming language alongside the author, and ultimately proving
+indispensable in navigating thousands of lines of execution traces
+from a heuristic program whose correctness could not easily be
+verified.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -755,67 +756,46 @@ project, become inseparable from its object.
 \begin{thebibliography}{99}
 
 \bibitem{whitehead1910principia}
-A.~N. Whitehead and B.~Russell, \textit{Principia Mathematica}.
-Cambridge: Cambridge University Press, 1910--1913.
+A. N. Whitehead and B. Russell, \textit{Principia Mathematica}. Cambridge, UK: Cambridge Univ. Press, 1910--1913.
 
 \bibitem{newell1961ipl}
-A.~Newell, Ed., \textit{Information Processing Language-V Manual}.
-Englewood Cliffs, NJ: Prentice-Hall, 1961.
+A. Newell, Ed., \textit{Information Processing Language-V Manual}. Englewood Cliffs, NJ, USA: Prentice-Hall, 1961.
 
 \bibitem{mccarthy1960lisp}
-J.~McCarthy, ``Recursive functions of symbolic expressions and their
-computation by machine, Part~I,'' \textit{Commun.\ ACM},
-vol.~3, no.~4, pp.~184--195, Apr. 1960.
+J. McCarthy, ``Recursive functions of symbolic expressions and their computation by machine, Part I,'' \textit{Commun. ACM}, vol. 3, no. 4, pp. 184--195, Apr. 1960.
 
 \bibitem{stefferud1963lt}
-E.~Stefferud, ``The Logic Theory Machine: A Model Heuristic Program,''
-RAND Corp., Santa Monica, CA, Memorandum RM-3731-CC, 1963.
+E. Stefferud, ``The Logic Theory Machine: A Model Heuristic Program,'' RAND Corp., Santa Monica, CA, USA, Rep. RM-3731-CC, 1963.
 
 \bibitem{newell1964iplv}
-A.~Newell, Ed., \textit{Information Processing Language-V Manual},
-2nd~ed. Englewood Cliffs, NJ: Prentice-Hall, 1964.
+A. Newell, Ed., \textit{Information Processing Language-V Manual}, 2nd ed. Englewood Cliffs, NJ, USA: Prentice-Hall, 1964.
 
 \bibitem{lane2025eliza}
-R.~Lane, A.~Hay, A.~Schwarz, D.~M. Berry, and J.~Shrager, ``ELIZA
-Reanimated: Restoring the mother of all chatbots to one of the
-world's first time-sharing systems,'' \textit{IEEE Ann.\ Hist.\
-Comput.}, vol.~47, no.~1, pp.~8--23, 2025.
+R. Lane, A. Hay, A. Schwarz, D. M. Berry, and J. Shrager, ``ELIZA Reanimated: Restoring the mother of all chatbots to one of the world's first time-sharing systems,'' \textit{IEEE Ann. Hist. Comput.}, vol. 47, no. 1, pp. 8--23, 2025.
 
 \bibitem{gruenberger1968johnniac}
-F.~Gruenberger, ``The History of the JOHNNIAC,'' RAND Corp.,
-Santa Monica, CA, Memorandum RM-5654-PR, 1968.
+F. Gruenberger, ``The History of the JOHNNIAC,'' RAND Corp., Santa Monica, CA, USA, Rep. RM-5654-PR, 1968.
 
 \bibitem{mccorduck2004machines}
-P.~McCorduck, \textit{Machines Who Think}, 2nd~ed. Natick, MA:
-A.~K. Peters, 2004.
+P. McCorduck, \textit{Machines Who Think}, 2nd ed. Natick, MA, USA: A. K. Peters, 2004.
 
 \bibitem{bochannek2012simonsjs}
-A.~Bochannek, ``Simon's J's,'' Computer History Museum Blog,
-Sep.~26, 2012. [Online]. Available:
-\url{https://computerhistory.org/blog/simons-js/}
+A. Bochannek, ``Simon’s J’s,'' Computer History Museum Blog, Sep. 26, 2012. [Online]. Available: \url{https://computerhistory.org/blog/simons-js/} (Accessed: Mar. 11, 2026).
 
 \bibitem{lane2024gridlock}
-R.~Lane, ``Gridlock: Accurate code extraction from PDFs,'' 2024.
-[Online]. Available: \url{https://github.com/rupertl/gridlock}
+R. Lane, ``Gridlock: Accurate code extraction from PDFs,'' 2024. [Online]. Available: \url{https://github.com/rupertl/gridlock}
 
 \bibitem{millstein1968logic}
-J.~S. Millstein, ``The Logic Theorist in LISP,'' \textit{The Computer
-Journal}, vol.~11, no.~1, pp.~39--44, Feb. 1968.
+J. S. Millstein, ``The Logic Theorist in LISP,'' \textit{Comput. J.}, vol. 11, no. 1, pp. 39--44, Feb. 1968.
 
 \bibitem{newell1959gps}
-A.~Newell, J.~C. Shaw, and H.~A. Simon, ``Report on a general
-problem-solving program,'' in \textit{Proc.\ Int.\ Conf.\ Inform.\
-Process.}, Paris, France, 1959, pp.~256--264.
+A. Newell, J. C. Shaw, and H. A. Simon, ``Report on a general problem-solving program,'' in \textit{Proc. Int. Conf. Inform. Process.}, 1959, pp. 256--264.
 
 \bibitem{feigenbaum1961epam}
-E.~A. Feigenbaum, ``The simulation of verbal learning behavior,'' in
-\textit{Proc.\ Western Joint Comput.\ Conf.}, 1961, pp.~121--132.
+E. A. Feigenbaum, ``The simulation of verbal learning behavior,'' in \textit{Proc. Western Joint Comput. Conf.}, 1961, pp. 121--132.
 
 \bibitem{richman1995epam}
-H.~B. Richman, J.~J. Staszewski, and H.~A. Simon, ``Simulation of
-expert memory using EPAM~IV,'' \textit{Psychol.\ Rev.}, vol.~102,
-no.~2, pp.~305--330, 1995.
+H. B. Richman, J. J. Staszewski, and H. A. Simon, ``Simulation of expert memory using EPAM IV,'' \textit{Psychol. Rev.}, vol. 102, no. 2, pp. 305--330, 1995.
 
 \end{thebibliography}
-
 \end{document}
