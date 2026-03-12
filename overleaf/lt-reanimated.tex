@@ -28,7 +28,7 @@ Bennu Climate, Inc.\\
 
 \begin{abstract}
 
-The Logic Theorist (LT), created by Allen Newell, J.C. Shaw, and
+The Logic Theorist (LT), created by Allen Newell, J.~C.~Shaw, and
 Herbert Simon in 1955--1956, is widely regarded as the first
 artificial intelligence program.  While the original conceptual model
 was described in 1956, it underwent several iterations as the
@@ -49,7 +49,7 @@ execution of the original Logic Theorist code in over half a century.
 
 \begin{IEEEkeywords}
 Logic Theorist, IPL-V, artificial intelligence history, software
-archaeology, Newell, Simon, Shaw, list processing, digital preservation
+archaeology, A.~Newell, H.~A.~Simon, J.~C.~Shaw, list processing, digital preservation
 \end{IEEEkeywords}
 
 %% ============================================================
@@ -161,7 +161,7 @@ Section~\ref{sec:debugging}.
 
 The story of the Logic Theorist begins in the early 1950s at the RAND
 Corporation.  Herbert Simon and Allen Newell, collaborating with
-J.C. (Cliff) Shaw, sought to simulate complex thought by manipulating
+J.~C. (Cliff) Shaw, sought to simulate complex thought by manipulating
 symbols.  However, the history of the program is characterized by a
 series of shifting specifications across different versions of the
 Information Processing Language.
@@ -178,8 +178,9 @@ machine, Newell and Simon famously simulated parts of it by hand using
 components.
 
 It was not until the implementation of IPL-II on the JOHNNIAC in late
-1956 and early 1957 that machine-executable proofs were generated.
-The widely cited result that LT proved 38 of the first 52 theorems in
+1956 and early 1957\cite{gruenberger1968johnniac} that
+machine-executable proofs were generated.  The widely cited result
+that LT proved 38 of the first 52 theorems in
 \textit{Principia}—including the discovery of a more elegant proof for
 Theorem 2.85 than the one produced by Whitehead and Russell—stems from
 these 1957 runs.
@@ -239,19 +240,18 @@ anticipates modern iterators). In the original IPL-V, many J-functions
 were themselves written in IPL, although some required machine-level
 primitives.
 
-IPL was explicitly the direct ancestor of
-Lisp~\cite{mccarthy1960lisp}---McCarthy acknowledged this lineage.
-It introduced list and symbol manipulation, the idea that programs are
-themselves lists, dynamic memory allocation, recursion, and
-higher-order functions. Having now spent months implementing an IPL-V
-interpreter, I can report that IPL had essentially \textit{everything}
-that Lisp has, with two critical exceptions: homoiconic syntax and
-automatic garbage collection. Where Lisp unified code and data in a
-single, elegant, parenthesized notation, IPL expressed its ideas in an
-assembly-language style that, while powerful, was far more difficult to
-read and write. And where Lisp introduced garbage collection to
-automate memory reclamation, IPL required explicit management of the
-free list.
+As mentioned above, IPL was explicitly the direct ancestor of
+Lisp~\cite{mccarthy1960lisp}. It introduced list and symbol
+manipulation, the idea that programs are themselves lists, dynamic
+memory allocation, recursion, and higher-order functions. Having now
+spent months implementing an IPL-V interpreter, I can report that IPL
+had essentially \textit{everything} that Lisp has, with two critical
+exceptions: homoiconic syntax and automatic garbage collection. Where
+Lisp unified code and data in a single, elegant, parenthesized
+notation, IPL expressed its ideas in an assembly-language style that,
+while powerful, was far more difficult to read and write. And where
+Lisp introduced garbage collection to automate memory reclamation, IPL
+required explicit management of the free list.
 
 It is worth noting that IPL-V programs could, in principle, modify
 their own code at runtime---the same self-modification capability for
@@ -332,26 +332,28 @@ I chose to emulate the IPL-V abstract machine, rather than emulating
 the original hardware environment (as was done for ELIZA on the IBM
 7094 and CTSS~\cite{lane2025eliza}), for several reasons. First, as
 mentioned just above, the code I am using is IPL-V, and so is not
-JOHNNIAC specific. Also, no thorough JOHNNIAC emultor exists, and in
-any case we do not have the JOHNNIAC IPL code. While an IBM 7094
-emulator does include an IPL-V binary interpreter running under a
-variant of the IBSYS batch operating system \cite{ibsys}. The emulator
-includes demo scripts for IPL-V, but the interpreter is a binary with
-no source code and no documentation on usage or runtime options. I
-attempted to run LT on this platform but it failed early in
-execution. Because there is no source code, the failure was
-essentially undebuggable.
+JOHNNIAC specific. Additionally, no thorough JOHNNIAC emulator exists,
+and in any case we do not have the JOHNNIAC IPL code. There does exist
+an IBM 7094 emulator that includes an IPL-V interpreter running under
+a variant of the IBSYS batch operating system \cite{ibsys}, and this
+emulator includes demo scripts for IPL-V. However, this IPL-V
+interpreter is a binary with no source code and no documentation on
+usage or runtime options. I attempted to run LT on this platform but
+it failed early in execution with no useful information about the
+cause. Because there is no source code, the failure was essentially
+undebuggable.
 
 More fundamentally, however, one of my central goals in undertaking
 this project was not merely to get LT to run, but to
 \textit{elucidate} IPL-V---to develop a deep understanding of the
 language, the machine model, and the infrastructure of the
-period. Writing my own interpreter was essential to that goal. Second,
-IPL-V is defined as an abstract machine specification, not as a
-program for a specific computer; it was implemented on many different
-machines through the mid-1960s before being supplanted by Lisp. Third,
-there is a pleasing circularity in implementing IPL-V---Lisp's direct
-ancestor---in Lisp itself.
+period. Writing my own interpreter was essential to that goal. IPL-V
+is defined as an abstract machine specification, not as a program for
+a specific computer; it was implemented on many different machines
+through the mid-1960s before being supplanted by Lisp.
+
+In addition there is a pleasing circularity in implementing
+IPL-V---Lisp's direct ancestor---in Lisp itself.
 
 My interpreter (\texttt{iplv.lisp}) implements the complete IPL-V
 abstract machine as described in the 1964 manual: the cell table, the
@@ -564,7 +566,7 @@ do something reasonable---it wouldn't always do what you predicted and
 then you were in a quandary as to whether you had a bug or whether
 this was a consequence of what you had specified.''
 
-\hfill---J.~C. Shaw, conversation with P.~McCorduck, June~16, 1975
+\hfill---J.~C.~Shaw, conversation with P.~McCorduck, June~16, 1975
 \end{quote}
 
 \noindent Sixty years later, with the same family of programs, I faced
@@ -807,7 +809,7 @@ project, become inseparable from its object.
 
 \begin{thebibliography}{99}
 
-\bibitem{LT1956a} A. Newell, and H. A. Simon, \textit{The Logic Theory Machine A Complex Information Processing System}, RAND Corp., Santa Monica, CA, USA, Rep. P-868, 1956.
+\bibitem{LT1956a} A. Newell, and H. A. Simon, \textit{The Logic Theory Machine -- A Complex Information Processing System}, RAND Corp., Santa Monica, CA, USA, Rep. P-868, 1956.
 
 \bibitem{LT1957} A. Newell, J. C. Shaw, and H. A. Simon, ``Empirical explorations with the logic theory machine: A case study in heuristics,'' in \textit{Proc. Western Joint Comput. Conf.}, 1957, pp. 218--230.
 
@@ -859,7 +861,7 @@ J. Shrager, Output from the reanimated logic theorist, [Online]. Available: \url
 \end{thebibliography}
 
 \appendix
-\section{Example Logic Theorist Proof}
+\section{Example Complex Logic Theorist Proof}
 
 To illustrate the form of proofs generated by the reconstructed Logic
 Theorist, I present a representative derivation produced by the
