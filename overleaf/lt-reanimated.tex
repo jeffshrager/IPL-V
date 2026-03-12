@@ -143,7 +143,7 @@ and later realized in Lisp and related list-processing systems. Each
 can be understood as a rule-based control system operating over
 symbolic list structures. However, whereas the ELIZA work rested on a
 stack that emulated vintage hardware and operating systems, the LT
-reanimation emulates the abstract IPL-V machine.\Footnote{Ironically, in
+reanimation emulates the abstract IPL-V machine.\footnote{Ironically, in
 IPL's direct descendant language, Common Lisp.}
 
 %% ============================================================
@@ -217,7 +217,7 @@ Each cell has an associated symbol. There is no single distinguished
 stack; every cell is potentially a stack of symbols that can be pushed
 and popped. Symbols are central to IPL-V: they are first-class
 objects, and every cell, data structure, routine, and control element
-is addressable by a symbol (it's name). A set of control cells
+is addressable by a symbol (its name). A set of control cells
 (H0--H5) govern execution: H0 serves as the parameter and result
 ``communication'' cell, H1 serves as both program counter and call
 stack, H2 is the free list for dynamic memory allocation, and H3 is
@@ -226,7 +226,7 @@ storage. Everything in IPL-V---data, routines, even the program
 itself---is a list of cells, and thus also a list of symbols. Routines
 are invoked by pushing their symbol (name) onto H1. The IPL machine
 interprets the operation indicated in that cell, and then continue to
-whatever is the indicated next cell. Elegantly, beacuse H1 is both
+whatever is the indicated next cell. Elegantly, because H1 is both
 program counter and call stack, no special machinery is required to
 operate the machine aside from basic stack manipulation
 instructions.
@@ -367,8 +367,8 @@ the way down.
 
 The core of my interpreter is a function, \texttt{ipl-eval}, that
 fetches and executes instructions by executing the list named in the
-program counter (H1). My IPL evaluator is re-entrant -- a capability
-trivially implementable in Lisp -- supporting the recursive calls that
+program counter (H1). My IPL evaluator is re-entrant --- a capability
+trivially implementable in Lisp --- supporting the recursive calls that
 IPL-V requires. The J-functions are implemented as Lisp
 functions. While the interpreter implements the full IPL-V machine,
 only the subset of J-functions required by LT (and a few test
@@ -429,7 +429,7 @@ Each proof attempt is bounded by a settable effort limit in terms of
 IPL machine cycles. (In all below examples this limit is set to 20,000
 cycles.) This is a soft cap: it prevents the system from
 \textit{beginning} a new subproblem exploration once exceeded, but
-it does interrupt a search that is in progress.
+does not interrupt a search in progress.
 
 Table~\ref{tab:axioms} shows the axioms and definitions that are
 initially provided to LT for the runs described in the present
@@ -440,7 +440,7 @@ proofs. Thus, LT can be said, in a sense, to learn!
 \begin{table}[h]
 \centering
 \caption{Axioms and definitions}
-\label{tab:results}
+\label{tab:axioms}
 \begin{tabular}{ll}
 \toprule
 \textbf{Name} & \textbf{Axiom/Def}\\
@@ -517,13 +517,14 @@ SUBSTITUTIONS LIMIT 50    ACTUAL 2
 \end{lstlisting}
 
 The proof begins from Axiom~*1.2, \texttt{(AVA)IA}, substitutes
-\texttt{-P} for \texttt{A} to obtain \texttt{(-PV-P)I-P}, then
-applies sublevel replacement (using the fact that \texttt{P} implies
+\texttt{-P} for \texttt{A} to obtain \texttt{(-PV-P)I-P}, then applies
+sublevel replacement (using the fact that \texttt{P} implies
 \texttt{PVP}) to transform the antecedent, yielding the desired
-theorem. Appendix 1 depicts a more complex proof (4.25).
+theorem. Appendix 1 depicts a more complex proof (4.25), and the
+original output, including both of these proofs, is at: \cite{runoutput}.
 
 %% ============================================================
-\section{Debugging: Solo Work, Then a Collaboration with AI}
+\section{Debugging: Solo Effort, Then an AI Collaboration}
 \label{sec:debugging}
 %% ============================================================
 
@@ -540,14 +541,14 @@ crash, and a human programmer working alone can identify and fix them.
 
 Over this period, I developed a strong sense that the IPL-V
 interpreter basically worked---otherwise LT would never have gotten
-through even a dozen instructions---and that the LT transcription was
+through even a dozen instructions! And that the LT transcription was
 correct. Therefore, almost all remaining errors were likely in the
 J-functions, which I had written in Lisp from their descriptions in
 the Newell et al.\ manual. My experience was that the manual's
-J-function descriptions were sometimes vague in subtle ways, and this
-had bitten me before. I was particularly wary of the most complex
+J-function descriptions were sometimes vague in subtle. This had
+bitten me before, so I was particularly wary of the most complex
 J-functions: the generators (J17--J19, J100) and the list manipulation
-functions (J74 and others).
+functions (J74 and many others).
 
 \subsection{The Wall---and How LLMs Broke Through It}
 
@@ -558,22 +559,21 @@ that LT ran without crashing, the character of the bugs changed
 entirely. The output was now thousands of lines of execution
 trace---machine cycles, register states, list operations---that
 \textit{might} be correct. LT was proving trivial theorems (those
-requiring substitution only), but it would not prove complex theorems
-that it should have, and would get into loops, failing to recognize
-when a proof had been found. The program was heuristic; it was
-supposed to explore and backtrack.  Distinguishing a correct backtrack
-from one caused by a subtle bug required understanding both the IPL-V
-machine semantics and LT's high-level proof strategy simultaneously,
-while tracking state across tens of thousands of interpreted machine
-cycles.
+requiring substitution only), but it would not prove simple theorems
+that it should have done trivially, get into runaway recursions,
+fail to recognize when a proof had been found, and exhibit other
+anomalous behaviors short of crashing. The program was heuristic; it
+was supposed to explore and backtrack. Distinguishing a correct
+backtrack from one caused by a subtle bug required understanding both
+the IPL-V machine semantics and LT's high-level proof strategy
+simultaneously, while tracking state across tens of thousands of
+interpreted machine cycles.
 
 This experience had an uncanny resonance with the original developers'
 accounts. In an interview conducted by Pamela McCorduck for her
-pioneering history of AI~\cite{mccorduck2004machines}---transcripts
-originally obtained for the ELIZA reanimation
-project~\cite{lane2025eliza}---Cliff Shaw describes the particular
-difficulty of debugging programs that use dynamic storage allocation
-and heuristic search:
+pioneering history of AI~\cite{mccorduck2004machines}, Cliff Shaw
+describes the particular difficulty of debugging programs that use
+dynamic storage allocation and heuristic search:
 
 \begin{quote}
 ``When we first used dynamic storage allocation and it kept the list
@@ -607,19 +607,18 @@ Google's Gemini (via the AntiGravity interface) and Anthropic's Claude
 (via its terminal-based coding interface, Claude Code). They were not
 involved in the earlier phases of the project; they entered at the
 point where the nature of the debugging task shifted from crash
-analysis to the far more demanding problem of behavioral
-verification.
+analysis to the far more demanding problem of debugging non-fatal
+mis-behaviors.
 
 \subsection{Teaching a Dead Language to an LLM}
 
-The collaboration began from a position of mutual ignorance. IPL-V is
-an essentially dead language: the manual is poorly OCR'd in places and
-obscure even where legible; the language itself is unlike any modern
-programming language; and there is no Stack Overflow, no GitHub
-corpus, no community of practitioners for the LLMs to have learned
-from. Few people remain who have direct experience programming in
-IPL-V.  The LLMs' primary source of information about IPL-V was my own
-Lisp code---which, of course, still contained bugs.
+IPL-V is an essentially dead language: the manual is poorly OCR'd in
+places and is sometimes obscure even when legible. The language itself
+is unlike any modern programming language, and there is no Stack
+Overflow, no GitHub corpus, no community of practitioners for the LLMs
+to have learned from. Few people remain who have direct experience
+programming in IPL-V.  The LLMs' primary source of information about
+IPL-V was my own Lisp code---which, of course, still contained bugs.
 
 This created a fascinating epistemological bootstrapping problem. The
 LLMs were inferring IPL-V semantics from my interpreter, sometimes
@@ -636,7 +635,7 @@ LT program rather than my interpreter. We had to maintain the
 methodological assumption that the LT code was correct (even though we
 did not entirely know this), and focus debugging effort on the
 interpreter and especially the J-functions. Without this discipline,
-every anomaly would have opened two lines of investigation, making
+every anomaly would have opened many lines of investigation, making
 progress impossible.
 
 \subsection{The J74 Bug: Simon's J's to the Rescue}
@@ -644,20 +643,20 @@ progress impossible.
 What the LLMs excelled at was tenacity. They were willing to read
 through thousands of lines of traces and dumps, insert breakpoints at
 hundreds of places, and maintain the kind of tedious but precise
-state-tracking that the task demanded---work that simultaneously
-required deep contextual understanding. This combination of
-exhaustive attention and domain comprehension is, ironically, precisely
-where current LLMs excel.
+state-tracking demanded by this task. This combination of exhaustive
+attention and domain comprehension is, ironically, precisely where
+current LLMs excel.
 
 Gemini found the first significant issue after several hours of LLM
-time spread over several days, and as predicted it was in a
+time spread over several days. As predicted, the problem was in a
 J-function. This made substantial progress: now LT was generating
 proofs, but was not stopping when a proof was found. After literally
 another several hours of LLM time, Claude isolated the second problem
 in J74---the list copying function. But we did not know how to fix it,
 because both Claude and I agreed that my code appeared to match the
 manual's description. There was a clear problem, but the specification
-seemed to support my implementation.
+seemed to support my implementation. Based on Claude's explorations, I
+developed a hypothesis about what was wrong.
 
 This is where the project took its most interesting turn.  We had
 access to ``Simon's J's'' from the Computer History
@@ -666,90 +665,86 @@ cards from 1962.  These cards represent the production implementation
 of the J-functions at the very moment IPL-V was being standardized for
 wider use.  By this point I had taught Claude enough IPL-V that it was
 able to read the original 1962 code and compare it with my Lisp
-implementation of J74.  The result: they differed in exactly the way
-we had hypothesized. A one-line patch to my J74 implementation made LT
-run completely correctly.
+implementation of J74 in an effort to validate my hypothesis of the
+problem. The result: they differed in exactly the way I had
+hypothesized, and a one-line patch to my J74 implementation made LT
+run completely correctly!
 
 This was a remarkable moment: an AI system, having learned a dead
 programming language primarily from a modern interpreter that it had
 helped debug, was now able to read original 1962 source code and use
-it to identify and fix a bug. It was a collaboration across sixty
-years---Simon's original card deck, preserved by the Computer History
-Museum and transcribed by its volunteers, provided the ground truth
-that neither the manual's prose description, nor my interpretation of
-it, nor the LLM's inference from my code, had been able to supply.
+it to identify and fix a subtle bug in the heart of the
+interpreter. It was a collaboration across sixty years---Simon's
+original card deck, preserved by the Computer History Museum and
+transcribed by its volunteers, provided the ground truth that neither
+the manual's prose description, nor my interpretation of it, nor the
+LLM's inference from my code, had been able to supply.
 
 \subsection{Roles of the Collaborators}
 
 The human and LLM collaborators on this project played complementary
-but distinct roles. The human contributors---particularly Anthony Hay,
-Arthur Schwarz, Leigh Klotz, and David M.\ Berry---provided code
+roles. The human contributors---particularly Anthony Hay, Arthur
+Schwarz, Leigh Klotz, and David M.\ Berry---provided code
 transcription, error detection, and sustained intellectual
 encouragement through weekly progress updates. Rupert Lane's gridlock
 software caught transcription errors that had survived multiple rounds
 of human review. These contributions were essential and could not have
 been replaced by LLMs.
 
-The LLMs, for their part, filled a role that no human collaborator
-was available to fill: the grinding, hour-after-hour work of reading
+The LLMs, for their part, filled a role that no human collaborator was
+available to fill: the grinding, hour-after-hour work of reading
 thousands of lines of execution traces, inserting diagnostic
 instrumentation, and tracking machine state across tens of thousands
-of cycles to localize subtle behavioral bugs. Both Gemini and Claude
-made substantive debugging contributions. In the end, I settled on
-working primarily with Claude, not because of a significant capability
+of cycles to localize subtle bugs. Both Gemini and Claude made
+substantive debugging contributions. In the end, I settled on working
+primarily with Claude, not because of a significant capability
 difference, but because it was easier to maintain a single long
-session with accumulated context than to switch between systems. The
-complete interaction histories with both LLMs are preserved in the
-project repository.
+session with accumulated context than to switch between
+systems. Interaction histories with both LLMs are haphazardly preserved
+in the project's repo on GitHub.
 
 %% ============================================================
 \section{Reflections: IPL, Lisp, and the Arc of AI}
 \label{sec:reflections}
 %% ============================================================
 
-I have been programming in Lisp for fifty years. For most of that
-time, I attributed the genius of Lisp entirely to John McCarthy. One
-of the most valuable outcomes of this project has been a revision of
-that understanding.
-
-Building an IPL-V interpreter revealed that Newell, Simon, and Shaw
-had, by the late 1950s, already invented essentially every conceptual
-element that makes Lisp powerful: list manipulation, symbol processing,
-the idea that programs are themselves lists, dynamic memory allocation,
+I have been programming in Lisp for fifty years. Building an IPL-V
+interpreter taught me that Newell, Simon, and Shaw had, by the late
+1950s, already invented essentially every conceptual element that
+makes Lisp powerful: list manipulation, symbol processing, the idea
+that programs are themselves lists, dynamic memory allocation,
 recursion, higher-order functions, generators, and even the
-possibility of runtime self-modification. What they lacked were the
-all-important homoiconic syntax---the unification of code and data in
-a single parenthesized notation that makes Lisp programs manipulable
-by Lisp programs---and automatic garbage collection.
-
-This is not to diminish McCarthy's contribution, which was genuinely
-brilliant. But it reframes the standard narrative. McCarthy's genius
-was not in inventing list processing \textit{ex nihilo}, but in
-finding the syntactic and runtime forms that made these ideas---ideas
-that Newell, Simon, and Shaw had already developed---elegant and
-accessible. IPL-V and Lisp coexisted for approximately five years, but
-Lisp was so much simpler and more expressive that it rapidly
-supplanted its ancestor.
+possibility of runtime self-modification (which, to be perfectly
+honest, all machine-level languages have -- a capability lost in most
+higher level languages, except for Lisp). What IPL lacks is the
+elegant, lambda-calculus based homoiconic syntax---the elegant
+unification of code and data in a single notation that makes Lisp
+programs manipulable by Lisp programs.  IPL-V and Lisp coexisted for
+approximately five years, but Lisp was so much simpler and more
+expressive that it rapidly supplanted its ancestor. (And, of course,
+even early Lisps had automatic garbage collection, also invented by
+McCarthy (!), which makes programming tolerable, albeit at the cost
+of some predictability in terms of performance.)
 
 There is a personal dimension to this realization that bears on the
 nature of the project itself. I studied under both Newell and Simon at
 Carnegie Mellon University in the 1980s, where my work focused on
-modeling the cognition underlying scientific and engineering
-reasoning. IPL and LT were long since history by that time, and I
-never discussed either with them---we barely learned about these
+modeling the cognition of scientists and engineers. IPL and LT were
+long since history by that time; I unfortunately never discussed
+either with either Simon or Newell---we barely learned about these
 pioneering efforts in our classes. But the intellectual values they
 instilled---rigor about mechanism, respect for the complexity of
 cognition, and the conviction that thinking could be understood
 computationally---shaped the rest of my career. Now, at the end of
 that career, I find myself studying Newell, Simon, and Shaw
-\textit{as} scientist-engineers: reconstructing their reasoning,
-reverse-engineering their design decisions, and trying to understand
+\textit{as} scientist-engineers: reverse-engineering their design
+decisions, reconstructing their reasoning, and trying to understand
 how they invented AI and cognitive science. The subject of my
 training---the cognition of scientists and engineers---and its object
-have folded into each other.
+have folded into one another.
 
 %% ============================================================
-\section{Related Work}
+\section{Contribution and Related Work}
 \label{sec:related}
 %% ============================================================
 
@@ -773,17 +768,17 @@ specification in a modern language.
 Reimplementing the Logic Theorist's \textit{algorithms} in a modern
 language is a relatively straightforward exercise---essentially an
 introductory AI course project, and one that has surely been done many
-times. A 1968 paper, for example, describes a reimplementation in
+times. A 1968 paper, for example, describes an implementation of LT in
 LISP~1.5~\cite{millstein1968logic}. The present work is a
 fundamentally different undertaking: rather than rewriting LT's logic
 in a modern language, it constructs a faithful emulator of the IPL-V
 abstract machine and runs the original code, transcribed directly from
 a 1963 technical report. The distinction is significant: a Lisp
 reimplementation demonstrates that LT's algorithms can be expressed in
-Lisp (which is unsurprising), while the present work demonstrates
-that the original IPL-V code, as written by Newell, Simon, and Shaw's
-team, still functions correctly when provided with a faithful
-implementation of the machine it was designed for.
+Lisp (which is unsurprising), while the present work demonstrates that
+the original IPL-V code, as written by Newell, Simon, and Shaw's team,
+functions as described, and, moreover, enables us to perform
+experiments on the real, working system of machine and program.
 
 %% ============================================================
 \section{Next Steps}
@@ -798,27 +793,24 @@ targets are the General Problem Solver (GPS)~\cite{newell1959gps} and
 EPAM (Elementary Perceiver and
 Memorizer)~\cite{feigenbaum1961epam}. EPAM source code is available in
 the Feigenbaum archives at Stanford, and archival work to locate
-complete source code for GPS is planned for spring 2026. Now that a
-proven IPL-V interpreter exists, running these programs should require
+complete source code for GPS is in progress. Now that a proven IPL-V
+interpreter exists, running these programs should require
 substantially less effort than the initial construction of the
 interpreter itself.
 
-The interpreter, the transcribed LT code, and the complete LLM
-interaction histories are available as open source at
-\url{https://github.com/jeffshrager/IPL-V}.
+The interpreter, the transcribed LT code, complete outputs as
+described in this paper, as well as partial LLM interaction histories
+are open sourced at \url{https://github.com/jeffshrager/IPL-V}.
 
 %% ============================================================
 \section*{Acknowledgements}
 %% ============================================================
 
-This paper was written with the aid of various LLMs, but all concepts
-and final editorial decisions were the author's alone.
-
 The following people contributed to this project in ways ranging from
 code transcription to weekly encouragement: Anthony Hay, Arthur
 Schwarz, Leigh Klotz, David M.\ Berry, Rupert Lane, Amy Majczyk,
 Ethan Ableman, and Paul McJones. I am particularly grateful to Hay,
-Schwarz, Klotz, and Berry, who received weekly progress updates
+Schwarz, Klotz, and Berry, who put up with weekly progress updates
 throughout the project and responded with encouragement that was
 always helpful and sometimes technically substantive. Rupert Lane's
 gridlock software caught several transcription errors that had
@@ -833,67 +825,90 @@ whom I studied at CMU in the 1980s. The subject of that
 training---the cognition of scientists and engineers---has, in this
 project, become inseparable from its object.
 
+{\footnotesize This paper was written with the aid of various LLMs, but all concepts
+and final editorial decisions were the author's alone.}
+
 \begin{thebibliography}{99}
 
-\bibitem{LT1956a} A. Newell, and H. A. Simon, \textit{The Logic Theory Machine -- A Complex Information Processing System}, RAND Corp., Santa Monica, CA, USA, Rep. P-868, 1956.
+\bibitem{LT1956a} A. Newell, and H. A. Simon, \textit{The Logic Theory
+  Machine -- A Complex Information Processing System}, RAND Corp.,
+  Santa Monica, CA, USA, Rep. P-868, 1956.
 
-\bibitem{LT1957} A. Newell, J. C. Shaw, and H. A. Simon, ``Empirical explorations with the logic theory machine: A case study in heuristics,'' in \textit{Proc. Western Joint Comput. Conf.}, 1957, pp. 218--230.
+\bibitem{LT1957} A. Newell, J. C. Shaw, and H. A. Simon, ``Empirical
+  explorations with the logic theory machine: A case study in
+  heuristics,'' in \textit{Proc. Western Joint Comput. Conf.}, 1957,
+  pp. 218--230.
 
-\bibitem{whitehead1910principia}
-A. N. Whitehead and B. Russell, \textit{Principia Mathematica}. Cambridge, UK: Cambridge Univ. Press, 1910--1913.
+\bibitem{whitehead1910principia} A. N. Whitehead and B. Russell,
+  \textit{Principia Mathematica}. Cambridge, UK: Cambridge
+  Univ. Press, 1910--1913.
 
-\bibitem{newell1964ipl}
-A. Newell, Ed., \textit{Information Processing Language-V Manual}, 2nd ed. Englewood Cliffs, NJ, USA: Prentice-Hall, 1964.
+\bibitem{newell1964ipl} A. Newell, et al. \textit{Information
+  Processing Language-V Manual}, 2nd ed. Englewood Cliffs, NJ, USA:
+  Prentice-Hall, 1964.
 
-\bibitem{mccarthy1960lisp}
-J. McCarthy, ``Recursive functions of symbolic expressions and their computation by machine, Part I,'' \textit{Commun. ACM}, vol. 3, no. 4, pp. 184--195, Apr. 1960.
+\bibitem{mccarthy1960lisp} J. McCarthy, ``Recursive functions of
+  symbolic expressions and their computation by machine, Part I,''
+  \textit{Commun. ACM}, vol. 3, no. 4, pp. 184--195, Apr. 1960.
 
-\bibitem{ibsys}
-R. Storey, ``B7094'' [Online]. Available: \url{https://github.com/Bertoid1311/B7094} (Accessed: Mar. 11, 2026).
+\bibitem{ibsys} R. Storey, ``B7094'' [Online]. Available:
+  \url{https://github.com/Bertoid1311/B7094} (Accessed: Mar. 11,
+  2026).
 
-\bibitem{stefferud1963lt}
-E. Stefferud, ``The Logic Theory Machine: A Model Heuristic Program,'' RAND Corp., Santa Monica, CA, USA, Rep. RM-3731-CC, 1963.
+\bibitem{stefferud1963lt} E. Stefferud, ``The Logic Theory Machine: A
+  Model Heuristic Program,'' RAND Corp., Santa Monica, CA, USA,
+  Rep. RM-3731-CC, 1963.
 
-\bibitem{lane2025eliza}
-R. Lane, A. Hay, A. Schwarz, D. M. Berry, and J. Shrager, ``ELIZA Reanimated: Restoring the mother of all chatbots to one of the world's first time-sharing systems,'' \textit{IEEE Ann. Hist. Comput.}, vol. 47, no. 1, pp. 8--23, 2025.
+\bibitem{lane2025eliza} R. Lane, A. Hay, A. Schwarz, D. M. Berry, and
+  J. Shrager, ``ELIZA Reanimated: Restoring the mother of all chatbots
+  to one of the world's first time-sharing systems,'' \textit{IEEE
+    Ann. Hist. Comput.}, vol. 47, no. 1, pp. 8--23, 2025.
 
-\bibitem{gruenberger1968johnniac}
-F. Gruenberger, ``The History of the JOHNNIAC,'' RAND Corp., Santa Monica, CA, USA, Rep. RM-5654-PR, 1968.
+\bibitem{gruenberger1968johnniac} F. Gruenberger, ``The History of the
+  JOHNNIAC,'' RAND Corp., Santa Monica, CA, USA, Rep. RM-5654-PR,
+  1968.
 
-\bibitem{mccorduck2004machines}
-P. McCorduck, \textit{Machines Who Think}, 2nd ed. Natick, MA, USA: A. K. Peters, 2004.
+\bibitem{mccorduck2004machines} P. McCorduck, \textit{Machines Who
+  Think}, 2nd ed. Natick, MA, USA: A. K. Peters, 2004.
 
-\bibitem{bochannek2012simonsjs}
-A. Bochannek, ``Simon’s J’s,'' Computer History Museum Blog, Sep. 26, 2012. [Online]. Available: \url{https://computerhistory.org/blog/simons-js/} (Accessed: Mar. 11, 2026).
+\bibitem{bochannek2012simonsjs} A. Bochannek, ``Simon’s J’s,''
+  Computer History Museum Blog, Sep. 26, 2012. [Online]. Available:
+  \url{https://computerhistory.org/blog/simons-js/} (Accessed:
+  Mar. 11, 2026).
 
-\bibitem{lane2024gridlock}
-R. Lane, ``Gridlock: Accurate code extraction from PDFs,'' 2024. [Online]. Available: \url{https://github.com/rupertl/gridlock}
+\bibitem{lane2024gridlock} R. Lane, ``Gridlock: Accurate code
+  extraction from PDFs,'' 2024. [Online]. Available:
+  \url{https://github.com/rupertl/gridlock}
 
-\bibitem{millstein1968logic}
-J. S. Millstein, ``The Logic Theorist in LISP,'' \textit{Comput. J.}, vol. 11, no. 1, pp. 39--44, Feb. 1968.
+\bibitem{millstein1968logic} J. S. Millstein, ``The Logic Theorist in
+  LISP,'' \textit{Comput. J.}, vol. 11, no. 1, pp. 39--44, Feb. 1968.
 
-\bibitem{newell1959gps}
-A. Newell, J. C. Shaw, and H. A. Simon, ``Report on a general problem-solving program,'' in \textit{Proc. Int. Conf. Inform. Process.}, 1959, pp. 256--264.
+\bibitem{newell1959gps} A. Newell, J. C. Shaw, and H. A. Simon,
+  ``Report on a general problem-solving program,'' in
+  \textit{Proc. Int. Conf. Inform. Process.}, 1959, pp. 256--264.
 
-\bibitem{feigenbaum1961epam}
-E. A. Feigenbaum, ``The simulation of verbal learning behavior,'' in \textit{Proc. Western Joint Comput. Conf.}, 1961, pp. 121--132.
+\bibitem{feigenbaum1961epam} E. A. Feigenbaum, ``The simulation of
+  verbal learning behavior,'' in \textit{Proc. Western Joint
+    Comput. Conf.}, 1961, pp. 121--132.
 
-\bibitem{richman1995epam}
-H. B. Richman, J. J. Staszewski, and H. A. Simon, ``Simulation of expert memory using EPAM IV,'' \textit{Psychol. Rev.}, vol. 102, no. 2, pp. 305--330, 1995.
+\bibitem{richman1995epam} H. B. Richman, J. J. Staszewski, and
+  H. A. Simon, ``Simulation of expert memory using EPAM IV,''
+  \textit{Psychol. Rev.}, vol. 102, no. 2, pp. 305--330, 1995.
 
-\bibitem{runoutput}
-J. Shrager, Output from the reanimated logic theorist, [Online]. Available: \url{https://github.com/jeffshrager/IPL-V/blob/master/major_results/20260309_CompleteAndCorrect.drb} (Accessed: Mar. 11, 2026).
+\bibitem{runoutput} J. Shrager, Output from the reanimated logic
+  theorist, [Online]. Available:
+  \url{https://github.com/jeffshrager/IPL-V/blob/master/major_results/20260309_CompleteAndCorrect.drb}
+  (Accessed: Mar. 11, 2026).
 
 \end{thebibliography}
 
 \appendix
 \section{Example Complex Logic Theorist Proof}
 
-To illustrate the form of proofs generated by the reconstructed Logic
-Theorist, I present a representative derivation produced by the
-system. The example corresponds to theorem *4.25 of \emph{Principia
-Mathematica}. The original output, including this proof, is found at
-\cite{runoutput}.
+To illustrate a complex proof generated by the reconstructed Logic
+Theorist, the below is the derivation corresponding to theorem *4.25
+of \emph{Principia Mathematica}. The original output, including this
+proof, can be found at \cite{runoutput}.
 
 \[
 P = (P \vee P)
@@ -971,10 +986,5 @@ P = (P \vee P).
 \]
 
 \end{enumerate}
-
-This derivation matches the structure of the proof trace produced by
-the reconstructed Logic Theorist and illustrates the typical reasoning
-pattern of the system: instantiation of axiom schemas by substitution,
-followed by definitional rewriting to obtain the target formula.
 
 \end{document}
