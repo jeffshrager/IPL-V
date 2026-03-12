@@ -18,7 +18,7 @@
 
 \begin{document}
 
-\title{The Logic Theorist Proves Again: Reanimating the First AI from its Original IPL-V Code}
+\title{Executable Archaeology: Reanimating the Logic Theorist from its IPL-V Source}
 
 \author{Jeff~Shrager,~Ph.D.\\
 Bennu Climate, Inc.\\
@@ -124,16 +124,24 @@ reanimated LT proves 16 of 23 attempted theorems from
 \textit{Principia Mathematica}, with results that are historically
 consistent with the original system's known behavior.
 
-This work continues a program of reanimating foundational AI and
-cognitive science programs on their original platforms. In prior work,
-a team including the present author restored Weizenbaum's original
-ELIZA to operation on a reconstructed CTSS running on an emulated IBM
-7094~\cite{lane2025eliza}. Although the Logic Theorist and ELIZA
-addressed very different problems---formal theorem proving and
-natural-language conversation---both programs emerged from the same
-symbolic programming lineage originating in IPL and later realized in
-Lisp and related list-processing systems. Each can be understood as a
-rule-based control system operating over symbolic list structures.
+This work illustrates a broader methodological approach that might be
+called \emph{executable archaeology}: the study of historically
+significant computational systems through faithful reconstruction and
+execution of their original code. Early AI programs were not merely
+theoretical proposals but functioning machines whose behavior often
+cannot be fully understood from published descriptions
+alone. Reanimating such systems provides a new empirical window into
+the origins of artificial intelligence.
+
+In prior work, a team including the present author restored
+Weizenbaum's original ELIZA to operation on a reconstructed CTSS
+running on an emulated IBM 7094~\cite{lane2025eliza}. Although the
+Logic Theorist and ELIZA addressed very different problems---formal
+theorem proving and natural-language conversation---both programs
+emerged from the same symbolic programming lineage originating in IPL
+and later realized in Lisp and related list-processing systems. Each
+can be understood as a rule-based control system operating over
+symbolic list structures.
 
 The present project differs from the ELIZA reanimation in both method
 and character: where the ELIZA work reconstructed an entire hardware
@@ -328,7 +336,7 @@ JOHNNIAC specific. Also, no thorough JOHNNIAC emultor exists, and in
 any case we do not have the JOHNNIAC IPL code. An IBM 7094 emulator by
 David Pitts includes an IPL-V binary interpreter running under a
 variant of the IBSYS batch operating system,\footnote{Available at
-\url{https://www.cozx.com/dpitts/ibm7090.html}.  Unfortunately, that
+\url{https://www.cozx.com/dpitts/ibm7090.html}}.  Unfortunately, that
 interpreter is binary with no source code and no documentation. I
 ttempted to run our transcribed LT on this platform, but it failed
 early in execution, and because there is no source code it is
@@ -716,6 +724,14 @@ have folded into each other.
 \section{Related Work}
 \label{sec:related}
 %% ============================================================
+
+This paper makes three contributions:
+
+\begin{enumerate}
+\item A working interpreter for IPL-V implemented in Common Lisp.
+\item The successful execution of the Logic Theorist from Stefferud’s IPL-V source listing, likely the first such execution in over fifty years.
+\item A demonstration of executable reconstruction as a method for studying early AI systems.
+\end{enumerate}
 
 The reanimation of historical software systems has gained momentum in
 recent years. Most directly related is the ELIZA reanimation by Lane
