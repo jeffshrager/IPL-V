@@ -22,7 +22,7 @@
 
 \author{Jeff~Shrager,~Ph.D.\\
 Bennu Climate, Inc.\\
-\texttt{jeff@shrager.org}}
+\texttt{jshrager@gmail.com}}
 
 \maketitle
 
@@ -80,7 +80,7 @@ authors.  For Theorem~2.85, LT discovered a shorter, more direct proof
 than the one published in \textit{Principia}.  Simon showed the new
 proof to Bertrand Russell himself, who ``responded with
 delight''~\cite[p.~167]{mccorduck2004machines}. Edward Feigenbaum,
-then an undergraduate taking a graduate course from Simon at GSIA,
+then an undergraduate taking a graduate course from Simon,
 recalls the moment the project's significance was first announced. As
 he later told Pamela McCorduck: ``It was just after Christmas
 vacation---January 1956---when Herb Simon came into the classroom and
@@ -121,36 +121,30 @@ from code transcribed directly from Stefferud's 1963 RAND technical
 report~\cite{stefferud1963lt}. More than 99\% of the LT code running
 in this reconstruction is the original code from that report. The
 reanimated LT proves 16 of 23 attempted theorems from
-\textit{Principia Mathematica}, with results that are historically
-consistent with the original system's known behavior.
+\textit{Principia Mathematica}, results that are historically
+consistent with the original LT's known behavior.
 
-This work illustrates a broader methodological approach that might be
-called \emph{executable archaeology}: the study of historically
-significant computational systems through faithful reconstruction and
-execution of their original code. Early AI programs were not merely
-theoretical proposals but functioning machines whose behavior often
-cannot be fully understood from published descriptions
-alone. Reanimating such systems provides a new empirical window into
-the origins of artificial intelligence.
+This work illustrates a methodological approach that might be called
+\emph{executable archaeology}: the study of historically significant
+computational systems through faithful reconstruction and execution of
+their original code. Early AIs were not merely theoretical proposals
+but functioning programs whose detailed behavior cannot be fully
+understood from published descriptions alone. Reanimating such systems
+provides a new empirical window into the origins of artificial
+intelligence.
 
 In prior work, a team including the present author restored
 Weizenbaum's original ELIZA to operation on a reconstructed CTSS
 running on an emulated IBM 7094~\cite{lane2025eliza}. Although the
 Logic Theorist and ELIZA addressed very different problems---formal
-theorem proving and natural-language conversation---both programs
+theorem proving versus natural-language conversation---both programs
 emerged from the same symbolic programming lineage originating in IPL
 and later realized in Lisp and related list-processing systems. Each
 can be understood as a rule-based control system operating over
-symbolic list structures.
-
-The present project differs from the ELIZA reanimation in both method
-and character: where the ELIZA work reconstructed an entire hardware
-and operating system stack, the LT reanimation emulates the abstract
-IPL-V machine in its direct descendant language, Common Lisp. And
-where ELIZA was a team effort, the LT project was largely a solo
-endeavor---albeit one in which large language models played an
-unexpectedly essential role at a critical juncture, as described in
-Section~\ref{sec:debugging}.
+symbolic list structures. However, whereas the ELIZA work rested on a
+stack that emulated vintage hardware and operating systems, the LT
+reanimation emulates the abstract IPL-V machine.\Footnote{Ironically, in
+IPL's direct descendant language, Common Lisp.}
 
 %% ============================================================
 \section{Historical Background}
@@ -190,7 +184,7 @@ memorandum, represents a third distinct phase.  Stefferud's version
 was a pedagogical re-coding of the original heuristic logic into
 IPL-V, the first version of the language made widely available for
 public use.  Thus, while our reanimation is a faithful execution of
-the original code published by the RAND team, it is a restoration of
+original code published by the RAND team, it is a restoration of
 the 1963 ``modernized'' version of the 1956 conceptual model.
 
 \begin{table}[h]
@@ -214,44 +208,48 @@ To implement LT, Newell, Shaw, and Simon needed a programming language
 suited to symbolic reasoning.  No such language existed, so they
 created the ``Information Processing Language.''  As noted, IPL went
 through several iterations.  While the earliest conceptual versions
-(IPL-I and IPL-II) powered the 1956 simulations and 1957 JOHNNIAC
-runs, IPL-V, released in 1964, was the version that became the
-definitive public standard~\cite{newell1964ipl}.
+(IPL-I and IPL-II) powered the 1956 hand simulations and subsequent
+JOHNNIAC runs, IPL-V, released in the early 1960s~\cite{newell1964ipl}, was the version
+that became the definitive public standard.
 
-IPL-V runs on an abstract machine organized around \textit{cells}\dots
-Each cell has an associated symbol, and any cell can be pushed onto or
-popped from any other cell acting as a stack head---there is no single
-distinguished stack. Symbols are central to IPL-V: they are
-first-class objects, and every data structure, routine, and control
-element is a named, addressable cell. A set of control cells (H0--H5)
-govern execution: H0 serves as the parameter and result cell, H1 as
-the program counter with its associated call stack, H2 as the free
-list, and H3 as a cycle counter. Ten working cells (W0--W9) provide
-scratch storage. Everything in IPL-V---data, routines, even the
-program itself---is a list of symbols. Routines are invoked by
-executing their name as an instruction; the machine traverses the list
-associated with that name, interpreting each cell as an instruction.
+IPL-V runs on an abstract machine organized around \textit{cells}.
+Each cell has an associated symbol. There is no single distinguished
+stack; every cell is potentially a stack of symbols that can be pushed
+and popped. Symbols are central to IPL-V: they are first-class
+objects, and every cell, data structure, routine, and control element
+is addressable by a symbol (it's name). A set of control cells
+(H0--H5) govern execution: H0 serves as the parameter and result
+``communication'' cell, H1 serves as both program counter and call
+stack, H2 is the free list for dynamic memory allocation, and H3 is
+the cycle counter. Ten working cells (W0--W9) provide scratch
+storage. Everything in IPL-V---data, routines, even the program
+itself---is a list of cells, and thus also a list of symbols. Routines
+are invoked by pushing their symbol (name) onto H1. The IPL machine
+interprets the operation indicated in that cell, and then continue to
+whatever is the indicated next cell. Elegantly, beacuse H1 is both
+program counter and call stack, no special machinery is required to
+operate the machine aside from basic stack manipulation
+instructions.
 
 The language's built-in operations are called J-functions (because
 their names begin with ``J'': J0, J1, J2, and so on). There are
 approximately 150 of these, implementing operations from basic list
-manipulation to generator protocols (a form of lazy iteration that
-anticipates modern iterators). In the original IPL-V, many J-functions
-were themselves written in IPL, although some required machine-level
-primitives.
+manipulation to ``generator'' (iterator) protocols. In the original
+IPL-V, many J-functions were themselves written in IPL, although some
+were implemented at real machine-level.
 
-As mentioned above, IPL was explicitly the direct ancestor of
+As mentioned above, IPL was an explicit direct ancestor of
 Lisp~\cite{mccarthy1960lisp}. It introduced list and symbol
 manipulation, the idea that programs are themselves lists, dynamic
 memory allocation, recursion, and higher-order functions. Having now
 spent months implementing an IPL-V interpreter, I can report that IPL
 had essentially \textit{everything} that Lisp has, with two critical
-exceptions: homoiconic syntax and automatic garbage collection. Where
-Lisp unified code and data in a single, elegant, parenthesized
-notation, IPL expressed its ideas in an assembly-language style that,
-while powerful, was far more difficult to read and write. And where
-Lisp introduced garbage collection to automate memory reclamation, IPL
-required explicit management of the free list.
+exceptions: homoiconic syntax, and automatic garbage collection. Where
+Lisp unified code and data in a single, elegant notation, IPL code was
+expressed in an assembly-language style which, while powerful, was far
+more difficult to read and write. And where Lisp introduced garbage
+collection to automate memory reclamation, IPL required explicit
+management of free storage.
 
 It is worth noting that IPL-V programs could, in principle, modify
 their own code at runtime---the same self-modification capability for
@@ -263,10 +261,9 @@ syntax, but the capability was there. McCarthy's genius was not in
 inventing list processing \textit{de novo}, but in finding the
 syntactic and runtime forms that made these ideas---ideas that Newell,
 Simon, and Shaw had already developed---elegant, accessible, and
-practical. Having programmed in Lisp for fifty years and attributed
-its brilliance entirely to McCarthy, building this interpreter gave me
-a deepened appreciation for Newell, Simon, and Shaw's foundational
-contributions.
+practical. Having programmed in Lisp for fifty years, building this
+interpreter gave me a deepened appreciation for Newell, Simon, and
+Shaw's foundational contributions.
 
 %% ============================================================
 \section{Source Materials and Transcription}
@@ -276,20 +273,20 @@ contributions.
 Unlike the ELIZA reanimation, which began with the dramatic discovery
 of original source code printouts in Weizenbaum's archives at
 MIT~\cite{lane2025eliza}, the source materials for the Logic Theorist
-were already publicly available, if not widely known. Two documents
-were indispensable:
+were already publicly available. Two documents were indispensable:
 
 \begin{enumerate}
 \item \textbf{Stefferud (1963)}, \textit{The Logic Theory Machine: A
   Model Heuristic Program}, RAND Corporation memorandum
   RM-3731~\cite{stefferud1963lt}. This report contains a complete
   listing of the LT program in IPL-V, along with detailed descriptions
-  of its M-routines (the main heuristic procedures).
+  of every aspect of LT's workings, including numerous flow charts.
 
 \item \textbf{Newell et al.\ (1964)}, \textit{Information Processing
-  Language-V Manual}, 2nd edition~\cite{newell1964ipl}. The
-  definitive reference for IPL-V, including the semantics of all
-  J-functions, cell structure conventions, and the generator protocol.
+  Language-V Manual}, 2nd edition~\cite{newell1964ipl}. The definitive
+  reference for IPL-V, including the semantics of all J-functions,
+  cell structure conventions, and the generator protocol, as well as
+  numerous student exercises and sample programs.
 \end{enumerate}
 
 Both documents proved to be exceptionally well-written. There were,
@@ -303,7 +300,10 @@ identified several transcription errors using his ``gridlock''
 tool~\cite{lane2024gridlock}, software designed to accurately extract
 tabular code from PDF documents. Despite multiple people putting
 multiple sets of eyes on the code, a surprising number of small
-transcription errors persisted through several rounds of review.
+transcription errors persisted through numerous rounds of
+review.\footnote{I probably shouldn't have been surprised by this
+given the number of typos that have persisted through numerous rounds
+of review of this paper!}
 
 The transcribed code was converted into an S-expression format
 (\texttt{.liplv} files) suitable for loading by the Lisp-based
@@ -311,7 +311,7 @@ interpreter. Conveniently, Lisp comment characters work in these
 files, allowing corrections and annotations to be documented inline.
 
 %% ============================================================
-\section{A New IPL-V Interpreter (In Lisp!)}
+\section{A New IPL-V Interpreter in Lisp}
 \label{sec:interpreter}
 %% ============================================================
 
@@ -320,7 +320,7 @@ listing. The interpreter implements the symbolic data structures and
 execution model described in the IPL-V manual and supports the
 primitives required by the program. Although the earliest versions of
 the Logic Theorist ran on the RAND JOHNNIAC, by the time the Stefferud
-listing used here was published (1963) IPL-V had already been
+listing, used here, was published (1963) IPL-V had already been
 implemented on multiple machines. Accordingly, this reconstruction
 executes the program within a machine-independent IPL-V interpreter
 rather than attempting to reproduce a specific JOHNNIAC hardware
@@ -337,11 +337,10 @@ and in any case we do not have the JOHNNIAC IPL code. There does exist
 an IBM 7094 emulator that includes an IPL-V interpreter running under
 a variant of the IBSYS batch operating system \cite{ibsys}, and this
 emulator includes demo scripts for IPL-V. However, this IPL-V
-interpreter is a binary with no source code and no documentation on
-usage or runtime options. I attempted to run LT on this platform but
-it failed early in execution with no useful information about the
-cause. Because there is no source code, the failure was essentially
-undebuggable.
+interpreter is a binary with no source code and no documentation. I
+attempted to run LT on this platform but it failed early in execution
+with no useful information about the cause. Because there is no source
+code, this failure was essentially undebuggable.
 
 More fundamentally, however, one of my central goals in undertaking
 this project was not merely to get LT to run, but to
@@ -350,10 +349,9 @@ language, the machine model, and the infrastructure of the
 period. Writing my own interpreter was essential to that goal. IPL-V
 is defined as an abstract machine specification, not as a program for
 a specific computer; it was implemented on many different machines
-through the mid-1960s before being supplanted by Lisp.
-
-In addition there is a pleasing circularity in implementing
-IPL-V---Lisp's direct ancestor---in Lisp itself.
+through the mid-1960s before being supplanted by Lisp.\footnote{In
+addition there is a pleasing circularity in implementing
+IPL-V---Lisp's direct ancestor---in Lisp itself.}
 
 My interpreter (\texttt{iplv.lisp}) implements the complete IPL-V
 abstract machine as described in the 1964 manual: the cell table, the
@@ -364,25 +362,25 @@ itself implemented as linked lists within the IPL-V system. Push and
 pop operations, which appear to be hardware primitives of the abstract
 machine, are internally built on the same list mechanism that
 underlies everything else in IPL-V, including data structures,
-routines, and the program itself. IPL-V is, in a very real sense,
-lists all the way down.
+routines, and IPL programs themselves; like Lisp, IPL-V is lists all
+the way down.
 
-The core of my interpreter is a function, \texttt{ipl-eval}, which
-fetches and executes instructions by traversing the list named in the
-program counter (H1). \texttt{ipl-eval} is re-entrant, supporting the
-recursive subroutine calls that IPL-V requires. The J-functions are
-implemented as Lisp functions dispatched by name. While the
-interpreter implements the full IPL-V machine model, only the subset
-of J-functions required by LT (and a few test programs) is currently
-implemented, amounting to several dozen of the approximately 150
-defined in the manual.
+The core of my interpreter is a function, \texttt{ipl-eval}, that
+fetches and executes instructions by executing the list named in the
+program counter (H1). My IPL evaluator is re-entrant -- a capability
+trivially implementable in Lisp -- supporting the recursive calls that
+IPL-V requires. The J-functions are implemented as Lisp
+functions. While the interpreter implements the full IPL-V machine,
+only the subset of J-functions required by LT (and a few test
+programs) is currently implemented, amounting to several dozen of the
+approximately 150 defined in the manual.
 
-A complete run of LT --- attempting proofs of 23 theorems, available
-at \cite{runoutput} --- takes approximately 574,000 IPL machine cycles,
-creating over 576,000 symbols\footnote{Yeah, I was surprised too. It's
-really just a coincidence!}, and finishes in a few seconds on a
-typical modern laptop. On the JOHNNIAC at RAND in 1956, this likely
-would have required hours.
+A complete run of LT attempting proofs of 23 theorems is available at
+\cite{runoutput}. This takes approximately 574,000 IPL machine cycles
+and creates over 576,000 symbols\footnote{Yeah, I was surprised
+too. It's really just a coincidence!}. It finishes in a few seconds on
+a typical modern laptop. On the JOHNNIAC at RAND, in the mid 1950s,
+this likely would have required hours.
 
 %% ============================================================
 \section{What the Logic Theorist Proves}
@@ -427,23 +425,51 @@ LT employs several proof methods:
   known equivalence.
 \end{itemize}
 
-Each proof attempt is bounded by an effort limit of 20,000 IPL
-machine cycles. This is a soft cap: it prevents the system from
+Each proof attempt is bounded by a settable effort limit in terms of
+IPL machine cycles. (In all below examples this limit is set to 20,000
+cycles.) This is a soft cap: it prevents the system from
 \textit{beginning} a new subproblem exploration once exceeded, but
-cannot interrupt an in-progress search.
+it does interrupt a search that is in progress.
 
-Table~\ref{tab:results} shows the results of my reanimated LT on the
-23 theorems attempted. Of these, 16 are proved and 7 are not---results
-that are historically consistent with the original LT's known behavior
-within its search effort limits.
+Table~\ref{tab:axioms} shows the axioms and definitions that are
+initially provided to LT for the runs described in the present
+paper. Importantly, as LT proves a given theorem, that theorem is
+treated as an axiom and can be used to support subsequent
+proofs. Thus, LT can be said, in a sense, to learn!
 
 \begin{table}[h]
 \centering
-\caption{Theorems attempted by the reanimated Logic Theorist}
+\caption{Axioms and definitions}
+\label{tab:results}
+\begin{tabular}{ll}
+\toprule
+\textbf{Name} & \textbf{Axiom/Def}\\
+\midrule
+1.01  & \texttt{((PIQ).=.(-PVQ))}\\
+2.33  & \texttt{((PVQVR).=.((PVQ)VR))}\\
+3.01  & \texttt{((P*Q).=.-(-(PV-Q))}\\
+4.01  & \texttt{((P=Q).=.((PIQ)*(QIP)))}\\
+1.2   & \texttt{((AVA)IA)}\\
+1.3   & \texttt{(BI(AVB))}\\
+1.4   & \texttt{((AVB)I(BVA))}\\
+1.5   & \texttt{((AV(BVC))I(BV(AVC)))}\\
+1.6   & \texttt{((BIC)I((AVB)I(AVC)))}\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:results} shows the results of my reanimated LT on the
+23 theorems attempted. Of these, 16 are proved and 7 are not---results
+that are historically consistent with the original LT's known
+behavior, given an effort limit of 20,000 IPL machine cycles.
+
+\begin{table}[h]
+\centering
+\caption{Theorems attempted}
 \label{tab:results}
 \begin{tabular}{lll}
 \toprule
-\textbf{Thm.} & \textbf{Formula} & \textbf{Result} \\
+\textbf{Name} & \textbf{Formula} & \textbf{Result} \\
 \midrule
 2.01 & \texttt{(PI-P)I-P} & Proved \\
 2.02 & \texttt{QI(PIQ)} & Proved \\
