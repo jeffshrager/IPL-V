@@ -324,27 +324,26 @@ I chose to emulate the IPL-V abstract machine, rather than emulating
 the original hardware environment (as was done for ELIZA on the IBM
 7094 and CTSS~\cite{lane2025eliza}), for several reasons. First, as
 mentioned just above, the code I am using is IPL-V, and so is not
-JOHNNIAC specific. Also, no fullsome emulator of the JOHNNIAC exists,
-and in any case we do not have the JOHNNIAC IPL-V interpreter's
-code. While an IBM 7094 emulator by David Pitts does include an IPL-V
-binary interpreter running under a variant of the IBSYS batch
-operating system,\footnote{Available at
-\url{https://www.cozx.com/dpitts/ibm7090.html}. That emulator includes
-demo scripts for IPL-V, but the interpreter is a binary with no source
-code and no documentation on usage or runtime options.} I actually
-attempted to run LT on this platform, but it failed early in
-execution, and because there is no source code, the failure was
-undebuggable.
+JOHNNIAC specific. Also, no thorough JOHNNIAC emultor exists, and in
+any case we do not have the JOHNNIAC IPL code. An IBM 7094 emulator by
+David Pitts includes an IPL-V binary interpreter running under a
+variant of the IBSYS batch operating system,\footnote{Available at
+\url{https://www.cozx.com/dpitts/ibm7090.html}.  Unfortunately, that
+interpreter is binary with no source code and no documentation. I
+ttempted to run our transcribed LT on this platform, but it failed
+early in execution, and because there is no source code it is
+essentially undebuggable.
 
-More fundamentally, however, the goal of this project was not merely
-to get LT to run, but to \textit{elucidate} IPL-V---to develop a deep
-understanding of the language, the machine model, and the
-infrastructure of the period. Writing my own interpreter was essential
-to that goal. Second, IPL-V is defined as an abstract machine
-specification, not as a program for a specific computer; it was
-implemented on many different machines through the mid-1960s before
-being supplanted by Lisp. Third, there is a pleasing circularity in
-implementing IPL-V---Lisp's direct ancestor---in Lisp itself.
+More fundamentally, however, one of my central goals in undertaking
+this project was not merely to get LT to run, but to
+\textit{elucidate} IPL-V---to develop a deep understanding of the
+language, the machine model, and the infrastructure of the
+period. Writing my own interpreter was essential to that goal. Second,
+IPL-V is defined as an abstract machine specification, not as a
+program for a specific computer; it was implemented on many different
+machines through the mid-1960s before being supplanted by Lisp. Third,
+there is a pleasing circularity in implementing IPL-V---Lisp's direct
+ancestor---in Lisp itself.
 
 My interpreter (\texttt{iplv.lisp}) implements the complete IPL-V
 abstract machine as described in the 1964 manual: the cell table, the
@@ -371,8 +370,9 @@ defined in the manual.
 A complete run of LT---attempting proofs of 23 theorems---takes
 approximately 574,000 IPL machine cycles, creating over 576,000
 symbols\footnote{Yeah, I was surprised too. It's really just a
-coincidence!}, and finishes in a few seconds on modern hardware. On
-the JOHNNIAC at RAND in 1956, it likely would have required hours.
+coincidence!}, and finishes in a few seconds on a typical modern
+laptop. On the JOHNNIAC at RAND in 1956, this likely would have
+required hours.
 
 %% ============================================================
 \section{What the Logic Theorist Proves}
