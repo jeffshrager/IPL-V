@@ -18,7 +18,7 @@
 
 \begin{document}
 
-\title{The Logic Theorist Proves Again: Reanimating the First AI in IPL-V}
+\title{The Logic Theorist Proves Again: Reanimating the First AI from its Original IPL-V Code}
 
 \author{Jeff~Shrager,~Ph.D.\\
 Bennu Climate, Inc.\\
@@ -41,8 +41,8 @@ heuristic logic into the standardized IPL-V. The reanimated LT
 successfully proves 16 of 23 attempted theorems from Chapter 2 of
 \textit{Principia Mathematica}, results that are historically
 consistent with the original system's behavior within its search
-limits.  To our knowledge, this is the first successful execution of
-the original Logic Theorist code in over half a century.
+limits.  To the author's knowledge, this is the first successful
+execution of the original Logic Theorist code in over half a century.
 
 \end{abstract}
 
@@ -143,11 +143,6 @@ where ELIZA was a team effort, the LT project was largely a solo
 endeavor---albeit one in which large language models played an
 unexpectedly essential role at a critical juncture, as described in
 Section~\ref{sec:debugging}.
-
-%% ============================================================
-\section{Historical Background}
-\label{sec:history}
-%% ============================================================
 
 %% ============================================================
 \section{Historical Background}
@@ -308,22 +303,38 @@ interpreter. Conveniently, Lisp comment characters work in these
 files, allowing corrections and annotations to be documented inline.
 
 %% ============================================================
-\section{The IPL-V Interpreter}
+\section{A New IPL-V Interpreter (In Lisp!)}
 \label{sec:interpreter}
 %% ============================================================
 
-Rather than emulating the original hardware environment (as was done
-for ELIZA on the IBM 7094 and CTSS~\cite{lane2025eliza}), I chose to
-emulate the IPL-V abstract machine in Common Lisp. This decision was
-driven by several considerations. First, the JOHNNIAC on which LT
-originally ran no longer exists. While an IBM 7094 emulator by David
-Pitts does include an IPL-V binary interpreter running under a variant
-of the IBSYS batch operating system,\footnote{Available at
-\url{https://www.cozx.com/dpitts/ibm7090.html}. The emulator includes
+I implemented a new IPL-V interpreter to execute the Logic Theorist
+listing. The interpreter implements the symbolic data structures and
+execution model described in the IPL-V manual and supports the
+primitives required by the program. Although the earliest versions of
+the Logic Theorist ran on the RAND JOHNNIAC, by the time the Stefferud
+listing used here was published (1963) IPL-V had already been
+implemented on multiple machines. Accordingly, this reconstruction
+executes the program within a machine-independent IPL-V interpreter
+rather than attempting to reproduce a specific JOHNNIAC hardware
+environment. The full interpreter and transcription of the Logic
+Theorist code are available in the repository associated with this
+paper.
+
+I chose to emulate the IPL-V abstract machine, rather than emulating
+the original hardware environment (as was done for ELIZA on the IBM
+7094 and CTSS~\cite{lane2025eliza}), for several reasons. First, as
+mentioned just above, the code I am using is IPL-V, and so is not
+JOHNNIAC specific. Also, no fullsome emulator of the JOHNNIAC exists,
+and in any case we do not have the JOHNNIAC IPL-V interpreter's
+code. While an IBM 7094 emulator by David Pitts does include an IPL-V
+binary interpreter running under a variant of the IBSYS batch
+operating system,\footnote{Available at
+\url{https://www.cozx.com/dpitts/ibm7090.html}. That emulator includes
 demo scripts for IPL-V, but the interpreter is a binary with no source
-code and no documentation on usage or runtime options.} I attempted to
-run LT on this system and it failed early in execution. Because there
-is no source code, the failure was essentially undebuggable.
+code and no documentation on usage or runtime options.} I actually
+attempted to run LT on this platform, but it failed early in
+execution, and because there is no source code, the failure was
+undebuggable.
 
 More fundamentally, however, the goal of this project was not merely
 to get LT to run, but to \textit{elucidate} IPL-V---to develop a deep
@@ -343,10 +354,11 @@ specified. It is worth noting that the push-down (stack) mechanism is
 itself implemented as linked lists within the IPL-V system. Push and
 pop operations, which appear to be hardware primitives of the abstract
 machine, are internally built on the same list mechanism that
-underlies everything else in IPL-V---data structures, routines, and
-the program itself. It is, in a sense, lists all the way down.
+underlies everything else in IPL-V, including data structures,
+routines, and the program itself. IPL-V is, in a very real sense,
+lists all the way down.
 
-The core of the interpreter is a function \texttt{ipl-eval}, which
+The core of my interpreter is a function, \texttt{ipl-eval}, which
 fetches and executes instructions by traversing the list named in the
 program counter (H1). \texttt{ipl-eval} is re-entrant, supporting the
 recursive subroutine calls that IPL-V requires. The J-functions are
@@ -360,7 +372,7 @@ A complete run of LT---attempting proofs of 23 theorems---takes
 approximately 574,000 IPL machine cycles, creating over 576,000
 symbols\footnote{Yeah, I was surprised too. It's really just a
 coincidence!}, and finishes in a few seconds on modern hardware. On
-the JOHNNIAC at RAND in 1956, it likely required hours.
+the JOHNNIAC at RAND in 1956, it likely would have required hours.
 
 %% ============================================================
 \section{What the Logic Theorist Proves}
@@ -410,10 +422,10 @@ machine cycles. This is a soft cap: it prevents the system from
 \textit{beginning} a new subproblem exploration once exceeded, but
 cannot interrupt an in-progress search.
 
-Table~\ref{tab:results} shows the results of the reanimated LT on the
+Table~\ref{tab:results} shows the results of my reanimated LT on the
 23 theorems attempted. Of these, 16 are proved and 7 are not---results
-that are historically consistent with the original LT's known
-behavior within its search effort limits.
+that are historically consistent with the original LT's known behavior
+within its search effort limits.
 
 \begin{table}[h]
 \centering
