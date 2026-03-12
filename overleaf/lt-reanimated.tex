@@ -28,32 +28,24 @@ Bennu Climate, Inc.\\
 
 \begin{abstract}
 
-The Logic Theorist (LT), created by Allen Newell, J.C.\ (Cliff) Shaw,
-and Herbert Simon at the RAND Corporation and Carnegie Tech in
-1955--1956, is widely regarded as the first artificial intelligence
-program. LT was implemented in the Information Processing Language
-(IPL), a list-processing language that was an explicit precursor of
-Lisp. Unlike Lisp, however, IPL has been essentially extinct for over
-half a century; no implementations are known to have survived, and no
-community of practitioners remains. Here I describe the construction
-of a new IPL-V interpreter, written in Common Lisp, and the faithful
-reanimation of the original Logic Theorist from code transcribed
-directly from Stefferud's 1963 RAND technical report. The reanimated
-LT successfully proves 16 of 23 theorems from Chapter 2 of Whitehead
-and Russell's \textit{Principia Mathematica}, results that are
-historically consistent with the original. This effort continues a
-program of reanimating foundational AI systems on their original
-platforms, following the recent restoration of Weizenbaum's ELIZA on a
-reconstructed CTSS.  A distinctive aspect of this project was the
-essential role played by large language models (LLMs) as collaborative
-debugging partners---learning an essentially dead programming language
-alongside the author, and ultimately proving indispensable in
-navigating thousands of lines of execution traces from a heuristic
-program whose correctness could not easily be verified. To our
-knowledge this is the first successful execution of the original Logic
-Theorist code in over half a century.
+The Logic Theorist (LT), created by Allen Newell, J.C. Shaw, and
+Herbert Simon in 1955--1956, is widely regarded as the first
+artificial intelligence program.  While the original conceptual model
+was described in 1956, it underwent several iterations as the
+underlying Information Processing Language (IPL) evolved.  Here I
+describe the construction of a new IPL-V interpreter, written in
+Common Lisp, and the faithful reanimation of the Logic Theorist from
+code transcribed directly from Stefferud's 1963 RAND technical report.
+Stefferud's version represents a pedagogical re-coding of the original
+heuristic logic into the standardized IPL-V. The reanimated LT
+successfully proves 16 of 23 attempted theorems from Chapter 2 of
+\textit{Principia Mathematica}, results that are historically
+consistent with the original system's behavior within its search
+limits.  To our knowledge, this is the first successful execution of
+the original Logic Theorist code in over half a century.
 
 \end{abstract}
+
 
 \begin{IEEEkeywords}
 Logic Theorist, IPL-V, artificial intelligence history, software
@@ -80,12 +72,12 @@ cognition across many domains. Samuel's effort was brilliant in its
 own right---he also built arguably the first machine learning program,
 and the first system to learn from self-play.}
 
-The Logic Theorist (LT)\cite{LT1956} had already proved 38 of the
+The Logic Theorist (LT)\cite{LT1956a} would ultimately prove 38 of the
 first 52 theorems in Chapter~2 of Whitehead and Russell's
 \textit{Principia Mathematica}~\cite{whitehead1910principia}, in some
 cases finding proofs more elegant than those produced by the human
-authors. For Theorem~2.85, LT discovered a shorter, more direct proof
-than the one published in \textit{Principia}. Simon showed the new
+authors.  For Theorem~2.85, LT discovered a shorter, more direct proof
+than the one published in \textit{Principia}.  Simon showed the new
 proof to Bertrand Russell himself, who ``responded with
 delight''~\cite[p.~167]{mccorduck2004machines}. Edward Feigenbaum,
 then an undergraduate taking a graduate course from Simon at GSIA,
@@ -107,7 +99,7 @@ the fusion of AI and cognitive psychology.
 LT was implemented in the Information Processing Language (IPL), a
 language created by the same team---Newell, Shaw, and
 Simon---specifically for building cognitive
-models~\cite{newell1961ipl}. IPL introduced list manipulation, dynamic
+models~\cite{newell1964ipl}. IPL introduced list manipulation, dynamic
 memory allocation, symbols as first-class objects, recursion, and
 higher-order functions. It was explicitly a direct ancestor of
 Lisp~\cite{mccarthy1960lisp}---McCarthy himself acknowledged IPL's
@@ -157,61 +149,82 @@ Section~\ref{sec:debugging}.
 \label{sec:history}
 %% ============================================================
 
-\subsection{The Origins of the Logic Theorist}
+%% ============================================================
+\section{Historical Background}
+\label{sec:history}
+%% ============================================================
+
+\subsection{The Origins and Versions of the Logic Theorist}
 
 The story of the Logic Theorist begins in the early 1950s at the RAND
-Corporation in Santa Monica, California. Herbert Simon, a political
-scientist consulting at RAND, saw a printer rendering a map using
-ordinary characters and realized that a machine capable of
-manipulating symbols could simulate decision-making---and perhaps
-thought itself. Allen Newell, a RAND scientist studying logistics and
-organization theory, had a complementary epiphany watching Oliver
-Selfridge present his work on pattern recognition in 1954: he saw how
-the interaction of simple programmable units could produce complex,
-intelligent behavior.
+Corporation.  Herbert Simon and Allen Newell, collaborating with
+J.C. (Cliff) Shaw, sought to simulate complex thought by manipulating
+symbols.  However, the history of the program is characterized by a
+series of shifting specifications across different versions of the
+Information Processing Language.
 
-Newell and Simon began collaborating on a program that could prove
-theorems in propositional logic, enlisting RAND programmer J.C.\
-(Cliff) Shaw to handle the implementation. Before the program ran on
-any machine, Newell and Simon simulated parts of it by hand---writing
-expressions on paper, applying IPL-like list operations manually, and
-tracking stacks and subgoals. Simon later recalled the hand simulation
-that confirmed their ideas could work: ``In January 1956, we assembled
-my wife and three children together with some graduate students. To
-each member of the group, we gave one of the cards, so that each one
-became, in effect, a component of the computer program\ldots\ Here was
-nature imitating art imitating
-nature''~\cite[p.~168]{mccorduck2004machines}. This process---running
-the program on what Simon called ``the human computer''---mirrors
-Turing's original machine simulations.
+The system described in the famous 1956 RAND report (P-868) was a
+``paper'' version, often referred to as IPL-I or the ``Logic
+Language'' (LL).  At the time of the Dartmouth workshop in the summer
+of 1956, the program was not yet running on a machine; Newell and
+Simon noted it was ``essentially specified'' and that hand simulations
+suggested it would prove the 60-odd theorems of Chapter 2 of
+\textit{Principia Mathematica}.  Before the program ran on any
+machine, Newell and Simon famously simulated parts of it by hand using
+``the human computer''—family members and students acting as program
+components.
 
-By mid-1956, the Logic Theorist was running on the
-JOHNNIAC~\cite{gruenberger1968johnniac}, one of the first
-Turing--Von~Neumann machines, built at RAND and named after Von
-Neumann himself. The JOHNNIAC had just 4,096 40-bit words of
-memory. Within these severe constraints, LT proved 38 of the first 52
-theorems in Chapter~2 of \textit{Principia Mathematica}, discovering
-proofs by heuristic search through a space of possible proof steps.
+It was not until the implementation of IPL-II on the JOHNNIAC in late
+1956 and early 1957 that machine-executable proofs were generated.
+The widely cited result that LT proved 38 of the first 52 theorems in
+\textit{Principia}—including the discovery of a more elegant proof for
+Theorem 2.85 than the one produced by Whitehead and Russell—stems from
+these 1957 runs.
 
-\subsection{IPL: The First List-Processing Language}
+The code used in this reanimation, transcribed from Stefferud's 1963
+memorandum, represents a third distinct phase.  Stefferud's version
+was a pedagogical re-coding of the original heuristic logic into
+IPL-V, the first version of the language made widely available for
+public use.  Thus, while our reanimation is a faithful execution of
+the original code published by the RAND team, it is a restoration of
+the 1963 ``modernized'' version of the 1956 conceptual model.
+
+\begin{table}[h]
+\centering
+\caption{Evolution of the Logic Theorist and IPL}
+\label{tab:lt_versions}
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Year} & \textbf{Version} & \textbf{Platform} & \textbf{Historical Milestones} \\ \midrule
+1956 & IPL-I (LL) & Manual & Conceptual spec; Hand-simulated only. \\
+1957 & IPL-II & JOHNNIAC & Proved 38 of 52 \textit{Principia} theorems. \\
+1958 & IPL-IV & IBM 704 & Internal RAND use; transitioning to IPL-V. \\
+1963 & IPL-V & Various & Stefferud's pedagogical LT implementation. \\
+2025 & IPL-V & Lisp/LLM & Reanimation using Stefferud's source code. \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{IPL: The Invention of Symbol- and List-Processing}
 
 To implement LT, Newell, Shaw, and Simon needed a programming language
-suited to symbolic reasoning. No such language existed, so they
-created one: the Information Processing Language~\cite{newell1961ipl}.
-IPL went through several versions; IPL-V, released in 1964, was the
-only version made publicly available~\cite{newell1964iplv}.
+suited to symbolic reasoning.  No such language existed, so they
+created the ``Information Processing Language.''  As noted, IPL went
+through several iterations.  While the earliest conceptual versions
+(IPL-I and IPL-II) powered the 1956 simulations and 1957 JOHNNIAC
+runs, IPL-V, released in 1964, was the version that became the
+definitive public standard~\cite{newell1964iplv}.
 
-IPL-V runs on an abstract machine organized around \textit{cells}.
+IPL-V runs on an abstract machine organized around \textit{cells}\dots
 Each cell has an associated symbol, and any cell can be pushed onto or
 popped from any other cell acting as a stack head---there is no single
 distinguished stack. Symbols are central to IPL-V: they are
 first-class objects, and every data structure, routine, and control
-element is a named, addressable cell. A set of control cells
-(H0--H5) govern execution: H0 serves as the parameter and result
-cell, H1 as the program counter with its associated call stack, H2 as
-the free list, and H3 as a cycle counter. Ten working cells (W0--W9)
-provide scratch storage. Everything in IPL-V---data, routines, even
-the program itself---is a list of symbols. Routines are invoked by
+element is a named, addressable cell. A set of control cells (H0--H5)
+govern execution: H0 serves as the parameter and result cell, H1 as
+the program counter with its associated call stack, H2 as the free
+list, and H3 as a cycle counter. Ten working cells (W0--W9) provide
+scratch storage. Everything in IPL-V---data, routines, even the
+program itself---is a list of symbols. Routines are invoked by
 executing their name as an instruction; the machine traverses the list
 associated with that name, interpreting each cell as an instruction.
 
@@ -598,16 +611,16 @@ because both Claude and I agreed that my code appeared to match the
 manual's description. There was a clear problem, but the specification
 seemed to support my implementation.
 
-This is where the project took its most interesting turn. We had
-``Simon's J's'' from the Computer History
+This is where the project took its most interesting turn.  We had
+access to ``Simon's J's'' from the Computer History
 Museum~\cite{bochannek2012simonsjs}---a set of original IPL-V punched
-cards from 1962 containing Simon's own implementations of the
-J-functions. I recalled that J74 was among them. By this point I had
-taught Claude enough IPL-V that it was able to read the original
-IPL-V code on those cards and compare it with my Lisp implementation
-of J74. The result: they differed in exactly the way we had
-hypothesized. A one-line patch to my J74 implementation made LT run
-completely correctly.
+cards from 1962.  These cards represent the production implementation
+of the J-functions at the very moment IPL-V was being standardized for
+wider use.  By this point I had taught Claude enough IPL-V that it was
+able to read the original 1962 code and compare it with my Lisp
+implementation of J74.  The result: they differed in exactly the way
+we had hypothesized. A one-line patch to my J74 implementation made LT
+run completely correctly.
 
 This was a remarkable moment: an AI system, having learned a dead
 programming language primarily from a modern interpreter that it had
@@ -742,6 +755,9 @@ interaction histories are available as open source at
 \section*{Acknowledgements}
 %% ============================================================
 
+This paper was written with the aid of various LLMs, but all concepts
+and final editorial decisions were the author's alone.
+
 The following people contributed to this project in ways ranging from
 code transcription to weekly encouragement: Anthony Hay, Arthur
 Schwarz, Leigh Klotz, David M.\ Berry, Rupert Lane, Amy Majczyk,
@@ -763,23 +779,21 @@ project, become inseparable from its object.
 
 \begin{thebibliography}{99}
 
-\bibitem{LT1956}
-A. Newell, J. C. Shaw, and H. A. Simon, \textit{The Logic Theory Machine}, IRE Trans. Inf. Theory, vol. 2, no. 3, pp. 61–79, 1956.
+\bibitem{LT1956a} A. Newell, and H. A. Simon, \textit{The Logic Theory Machine A Complex Information Processing System}, RAND Corp., Santa Monica, CA, USA, Rep. P-868, 1956.
+
+\bibitem{LT1957} A. Newell, J. C. Shaw, and H. A. Simon, ``Empirical explorations with the logic theory machine: A case study in heuristics,'' in \textit{Proc. Western Joint Comput. Conf.}, 1957, pp. 218--230.
 
 \bibitem{whitehead1910principia}
 A. N. Whitehead and B. Russell, \textit{Principia Mathematica}. Cambridge, UK: Cambridge Univ. Press, 1910--1913.
 
-\bibitem{newell1961ipl}
-A. Newell, Ed., \textit{Information Processing Language-V Manual}. Englewood Cliffs, NJ, USA: Prentice-Hall, 1961.
+\bibitem{newell1964iplv}
+A. Newell, Ed., \textit{Information Processing Language-V Manual}, 2nd ed. Englewood Cliffs, NJ, USA: Prentice-Hall, 1964.
 
 \bibitem{mccarthy1960lisp}
 J. McCarthy, ``Recursive functions of symbolic expressions and their computation by machine, Part I,'' \textit{Commun. ACM}, vol. 3, no. 4, pp. 184--195, Apr. 1960.
 
 \bibitem{stefferud1963lt}
 E. Stefferud, ``The Logic Theory Machine: A Model Heuristic Program,'' RAND Corp., Santa Monica, CA, USA, Rep. RM-3731-CC, 1963.
-
-\bibitem{newell1964iplv}
-A. Newell, Ed., \textit{Information Processing Language-V Manual}, 2nd ed. Englewood Cliffs, NJ, USA: Prentice-Hall, 1964.
 
 \bibitem{lane2025eliza}
 R. Lane, A. Hay, A. Schwarz, D. M. Berry, and J. Shrager, ``ELIZA Reanimated: Restoring the mother of all chatbots to one of the world's first time-sharing systems,'' \textit{IEEE Ann. Hist. Comput.}, vol. 47, no. 1, pp. 8--23, 2025.
