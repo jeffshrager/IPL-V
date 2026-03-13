@@ -572,28 +572,19 @@ interpreted machine cycles.
 This experience had an uncanny resonance with the original developers'
 accounts. In an interview conducted by Pamela McCorduck for her
 pioneering history of AI~\cite{mccorduck2004machines}, Cliff Shaw
-describes the particular difficulty of debugging programs that use
-dynamic storage allocation and heuristic search:
-
-\begin{quote}
-``When we first used dynamic storage allocation and it kept the list
-of available space and dumped unused space back on this list\ldots the
-memory was churning over in a way that none of us had ever experienced
-before. You take a memory dump and it was completely laced through
-with these links from these lists\ldots [L]ater on, particularly in
-chess, it got so that the machine would produce behavior but you
-weren't at all sure that what you had made in the way of changes for
-this last run actually influenced that behavior in the way they were
-intended to. It would behave reasonably in some sense\ldots but it was
-difficult to debug in a completely different sense. Not that it fell
-apart but that it wouldn't fall apart. You weren't sure that new
-programs, revisions, had the effect that you intended because it would
-do something reasonable---it wouldn't always do what you predicted and
-then you were in a quandary as to whether you had a bug or whether
-this was a consequence of what you had specified.''
-
-\hfill---J.~C.~Shaw, conversation with P.~McCorduck, June~16, 1975
-\end{quote}
+describes the particular difficulty of debugging these early AIs,
+noting that most daunting phase of troubleshooting occurred during the
+latter stages of development, when the system was beyond crashes and
+would produce behavior that appeared superficially reasonable, leaving
+the developers in a quandary as to whether the results were valid
+consequences of the heuristic logic or actual bugs. This created a
+profound diagnostic challenge where the impact of code revisions was
+difficult to track because the system's memory had become a churning
+and impenetrable web of interconnected lists. Unlike structural
+failures or crashes, where the error is typically proximal to the
+point of failure, these latter anomalies were detached from any
+obvious source, making it nearly impossible to distinguish between an
+intended emergent property and a hidden flaw.\cite{cmuarchiveshawinterview}
 
 \noindent Sixty years later, with the same family of programs, I faced
 the identical challenge. At this point progress had effectively
@@ -850,6 +841,9 @@ and final editorial decisions were the author's alone.}
 \bibitem{mccarthy1960lisp} J. McCarthy, ``Recursive functions of
   symbolic expressions and their computation by machine, Part I,''
   \textit{Commun. ACM}, vol. 3, no. 4, pp. 184--195, Apr. 1960.
+
+\bibitem{cmuarchiveshawinterview}
+  TBD
 
 \bibitem{ibsys} R. Storey, ``B7094'' [Online]. Available:
   \url{https://github.com/Bertoid1311/B7094} (Accessed: Mar. 11,
