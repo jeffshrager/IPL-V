@@ -1,3 +1,5 @@
+%%% See notes indicated as comments %%%
+
 \documentclass[journal]{IEEEtran}
 
 \usepackage{cite}
@@ -52,10 +54,8 @@ Logic Theorist, IPL-V, artificial intelligence history, software
 archaeology, A.~Newell, H.~A.~Simon, J.~C.~Shaw, list processing, digital preservation
 \end{IEEEkeywords}
 
-%% ============================================================
 \section{Introduction}
 \label{sec:intro}
-%% ============================================================
 
 In the summer of 1956, a small group of researchers gathered at
 Dartmouth College for a workshop on what John McCarthy had dubbed
@@ -146,10 +146,8 @@ stack that emulated vintage hardware and operating systems, the LT
 reanimation emulates the abstract IPL-V machine.\footnote{Ironically, in
 IPL's direct descendant language, Common Lisp.}
 
-%% ============================================================
 \section{Historical Background}
 \label{sec:history}
-%% ============================================================
 
 \subsection{The Origins and Versions of the Logic Theorist}
 
@@ -251,6 +249,10 @@ more difficult to read and write. And where Lisp introduced garbage
 collection to automate memory reclamation, IPL required explicit
 management of free storage.
 
+%%% Tone this down and clarify that Lisp is only macro'ing these days,
+%%% not self-modifying. See Art's notes. Also, prob. not diss
+%%% McCarthy, remove "genius" part.
+
 It is worth noting that IPL-V programs could, in principle, modify
 their own code at runtime---the same self-modification capability for
 which Lisp is celebrated. Because IPL-V routines are simply lists, and
@@ -263,10 +265,8 @@ syntactic and runtime forms that made these ideas---ideas that Newell,
 Simon, and Shaw had already developed---elegant, accessible, and
 practical. 
 
-%% ============================================================
 \section{Source Materials and Transcription}
 \label{sec:sources}
-%% ============================================================
 
 Unlike the ELIZA reanimation, which began with the dramatic discovery
 of original source code printouts in Weizenbaum's archives at
@@ -308,10 +308,8 @@ The transcribed code was converted into an S-expression format
 interpreter. Conveniently, Lisp comment characters work in these
 files, allowing corrections and annotations to be documented inline.
 
-%% ============================================================
 \section{A New IPL-V Interpreter in Lisp}
 \label{sec:interpreter}
-%% ============================================================
 
 I implemented a new IPL-V interpreter to execute the Logic Theorist
 listing. The interpreter implements the symbolic data structures and
@@ -380,10 +378,8 @@ too. It's really just a coincidence!}. It finishes in a few seconds on
 a typical modern laptop. On the JOHNNIAC at RAND, in the mid 1950s,
 this likely would have required hours.
 
-%% ============================================================
 \section{What the Logic Theorist Proves}
 \label{sec:results}
-%% ============================================================
 
 The Logic Theorist attempts to prove theorems in propositional logic
 using the five axioms of \textit{Principia Mathematica}, Chapter~2.
@@ -456,6 +452,8 @@ proofs. Thus, LT can be said, in a sense, to learn!
 \end{tabular}
 \end{table}
 
+%%% Awkward 7 are not ... (see Art's notes)
+
 Table~\ref{tab:results} shows the results of my reanimated LT on the
 23 theorems attempted. Of these, 16 are proved and 7 are not---results
 that are historically consistent with the original LT's known
@@ -521,10 +519,8 @@ sublevel replacement (using the fact that \texttt{P} implies
 theorem. Appendix 1 depicts a more complex proof (4.25), and the
 original output, including both of these proofs, is at: \cite{runoutput}.
 
-%% ============================================================
 \section{Debugging: Solo Effort, Then an AI Collaboration}
 \label{sec:debugging}
-%% ============================================================
 
 \subsection{The Solo Phase}
 
@@ -692,10 +688,8 @@ session with accumulated context than to switch between
 systems. Interaction histories with both LLMs are haphazardly preserved
 in the project's repo on GitHub.
 
-%% ============================================================
 \section{Reflections: IPL, Lisp, and the Arc of AI}
 \label{sec:reflections}
-%% ============================================================
 
 I have been programming in Lisp for fifty years. Building an IPL-V
 interpreter taught me that Newell, Simon, and Shaw had, by the late
@@ -732,10 +726,8 @@ how they invented AI and cognitive science. The subject of my
 training---the cognition of scientists and engineers---and its object
 have folded into one another.
 
-%% ============================================================
 \section{Contribution and Related Work}
 \label{sec:related}
-%% ============================================================
 
 This paper makes three contributions:
 
@@ -769,10 +761,8 @@ the original IPL-V code, as written by Newell, Simon, and Shaw's team,
 functions as described, and, moreover, enables us to perform
 experiments on the real, working system of machine and program.
 
-%% ============================================================
 \section{Next Steps}
 \label{sec:next}
-%% ============================================================
 
 The IPL-V interpreter developed for this project is not specific to
 the Logic Theorist. It implements the general IPL-V abstract machine
@@ -791,9 +781,7 @@ The interpreter, the transcribed LT code, complete outputs as
 described in this paper, as well as partial LLM interaction histories
 are open sourced at \url{https://github.com/jeffshrager/IPL-V}.
 
-%% ============================================================
 \section*{Acknowledgements}
-%% ============================================================
 
 The following people (listed in no particular order) contributed to
 this project in ways ranging from code transcription to weekly
@@ -902,11 +890,14 @@ and final editorial decisions were the author's alone.}
 
 \section{Example Complex Logic Theorist Proof}
 
-To illustrate a complex proof generated by the reconstructed Logic Theorist, the following derivation corresponds to theorem *4.25 of \textit{Principia Mathematica}:
+To illustrate a complex proof generated by the reconstructed Logic
+Theorist, the following derivation corresponds to theorem *4.25 of
+\textit{Principia Mathematica}:
 
 \[ P = (P \lor P) \]
 
-This states the idempotence of disjunction. In the LT representation, the equivalence operator is defined using implication and conjunction:
+This states the idempotence of disjunction. In the LT representation,
+the equivalence operator is defined using implication and conjunction:
 
 \[ (P = Q) \equiv ((P \rightarrow Q) \land (Q \rightarrow P)) \]
 
@@ -915,7 +906,7 @@ The Logic Theorist proof trace proceeds as follows:
 \begin{enumerate}
 
 \item \textbf{Expand the definition of equivalence:}
-LT begins by reducing the goal to a conjunction of two implications.
+LT begins by reducing the goal to a conjunction of two implications:
 \begin{quote}
 \begin{verbatim}
 4.25    P=(PVP)
@@ -928,7 +919,7 @@ LT begins by reducing the goal to a conjunction of two implications.
 \end{itemize}
 
 \item \textbf{Identify the first implication:}
-The system identifies a forward-chaining path to establish the first half of the conjunction.
+The system identifies a forward-chaining path to establish the first half of the conjunction:
 \begin{quote}
 \begin{verbatim}
 PI(PVP)    4.20  ,0 FORWARD CHAINING
@@ -940,7 +931,12 @@ PI(PVP)    4.20  ,0 FORWARD CHAINING
 \end{itemize}
 
 \item \textbf{Find the proof via substitution:}
-LT utilizes Theorem *2.20 from its memory as the basis for substitution. \textit{This was not a given axiom, but a previously proved theorem that it remembered and applied here; See comment below.}
+
+LT utilizes Theorem *2.20 from its memory as the basis for
+substitution: \textit{Theorem 2.20 is not given as an axiom, but is a
+previously proved theorem that it remembered and applied here; See
+comment below.}
+
 \begin{quote}
 \begin{verbatim}
 GIVEN      2.20      AI(AVB)
@@ -954,7 +950,7 @@ SUBSTITUTION  .0    PI(PVP)
 \end{itemize}
 
 \item \textbf{Complete the equivalence:}
-LT completes the chain by linking the proved implications back to the original goal.
+LT completes the chain by linking the proved implications back to the original goal:
 \begin{quote}
 \begin{verbatim}
 GIVEN       4.20      A=A
@@ -980,11 +976,12 @@ SUBSTITUTIONS       LIMIT 50            ACTUAL 3
 
 \medskip
 
-\noindent The successful execution of more complex derivations, such as Theorem
-4.25, provides a striking demonstration of the Logic Theorist’s
-capacity for a primitive form of machine learning. By treating
-previously proved theorems, such as 2.20, as established 'givens' for
-subsequent search paths, the system effectively bootstraps its own
-knowledge base, mirroring the cumulative nature of algebraic reasoning.
+\noindent The successful execution of more complex derivations such as
+this one that use previously proved theorems provides a striking
+demonstration of the Logic Theorist’s capacity for a primitive form of
+machine learning; By treating previously proved theorems, such as
+2.20, as established 'givens' for subsequent search paths, the system
+effectively bootstraps its own knowledge base, mirroring the
+cumulative nature of algebraic reasoning.
 
 \end{document}
