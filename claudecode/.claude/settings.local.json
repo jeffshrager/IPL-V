@@ -3,7 +3,14 @@
     "allow": [
       "Bash(python3:*)",
       "Bash(git stash:*)",
-      "Bash(git checkout:*)"
+      "Bash(git checkout:*)",
+      "Bash(sbcl:*)",
+      "Bash(dot:*)",
+      "Bash(1 grep \"Wrote\\\\|ERROR\\\\|fatal\" /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.out)",
+      "Bash(kill:*)",
+      "Bash(1 grep \"Wrote\\\\|caught ERROR\" /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.out)",
+      "Bash(head:*)",
+      "Bash(echo:*)"
     ]
   }
 }
