@@ -15,17 +15,26 @@ This is an **IPL-V (Information Processing Language V) interpreter** written in 
 
 ## Running the Interpreter
 
+**To run the Logic Theorist (LT):**
 ```bash
-rm iplv.out; sbcl --lose-on-corruption --eval '(progn (load (compile-file "iplv.lisp")) (backtrace))' >> iplv.out
+rm lt.out; sbcl --lose-on-corruption --eval '(progn (load (compile-file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/lt.lisp")) (quit))' >> lt.out
 ```
 
-This compiles and runs `iplv.lisp`, which automatically loads and executes `LTFixed.liplv` (the Logic Theorist program). Output goes to `iplv.out`.
+**To load the bare IPL-V interpreter (no LT):**
+```bash
+sbcl --lose-on-corruption --eval '(load (compile-file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.lisp"))'
+```
+
+`lt.lisp` loads `iplv.lisp` then adds LT-specific proof tracing and runs `LTFixed.liplv`.
 
 **Do not lower the safety/debug compiler settings** — the code comment warns these must stay at `(debug 3) (safety 3) (speed 0)` or things break for unknown reasons.
 
+**Note:** Always use absolute paths — Bash runs from the `claudecode/` subdirectory, not the repo root.
+
 ## Key Files
 
-- `iplv.lisp` — The complete IPL-V interpreter (~2930 lines)
+- `iplv.lisp` — The generic IPL-V interpreter (~2955 lines); no LT-specific code
+- `lt.lisp` — Loads `iplv.lisp`, adds LT proof-graph analysis, runs `LTFixed.liplv`
 - `LTFixed.liplv` — Logic Theorist code and test theorems in IPL-V syntax
 - `../GEMINI.md` — Debugging guide (read this carefully before debugging)
 - `../notes.txt` — History of past bugs and fixes
