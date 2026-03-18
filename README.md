@@ -1,5 +1,9 @@
 # An IPL-V interpreter in Common Lisp that runs the original Logic Theorist
 
+See this paper for a more correct and detailed history:
+
+      https://arxiv.org/abs/2603.13514
+
 The goal of this project is a faithful reanimation of the earliest AIs
 — actually cognitive models — created by the team of Newell, Simon,
 and Shaw (NSS) at RAND and Carnegie Tech (now CMU) in the 1950s. These
