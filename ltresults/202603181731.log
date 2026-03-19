@@ -1,0 +1,2681 @@
+WARNING: Cell "M14-9-1" is being added for missing local symbol "9-1"!
+WARNING: Cell "M15-9-1" is being added for missing local symbol "9-1"!
+WARNING: Cell "M111-9-10" is being added for missing local symbol "9-10"!
+*** WARNING: PQ "1" (in ("SUBSTITUTION COUNT" "" "K11" "+" "1" "" "    0" "" "K011D000")) is ambugious and intepreted as p=0, q=1
+*** WARNING: PQ "1" (in ("SUBSTITUTION COUNT" "" "K11" "+" "1" "" "    0" "" "K011D000")) is ambugious and intepreted as p=0, q=1
+*** WARNING: PQ "1" (in ("EFFORT BASE AND TOTAL" "" "K12" "+" "1" "" "0" "" "K012D000")) is ambugious and intepreted as p=0, q=1
+*** WARNING: PQ "1" (in ("EFFORT BASE AND TOTAL" "" "K12" "+" "1" "" "0" "" "K012D000")) is ambugious and intepreted as p=0, q=1
+*** WARNING: PQ "3" (in ("X19 MINOTOR POINT FORCER." "" "X19" "" "3" "J0" "0" "" "X019R000")) is ambugious and intepreted as p=0, q=3
+*** WARNING: PQ "3" (in ("X19 MINOTOR POINT FORCER." "" "X19" "" "3" "J0" "0" "" "X019R000")) is ambugious and intepreted as p=0, q=3
+:::::::::::::::::::::::::::::::: 1.01    (AIB).=.(-AVB) EF.                                                      
+:::::::::::::::::::::::::::::::: 2.33    (AV(BVC)).=.((AVB)VC) EF.                                               
+:::::::::::::::::::::::::::::::: BAD EXPRESSION   ((P*Q).=.-(-(PV-Q)/UGH/)                                       
+:::::::::::::::::::::::::::::::: 4.01    (A=B).=.((AIB)*(BIA)) EF.                                               
+:::::::::::::::::::::::::::::::: 1.2     (AVA)IA                                                                 
+:::::::::::::::::::::::::::::::: 1.3     BI(AVB)                                                                 
+:::::::::::::::::::::::::::::::: 1.4     (AVB)I(BVA)                                                             
+:::::::::::::::::::::::::::::::: 1.5     (AV(BVC))I(BV(AVC))                                                     
+:::::::::::::::::::::::::::::::: 1.6     (BIC)I((AVB)I(AVC))                                                     
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.01    (PI-P)I-P                                                               
+:::::::::::::::::::::::::::::::: 2.02    QI(PIQ)                                                                 
+:::::::::::::::::::::::::::::::: BAD EXPRESSION   (((PI-Q)I(QI-P)/UGH/)                                          
+:::::::::::::::::::::::::::::::: 2.04    (PI(QIR))I(QI(PIR))                                                     
+:::::::::::::::::::::::::::::::: 2.05    (QIR)I((PIQ)I(PIR))                                                     
+:::::::::::::::::::::::::::::::: 2.06    (PIQ)I((QIR)I(PIR))                                                     
+:::::::::::::::::::::::::::::::: 2.07    PI(PVP)                                                                 
+:::::::::::::::::::::::::::::::: 2.08    PIP                                                                     
+:::::::::::::::::::::::::::::::: 2.10    -PVP                                                                    
+:::::::::::::::::::::::::::::::: 2.11    PV-P                                                                    
+:::::::::::::::::::::::::::::::: 2.12    PI--P                                                                   
+:::::::::::::::::::::::::::::::: 2.13    PV---P                                                                  
+:::::::::::::::::::::::::::::::: 2.14    --PIP                                                                   
+:::::::::::::::::::::::::::::::: 2.15    (-PIQ)I(-QIP)                                                           
+:::::::::::::::::::::::::::::::: 2.20    PI(PVQ)                                                                 
+:::::::::::::::::::::::::::::::: 2.21    -PI(PIQ)                                                                
+:::::::::::::::::::::::::::::::: 2.24    PI(-PVQ)                                                                
+:::::::::::::::::::::::::::::::: 3.13    (-(P*Q))I(-PV-Q)                                                        
+:::::::::::::::::::::::::::::::: 3.14    (-PV-Q)I(-(P*Q))                                                        
+:::::::::::::::::::::::::::::::: 3.24    -(P*-P)                                                                 
+:::::::::::::::::::::::::::::::: 4.13    P=--P                                                                   
+:::::::::::::::::::::::::::::::: 4.20    P=P                                                                     
+:::::::::::::::::::::::::::::::: 4.24    P=(P*P)                                                                 
+:::::::::::::::::::::::::::::::: 4.25    P=(PVP)                                                                 
+
+===== Proof of *201 started at cycle 26338 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.01    (PI-P)I-P                                                               
+::::::::::::::::::::::::::::::::            .0   (-PV-P)I-P                  ,0 SUBLEVEL REPLACEMENT             
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         1.2       (AVA)IA                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        (-PV-P)I-P                    
+::::::::::::::::::::::::::::::::           GIVEN                                   DEFINITIONS                   
+::::::::::::::::::::::::::::::::           SUBLEVEL REPLACEMENT          2.01      (PI-P)I-P                     
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 5579                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
+
+Proof graph: 7 major-method invocations captured.
+M70:TryMethods  cycle=27257  h5=-
+M12:Substitution  cycle=27482  h5=-
+M8:MakeMethodList  cycle=27934  h5=+
+M7:ApplyMethods  cycle=27946  h5=+
+        M16:SublvlRepl-A  cycle=27951  h5=+
+          M16:SublvlRepl-A\n/16  cycle=28973  h5=+
+          M12:Substitution  cycle=30374  h5=+
+
+Wrote 8 nodes to /tmp/lt-proof-201.dot
+Render: dot -Tpdf /tmp/lt-proof-201.dot -o lt-proof-201.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.01    (AI-A)I-A                                                               
+
+===== Proof of *202 started at cycle 33011 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.02    QI(PIQ)                                                                 
+::::::::::::::::::::::::::::::::            .0   QI(-PVQ)                    ,0 SUBLEVEL REPLACEMENT             
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         1.3       BI(AVB)                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        QI(-PVQ)                      
+::::::::::::::::::::::::::::::::           GIVEN                                   DEFINITIONS                   
+::::::::::::::::::::::::::::::::           SUBLEVEL REPLACEMENT          2.02      QI(PIQ)                       
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 4253                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
+
+Proof graph: 7 major-method invocations captured.
+M70:TryMethods  cycle=33700  h5=-
+M12:Substitution  cycle=33857  h5=-
+M8:MakeMethodList  cycle=34231  h5=+
+M7:ApplyMethods  cycle=34243  h5=+
+        M16:SublvlRepl-A  cycle=34248  h5=+
+          M16:SublvlRepl-A\n/16  cycle=34925  h5=+
+          M12:Substitution  cycle=35998  h5=+
+
+Wrote 8 nodes to /tmp/lt-proof-202.dot
+Render: dot -Tpdf /tmp/lt-proof-202.dot -o lt-proof-202.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.02    AI(BIA)                                                                 
+
+===== Proof of *204 started at cycle 38070 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.04    (PI(QIR))I(QI(PIR))                                                     
+::::::::::::::::::::::::::::::::            .0   (PI(-QVR))I(QI(-PVR))   ,0 SUBLEVEL REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   (-PV(QIR))I(-QV(PIR))   ,0 SUBLEVEL REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   (-PV(-QVR))I(-QV(-PVR))   ,0 SUBLEVEL REPLACEMENT               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         1.5       (AV(BVC))I(BV(AVC))           
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        (-PV(-QVR))I(-QV(-PVR)        
+::::::::::::::::::::::::::::::::           GIVEN                                   DEFINITIONS                   
+::::::::::::::::::::::::::::::::           SUBLEVEL REPLACEMENT          2.04      (PI(QIR))I(QI(PIR))           
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 22175                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 3                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 4                                
+
+Proof graph: 12 major-method invocations captured.
+M70:TryMethods  cycle=39375  h5=-
+M12:Substitution  cycle=39727  h5=-
+M8:MakeMethodList  cycle=40805  h5=+
+M7:ApplyMethods  cycle=40817  h5=+
+        M16:SublvlRepl-A  cycle=40822  h5=-
+          M16:SublvlRepl-A\n/16  cycle=42652  h5=+
+          M12:Substitution  cycle=44684  h5=-
+          M16:SublvlRepl-A\n/16  cycle=47599  h5=+
+          M12:Substitution  cycle=49668  h5=-
+        M17:SublvlRepl-B  cycle=51350  h5=+
+          M16:SublvlRepl-A\n/16  cycle=55082  h5=+
+          M12:Substitution  cycle=57474  h5=+
+
+Wrote 13 nodes to /tmp/lt-proof-204.dot
+Render: dot -Tpdf /tmp/lt-proof-204.dot -o lt-proof-204.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.04    (AI(BIC))I(BI(AIC))                                                     
+
+===== Proof of *205 started at cycle 61867 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.05    (QIR)I((PIQ)I(PIR))                                                     
+::::::::::::::::::::::::::::::::            .0   (QIR)I((-PVQ)I(-PVR))   ,0 SUBLEVEL REPLACEMENT                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         1.6       (BIC)I((AVB)I(AVC))           
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        (QIR)I((-PVQ)I(-PVR))         
+::::::::::::::::::::::::::::::::           GIVEN                                   DEFINITIONS                   
+::::::::::::::::::::::::::::::::           SUBLEVEL REPLACEMENT          2.05      (QIR)I((PIQ)I(PIR))           
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 9280                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
+
+Proof graph: 7 major-method invocations captured.
+M70:TryMethods  cycle=63172  h5=-
+M12:Substitution  cycle=63524  h5=-
+M8:MakeMethodList  cycle=64667  h5=+
+M7:ApplyMethods  cycle=64679  h5=+
+        M16:SublvlRepl-A  cycle=64684  h5=+
+          M16:SublvlRepl-A\n/16  cycle=66514  h5=+
+          M12:Substitution  cycle=68546  h5=+
+
+Wrote 8 nodes to /tmp/lt-proof-205.dot
+Render: dot -Tpdf /tmp/lt-proof-205.dot -o lt-proof-205.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.05    (AIB)I((CIA)I(CIB))                                                     
+
+===== Proof of *206 started at cycle 72752 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.06    (PIQ)I((QIR)I(PIR))                                                     
+::::::::::::::::::::::::::::::::            .0   (PIQ)I((-QVR)I(-PVR))   ,0 SUBLEVEL REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   (-PVQ)I((-(QIR))V(PIR))   ,0 SUBLEVEL REPLACEMENT               
+::::::::::::::::::::::::::::::::            .0   (-PVQ)I((-(-QVR))V(-PVR))   ,0 SUBLEVEL REPLACEMENT             
+::::::::::::::::::::::::::::::::            .0   (-(PIQ))V((QIR)I(PIR))  1.01  ,0 REPLACEMENT                    
+::::::::::::::::::::::::::::::::            .0   (QIR)I((PIQ)I(PIR))  2.04  ,0 DETACHMENT                        
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.05      (AIB)I((CIA)I(CIB))           
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        (QIR)I((PIQ)I(PIR))           
+::::::::::::::::::::::::::::::::           GIVEN                         2.04      (AI(BIC))I(BI(AIC))           
+::::::::::::::::::::::::::::::::           DETACHMENT                    2.06      (PIQ)I((QIR)I(PIR))           
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 31762                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 5                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 6                                
+
+Proof graph: 18 major-method invocations captured.
+M70:TryMethods  cycle=74057  h5=-
+M12:Substitution  cycle=74409  h5=-
+M8:MakeMethodList  cycle=76222  h5=+
+M7:ApplyMethods  cycle=76234  h5=+
+        M16:SublvlRepl-A  cycle=76239  h5=-
+          M16:SublvlRepl-A\n/16  cycle=78069  h5=+
+          M12:Substitution  cycle=80101  h5=-
+          M16:SublvlRepl-A\n/16  cycle=83695  h5=+
+          M12:Substitution  cycle=85782  h5=-
+        M17:SublvlRepl-B  cycle=87480  h5=-
+          M16:SublvlRepl-A\n/16  cycle=91212  h5=+
+          M12:Substitution  cycle=93568  h5=-
+        M13:Replacement  cycle=95607  h5=-
+              M13:Replacement\n*1.01  cycle=96410  h5=+
+              M12:Substitution  cycle=98342  h5=-
+        M11:Detachment  cycle=98423  h5=+
+              M11:Detachment\n*2.04  cycle=99954  h5=+
+              M12:Substitution  cycle=101772  h5=+
+
+Wrote 19 nodes to /tmp/lt-proof-206.dot
+Render: dot -Tpdf /tmp/lt-proof-206.dot -o lt-proof-206.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.06    (AIB)I((BIC)I(AIC))                                                     
+
+===== Proof of *207 started at cycle 106102 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.07    PI(PVP)                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         1.3       BI(AVB)                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  2.07      PI(PVP)                       
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 1765                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 0                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 1                                
+
+Proof graph: 2 major-method invocations captured.
+M70:TryMethods  cycle=106791  h5=-
+M12:Substitution  cycle=106948  h5=+
+
+Wrote 3 nodes to /tmp/lt-proof-207.dot
+Render: dot -Tpdf /tmp/lt-proof-207.dot -o lt-proof-207.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.07    AI(AVA)                                                                 
+
+===== Proof of *208 started at cycle 108663 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.08    PIP                                                                     
+::::::::::::::::::::::::::::::::            .0   -PVP                         1.01  ,0 REPLACEMENT               
+::::::::::::::::::::::::::::::::            .0   (PVP)IP                    2.07  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         1.2       (AVA)IA                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        (PVP)IP                       
+::::::::::::::::::::::::::::::::           GIVEN                         2.07      AI(AVA)                       
+::::::::::::::::::::::::::::::::           FORWARD CHAINING              2.08      PIP                           
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 5853                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 2                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 3                                
+
+Proof graph: 15 major-method invocations captured.
+M70:TryMethods  cycle=109143  h5=-
+M12:Substitution  cycle=109235  h5=-
+M8:MakeMethodList  cycle=109518  h5=+
+M7:ApplyMethods  cycle=109530  h5=+
+        M16:SublvlRepl-A  cycle=109535  h5=-
+        M17:SublvlRepl-B  cycle=109583  h5=-
+        M13:Replacement  cycle=109631  h5=-
+              M13:Replacement\n*1.01  cycle=110122  h5=+
+              M12:Substitution  cycle=110952  h5=-
+        M11:Detachment  cycle=111033  h5=-
+              M11:Detachment\n*2.02  cycle=111454  h5=-
+              M11:Detachment\n*1.2  cycle=111785  h5=-
+        M14:FwdChain  cycle=111946  h5=+
+              M14:FwdChain\n*2.07  cycle=112325  h5=+
+              M12:Substitution  cycle=113262  h5=+
+
+Wrote 16 nodes to /tmp/lt-proof-208.dot
+Render: dot -Tpdf /tmp/lt-proof-208.dot -o lt-proof-208.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.08    AIA                                                                     
+
+===== Proof of *210 started at cycle 115056 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.10    -PVP                                                                    
+::::::::::::::::::::::::::::::::            .0   PIP                          1.01  ,0 REPLACEMENT               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.08      AIA                           
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        PIP                           
+::::::::::::::::::::::::::::::::           GIVEN                         1.01      (AIB).=.(-AVB)                
+::::::::::::::::::::::::::::::::           REPLACEMENT                   2.10      -PVP                          
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 3680                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
+
+Proof graph: 9 major-method invocations captured.
+M70:TryMethods  cycle=115683  h5=-
+M12:Substitution  cycle=115809  h5=-
+M8:MakeMethodList  cycle=115848  h5=+
+M7:ApplyMethods  cycle=115860  h5=+
+        M16:SublvlRepl-A  cycle=115865  h5=-
+        M17:SublvlRepl-B  cycle=116048  h5=-
+        M13:Replacement  cycle=116231  h5=+
+              M13:Replacement\n*1.01  cycle=117085  h5=+
+              M12:Substitution  cycle=117730  h5=+
+
+Wrote 10 nodes to /tmp/lt-proof-210.dot
+Render: dot -Tpdf /tmp/lt-proof-210.dot -o lt-proof-210.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.10    -AVA                                                                    
+
+===== Proof of *211 started at cycle 119442 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.11    PV-P                                                                    
+::::::::::::::::::::::::::::::::            .0   -PVP                         1.4  ,0 DETACHMENT                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.10      -AVA                          
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        -PVP                          
+::::::::::::::::::::::::::::::::           GIVEN                         1.4       (AVB)I(BVA)                   
+::::::::::::::::::::::::::::::::           DETACHMENT                    2.11      PV-P                          
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 4377                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
+
+Proof graph: 10 major-method invocations captured.
+M70:TryMethods  cycle=120074  h5=-
+M12:Substitution  cycle=120200  h5=-
+M8:MakeMethodList  cycle=120316  h5=+
+M7:ApplyMethods  cycle=120328  h5=+
+        M16:SublvlRepl-A  cycle=120333  h5=-
+        M17:SublvlRepl-B  cycle=120516  h5=-
+        M13:Replacement  cycle=120699  h5=-
+        M11:Detachment  cycle=121112  h5=+
+              M11:Detachment\n*1.4  cycle=121847  h5=+
+              M12:Substitution  cycle=122713  h5=+
+
+Wrote 11 nodes to /tmp/lt-proof-211.dot
+Render: dot -Tpdf /tmp/lt-proof-211.dot -o lt-proof-211.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.11    AV-A                                                                    
+
+===== Proof of *212 started at cycle 124508 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.12    PI--P                                                                   
+::::::::::::::::::::::::::::::::            .0   -PV--P                       1.01  ,0 REPLACEMENT               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.11      AV-A                          
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        -PV--P                        
+::::::::::::::::::::::::::::::::           GIVEN                         1.01      (AIB).=.(-AVB)                
+::::::::::::::::::::::::::::::::           REPLACEMENT                   2.12      PI--P                         
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 5594                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
+
+Proof graph: 9 major-method invocations captured.
+M70:TryMethods  cycle=125223  h5=-
+M12:Substitution  cycle=125389  h5=-
+M8:MakeMethodList  cycle=125987  h5=+
+M7:ApplyMethods  cycle=125999  h5=+
+        M16:SublvlRepl-A  cycle=126004  h5=-
+        M17:SublvlRepl-B  cycle=126338  h5=-
+        M13:Replacement  cycle=126671  h5=+
+              M13:Replacement\n*1.01  cycle=127262  h5=+
+              M12:Substitution  cycle=128440  h5=+
+
+Wrote 10 nodes to /tmp/lt-proof-212.dot
+Render: dot -Tpdf /tmp/lt-proof-212.dot -o lt-proof-212.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.12    AI--A                                                                   
+
+===== Proof of *213 started at cycle 130932 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.13    PV---P                                                                  
+::::::::::::::::::::::::::::::::            .0   ---PVP                       1.4  ,0 DETACHMENT                 
+::::::::::::::::::::::::::::::::            .0   -PI---P                      2.11  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.12      AI--A                         
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        -PI---P                       
+::::::::::::::::::::::::::::::::           GIVEN                         2.11      AV-A                          
+::::::::::::::::::::::::::::::::           FORWARD CHAINING              2.13      PV---P                        
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 11592                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 2                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 3                                
+
+Proof graph: 16 major-method invocations captured.
+M70:TryMethods  cycle=131794  h5=-
+M12:Substitution  cycle=132006  h5=-
+M8:MakeMethodList  cycle=132433  h5=+
+M7:ApplyMethods  cycle=132445  h5=+
+        M16:SublvlRepl-A  cycle=132450  h5=-
+        M17:SublvlRepl-B  cycle=132962  h5=-
+        M13:Replacement  cycle=133472  h5=-
+        M11:Detachment  cycle=133935  h5=-
+              M11:Detachment\n*1.4  cycle=134820  h5=+
+              M12:Substitution  cycle=136002  h5=-
+              M11:Detachment\n*1.3  cycle=137096  h5=-
+              M11:Detachment\n*2.08  cycle=137543  h5=-
+              M11:Detachment\n*1.2  cycle=138980  h5=-
+        M14:FwdChain  cycle=139237  h5=+
+              M14:FwdChain\n*2.11  cycle=139737  h5=+
+              M12:Substitution  cycle=141049  h5=+
+
+Wrote 17 nodes to /tmp/lt-proof-213.dot
+Render: dot -Tpdf /tmp/lt-proof-213.dot -o lt-proof-213.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.13    AV---A                                                                  
+
+===== Proof of *214 started at cycle 143515 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.14    --PIP                                                                   
+::::::::::::::::::::::::::::::::            .0   ---PVP                       1.01  ,0 REPLACEMENT               
+::::::::::::::::::::::::::::::::            .0   ----PIP                      2.12  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   (--PV--P)IP                2.07  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (BI--P)IP                  2.02  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (AV--P)IP                  1.3  ,0 FORWARD CHAINING             
+::::::::::::::::::::::::::::::::            .0   --PI(PVP)                  1.2  ,0 BACKWARD CHAINING            
+:::::::::::::::::::::::::::::::: .0      --PI(PVP)                                                               
+::::::::::::::::::::::::::::::::            .0   ---PV(PVP)                 1.01  ,0 REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   ----PI(PVP)                2.12  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (--PV--P)I(PVP)          2.07  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (BI--P)I(PVP)            2.02  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (AV--P)I(PVP)            1.3  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::            .0   --PI((PVP)V(PVP))      1.2  ,0 BACKWARD CHAINING                
+:::::::::::::::::::::::::::::::: .0      --PI(PVP)                                                               
+:::::::::::::::::::::::::::::::: .0      --PI((PVP)V(PVP))                                                       
+::::::::::::::::::::::::::::::::            .0   ---PV((PVP)V(PVP))     1.01  ,0 REPLACEMENT                     
+::::::::::::::::::::::::::::::::            .0   ----PI((PVP)V(PVP))    2.12  ,0 FORWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   (--PV--P)I((PVP)V(PVP))  2.07  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (BI--P)I((PVP)V(PVP))  2.02  ,0 FORWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   (AV--P)I((PVP)V(PVP))  1.3  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   --PI(PV((PVP)VP))      1.5  ,0 BACKWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   --PI(((PVP)V(PVP))V((PVP)V(PVP)))  1.2  ,0 BACKW                
+:::::::::::::::::::::::::::::::: .0      --PI((PVP)V(PVP))                                                       
+:::::::::::::::::::::::::::::::: .0      --PI((PVP)V(PVP))                                                       
+:::::::::::::::::::::::::::::::: .0      --PI((PVP)V(PVP))                                                       
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 233510                           
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 19                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 20                               
+
+Proof graph: 183 major-method invocations captured.
+M70:TryMethods  cycle=144225  h5=-
+M12:Substitution  cycle=144391  h5=-
+M8:MakeMethodList  cycle=144955  h5=+
+M7:ApplyMethods  cycle=144967  h5=-
+        M16:SublvlRepl-A  cycle=144972  h5=-
+        M17:SublvlRepl-B  cycle=145306  h5=-
+        M13:Replacement  cycle=145639  h5=-
+              M13:Replacement\n*1.01  cycle=146230  h5=+
+              M12:Substitution  cycle=147376  h5=-
+        M11:Detachment  cycle=148080  h5=-
+              M11:Detachment\n*2.02  cycle=148601  h5=-
+              M11:Detachment\n*2.08  cycle=148980  h5=-
+              M11:Detachment\n*1.2  cycle=150189  h5=-
+        M14:FwdChain  cycle=150414  h5=-
+              M14:FwdChain\n*2.12  cycle=150885  h5=+
+              M12:Substitution  cycle=152189  h5=-
+              M14:FwdChain\n*2.08  cycle=153216  h5=-
+              M14:FwdChain\n*2.07  cycle=154449  h5=+
+              M12:Substitution  cycle=155994  h5=-
+              M14:FwdChain\n*2.02  cycle=157725  h5=+
+              M12:Substitution  cycle=158954  h5=-
+              M14:FwdChain\n*1.3  cycle=160659  h5=+
+              M12:Substitution  cycle=161933  h5=-
+        M15:BwdChain  cycle=163823  h5=-
+              M15:BwdChain\n*2.08  cycle=164230  h5=-
+              M15:BwdChain\n*1.2  cycle=165474  h5=+
+              M12:Substitution  cycle=166706  h5=-
+M90:CheckLimits  cycle=167864  h5=-
+M60:FindNextProb  cycle=167882  h5=+
+M70:TryMethods  cycle=167898  h5=-
+M8:MakeMethodList  cycle=168133  h5=-
+M7:ApplyMethods  cycle=168140  h5=-
+        M13:Replacement  cycle=168145  h5=-
+              M13:Replacement\n*1.01  cycle=168814  h5=+
+              M12:Substitution  cycle=170279  h5=-
+        M11:Detachment  cycle=171061  h5=-
+              M11:Detachment\n*2.02  cycle=171742  h5=-
+              M11:Detachment\n*2.08  cycle=172244  h5=-
+              M11:Detachment\n*1.2  cycle=173785  h5=-
+        M14:FwdChain  cycle=174078  h5=-
+              M14:FwdChain\n*2.12  cycle=174626  h5=+
+              M12:Substitution  cycle=176228  h5=-
+              M14:FwdChain\n*2.08  cycle=177965  h5=-
+              M14:FwdChain\n*2.07  cycle=179529  h5=+
+              M12:Substitution  cycle=181365  h5=-
+              M14:FwdChain\n*2.02  cycle=184355  h5=+
+              M12:Substitution  cycle=185876  h5=-
+              M14:FwdChain\n*1.3  cycle=188474  h5=+
+              M12:Substitution  cycle=190039  h5=-
+        M15:BwdChain  cycle=193286  h5=-
+              M15:BwdChain\n*2.07  cycle=193922  h5=-
+              M15:BwdChain\n*1.4  cycle=195289  h5=-
+              M15:BwdChain\n*1.3  cycle=196857  h5=-
+              M15:BwdChain\n*2.08  cycle=198114  h5=-
+              M15:BwdChain\n*1.2  cycle=199678  h5=+
+              M12:Substitution  cycle=201461  h5=-
+M90:CheckLimits  cycle=202921  h5=-
+M60:FindNextProb  cycle=202939  h5=+
+M70:TryMethods  cycle=202955  h5=-
+M8:MakeMethodList  cycle=203190  h5=-
+M7:ApplyMethods  cycle=203197  h5=-
+        M13:Replacement  cycle=203202  h5=-
+              M13:Replacement\n*1.01  cycle=203871  h5=-
+        M11:Detachment  cycle=205188  h5=-
+              M11:Detachment\n*2.02  cycle=205869  h5=-
+              M11:Detachment\n*2.08  cycle=206371  h5=-
+              M11:Detachment\n*1.2  cycle=207912  h5=-
+        M14:FwdChain  cycle=208205  h5=-
+              M14:FwdChain\n*2.12  cycle=208753  h5=-
+              M14:FwdChain\n*2.08  cycle=210568  h5=-
+              M14:FwdChain\n*2.07  cycle=212132  h5=-
+              M14:FwdChain\n*2.02  cycle=214235  h5=-
+              M14:FwdChain\n*1.3  cycle=216055  h5=-
+        M15:BwdChain  cycle=217442  h5=-
+              M15:BwdChain\n*2.07  cycle=218078  h5=-
+              M15:BwdChain\n*1.4  cycle=219445  h5=-
+              M15:BwdChain\n*1.3  cycle=221013  h5=-
+              M15:BwdChain\n*2.08  cycle=222270  h5=-
+              M15:BwdChain\n*1.2  cycle=223834  h5=-
+M90:CheckLimits  cycle=225417  h5=-
+M60:FindNextProb  cycle=225435  h5=+
+M70:TryMethods  cycle=225451  h5=-
+M8:MakeMethodList  cycle=225816  h5=-
+M7:ApplyMethods  cycle=225823  h5=-
+        M13:Replacement  cycle=225828  h5=-
+              M13:Replacement\n*1.01  cycle=226653  h5=+
+              M12:Substitution  cycle=228658  h5=-
+        M11:Detachment  cycle=229596  h5=-
+              M11:Detachment\n*2.02  cycle=230445  h5=-
+              M11:Detachment\n*2.08  cycle=231171  h5=-
+              M11:Detachment\n*1.2  cycle=233369  h5=-
+        M14:FwdChain  cycle=233798  h5=-
+              M14:FwdChain\n*2.12  cycle=234502  h5=+
+              M12:Substitution  cycle=236657  h5=-
+              M14:FwdChain\n*2.08  cycle=238852  h5=-
+              M14:FwdChain\n*2.07  cycle=241073  h5=+
+              M12:Substitution  cycle=243472  h5=-
+              M14:FwdChain\n*2.02  cycle=247118  h5=+
+              M12:Substitution  cycle=249191  h5=-
+              M14:FwdChain\n*1.3  cycle=252325  h5=+
+              M12:Substitution  cycle=254442  h5=-
+        M15:BwdChain  cycle=258341  h5=-
+              M15:BwdChain\n*2.07  cycle=259248  h5=-
+              M15:BwdChain\n*1.5  cycle=261149  h5=+
+              M12:Substitution  cycle=262996  h5=-
+              M15:BwdChain\n*1.4  cycle=265158  h5=-
+              M15:BwdChain\n*1.3  cycle=267371  h5=-
+              M15:BwdChain\n*2.08  cycle=269038  h5=-
+              M15:BwdChain\n*1.2  cycle=271259  h5=+
+              M12:Substitution  cycle=274191  h5=-
+M90:CheckLimits  cycle=276131  h5=-
+M60:FindNextProb  cycle=276149  h5=+
+M70:TryMethods  cycle=276165  h5=-
+M8:MakeMethodList  cycle=276530  h5=-
+M7:ApplyMethods  cycle=276537  h5=-
+        M13:Replacement  cycle=276542  h5=-
+              M13:Replacement\n*1.01  cycle=277367  h5=-
+        M11:Detachment  cycle=279173  h5=-
+              M11:Detachment\n*2.02  cycle=280022  h5=-
+              M11:Detachment\n*2.08  cycle=280748  h5=-
+              M11:Detachment\n*1.2  cycle=282946  h5=-
+        M14:FwdChain  cycle=283375  h5=-
+              M14:FwdChain\n*2.12  cycle=284079  h5=-
+              M14:FwdChain\n*2.08  cycle=286551  h5=-
+              M14:FwdChain\n*2.07  cycle=288772  h5=-
+              M14:FwdChain\n*2.02  cycle=291543  h5=-
+              M14:FwdChain\n*1.3  cycle=294020  h5=-
+        M15:BwdChain  cycle=295908  h5=-
+              M15:BwdChain\n*2.07  cycle=296815  h5=-
+              M15:BwdChain\n*1.5  cycle=298716  h5=-
+              M15:BwdChain\n*1.4  cycle=301034  h5=-
+              M15:BwdChain\n*1.3  cycle=303247  h5=-
+              M15:BwdChain\n*2.08  cycle=304914  h5=-
+              M15:BwdChain\n*1.2  cycle=307135  h5=-
+M90:CheckLimits  cycle=309755  h5=-
+M60:FindNextProb  cycle=309773  h5=+
+M70:TryMethods  cycle=309789  h5=-
+M8:MakeMethodList  cycle=310154  h5=-
+M7:ApplyMethods  cycle=310161  h5=-
+        M13:Replacement  cycle=310166  h5=-
+              M13:Replacement\n*1.01  cycle=310991  h5=-
+        M11:Detachment  cycle=312797  h5=-
+              M11:Detachment\n*2.02  cycle=313646  h5=-
+              M11:Detachment\n*2.08  cycle=314372  h5=-
+              M11:Detachment\n*1.2  cycle=316570  h5=-
+        M14:FwdChain  cycle=316999  h5=-
+              M14:FwdChain\n*2.12  cycle=317703  h5=-
+              M14:FwdChain\n*2.08  cycle=320175  h5=-
+              M14:FwdChain\n*2.07  cycle=322396  h5=-
+              M14:FwdChain\n*2.02  cycle=325167  h5=-
+              M14:FwdChain\n*1.3  cycle=327644  h5=-
+        M15:BwdChain  cycle=329532  h5=-
+              M15:BwdChain\n*2.07  cycle=330439  h5=-
+              M15:BwdChain\n*1.5  cycle=332340  h5=-
+              M15:BwdChain\n*1.4  cycle=334658  h5=-
+              M15:BwdChain\n*1.3  cycle=336871  h5=-
+              M15:BwdChain\n*2.08  cycle=338538  h5=-
+              M15:BwdChain\n*1.2  cycle=340759  h5=-
+M90:CheckLimits  cycle=343379  h5=-
+M60:FindNextProb  cycle=343397  h5=+
+M70:TryMethods  cycle=343413  h5=-
+M8:MakeMethodList  cycle=343778  h5=-
+M7:ApplyMethods  cycle=343785  h5=-
+        M13:Replacement  cycle=343790  h5=-
+              M13:Replacement\n*1.01  cycle=344615  h5=-
+        M11:Detachment  cycle=346421  h5=-
+              M11:Detachment\n*2.02  cycle=347270  h5=-
+              M11:Detachment\n*2.08  cycle=347996  h5=-
+              M11:Detachment\n*1.2  cycle=350194  h5=-
+        M14:FwdChain  cycle=350623  h5=-
+              M14:FwdChain\n*2.12  cycle=351327  h5=-
+              M14:FwdChain\n*2.08  cycle=353799  h5=-
+              M14:FwdChain\n*2.07  cycle=356020  h5=-
+              M14:FwdChain\n*2.02  cycle=358791  h5=-
+              M14:FwdChain\n*1.3  cycle=361268  h5=-
+        M15:BwdChain  cycle=363156  h5=-
+              M15:BwdChain\n*2.07  cycle=364063  h5=-
+              M15:BwdChain\n*1.5  cycle=365964  h5=-
+              M15:BwdChain\n*1.4  cycle=368282  h5=-
+              M15:BwdChain\n*1.3  cycle=370495  h5=-
+              M15:BwdChain\n*2.08  cycle=372162  h5=-
+              M15:BwdChain\n*1.2  cycle=374383  h5=-
+M90:CheckLimits  cycle=377003  h5=+
+
+Wrote 184 nodes to /tmp/lt-proof-214.dot
+Render: dot -Tpdf /tmp/lt-proof-214.dot -o lt-proof-214.pdf
+
+===== Proof of *215 started at cycle 377151 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.15    (-PIQ)I(-QIP)                                                           
+::::::::::::::::::::::::::::::::            .0   (--PVQ)I(--QVP)           ,0 SUBLEVEL REPLACEMENT               
+::::::::::::::::::::::::::::::::            .0   (-(-PIQ))V(-QIP)       1.01  ,0 REPLACEMENT                     
+::::::::::::::::::::::::::::::::            .0   -QI((-PIQ)IP)            2.04  ,0 DETACHMENT                    
+::::::::::::::::::::::::::::::::            .0   -QIP                         2.02  ,0 DETACHMENT                
+::::::::::::::::::::::::::::::::            .0   ((QIC)I(-PIC))I(-QIP)  2.06  ,0 FORWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   ((CI-P)I(CIQ))I(-QIP)  2.05  ,0 FORWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   ((AV-P)I(AVQ))I(-QIP)  1.6  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (-(-(-PIQ)))I(-QIP)  2.12  ,0 FORWARD CHAINING                  
+::::::::::::::::::::::::::::::::            .0   ((-PIQ)V(-PIQ))I(-QIP)  2.07  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::            .0   (BI(-PIQ))I(-QIP)      2.02  ,0 FORWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   (AV(-PIQ))I(-QIP)      1.3  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (-PIQ)IP                   2.02  ,0 BACKWARD CHAINING           
+::::::::::::::::::::::::::::::::            .0   (-PIQ)I((-QIP)V(-QIP))  1.2  ,0 BACKWARD CHAINING               
+:::::::::::::::::::::::::::::::: .0      -QIP                                                                    
+::::::::::::::::::::::::::::::::            .0   --QVP                        1.01  ,0 REPLACEMENT               
+::::::::::::::::::::::::::::::::            .0   ---QIP                       2.12  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   (-QV-Q)IP                  2.07  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (BI-Q)IP                   2.02  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (AV-Q)IP                   1.3  ,0 FORWARD CHAINING             
+::::::::::::::::::::::::::::::::            .0   -QI(PVP)                   1.2  ,0 BACKWARD CHAINING            
+:::::::::::::::::::::::::::::::: .0      -QIP                                                                    
+:::::::::::::::::::::::::::::::: .0      -QI(PVP)                                                                
+::::::::::::::::::::::::::::::::            .0   --QV(PVP)                  1.01  ,0 REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   ---QI(PVP)                 2.12  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (-QV-Q)I(PVP)            2.07  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (BI-Q)I(PVP)             2.02  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (AV-Q)I(PVP)             1.3  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::            .0   -QI((PVP)V(PVP))       1.2  ,0 BACKWARD CHAINING                
+:::::::::::::::::::::::::::::::: .0      -QI(PVP)                                                                
+:::::::::::::::::::::::::::::::: .0      -QI(PVP)                                                                
+:::::::::::::::::::::::::::::::: .0      -QI(PVP)                                                                
+:::::::::::::::::::::::::::::::: .0      -QI(PVP)                                                                
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 214612                           
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 25                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 26                               
+
+Proof graph: 209 major-method invocations captured.
+M70:TryMethods  cycle=378269  h5=-
+M12:Substitution  cycle=378559  h5=-
+M8:MakeMethodList  cycle=379948  h5=+
+M7:ApplyMethods  cycle=379960  h5=-
+        M16:SublvlRepl-A  cycle=379965  h5=-
+          M16:SublvlRepl-A\n/16  cycle=381860  h5=+
+          M12:Substitution  cycle=383656  h5=-
+        M17:SublvlRepl-B  cycle=386095  h5=-
+          M16:SublvlRepl-A\n/16  cycle=387993  h5=-
+        M13:Replacement  cycle=389593  h5=-
+              M13:Replacement\n*1.01  cycle=390340  h5=+
+              M12:Substitution  cycle=392038  h5=-
+        M11:Detachment  cycle=392958  h5=-
+              M11:Detachment\n*2.04  cycle=394935  h5=+
+              M12:Substitution  cycle=396500  h5=-
+              M11:Detachment\n*2.02  cycle=398332  h5=+
+              M12:Substitution  cycle=399132  h5=-
+              M11:Detachment\n*2.08  cycle=400142  h5=-
+              M11:Detachment\n*1.2  cycle=402004  h5=-
+        M14:FwdChain  cycle=402365  h5=-
+              M14:FwdChain\n*2.06  cycle=403262  h5=+
+              M12:Substitution  cycle=405301  h5=-
+              M14:FwdChain\n*2.05  cycle=408162  h5=+
+              M12:Substitution  cycle=410294  h5=-
+              M14:FwdChain\n*1.6  cycle=413149  h5=+
+              M12:Substitution  cycle=415316  h5=-
+              M14:FwdChain\n*2.12  cycle=418564  h5=+
+              M12:Substitution  cycle=420406  h5=-
+              M14:FwdChain\n*2.08  cycle=422252  h5=-
+              M14:FwdChain\n*2.07  cycle=424137  h5=+
+              M12:Substitution  cycle=426353  h5=-
+              M14:FwdChain\n*2.02  cycle=429169  h5=+
+              M12:Substitution  cycle=430962  h5=-
+              M14:FwdChain\n*1.3  cycle=433835  h5=+
+              M12:Substitution  cycle=435665  h5=-
+        M15:BwdChain  cycle=438662  h5=-
+              M15:BwdChain\n*2.02  cycle=439363  h5=+
+              M12:Substitution  cycle=440458  h5=-
+              M15:BwdChain\n*2.08  cycle=441719  h5=-
+              M15:BwdChain\n*1.2  cycle=443615  h5=+
+              M12:Substitution  cycle=445891  h5=-
+M90:CheckLimits  cycle=447730  h5=-
+M60:FindNextProb  cycle=447748  h5=+
+M70:TryMethods  cycle=447764  h5=-
+M8:MakeMethodList  cycle=447894  h5=-
+M7:ApplyMethods  cycle=447901  h5=-
+        M13:Replacement  cycle=447906  h5=-
+              M13:Replacement\n*1.01  cycle=448447  h5=+
+              M12:Substitution  cycle=449457  h5=-
+        M11:Detachment  cycle=450111  h5=-
+              M11:Detachment\n*2.02  cycle=450582  h5=-
+              M11:Detachment\n*2.08  cycle=450911  h5=-
+              M11:Detachment\n*1.2  cycle=451929  h5=-
+        M14:FwdChain  cycle=452122  h5=-
+              M14:FwdChain\n*2.12  cycle=452543  h5=+
+              M12:Substitution  cycle=453705  h5=-
+              M14:FwdChain\n*2.08  cycle=454632  h5=-
+              M14:FwdChain\n*2.07  cycle=455674  h5=+
+              M12:Substitution  cycle=456964  h5=-
+              M14:FwdChain\n*2.02  cycle=458463  h5=+
+              M12:Substitution  cycle=459548  h5=-
+              M14:FwdChain\n*1.3  cycle=461122  h5=+
+              M12:Substitution  cycle=462252  h5=-
+        M15:BwdChain  cycle=464017  h5=-
+              M15:BwdChain\n*2.08  cycle=464374  h5=-
+              M15:BwdChain\n*1.2  cycle=465427  h5=+
+              M12:Substitution  cycle=466502  h5=-
+M90:CheckLimits  cycle=467585  h5=-
+M60:FindNextProb  cycle=467603  h5=+
+M70:TryMethods  cycle=467619  h5=-
+M8:MakeMethodList  cycle=467749  h5=-
+M7:ApplyMethods  cycle=467756  h5=-
+        M13:Replacement  cycle=467761  h5=-
+              M13:Replacement\n*1.01  cycle=468302  h5=-
+        M11:Detachment  cycle=469204  h5=-
+              M11:Detachment\n*2.02  cycle=469675  h5=-
+              M11:Detachment\n*2.08  cycle=470004  h5=-
+              M11:Detachment\n*1.2  cycle=471022  h5=-
+        M14:FwdChain  cycle=471215  h5=-
+              M14:FwdChain\n*2.12  cycle=471636  h5=-
+              M14:FwdChain\n*2.08  cycle=472929  h5=-
+              M14:FwdChain\n*2.07  cycle=473971  h5=-
+              M14:FwdChain\n*2.02  cycle=475454  h5=-
+              M14:FwdChain\n*1.3  cycle=476752  h5=-
+        M15:BwdChain  cycle=477744  h5=-
+              M15:BwdChain\n*2.08  cycle=478101  h5=-
+              M15:BwdChain\n*1.2  cycle=479154  h5=-
+M90:CheckLimits  cycle=480095  h5=-
+M60:FindNextProb  cycle=480113  h5=+
+M70:TryMethods  cycle=480129  h5=-
+M8:MakeMethodList  cycle=480324  h5=-
+M7:ApplyMethods  cycle=480331  h5=-
+        M13:Replacement  cycle=480336  h5=-
+              M13:Replacement\n*1.01  cycle=480955  h5=+
+              M12:Substitution  cycle=482282  h5=-
+        M11:Detachment  cycle=483014  h5=-
+              M11:Detachment\n*2.02  cycle=483645  h5=-
+              M11:Detachment\n*2.08  cycle=484097  h5=-
+              M11:Detachment\n*1.2  cycle=485447  h5=-
+        M14:FwdChain  cycle=485708  h5=-
+              M14:FwdChain\n*2.12  cycle=486206  h5=+
+              M12:Substitution  cycle=487648  h5=-
+              M14:FwdChain\n*2.08  cycle=489260  h5=-
+              M14:FwdChain\n*2.07  cycle=490633  h5=+
+              M12:Substitution  cycle=492203  h5=-
+              M14:FwdChain\n*2.02  cycle=494861  h5=+
+              M12:Substitution  cycle=496227  h5=-
+              M14:FwdChain\n*1.3  cycle=498669  h5=+
+              M12:Substitution  cycle=500079  h5=-
+        M15:BwdChain  cycle=503176  h5=-
+              M15:BwdChain\n*2.07  cycle=503762  h5=-
+              M15:BwdChain\n*1.4  cycle=504938  h5=-
+              M15:BwdChain\n*1.3  cycle=506315  h5=-
+              M15:BwdChain\n*2.08  cycle=507381  h5=-
+              M15:BwdChain\n*1.2  cycle=508754  h5=+
+              M12:Substitution  cycle=510420  h5=-
+M90:CheckLimits  cycle=511805  h5=-
+M60:FindNextProb  cycle=511823  h5=+
+M70:TryMethods  cycle=511839  h5=-
+M8:MakeMethodList  cycle=512034  h5=-
+M7:ApplyMethods  cycle=512041  h5=-
+        M13:Replacement  cycle=512046  h5=-
+              M13:Replacement\n*1.01  cycle=512665  h5=-
+        M11:Detachment  cycle=513864  h5=-
+              M11:Detachment\n*2.02  cycle=514495  h5=-
+              M11:Detachment\n*2.08  cycle=514947  h5=-
+              M11:Detachment\n*1.2  cycle=516297  h5=-
+        M14:FwdChain  cycle=516558  h5=-
+              M14:FwdChain\n*2.12  cycle=517056  h5=-
+              M14:FwdChain\n*2.08  cycle=518680  h5=-
+              M14:FwdChain\n*2.07  cycle=520053  h5=-
+              M14:FwdChain\n*2.02  cycle=521867  h5=-
+              M14:FwdChain\n*1.3  cycle=523496  h5=-
+        M15:BwdChain  cycle=524742  h5=-
+              M15:BwdChain\n*2.07  cycle=525328  h5=-
+              M15:BwdChain\n*1.4  cycle=526504  h5=-
+              M15:BwdChain\n*1.3  cycle=527881  h5=-
+              M15:BwdChain\n*2.08  cycle=528947  h5=-
+              M15:BwdChain\n*1.2  cycle=530320  h5=-
+M90:CheckLimits  cycle=531789  h5=-
+M60:FindNextProb  cycle=531807  h5=+
+M70:TryMethods  cycle=531823  h5=-
+M8:MakeMethodList  cycle=532018  h5=-
+M7:ApplyMethods  cycle=532025  h5=-
+        M13:Replacement  cycle=532030  h5=-
+              M13:Replacement\n*1.01  cycle=532649  h5=-
+        M11:Detachment  cycle=533848  h5=-
+              M11:Detachment\n*2.02  cycle=534479  h5=-
+              M11:Detachment\n*2.08  cycle=534931  h5=-
+              M11:Detachment\n*1.2  cycle=536281  h5=-
+        M14:FwdChain  cycle=536542  h5=-
+              M14:FwdChain\n*2.12  cycle=537040  h5=-
+              M14:FwdChain\n*2.08  cycle=538664  h5=-
+              M14:FwdChain\n*2.07  cycle=540037  h5=-
+              M14:FwdChain\n*2.02  cycle=541851  h5=-
+              M14:FwdChain\n*1.3  cycle=543480  h5=-
+        M15:BwdChain  cycle=544726  h5=-
+              M15:BwdChain\n*2.07  cycle=545312  h5=-
+              M15:BwdChain\n*1.4  cycle=546488  h5=-
+              M15:BwdChain\n*1.3  cycle=547865  h5=-
+              M15:BwdChain\n*2.08  cycle=548931  h5=-
+              M15:BwdChain\n*1.2  cycle=550304  h5=-
+M90:CheckLimits  cycle=551773  h5=-
+M60:FindNextProb  cycle=551791  h5=+
+M70:TryMethods  cycle=551807  h5=-
+M8:MakeMethodList  cycle=552002  h5=-
+M7:ApplyMethods  cycle=552009  h5=-
+        M13:Replacement  cycle=552014  h5=-
+              M13:Replacement\n*1.01  cycle=552633  h5=-
+        M11:Detachment  cycle=553832  h5=-
+              M11:Detachment\n*2.02  cycle=554463  h5=-
+              M11:Detachment\n*2.08  cycle=554915  h5=-
+              M11:Detachment\n*1.2  cycle=556265  h5=-
+        M14:FwdChain  cycle=556526  h5=-
+              M14:FwdChain\n*2.12  cycle=557024  h5=-
+              M14:FwdChain\n*2.08  cycle=558648  h5=-
+              M14:FwdChain\n*2.07  cycle=560021  h5=-
+              M14:FwdChain\n*2.02  cycle=561835  h5=-
+              M14:FwdChain\n*1.3  cycle=563464  h5=-
+        M15:BwdChain  cycle=564710  h5=-
+              M15:BwdChain\n*2.07  cycle=565296  h5=-
+              M15:BwdChain\n*1.4  cycle=566472  h5=-
+              M15:BwdChain\n*1.3  cycle=567849  h5=-
+              M15:BwdChain\n*2.08  cycle=568915  h5=-
+              M15:BwdChain\n*1.2  cycle=570288  h5=-
+M90:CheckLimits  cycle=571757  h5=-
+M60:FindNextProb  cycle=571775  h5=+
+M70:TryMethods  cycle=571791  h5=-
+M8:MakeMethodList  cycle=571986  h5=-
+M7:ApplyMethods  cycle=571993  h5=-
+        M13:Replacement  cycle=571998  h5=-
+              M13:Replacement\n*1.01  cycle=572617  h5=-
+        M11:Detachment  cycle=573816  h5=-
+              M11:Detachment\n*2.02  cycle=574447  h5=-
+              M11:Detachment\n*2.08  cycle=574899  h5=-
+              M11:Detachment\n*1.2  cycle=576249  h5=-
+        M14:FwdChain  cycle=576510  h5=-
+              M14:FwdChain\n*2.12  cycle=577008  h5=-
+              M14:FwdChain\n*2.08  cycle=578632  h5=-
+              M14:FwdChain\n*2.07  cycle=580005  h5=-
+              M14:FwdChain\n*2.02  cycle=581819  h5=-
+              M14:FwdChain\n*1.3  cycle=583448  h5=-
+        M15:BwdChain  cycle=584694  h5=-
+              M15:BwdChain\n*2.07  cycle=585280  h5=-
+              M15:BwdChain\n*1.4  cycle=586456  h5=-
+              M15:BwdChain\n*1.3  cycle=587833  h5=-
+              M15:BwdChain\n*2.08  cycle=588899  h5=-
+              M15:BwdChain\n*1.2  cycle=590272  h5=-
+M90:CheckLimits  cycle=591741  h5=+
+
+Wrote 210 nodes to /tmp/lt-proof-215.dot
+Render: dot -Tpdf /tmp/lt-proof-215.dot -o lt-proof-215.pdf
+
+===== Proof of *220 started at cycle 591889 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.20    PI(PVQ)                                                                 
+::::::::::::::::::::::::::::::::            .0   -PV(PVQ)                   1.01  ,0 REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   PVQ                          2.02  ,0 DETACHMENT                
+::::::::::::::::::::::::::::::::            .0   --PI(PVQ)                  2.12  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (PVP)I(PVQ)              2.07  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (BIP)I(PVQ)              2.02  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (AVP)I(PVQ)              1.3  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         1.4       (AVB)I(BVA)                   
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        (CVP)I(PVQ)                   
+::::::::::::::::::::::::::::::::           GIVEN                         1.3       BI(AVB)                       
+::::::::::::::::::::::::::::::::           FORWARD CHAINING              2.20      PI(PVQ)                       
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 23515                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 6                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 7                                
+
+Proof graph: 24 major-method invocations captured.
+M70:TryMethods  cycle=592578  h5=-
+M12:Substitution  cycle=592735  h5=-
+M8:MakeMethodList  cycle=593822  h5=+
+M7:ApplyMethods  cycle=593834  h5=+
+        M16:SublvlRepl-A  cycle=593839  h5=-
+        M17:SublvlRepl-B  cycle=594360  h5=-
+        M13:Replacement  cycle=594881  h5=-
+              M13:Replacement\n*1.01  cycle=595450  h5=+
+              M12:Substitution  cycle=596561  h5=-
+        M11:Detachment  cycle=597250  h5=-
+              M11:Detachment\n*2.02  cycle=597831  h5=+
+              M12:Substitution  cycle=598523  h5=-
+              M11:Detachment\n*2.08  cycle=599115  h5=-
+              M11:Detachment\n*1.2  cycle=600279  h5=-
+        M14:FwdChain  cycle=600508  h5=+
+              M14:FwdChain\n*2.12  cycle=600962  h5=+
+              M12:Substitution  cycle=602218  h5=-
+              M14:FwdChain\n*2.08  cycle=603717  h5=-
+              M14:FwdChain\n*2.07  cycle=604916  h5=+
+              M12:Substitution  cycle=606133  h5=-
+              M14:FwdChain\n*2.02  cycle=608615  h5=+
+              M12:Substitution  cycle=609815  h5=-
+              M14:FwdChain\n*1.3  cycle=612074  h5=+
+              M12:Substitution  cycle=613319  h5=+
+
+Wrote 25 nodes to /tmp/lt-proof-220.dot
+Render: dot -Tpdf /tmp/lt-proof-220.dot -o lt-proof-220.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.20    AI(AVB)                                                                 
+
+===== Proof of *221 started at cycle 616210 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.21    -PI(PIQ)                                                                
+::::::::::::::::::::::::::::::::            .0   -PI(-PVQ)                   ,0 SUBLEVEL REPLACEMENT             
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.20      AI(AVB)                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        -PI(-PVQ)                     
+::::::::::::::::::::::::::::::::           GIVEN                                   DEFINITIONS                   
+::::::::::::::::::::::::::::::::           SUBLEVEL REPLACEMENT          2.21      -PI(PIQ)                      
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 5482                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 1                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 2                                
+
+Proof graph: 7 major-method invocations captured.
+M70:TryMethods  cycle=617009  h5=-
+M12:Substitution  cycle=617200  h5=-
+M8:MakeMethodList  cycle=618199  h5=+
+M7:ApplyMethods  cycle=618211  h5=+
+        M16:SublvlRepl-A  cycle=618216  h5=+
+          M16:SublvlRepl-A\n/16  cycle=619000  h5=+
+          M12:Substitution  cycle=620222  h5=+
+
+Wrote 8 nodes to /tmp/lt-proof-221.dot
+Render: dot -Tpdf /tmp/lt-proof-221.dot -o lt-proof-221.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 2.21    -AI(AIB)                                                                
+
+===== Proof of *224 started at cycle 622647 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 2.24    PI(-PVQ)                                                                
+::::::::::::::::::::::::::::::::            .0   PI(PIQ)                     ,0 SUBLEVEL REPLACEMENT             
+::::::::::::::::::::::::::::::::            .0   -PV(-PVQ)                  1.01  ,0 REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   -PVQ                         2.02  ,0 DETACHMENT                
+::::::::::::::::::::::::::::::::            .0   (PVB)I(-PVQ)             2.20  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   --PI(-PVQ)                 2.12  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (PVP)I(-PVQ)             2.07  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (BIP)I(-PVQ)             2.02  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (AVP)I(-PVQ)             1.3  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::            .0   PI-P                         2.20  ,0 BACKWARD CHAINING         
+::::::::::::::::::::::::::::::::            .0   PI(QV-P)                   1.4  ,0 BACKWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   PIQ                          1.3  ,0 BACKWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   PI((-PVQ)V(-PVQ))      1.2  ,0 BACKWARD CHAINING                
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+::::::::::::::::::::::::::::::::            .0   (PVB)IQ                    2.20  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   --PIQ                        2.12  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   (PVP)IQ                    2.07  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (BIP)IQ                    2.02  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (AVP)IQ                    1.3  ,0 FORWARD CHAINING             
+::::::::::::::::::::::::::::::::            .0   PI(QVQ)                    1.2  ,0 BACKWARD CHAINING            
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: .0      PIQ                                                                     
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 207183                           
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 18                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 19                               
+
+Proof graph: 311 major-method invocations captured.
+M70:TryMethods  cycle=623451  h5=-
+M12:Substitution  cycle=623642  h5=-
+M8:MakeMethodList  cycle=624999  h5=+
+M7:ApplyMethods  cycle=625011  h5=-
+        M16:SublvlRepl-A  cycle=625016  h5=-
+          M16:SublvlRepl-A\n/16  cycle=626249  h5=+
+          M12:Substitution  cycle=627169  h5=-
+        M17:SublvlRepl-B  cycle=628134  h5=-
+          M16:SublvlRepl-A\n/16  cycle=629370  h5=-
+        M13:Replacement  cycle=630157  h5=-
+              M13:Replacement\n*1.01  cycle=630776  h5=+
+              M12:Substitution  cycle=632063  h5=-
+        M11:Detachment  cycle=632802  h5=-
+              M11:Detachment\n*2.21  cycle=633475  h5=-
+              M11:Detachment\n*2.02  cycle=633939  h5=+
+              M12:Substitution  cycle=634771  h5=-
+              M11:Detachment\n*2.08  cycle=635714  h5=-
+              M11:Detachment\n*1.2  cycle=637069  h5=-
+        M14:FwdChain  cycle=637330  h5=-
+              M14:FwdChain\n*2.20  cycle=637828  h5=+
+              M12:Substitution  cycle=639182  h5=-
+              M14:FwdChain\n*2.12  cycle=643198  h5=+
+              M12:Substitution  cycle=644657  h5=-
+              M14:FwdChain\n*2.08  cycle=646685  h5=-
+              M14:FwdChain\n*2.07  cycle=648075  h5=+
+              M12:Substitution  cycle=649446  h5=-
+              M14:FwdChain\n*2.02  cycle=652276  h5=+
+              M12:Substitution  cycle=653675  h5=-
+              M14:FwdChain\n*1.3  cycle=656543  h5=+
+              M12:Substitution  cycle=658007  h5=-
+        M15:BwdChain  cycle=661573  h5=-
+              M15:BwdChain\n*2.20  cycle=662180  h5=+
+              M12:Substitution  cycle=662986  h5=-
+              M15:BwdChain\n*1.4  cycle=664266  h5=+
+              M12:Substitution  cycle=665513  h5=-
+              M15:BwdChain\n*1.3  cycle=667337  h5=+
+              M12:Substitution  cycle=667990  h5=-
+              M15:BwdChain\n*2.08  cycle=668865  h5=-
+              M15:BwdChain\n*1.2  cycle=670255  h5=+
+              M12:Substitution  cycle=672074  h5=-
+M90:CheckLimits  cycle=673935  h5=-
+M60:FindNextProb  cycle=673953  h5=+
+M70:TryMethods  cycle=673969  h5=-
+M8:MakeMethodList  cycle=674065  h5=-
+M7:ApplyMethods  cycle=674072  h5=-
+        M13:Replacement  cycle=674077  h5=-
+              M13:Replacement\n*1.01  cycle=674568  h5=-
+        M11:Detachment  cycle=675340  h5=-
+              M11:Detachment\n*2.21  cycle=675797  h5=-
+              M11:Detachment\n*2.02  cycle=676139  h5=-
+              M11:Detachment\n*2.08  cycle=676418  h5=-
+              M11:Detachment\n*1.2  cycle=677245  h5=-
+        M14:FwdChain  cycle=677406  h5=-
+              M14:FwdChain\n*2.20  cycle=677777  h5=+
+              M12:Substitution  cycle=678719  h5=-
+              M14:FwdChain\n*2.12  cycle=680569  h5=+
+              M12:Substitution  cycle=681570  h5=-
+              M14:FwdChain\n*2.08  cycle=682461  h5=-
+              M14:FwdChain\n*2.07  cycle=683324  h5=+
+              M12:Substitution  cycle=684329  h5=-
+              M14:FwdChain\n*2.02  cycle=685630  h5=+
+              M12:Substitution  cycle=686617  h5=-
+              M14:FwdChain\n*1.3  cycle=688042  h5=+
+              M12:Substitution  cycle=689094  h5=-
+        M15:BwdChain  cycle=690756  h5=-
+              M15:BwdChain\n*2.08  cycle=691064  h5=-
+              M15:BwdChain\n*1.2  cycle=691927  h5=+
+              M12:Substitution  cycle=692997  h5=-
+M90:CheckLimits  cycle=694299  h5=-
+M60:FindNextProb  cycle=694317  h5=+
+M70:TryMethods  cycle=694333  h5=-
+M8:MakeMethodList  cycle=694429  h5=-
+M7:ApplyMethods  cycle=694436  h5=-
+        M13:Replacement  cycle=694441  h5=-
+              M13:Replacement\n*1.01  cycle=694932  h5=-
+        M11:Detachment  cycle=695704  h5=-
+              M11:Detachment\n*2.21  cycle=696161  h5=-
+              M11:Detachment\n*2.02  cycle=696503  h5=-
+              M11:Detachment\n*2.08  cycle=696782  h5=-
+              M11:Detachment\n*1.2  cycle=697609  h5=-
+        M14:FwdChain  cycle=697770  h5=-
+              M14:FwdChain\n*2.20  cycle=698141  h5=-
+              M14:FwdChain\n*2.12  cycle=699272  h5=-
+              M14:FwdChain\n*2.08  cycle=700386  h5=-
+              M14:FwdChain\n*2.07  cycle=701249  h5=-
+              M14:FwdChain\n*2.02  cycle=702425  h5=-
+              M14:FwdChain\n*1.3  cycle=703593  h5=-
+        M15:BwdChain  cycle=704515  h5=-
+              M15:BwdChain\n*2.08  cycle=704823  h5=-
+              M15:BwdChain\n*1.2  cycle=705686  h5=-
+M90:CheckLimits  cycle=706618  h5=-
+M60:FindNextProb  cycle=706636  h5=+
+M70:TryMethods  cycle=706652  h5=-
+M8:MakeMethodList  cycle=706748  h5=-
+M7:ApplyMethods  cycle=706755  h5=-
+        M13:Replacement  cycle=706760  h5=-
+              M13:Replacement\n*1.01  cycle=707251  h5=-
+        M11:Detachment  cycle=708023  h5=-
+              M11:Detachment\n*2.21  cycle=708480  h5=-
+              M11:Detachment\n*2.02  cycle=708822  h5=-
+              M11:Detachment\n*2.08  cycle=709101  h5=-
+              M11:Detachment\n*1.2  cycle=709928  h5=-
+        M14:FwdChain  cycle=710089  h5=-
+              M14:FwdChain\n*2.20  cycle=710460  h5=-
+              M14:FwdChain\n*2.12  cycle=711591  h5=-
+              M14:FwdChain\n*2.08  cycle=712705  h5=-
+              M14:FwdChain\n*2.07  cycle=713568  h5=-
+              M14:FwdChain\n*2.02  cycle=714744  h5=-
+              M14:FwdChain\n*1.3  cycle=715912  h5=-
+        M15:BwdChain  cycle=716834  h5=-
+              M15:BwdChain\n*2.08  cycle=717142  h5=-
+              M15:BwdChain\n*1.2  cycle=718005  h5=-
+M90:CheckLimits  cycle=718937  h5=-
+M60:FindNextProb  cycle=718955  h5=+
+M70:TryMethods  cycle=718971  h5=-
+M8:MakeMethodList  cycle=719067  h5=-
+M7:ApplyMethods  cycle=719074  h5=-
+        M13:Replacement  cycle=719079  h5=-
+              M13:Replacement\n*1.01  cycle=719570  h5=-
+        M11:Detachment  cycle=720342  h5=-
+              M11:Detachment\n*2.21  cycle=720799  h5=-
+              M11:Detachment\n*2.02  cycle=721141  h5=-
+              M11:Detachment\n*2.08  cycle=721420  h5=-
+              M11:Detachment\n*1.2  cycle=722247  h5=-
+        M14:FwdChain  cycle=722408  h5=-
+              M14:FwdChain\n*2.20  cycle=722779  h5=-
+              M14:FwdChain\n*2.12  cycle=723910  h5=-
+              M14:FwdChain\n*2.08  cycle=725024  h5=-
+              M14:FwdChain\n*2.07  cycle=725887  h5=-
+              M14:FwdChain\n*2.02  cycle=727063  h5=-
+              M14:FwdChain\n*1.3  cycle=728231  h5=-
+        M15:BwdChain  cycle=729153  h5=-
+              M15:BwdChain\n*2.08  cycle=729461  h5=-
+              M15:BwdChain\n*1.2  cycle=730324  h5=-
+M90:CheckLimits  cycle=731256  h5=-
+M60:FindNextProb  cycle=731274  h5=+
+M70:TryMethods  cycle=731290  h5=-
+M8:MakeMethodList  cycle=731386  h5=-
+M7:ApplyMethods  cycle=731393  h5=-
+        M13:Replacement  cycle=731398  h5=-
+              M13:Replacement\n*1.01  cycle=731889  h5=-
+        M11:Detachment  cycle=732661  h5=-
+              M11:Detachment\n*2.21  cycle=733118  h5=-
+              M11:Detachment\n*2.02  cycle=733460  h5=-
+              M11:Detachment\n*2.08  cycle=733739  h5=-
+              M11:Detachment\n*1.2  cycle=734566  h5=-
+        M14:FwdChain  cycle=734727  h5=-
+              M14:FwdChain\n*2.20  cycle=735098  h5=-
+              M14:FwdChain\n*2.12  cycle=736229  h5=-
+              M14:FwdChain\n*2.08  cycle=737343  h5=-
+              M14:FwdChain\n*2.07  cycle=738206  h5=-
+              M14:FwdChain\n*2.02  cycle=739382  h5=-
+              M14:FwdChain\n*1.3  cycle=740550  h5=-
+        M15:BwdChain  cycle=741472  h5=-
+              M15:BwdChain\n*2.08  cycle=741780  h5=-
+              M15:BwdChain\n*1.2  cycle=742643  h5=-
+M90:CheckLimits  cycle=743575  h5=-
+M60:FindNextProb  cycle=743593  h5=+
+M70:TryMethods  cycle=743609  h5=-
+M8:MakeMethodList  cycle=743705  h5=-
+M7:ApplyMethods  cycle=743712  h5=-
+        M13:Replacement  cycle=743717  h5=-
+              M13:Replacement\n*1.01  cycle=744208  h5=-
+        M11:Detachment  cycle=744980  h5=-
+              M11:Detachment\n*2.21  cycle=745437  h5=-
+              M11:Detachment\n*2.02  cycle=745779  h5=-
+              M11:Detachment\n*2.08  cycle=746058  h5=-
+              M11:Detachment\n*1.2  cycle=746885  h5=-
+        M14:FwdChain  cycle=747046  h5=-
+              M14:FwdChain\n*2.20  cycle=747417  h5=-
+              M14:FwdChain\n*2.12  cycle=748548  h5=-
+              M14:FwdChain\n*2.08  cycle=749662  h5=-
+              M14:FwdChain\n*2.07  cycle=750525  h5=-
+              M14:FwdChain\n*2.02  cycle=751701  h5=-
+              M14:FwdChain\n*1.3  cycle=752869  h5=-
+        M15:BwdChain  cycle=753791  h5=-
+              M15:BwdChain\n*2.08  cycle=754099  h5=-
+              M15:BwdChain\n*1.2  cycle=754962  h5=-
+M90:CheckLimits  cycle=755894  h5=-
+M60:FindNextProb  cycle=755912  h5=+
+M70:TryMethods  cycle=755928  h5=-
+M8:MakeMethodList  cycle=756024  h5=-
+M7:ApplyMethods  cycle=756031  h5=-
+        M13:Replacement  cycle=756036  h5=-
+              M13:Replacement\n*1.01  cycle=756527  h5=-
+        M11:Detachment  cycle=757299  h5=-
+              M11:Detachment\n*2.21  cycle=757756  h5=-
+              M11:Detachment\n*2.02  cycle=758098  h5=-
+              M11:Detachment\n*2.08  cycle=758377  h5=-
+              M11:Detachment\n*1.2  cycle=759204  h5=-
+        M14:FwdChain  cycle=759365  h5=-
+              M14:FwdChain\n*2.20  cycle=759736  h5=-
+              M14:FwdChain\n*2.12  cycle=760867  h5=-
+              M14:FwdChain\n*2.08  cycle=761981  h5=-
+              M14:FwdChain\n*2.07  cycle=762844  h5=-
+              M14:FwdChain\n*2.02  cycle=764020  h5=-
+              M14:FwdChain\n*1.3  cycle=765188  h5=-
+        M15:BwdChain  cycle=766110  h5=-
+              M15:BwdChain\n*2.08  cycle=766418  h5=-
+              M15:BwdChain\n*1.2  cycle=767281  h5=-
+M90:CheckLimits  cycle=768213  h5=-
+M60:FindNextProb  cycle=768231  h5=+
+M70:TryMethods  cycle=768247  h5=-
+M8:MakeMethodList  cycle=768343  h5=-
+M7:ApplyMethods  cycle=768350  h5=-
+        M13:Replacement  cycle=768355  h5=-
+              M13:Replacement\n*1.01  cycle=768846  h5=-
+        M11:Detachment  cycle=769618  h5=-
+              M11:Detachment\n*2.21  cycle=770075  h5=-
+              M11:Detachment\n*2.02  cycle=770417  h5=-
+              M11:Detachment\n*2.08  cycle=770696  h5=-
+              M11:Detachment\n*1.2  cycle=771523  h5=-
+        M14:FwdChain  cycle=771684  h5=-
+              M14:FwdChain\n*2.20  cycle=772055  h5=-
+              M14:FwdChain\n*2.12  cycle=773186  h5=-
+              M14:FwdChain\n*2.08  cycle=774300  h5=-
+              M14:FwdChain\n*2.07  cycle=775163  h5=-
+              M14:FwdChain\n*2.02  cycle=776339  h5=-
+              M14:FwdChain\n*1.3  cycle=777507  h5=-
+        M15:BwdChain  cycle=778429  h5=-
+              M15:BwdChain\n*2.08  cycle=778737  h5=-
+              M15:BwdChain\n*1.2  cycle=779600  h5=-
+M90:CheckLimits  cycle=780532  h5=-
+M60:FindNextProb  cycle=780550  h5=+
+M70:TryMethods  cycle=780566  h5=-
+M8:MakeMethodList  cycle=780662  h5=-
+M7:ApplyMethods  cycle=780669  h5=-
+        M13:Replacement  cycle=780674  h5=-
+              M13:Replacement\n*1.01  cycle=781165  h5=-
+        M11:Detachment  cycle=781937  h5=-
+              M11:Detachment\n*2.21  cycle=782394  h5=-
+              M11:Detachment\n*2.02  cycle=782736  h5=-
+              M11:Detachment\n*2.08  cycle=783015  h5=-
+              M11:Detachment\n*1.2  cycle=783842  h5=-
+        M14:FwdChain  cycle=784003  h5=-
+              M14:FwdChain\n*2.20  cycle=784374  h5=-
+              M14:FwdChain\n*2.12  cycle=785505  h5=-
+              M14:FwdChain\n*2.08  cycle=786619  h5=-
+              M14:FwdChain\n*2.07  cycle=787482  h5=-
+              M14:FwdChain\n*2.02  cycle=788658  h5=-
+              M14:FwdChain\n*1.3  cycle=789826  h5=-
+        M15:BwdChain  cycle=790748  h5=-
+              M15:BwdChain\n*2.08  cycle=791056  h5=-
+              M15:BwdChain\n*1.2  cycle=791919  h5=-
+M90:CheckLimits  cycle=792851  h5=-
+M60:FindNextProb  cycle=792869  h5=+
+M70:TryMethods  cycle=792885  h5=-
+M8:MakeMethodList  cycle=792981  h5=-
+M7:ApplyMethods  cycle=792988  h5=-
+        M13:Replacement  cycle=792993  h5=-
+              M13:Replacement\n*1.01  cycle=793484  h5=-
+        M11:Detachment  cycle=794256  h5=-
+              M11:Detachment\n*2.21  cycle=794713  h5=-
+              M11:Detachment\n*2.02  cycle=795055  h5=-
+              M11:Detachment\n*2.08  cycle=795334  h5=-
+              M11:Detachment\n*1.2  cycle=796161  h5=-
+        M14:FwdChain  cycle=796322  h5=-
+              M14:FwdChain\n*2.20  cycle=796693  h5=-
+              M14:FwdChain\n*2.12  cycle=797824  h5=-
+              M14:FwdChain\n*2.08  cycle=798938  h5=-
+              M14:FwdChain\n*2.07  cycle=799801  h5=-
+              M14:FwdChain\n*2.02  cycle=800977  h5=-
+              M14:FwdChain\n*1.3  cycle=802145  h5=-
+        M15:BwdChain  cycle=803067  h5=-
+              M15:BwdChain\n*2.08  cycle=803375  h5=-
+              M15:BwdChain\n*1.2  cycle=804238  h5=-
+M90:CheckLimits  cycle=805170  h5=-
+M60:FindNextProb  cycle=805188  h5=+
+M70:TryMethods  cycle=805204  h5=-
+M8:MakeMethodList  cycle=805300  h5=-
+M7:ApplyMethods  cycle=805307  h5=-
+        M13:Replacement  cycle=805312  h5=-
+              M13:Replacement\n*1.01  cycle=805803  h5=-
+        M11:Detachment  cycle=806575  h5=-
+              M11:Detachment\n*2.21  cycle=807032  h5=-
+              M11:Detachment\n*2.02  cycle=807374  h5=-
+              M11:Detachment\n*2.08  cycle=807653  h5=-
+              M11:Detachment\n*1.2  cycle=808480  h5=-
+        M14:FwdChain  cycle=808641  h5=-
+              M14:FwdChain\n*2.20  cycle=809012  h5=-
+              M14:FwdChain\n*2.12  cycle=810143  h5=-
+              M14:FwdChain\n*2.08  cycle=811257  h5=-
+              M14:FwdChain\n*2.07  cycle=812120  h5=-
+              M14:FwdChain\n*2.02  cycle=813296  h5=-
+              M14:FwdChain\n*1.3  cycle=814464  h5=-
+        M15:BwdChain  cycle=815386  h5=-
+              M15:BwdChain\n*2.08  cycle=815694  h5=-
+              M15:BwdChain\n*1.2  cycle=816557  h5=-
+M90:CheckLimits  cycle=817489  h5=-
+M60:FindNextProb  cycle=817507  h5=+
+M70:TryMethods  cycle=817523  h5=-
+M8:MakeMethodList  cycle=817619  h5=-
+M7:ApplyMethods  cycle=817626  h5=-
+        M13:Replacement  cycle=817631  h5=-
+              M13:Replacement\n*1.01  cycle=818122  h5=-
+        M11:Detachment  cycle=818894  h5=-
+              M11:Detachment\n*2.21  cycle=819351  h5=-
+              M11:Detachment\n*2.02  cycle=819693  h5=-
+              M11:Detachment\n*2.08  cycle=819972  h5=-
+              M11:Detachment\n*1.2  cycle=820799  h5=-
+        M14:FwdChain  cycle=820960  h5=-
+              M14:FwdChain\n*2.20  cycle=821331  h5=-
+              M14:FwdChain\n*2.12  cycle=822462  h5=-
+              M14:FwdChain\n*2.08  cycle=823576  h5=-
+              M14:FwdChain\n*2.07  cycle=824439  h5=-
+              M14:FwdChain\n*2.02  cycle=825615  h5=-
+              M14:FwdChain\n*1.3  cycle=826783  h5=-
+        M15:BwdChain  cycle=827705  h5=-
+              M15:BwdChain\n*2.08  cycle=828013  h5=-
+              M15:BwdChain\n*1.2  cycle=828876  h5=-
+M90:CheckLimits  cycle=829808  h5=+
+
+Wrote 312 nodes to /tmp/lt-proof-224.dot
+Render: dot -Tpdf /tmp/lt-proof-224.dot -o lt-proof-224.pdf
+
+===== Proof of *313 started at cycle 829956 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 3.13    (-(P*Q))I(-PV-Q)                                                        
+::::::::::::::::::::::::::::::::            .0   (-(P*Q))I(PI-Q)         ,0 SUBLEVEL REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   (-(-(P*Q)))V(-PV-Q)  1.01  ,0 REPLACEMENT                       
+::::::::::::::::::::::::::::::::            .0   -(-(P*Q))                2.21  ,0 DETACHMENT                    
+::::::::::::::::::::::::::::::::            .0   -PV-Q                        2.02  ,0 DETACHMENT                
+::::::::::::::::::::::::::::::::            .0   ((P*Q)IB)I(-PV-Q)      2.21  ,0 FORWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   ((-(P*Q))VB)I(-PV-Q)  2.20  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (-(-(-(P*Q))))I(-PV-Q)  2.12  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::            .0   ((-(P*Q))V(-(P*Q)))I(-PV-Q)  2.07  ,0 FORWARD CH                
+::::::::::::::::::::::::::::::::            .0   (BI(-(P*Q)))I(-PV-Q)  2.02  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (AV(-(P*Q)))I(-PV-Q)  1.3  ,0 FORWARD CHAINING                  
+::::::::::::::::::::::::::::::::            .0   (-(P*Q))I-P              2.20  ,0 BACKWARD CHAINING             
+::::::::::::::::::::::::::::::::            .0   (-(P*Q))I(-QV-P)       1.4  ,0 BACKWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   (-(P*Q))I-Q              1.3  ,0 BACKWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (-(P*Q))I((-PV-Q)V(-PV-Q))  1.2  ,0 BACKWARD CHAINING           
+:::::::::::::::::::::::::::::::: .0      -PV-Q                                                                   
+::::::::::::::::::::::::::::::::            .0   PI-Q                         1.01  ,0 REPLACEMENT               
+::::::::::::::::::::::::::::::::            .0   -QV-P                        1.4  ,0 DETACHMENT                 
+::::::::::::::::::::::::::::::::            .0   ----PI-Q                     2.13  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   --PI-Q                       2.11  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   -PI(QI-Q)                  2.01  ,0 BACKWARD CHAINING           
+::::::::::::::::::::::::::::::::            .0   -PI-Q                        2.08  ,0 BACKWARD CHAINING         
+::::::::::::::::::::::::::::::::            .0   -PI(-QV-Q)                 1.2  ,0 BACKWARD CHAINING            
+:::::::::::::::::::::::::::::::: .0      -PV-Q                                                                   
+:::::::::::::::::::::::::::::::: .0      PI-Q                                                                    
+::::::::::::::::::::::::::::::::            .0   (PVB)I-Q                   2.20  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (PVP)I-Q                   2.07  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (BIP)I-Q                   2.02  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (AVP)I-Q                   1.3  ,0 FORWARD CHAINING             
+::::::::::::::::::::::::::::::::            .0   PI(QI-Q)                   2.01  ,0 BACKWARD CHAINING           
+::::::::::::::::::::::::::::::::            .0   PI(-QV-Q)                  1.2  ,0 BACKWARD CHAINING            
+:::::::::::::::::::::::::::::::: .0      -QV-P                                                                   
+::::::::::::::::::::::::::::::::            .0   QI-P                         1.01  ,0 REPLACEMENT               
+::::::::::::::::::::::::::::::::            .0   ----QI-P                     2.13  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   --QI-P                       2.11  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   -QI(PI-P)                  2.01  ,0 BACKWARD CHAINING           
+::::::::::::::::::::::::::::::::            .0   -QI-P                        2.08  ,0 BACKWARD CHAINING         
+::::::::::::::::::::::::::::::::            .0   -QI(-PV-P)                 1.2  ,0 BACKWARD CHAINING            
+:::::::::::::::::::::::::::::::: .0      -PI-Q                                                                   
+::::::::::::::::::::::::::::::::            .0   --PV-Q                       1.01  ,0 REPLACEMENT               
+::::::::::::::::::::::::::::::::            .0   (PIB)I-Q                   2.21  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (-PVB)I-Q                  2.20  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   ---PI-Q                      2.12  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   (-PV-P)I-Q                 2.07  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (BI-P)I-Q                  2.02  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (AV-P)I-Q                  1.3  ,0 FORWARD CHAINING             
+:::::::::::::::::::::::::::::::: .0      (PVC)I-Q                                                                
+::::::::::::::::::::::::::::::::            .0   (-(PVC))V-Q              1.01  ,0 REPLACEMENT                   
+::::::::::::::::::::::::::::::::            .0   ((PVC)VB)I-Q             2.20  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (-(-(PVC)))I-Q         2.12  ,0 FORWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   ((PVC)V(PVC))I-Q       2.07  ,0 FORWARD CHAINING                
+::::::::::::::::::::::::::::::::            .0   (BI(PVC))I-Q             2.02  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (AV(PVC))I-Q             1.3  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::            .0   (PVC)I(QI-Q)             2.01  ,0 BACKWARD CHAINING             
+::::::::::::::::::::::::::::::::            .0   (PVC)I(-QV-Q)            1.2  ,0 BACKWARD CHAINING              
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 239018                           
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 48                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 49                               
+
+Proof graph: 213 major-method invocations captured.
+M70:TryMethods  cycle=831191  h5=-
+M12:Substitution  cycle=831517  h5=-
+M8:MakeMethodList  cycle=833323  h5=+
+M7:ApplyMethods  cycle=833335  h5=-
+        M16:SublvlRepl-A  cycle=833340  h5=-
+          M16:SublvlRepl-A\n/16  cycle=835108  h5=+
+          M12:Substitution  cycle=836717  h5=-
+        M17:SublvlRepl-B  cycle=838353  h5=-
+          M16:SublvlRepl-A\n/16  cycle=840124  h5=-
+        M13:Replacement  cycle=841560  h5=-
+              M13:Replacement\n*1.01  cycle=842357  h5=+
+              M12:Substitution  cycle=844194  h5=-
+        M11:Detachment  cycle=845104  h5=-
+              M11:Detachment\n*2.21  cycle=845961  h5=+
+              M12:Substitution  cycle=846924  h5=-
+              M11:Detachment\n*2.02  cycle=847554  h5=+
+              M12:Substitution  cycle=848568  h5=-
+              M11:Detachment\n*2.08  cycle=849817  h5=-
+              M11:Detachment\n*1.2  cycle=851883  h5=-
+        M14:FwdChain  cycle=852276  h5=-
+              M14:FwdChain\n*2.21  cycle=852983  h5=+
+              M12:Substitution  cycle=854752  h5=-
+              M14:FwdChain\n*2.20  cycle=858109  h5=+
+              M12:Substitution  cycle=860052  h5=-
+              M14:FwdChain\n*2.12  cycle=864870  h5=+
+              M12:Substitution  cycle=866887  h5=-
+              M14:FwdChain\n*2.08  cycle=869461  h5=-
+              M14:FwdChain\n*2.07  cycle=871550  h5=+
+              M12:Substitution  cycle=873933  h5=-
+              M14:FwdChain\n*2.02  cycle=877965  h5=+
+              M12:Substitution  cycle=879958  h5=-
+              M14:FwdChain\n*1.3  cycle=883485  h5=+
+              M12:Substitution  cycle=885543  h5=-
+        M15:BwdChain  cycle=889751  h5=-
+              M15:BwdChain\n*2.20  cycle=890535  h5=+
+              M12:Substitution  cycle=891792  h5=-
+              M15:BwdChain\n*1.4  cycle=893558  h5=+
+              M12:Substitution  cycle=895534  h5=-
+              M15:BwdChain\n*1.3  cycle=897953  h5=+
+              M12:Substitution  cycle=899353  h5=-
+              M15:BwdChain\n*2.08  cycle=900674  h5=-
+              M15:BwdChain\n*1.2  cycle=902774  h5=+
+              M12:Substitution  cycle=905352  h5=-
+M90:CheckLimits  cycle=907696  h5=-
+M60:FindNextProb  cycle=907714  h5=+
+M70:TryMethods  cycle=907730  h5=-
+M8:MakeMethodList  cycle=907894  h5=-
+M7:ApplyMethods  cycle=907901  h5=-
+        M13:Replacement  cycle=907906  h5=-
+              M13:Replacement\n*1.01  cycle=908838  h5=+
+              M12:Substitution  cycle=909661  h5=-
+        M11:Detachment  cycle=910230  h5=-
+              M11:Detachment\n*2.20  cycle=910784  h5=-
+              M11:Detachment\n*1.4  cycle=911510  h5=+
+              M12:Substitution  cycle=912606  h5=-
+              M11:Detachment\n*1.3  cycle=913694  h5=-
+              M11:Detachment\n*2.08  cycle=914079  h5=-
+              M11:Detachment\n*1.2  cycle=915353  h5=-
+        M14:FwdChain  cycle=915578  h5=-
+              M14:FwdChain\n*2.10  cycle=916034  h5=-
+              M14:FwdChain\n*2.13  cycle=917177  h5=+
+              M12:Substitution  cycle=918677  h5=-
+              M14:FwdChain\n*2.11  cycle=919889  h5=+
+              M12:Substitution  cycle=921034  h5=-
+        M15:BwdChain  cycle=921768  h5=-
+              M15:BwdChain\n*2.01  cycle=922285  h5=+
+              M12:Substitution  cycle=923667  h5=-
+              M15:BwdChain\n*2.08  cycle=925523  h5=+
+              M12:Substitution  cycle=926559  h5=-
+              M15:BwdChain\n*1.2  cycle=927652  h5=+
+              M12:Substitution  cycle=929271  h5=-
+M90:CheckLimits  cycle=930953  h5=-
+M60:FindNextProb  cycle=930971  h5=+
+M70:TryMethods  cycle=930987  h5=-
+M8:MakeMethodList  cycle=931151  h5=-
+M7:ApplyMethods  cycle=931158  h5=-
+        M13:Replacement  cycle=931163  h5=-
+              M13:Replacement\n*1.01  cycle=932095  h5=-
+        M11:Detachment  cycle=932808  h5=-
+              M11:Detachment\n*2.20  cycle=933362  h5=-
+              M11:Detachment\n*1.4  cycle=934088  h5=-
+              M11:Detachment\n*1.3  cycle=935443  h5=-
+              M11:Detachment\n*2.08  cycle=935828  h5=-
+              M11:Detachment\n*1.2  cycle=937102  h5=-
+        M14:FwdChain  cycle=937327  h5=-
+              M14:FwdChain\n*2.10  cycle=937783  h5=-
+              M14:FwdChain\n*2.13  cycle=938926  h5=-
+              M14:FwdChain\n*2.11  cycle=940586  h5=-
+        M15:BwdChain  cycle=941587  h5=-
+              M15:BwdChain\n*2.01  cycle=942104  h5=-
+              M15:BwdChain\n*2.08  cycle=943683  h5=-
+              M15:BwdChain\n*1.2  cycle=945006  h5=-
+M90:CheckLimits  cycle=946463  h5=-
+M60:FindNextProb  cycle=946481  h5=+
+M70:TryMethods  cycle=946497  h5=-
+M8:MakeMethodList  cycle=946627  h5=-
+M7:ApplyMethods  cycle=946634  h5=-
+        M13:Replacement  cycle=946639  h5=-
+              M13:Replacement\n*1.01  cycle=947180  h5=-
+        M11:Detachment  cycle=948104  h5=-
+              M11:Detachment\n*2.21  cycle=948611  h5=-
+              M11:Detachment\n*2.02  cycle=948997  h5=-
+              M11:Detachment\n*2.08  cycle=949332  h5=-
+              M11:Detachment\n*1.2  cycle=950378  h5=-
+        M14:FwdChain  cycle=950571  h5=-
+              M14:FwdChain\n*2.20  cycle=950991  h5=+
+              M12:Substitution  cycle=952049  h5=-
+              M14:FwdChain\n*2.12  cycle=954071  h5=-
+              M14:FwdChain\n*2.08  cycle=955387  h5=-
+              M14:FwdChain\n*2.07  cycle=956468  h5=+
+              M12:Substitution  cycle=957543  h5=-
+              M14:FwdChain\n*2.02  cycle=958991  h5=+
+              M12:Substitution  cycle=960094  h5=-
+              M14:FwdChain\n*1.3  cycle=961675  h5=+
+              M12:Substitution  cycle=962843  h5=-
+        M15:BwdChain  cycle=964653  h5=-
+              M15:BwdChain\n*2.01  cycle=965121  h5=+
+              M12:Substitution  cycle=966401  h5=-
+              M15:BwdChain\n*2.08  cycle=967737  h5=-
+              M15:BwdChain\n*1.2  cycle=968807  h5=+
+              M12:Substitution  cycle=970293  h5=-
+M90:CheckLimits  cycle=971752  h5=-
+M60:FindNextProb  cycle=971770  h5=+
+M70:TryMethods  cycle=971786  h5=-
+M8:MakeMethodList  cycle=971950  h5=-
+M7:ApplyMethods  cycle=971957  h5=-
+        M13:Replacement  cycle=971962  h5=-
+              M13:Replacement\n*1.01  cycle=972894  h5=+
+              M12:Substitution  cycle=973828  h5=-
+        M11:Detachment  cycle=974397  h5=-
+              M11:Detachment\n*2.20  cycle=974951  h5=-
+              M11:Detachment\n*1.4  cycle=975677  h5=-
+              M11:Detachment\n*1.3  cycle=976944  h5=-
+              M11:Detachment\n*2.08  cycle=977329  h5=-
+              M11:Detachment\n*1.2  cycle=978691  h5=-
+        M14:FwdChain  cycle=978916  h5=-
+              M14:FwdChain\n*2.10  cycle=979372  h5=-
+              M14:FwdChain\n*2.13  cycle=980626  h5=+
+              M12:Substitution  cycle=982245  h5=-
+              M14:FwdChain\n*2.11  cycle=983457  h5=+
+              M12:Substitution  cycle=984687  h5=-
+        M15:BwdChain  cycle=985421  h5=-
+              M15:BwdChain\n*2.01  cycle=985938  h5=+
+              M12:Substitution  cycle=987540  h5=-
+              M15:BwdChain\n*2.08  cycle=989396  h5=+
+              M12:Substitution  cycle=990542  h5=-
+              M15:BwdChain\n*1.2  cycle=991635  h5=+
+              M12:Substitution  cycle=993474  h5=-
+M90:CheckLimits  cycle=995156  h5=-
+M60:FindNextProb  cycle=995174  h5=+
+M70:TryMethods  cycle=995190  h5=-
+M8:MakeMethodList  cycle=995354  h5=-
+M7:ApplyMethods  cycle=995361  h5=-
+        M13:Replacement  cycle=995366  h5=-
+              M13:Replacement\n*1.01  cycle=995957  h5=+
+              M12:Substitution  cycle=997203  h5=-
+        M11:Detachment  cycle=998027  h5=-
+              M11:Detachment\n*2.21  cycle=998584  h5=-
+              M11:Detachment\n*2.02  cycle=999020  h5=-
+              M11:Detachment\n*2.08  cycle=999405  h5=-
+              M11:Detachment\n*1.2  cycle=1000705  h5=-
+        M14:FwdChain  cycle=1000930  h5=-
+              M14:FwdChain\n*2.21  cycle=1001431  h5=+
+              M12:Substitution  cycle=1002648  h5=-
+              M14:FwdChain\n*2.20  cycle=1004267  h5=+
+              M12:Substitution  cycle=1005504  h5=-
+              M14:FwdChain\n*2.12  cycle=1007693  h5=+
+              M12:Substitution  cycle=1009004  h5=-
+              M14:FwdChain\n*2.08  cycle=1010141  h5=-
+              M14:FwdChain\n*2.07  cycle=1011464  h5=+
+              M12:Substitution  cycle=1013208  h5=-
+              M14:FwdChain\n*2.02  cycle=1014905  h5=+
+              M12:Substitution  cycle=1016184  h5=-
+              M14:FwdChain\n*1.3  cycle=1018529  h5=+
+              M12:Substitution  cycle=1019873  h5=-
+        M15:BwdChain  cycle=1021837  h5=-
+              M15:BwdChain\n*2.01  cycle=1022354  h5=-
+              M15:BwdChain\n*2.08  cycle=1023933  h5=-
+              M15:BwdChain\n*1.2  cycle=1025256  h5=-
+M90:CheckLimits  cycle=1026713  h5=-
+M60:FindNextProb  cycle=1026731  h5=+
+M70:TryMethods  cycle=1026747  h5=-
+M8:MakeMethodList  cycle=1026942  h5=-
+M7:ApplyMethods  cycle=1026949  h5=-
+        M13:Replacement  cycle=1026954  h5=-
+              M13:Replacement\n*1.01  cycle=1027817  h5=+
+              M12:Substitution  cycle=1029176  h5=-
+        M11:Detachment  cycle=1030266  h5=-
+              M11:Detachment\n*2.21  cycle=1031137  h5=-
+              M11:Detachment\n*2.02  cycle=1031819  h5=-
+              M11:Detachment\n*2.08  cycle=1032353  h5=-
+              M11:Detachment\n*1.2  cycle=1033853  h5=-
+        M14:FwdChain  cycle=1034120  h5=-
+              M14:FwdChain\n*1.4  cycle=1034991  h5=-
+              M14:FwdChain\n*1.2  cycle=1036642  h5=-
+              M14:FwdChain\n*2.20  cycle=1037954  h5=+
+              M12:Substitution  cycle=1039300  h5=-
+              M14:FwdChain\n*2.12  cycle=1041770  h5=+
+              M12:Substitution  cycle=1043192  h5=-
+              M14:FwdChain\n*2.08  cycle=1044782  h5=-
+              M14:FwdChain\n*2.07  cycle=1046304  h5=+
+              M12:Substitution  cycle=1047966  h5=-
+              M14:FwdChain\n*2.02  cycle=1050492  h5=+
+              M12:Substitution  cycle=1051888  h5=-
+              M14:FwdChain\n*1.3  cycle=1053876  h5=+
+              M12:Substitution  cycle=1055337  h5=-
+        M15:BwdChain  cycle=1057491  h5=-
+              M15:BwdChain\n*2.01  cycle=1058249  h5=+
+              M12:Substitution  cycle=1059622  h5=-
+              M15:BwdChain\n*2.08  cycle=1062311  h5=-
+              M15:BwdChain\n*1.2  cycle=1063829  h5=+
+              M12:Substitution  cycle=1065446  h5=-
+M90:CheckLimits  cycle=1068952  h5=+
+
+Wrote 214 nodes to /tmp/lt-proof-313.dot
+Render: dot -Tpdf /tmp/lt-proof-313.dot -o lt-proof-313.pdf
+
+===== Proof of *314 started at cycle 1069100 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 3.14    (-PV-Q)I(-(P*Q))                                                        
+::::::::::::::::::::::::::::::::            .0   (PI-Q)I(-(P*Q))         ,0 SUBLEVEL REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   (-(-PV-Q))V(-(P*Q))  1.01  ,0 REPLACEMENT                       
+::::::::::::::::::::::::::::::::            .0   -(-PV-Q)                   2.21  ,0 DETACHMENT                  
+::::::::::::::::::::::::::::::::            .0   -(P*Q)                     2.02  ,0 DETACHMENT                  
+::::::::::::::::::::::::::::::::            .0   (-QV-P)I(-(P*Q))       1.4  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   ((-PV-Q)VB)I(-(P*Q))  2.20  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (-(-(-PV-Q)))I(-(P*Q))  2.12  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::            .0   ((-PV-Q)V(-PV-Q))I(-(P*Q))  2.07  ,0 FORWARD CHAINING           
+::::::::::::::::::::::::::::::::            .0   (BI(-PV-Q))I(-(P*Q))  2.02  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (AV(-PV-Q))I(-(P*Q))  1.3  ,0 FORWARD CHAINING                  
+::::::::::::::::::::::::::::::::            .0   (-PV-Q)I((P*Q)I(-(P*Q)))  2.01  ,0 BACKWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (-PV-Q)I((-(P*Q))V(-(P*Q)))  1.2  ,0 BACKWARD CHAINI            
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+::::::::::::::::::::::::::::::::            .0   (P*Q)I(-(P*Q))         2.01  ,0 DETACHMENT                      
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: .0      -(P*Q)                                                                  
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 200411                           
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 13                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 14                               
+
+Proof graph: 497 major-method invocations captured.
+M70:TryMethods  cycle=1070335  h5=-
+M12:Substitution  cycle=1070661  h5=-
+M8:MakeMethodList  cycle=1071981  h5=+
+M7:ApplyMethods  cycle=1071993  h5=-
+        M16:SublvlRepl-A  cycle=1071998  h5=-
+          M16:SublvlRepl-A\n/16  cycle=1073766  h5=+
+          M12:Substitution  cycle=1075296  h5=-
+        M17:SublvlRepl-B  cycle=1076617  h5=-
+          M16:SublvlRepl-A\n/16  cycle=1078388  h5=-
+        M13:Replacement  cycle=1079745  h5=-
+              M13:Replacement\n*1.01  cycle=1080542  h5=+
+              M12:Substitution  cycle=1082397  h5=-
+        M11:Detachment  cycle=1083388  h5=-
+              M11:Detachment\n*2.21  cycle=1084250  h5=+
+              M12:Substitution  cycle=1085417  h5=-
+              M11:Detachment\n*2.02  cycle=1086047  h5=+
+              M12:Substitution  cycle=1086851  h5=-
+              M11:Detachment\n*2.08  cycle=1087436  h5=-
+              M11:Detachment\n*1.2  cycle=1089502  h5=-
+        M14:FwdChain  cycle=1089895  h5=-
+              M14:FwdChain\n*1.4  cycle=1090728  h5=+
+              M12:Substitution  cycle=1092525  h5=-
+              M14:FwdChain\n*2.20  cycle=1094805  h5=+
+              M12:Substitution  cycle=1096748  h5=-
+              M14:FwdChain\n*2.12  cycle=1099525  h5=+
+              M12:Substitution  cycle=1101530  h5=-
+              M14:FwdChain\n*2.08  cycle=1103082  h5=-
+              M14:FwdChain\n*2.07  cycle=1105171  h5=+
+              M12:Substitution  cycle=1107700  h5=-
+              M14:FwdChain\n*2.02  cycle=1110275  h5=+
+              M12:Substitution  cycle=1112268  h5=-
+              M14:FwdChain\n*1.3  cycle=1114489  h5=+
+              M12:Substitution  cycle=1116547  h5=-
+        M15:BwdChain  cycle=1119097  h5=-
+              M15:BwdChain\n*2.01  cycle=1119820  h5=+
+              M12:Substitution  cycle=1122120  h5=-
+              M15:BwdChain\n*2.08  cycle=1124777  h5=-
+              M15:BwdChain\n*1.2  cycle=1126866  h5=+
+              M12:Substitution  cycle=1129472  h5=-
+M90:CheckLimits  cycle=1132777  h5=-
+M60:FindNextProb  cycle=1132795  h5=+
+M70:TryMethods  cycle=1132811  h5=-
+M8:MakeMethodList  cycle=1132937  h5=-
+M7:ApplyMethods  cycle=1132944  h5=-
+        M13:Replacement  cycle=1132949  h5=-
+        M11:Detachment  cycle=1133029  h5=-
+              M11:Detachment\n*2.01  cycle=1133471  h5=+
+              M12:Substitution  cycle=1134974  h5=-
+              M11:Detachment\n*2.08  cycle=1135981  h5=-
+              M11:Detachment\n*1.2  cycle=1137007  h5=-
+        M14:FwdChain  cycle=1137200  h5=-
+        M15:BwdChain  cycle=1137239  h5=-
+M90:CheckLimits  cycle=1137251  h5=-
+M60:FindNextProb  cycle=1137269  h5=+
+M70:TryMethods  cycle=1137285  h5=-
+M8:MakeMethodList  cycle=1137411  h5=-
+M7:ApplyMethods  cycle=1137418  h5=-
+        M13:Replacement  cycle=1137423  h5=-
+        M11:Detachment  cycle=1137503  h5=-
+              M11:Detachment\n*2.01  cycle=1137945  h5=-
+              M11:Detachment\n*2.08  cycle=1139555  h5=-
+              M11:Detachment\n*1.2  cycle=1140581  h5=-
+        M14:FwdChain  cycle=1140774  h5=-
+        M15:BwdChain  cycle=1140813  h5=-
+M90:CheckLimits  cycle=1140825  h5=-
+M60:FindNextProb  cycle=1140843  h5=+
+M70:TryMethods  cycle=1140859  h5=-
+M8:MakeMethodList  cycle=1140985  h5=-
+M7:ApplyMethods  cycle=1140992  h5=-
+        M13:Replacement  cycle=1140997  h5=-
+        M11:Detachment  cycle=1141077  h5=-
+              M11:Detachment\n*2.01  cycle=1141519  h5=-
+              M11:Detachment\n*2.08  cycle=1143129  h5=-
+              M11:Detachment\n*1.2  cycle=1144155  h5=-
+        M14:FwdChain  cycle=1144348  h5=-
+        M15:BwdChain  cycle=1144387  h5=-
+M90:CheckLimits  cycle=1144399  h5=-
+M60:FindNextProb  cycle=1144417  h5=+
+M70:TryMethods  cycle=1144433  h5=-
+M8:MakeMethodList  cycle=1144559  h5=-
+M7:ApplyMethods  cycle=1144566  h5=-
+        M13:Replacement  cycle=1144571  h5=-
+        M11:Detachment  cycle=1144651  h5=-
+              M11:Detachment\n*2.01  cycle=1145093  h5=-
+              M11:Detachment\n*2.08  cycle=1146703  h5=-
+              M11:Detachment\n*1.2  cycle=1147729  h5=-
+        M14:FwdChain  cycle=1147922  h5=-
+        M15:BwdChain  cycle=1147961  h5=-
+M90:CheckLimits  cycle=1147973  h5=-
+M60:FindNextProb  cycle=1147991  h5=+
+M70:TryMethods  cycle=1148007  h5=-
+M8:MakeMethodList  cycle=1148133  h5=-
+M7:ApplyMethods  cycle=1148140  h5=-
+        M13:Replacement  cycle=1148145  h5=-
+        M11:Detachment  cycle=1148225  h5=-
+              M11:Detachment\n*2.01  cycle=1148667  h5=-
+              M11:Detachment\n*2.08  cycle=1150277  h5=-
+              M11:Detachment\n*1.2  cycle=1151303  h5=-
+        M14:FwdChain  cycle=1151496  h5=-
+        M15:BwdChain  cycle=1151535  h5=-
+M90:CheckLimits  cycle=1151547  h5=-
+M60:FindNextProb  cycle=1151565  h5=+
+M70:TryMethods  cycle=1151581  h5=-
+M8:MakeMethodList  cycle=1151707  h5=-
+M7:ApplyMethods  cycle=1151714  h5=-
+        M13:Replacement  cycle=1151719  h5=-
+        M11:Detachment  cycle=1151799  h5=-
+              M11:Detachment\n*2.01  cycle=1152241  h5=-
+              M11:Detachment\n*2.08  cycle=1153851  h5=-
+              M11:Detachment\n*1.2  cycle=1154877  h5=-
+        M14:FwdChain  cycle=1155070  h5=-
+        M15:BwdChain  cycle=1155109  h5=-
+M90:CheckLimits  cycle=1155121  h5=-
+M60:FindNextProb  cycle=1155139  h5=+
+M70:TryMethods  cycle=1155155  h5=-
+M8:MakeMethodList  cycle=1155281  h5=-
+M7:ApplyMethods  cycle=1155288  h5=-
+        M13:Replacement  cycle=1155293  h5=-
+        M11:Detachment  cycle=1155373  h5=-
+              M11:Detachment\n*2.01  cycle=1155815  h5=-
+              M11:Detachment\n*2.08  cycle=1157425  h5=-
+              M11:Detachment\n*1.2  cycle=1158451  h5=-
+        M14:FwdChain  cycle=1158644  h5=-
+        M15:BwdChain  cycle=1158683  h5=-
+M90:CheckLimits  cycle=1158695  h5=-
+M60:FindNextProb  cycle=1158713  h5=+
+M70:TryMethods  cycle=1158729  h5=-
+M8:MakeMethodList  cycle=1158855  h5=-
+M7:ApplyMethods  cycle=1158862  h5=-
+        M13:Replacement  cycle=1158867  h5=-
+        M11:Detachment  cycle=1158947  h5=-
+              M11:Detachment\n*2.01  cycle=1159389  h5=-
+              M11:Detachment\n*2.08  cycle=1160999  h5=-
+              M11:Detachment\n*1.2  cycle=1162025  h5=-
+        M14:FwdChain  cycle=1162218  h5=-
+        M15:BwdChain  cycle=1162257  h5=-
+M90:CheckLimits  cycle=1162269  h5=-
+M60:FindNextProb  cycle=1162287  h5=+
+M70:TryMethods  cycle=1162303  h5=-
+M8:MakeMethodList  cycle=1162429  h5=-
+M7:ApplyMethods  cycle=1162436  h5=-
+        M13:Replacement  cycle=1162441  h5=-
+        M11:Detachment  cycle=1162521  h5=-
+              M11:Detachment\n*2.01  cycle=1162963  h5=-
+              M11:Detachment\n*2.08  cycle=1164573  h5=-
+              M11:Detachment\n*1.2  cycle=1165599  h5=-
+        M14:FwdChain  cycle=1165792  h5=-
+        M15:BwdChain  cycle=1165831  h5=-
+M90:CheckLimits  cycle=1165843  h5=-
+M60:FindNextProb  cycle=1165861  h5=+
+M70:TryMethods  cycle=1165877  h5=-
+M8:MakeMethodList  cycle=1166003  h5=-
+M7:ApplyMethods  cycle=1166010  h5=-
+        M13:Replacement  cycle=1166015  h5=-
+        M11:Detachment  cycle=1166095  h5=-
+              M11:Detachment\n*2.01  cycle=1166537  h5=-
+              M11:Detachment\n*2.08  cycle=1168147  h5=-
+              M11:Detachment\n*1.2  cycle=1169173  h5=-
+        M14:FwdChain  cycle=1169366  h5=-
+        M15:BwdChain  cycle=1169405  h5=-
+M90:CheckLimits  cycle=1169417  h5=-
+M60:FindNextProb  cycle=1169435  h5=+
+M70:TryMethods  cycle=1169451  h5=-
+M8:MakeMethodList  cycle=1169577  h5=-
+M7:ApplyMethods  cycle=1169584  h5=-
+        M13:Replacement  cycle=1169589  h5=-
+        M11:Detachment  cycle=1169669  h5=-
+              M11:Detachment\n*2.01  cycle=1170111  h5=-
+              M11:Detachment\n*2.08  cycle=1171721  h5=-
+              M11:Detachment\n*1.2  cycle=1172747  h5=-
+        M14:FwdChain  cycle=1172940  h5=-
+        M15:BwdChain  cycle=1172979  h5=-
+M90:CheckLimits  cycle=1172991  h5=-
+M60:FindNextProb  cycle=1173009  h5=+
+M70:TryMethods  cycle=1173025  h5=-
+M8:MakeMethodList  cycle=1173151  h5=-
+M7:ApplyMethods  cycle=1173158  h5=-
+        M13:Replacement  cycle=1173163  h5=-
+        M11:Detachment  cycle=1173243  h5=-
+              M11:Detachment\n*2.01  cycle=1173685  h5=-
+              M11:Detachment\n*2.08  cycle=1175295  h5=-
+              M11:Detachment\n*1.2  cycle=1176321  h5=-
+        M14:FwdChain  cycle=1176514  h5=-
+        M15:BwdChain  cycle=1176553  h5=-
+M90:CheckLimits  cycle=1176565  h5=-
+M60:FindNextProb  cycle=1176583  h5=+
+M70:TryMethods  cycle=1176599  h5=-
+M8:MakeMethodList  cycle=1176725  h5=-
+M7:ApplyMethods  cycle=1176732  h5=-
+        M13:Replacement  cycle=1176737  h5=-
+        M11:Detachment  cycle=1176817  h5=-
+              M11:Detachment\n*2.01  cycle=1177259  h5=-
+              M11:Detachment\n*2.08  cycle=1178869  h5=-
+              M11:Detachment\n*1.2  cycle=1179895  h5=-
+        M14:FwdChain  cycle=1180088  h5=-
+        M15:BwdChain  cycle=1180127  h5=-
+M90:CheckLimits  cycle=1180139  h5=-
+M60:FindNextProb  cycle=1180157  h5=+
+M70:TryMethods  cycle=1180173  h5=-
+M8:MakeMethodList  cycle=1180299  h5=-
+M7:ApplyMethods  cycle=1180306  h5=-
+        M13:Replacement  cycle=1180311  h5=-
+        M11:Detachment  cycle=1180391  h5=-
+              M11:Detachment\n*2.01  cycle=1180833  h5=-
+              M11:Detachment\n*2.08  cycle=1182443  h5=-
+              M11:Detachment\n*1.2  cycle=1183469  h5=-
+        M14:FwdChain  cycle=1183662  h5=-
+        M15:BwdChain  cycle=1183701  h5=-
+M90:CheckLimits  cycle=1183713  h5=-
+M60:FindNextProb  cycle=1183731  h5=+
+M70:TryMethods  cycle=1183747  h5=-
+M8:MakeMethodList  cycle=1183873  h5=-
+M7:ApplyMethods  cycle=1183880  h5=-
+        M13:Replacement  cycle=1183885  h5=-
+        M11:Detachment  cycle=1183965  h5=-
+              M11:Detachment\n*2.01  cycle=1184407  h5=-
+              M11:Detachment\n*2.08  cycle=1186017  h5=-
+              M11:Detachment\n*1.2  cycle=1187043  h5=-
+        M14:FwdChain  cycle=1187236  h5=-
+        M15:BwdChain  cycle=1187275  h5=-
+M90:CheckLimits  cycle=1187287  h5=-
+M60:FindNextProb  cycle=1187305  h5=+
+M70:TryMethods  cycle=1187321  h5=-
+M8:MakeMethodList  cycle=1187447  h5=-
+M7:ApplyMethods  cycle=1187454  h5=-
+        M13:Replacement  cycle=1187459  h5=-
+        M11:Detachment  cycle=1187539  h5=-
+              M11:Detachment\n*2.01  cycle=1187981  h5=-
+              M11:Detachment\n*2.08  cycle=1189591  h5=-
+              M11:Detachment\n*1.2  cycle=1190617  h5=-
+        M14:FwdChain  cycle=1190810  h5=-
+        M15:BwdChain  cycle=1190849  h5=-
+M90:CheckLimits  cycle=1190861  h5=-
+M60:FindNextProb  cycle=1190879  h5=+
+M70:TryMethods  cycle=1190895  h5=-
+M8:MakeMethodList  cycle=1191021  h5=-
+M7:ApplyMethods  cycle=1191028  h5=-
+        M13:Replacement  cycle=1191033  h5=-
+        M11:Detachment  cycle=1191113  h5=-
+              M11:Detachment\n*2.01  cycle=1191555  h5=-
+              M11:Detachment\n*2.08  cycle=1193165  h5=-
+              M11:Detachment\n*1.2  cycle=1194191  h5=-
+        M14:FwdChain  cycle=1194384  h5=-
+        M15:BwdChain  cycle=1194423  h5=-
+M90:CheckLimits  cycle=1194435  h5=-
+M60:FindNextProb  cycle=1194453  h5=+
+M70:TryMethods  cycle=1194469  h5=-
+M8:MakeMethodList  cycle=1194595  h5=-
+M7:ApplyMethods  cycle=1194602  h5=-
+        M13:Replacement  cycle=1194607  h5=-
+        M11:Detachment  cycle=1194687  h5=-
+              M11:Detachment\n*2.01  cycle=1195129  h5=-
+              M11:Detachment\n*2.08  cycle=1196739  h5=-
+              M11:Detachment\n*1.2  cycle=1197765  h5=-
+        M14:FwdChain  cycle=1197958  h5=-
+        M15:BwdChain  cycle=1197997  h5=-
+M90:CheckLimits  cycle=1198009  h5=-
+M60:FindNextProb  cycle=1198027  h5=+
+M70:TryMethods  cycle=1198043  h5=-
+M8:MakeMethodList  cycle=1198169  h5=-
+M7:ApplyMethods  cycle=1198176  h5=-
+        M13:Replacement  cycle=1198181  h5=-
+        M11:Detachment  cycle=1198261  h5=-
+              M11:Detachment\n*2.01  cycle=1198703  h5=-
+              M11:Detachment\n*2.08  cycle=1200313  h5=-
+              M11:Detachment\n*1.2  cycle=1201339  h5=-
+        M14:FwdChain  cycle=1201532  h5=-
+        M15:BwdChain  cycle=1201571  h5=-
+M90:CheckLimits  cycle=1201583  h5=-
+M60:FindNextProb  cycle=1201601  h5=+
+M70:TryMethods  cycle=1201617  h5=-
+M8:MakeMethodList  cycle=1201743  h5=-
+M7:ApplyMethods  cycle=1201750  h5=-
+        M13:Replacement  cycle=1201755  h5=-
+        M11:Detachment  cycle=1201835  h5=-
+              M11:Detachment\n*2.01  cycle=1202277  h5=-
+              M11:Detachment\n*2.08  cycle=1203887  h5=-
+              M11:Detachment\n*1.2  cycle=1204913  h5=-
+        M14:FwdChain  cycle=1205106  h5=-
+        M15:BwdChain  cycle=1205145  h5=-
+M90:CheckLimits  cycle=1205157  h5=-
+M60:FindNextProb  cycle=1205175  h5=+
+M70:TryMethods  cycle=1205191  h5=-
+M8:MakeMethodList  cycle=1205317  h5=-
+M7:ApplyMethods  cycle=1205324  h5=-
+        M13:Replacement  cycle=1205329  h5=-
+        M11:Detachment  cycle=1205409  h5=-
+              M11:Detachment\n*2.01  cycle=1205851  h5=-
+              M11:Detachment\n*2.08  cycle=1207461  h5=-
+              M11:Detachment\n*1.2  cycle=1208487  h5=-
+        M14:FwdChain  cycle=1208680  h5=-
+        M15:BwdChain  cycle=1208719  h5=-
+M90:CheckLimits  cycle=1208731  h5=-
+M60:FindNextProb  cycle=1208749  h5=+
+M70:TryMethods  cycle=1208765  h5=-
+M8:MakeMethodList  cycle=1208891  h5=-
+M7:ApplyMethods  cycle=1208898  h5=-
+        M13:Replacement  cycle=1208903  h5=-
+        M11:Detachment  cycle=1208983  h5=-
+              M11:Detachment\n*2.01  cycle=1209425  h5=-
+              M11:Detachment\n*2.08  cycle=1211035  h5=-
+              M11:Detachment\n*1.2  cycle=1212061  h5=-
+        M14:FwdChain  cycle=1212254  h5=-
+        M15:BwdChain  cycle=1212293  h5=-
+M90:CheckLimits  cycle=1212305  h5=-
+M60:FindNextProb  cycle=1212323  h5=+
+M70:TryMethods  cycle=1212339  h5=-
+M8:MakeMethodList  cycle=1212465  h5=-
+M7:ApplyMethods  cycle=1212472  h5=-
+        M13:Replacement  cycle=1212477  h5=-
+        M11:Detachment  cycle=1212557  h5=-
+              M11:Detachment\n*2.01  cycle=1212999  h5=-
+              M11:Detachment\n*2.08  cycle=1214609  h5=-
+              M11:Detachment\n*1.2  cycle=1215635  h5=-
+        M14:FwdChain  cycle=1215828  h5=-
+        M15:BwdChain  cycle=1215867  h5=-
+M90:CheckLimits  cycle=1215879  h5=-
+M60:FindNextProb  cycle=1215897  h5=+
+M70:TryMethods  cycle=1215913  h5=-
+M8:MakeMethodList  cycle=1216039  h5=-
+M7:ApplyMethods  cycle=1216046  h5=-
+        M13:Replacement  cycle=1216051  h5=-
+        M11:Detachment  cycle=1216131  h5=-
+              M11:Detachment\n*2.01  cycle=1216573  h5=-
+              M11:Detachment\n*2.08  cycle=1218183  h5=-
+              M11:Detachment\n*1.2  cycle=1219209  h5=-
+        M14:FwdChain  cycle=1219402  h5=-
+        M15:BwdChain  cycle=1219441  h5=-
+M90:CheckLimits  cycle=1219453  h5=-
+M60:FindNextProb  cycle=1219471  h5=+
+M70:TryMethods  cycle=1219487  h5=-
+M8:MakeMethodList  cycle=1219613  h5=-
+M7:ApplyMethods  cycle=1219620  h5=-
+        M13:Replacement  cycle=1219625  h5=-
+        M11:Detachment  cycle=1219705  h5=-
+              M11:Detachment\n*2.01  cycle=1220147  h5=-
+              M11:Detachment\n*2.08  cycle=1221757  h5=-
+              M11:Detachment\n*1.2  cycle=1222783  h5=-
+        M14:FwdChain  cycle=1222976  h5=-
+        M15:BwdChain  cycle=1223015  h5=-
+M90:CheckLimits  cycle=1223027  h5=-
+M60:FindNextProb  cycle=1223045  h5=+
+M70:TryMethods  cycle=1223061  h5=-
+M8:MakeMethodList  cycle=1223187  h5=-
+M7:ApplyMethods  cycle=1223194  h5=-
+        M13:Replacement  cycle=1223199  h5=-
+        M11:Detachment  cycle=1223279  h5=-
+              M11:Detachment\n*2.01  cycle=1223721  h5=-
+              M11:Detachment\n*2.08  cycle=1225331  h5=-
+              M11:Detachment\n*1.2  cycle=1226357  h5=-
+        M14:FwdChain  cycle=1226550  h5=-
+        M15:BwdChain  cycle=1226589  h5=-
+M90:CheckLimits  cycle=1226601  h5=-
+M60:FindNextProb  cycle=1226619  h5=+
+M70:TryMethods  cycle=1226635  h5=-
+M8:MakeMethodList  cycle=1226761  h5=-
+M7:ApplyMethods  cycle=1226768  h5=-
+        M13:Replacement  cycle=1226773  h5=-
+        M11:Detachment  cycle=1226853  h5=-
+              M11:Detachment\n*2.01  cycle=1227295  h5=-
+              M11:Detachment\n*2.08  cycle=1228905  h5=-
+              M11:Detachment\n*1.2  cycle=1229931  h5=-
+        M14:FwdChain  cycle=1230124  h5=-
+        M15:BwdChain  cycle=1230163  h5=-
+M90:CheckLimits  cycle=1230175  h5=-
+M60:FindNextProb  cycle=1230193  h5=+
+M70:TryMethods  cycle=1230209  h5=-
+M8:MakeMethodList  cycle=1230335  h5=-
+M7:ApplyMethods  cycle=1230342  h5=-
+        M13:Replacement  cycle=1230347  h5=-
+        M11:Detachment  cycle=1230427  h5=-
+              M11:Detachment\n*2.01  cycle=1230869  h5=-
+              M11:Detachment\n*2.08  cycle=1232479  h5=-
+              M11:Detachment\n*1.2  cycle=1233505  h5=-
+        M14:FwdChain  cycle=1233698  h5=-
+        M15:BwdChain  cycle=1233737  h5=-
+M90:CheckLimits  cycle=1233749  h5=-
+M60:FindNextProb  cycle=1233767  h5=+
+M70:TryMethods  cycle=1233783  h5=-
+M8:MakeMethodList  cycle=1233909  h5=-
+M7:ApplyMethods  cycle=1233916  h5=-
+        M13:Replacement  cycle=1233921  h5=-
+        M11:Detachment  cycle=1234001  h5=-
+              M11:Detachment\n*2.01  cycle=1234443  h5=-
+              M11:Detachment\n*2.08  cycle=1236053  h5=-
+              M11:Detachment\n*1.2  cycle=1237079  h5=-
+        M14:FwdChain  cycle=1237272  h5=-
+        M15:BwdChain  cycle=1237311  h5=-
+M90:CheckLimits  cycle=1237323  h5=-
+M60:FindNextProb  cycle=1237341  h5=+
+M70:TryMethods  cycle=1237357  h5=-
+M8:MakeMethodList  cycle=1237483  h5=-
+M7:ApplyMethods  cycle=1237490  h5=-
+        M13:Replacement  cycle=1237495  h5=-
+        M11:Detachment  cycle=1237575  h5=-
+              M11:Detachment\n*2.01  cycle=1238017  h5=-
+              M11:Detachment\n*2.08  cycle=1239627  h5=-
+              M11:Detachment\n*1.2  cycle=1240653  h5=-
+        M14:FwdChain  cycle=1240846  h5=-
+        M15:BwdChain  cycle=1240885  h5=-
+M90:CheckLimits  cycle=1240897  h5=-
+M60:FindNextProb  cycle=1240915  h5=+
+M70:TryMethods  cycle=1240931  h5=-
+M8:MakeMethodList  cycle=1241057  h5=-
+M7:ApplyMethods  cycle=1241064  h5=-
+        M13:Replacement  cycle=1241069  h5=-
+        M11:Detachment  cycle=1241149  h5=-
+              M11:Detachment\n*2.01  cycle=1241591  h5=-
+              M11:Detachment\n*2.08  cycle=1243201  h5=-
+              M11:Detachment\n*1.2  cycle=1244227  h5=-
+        M14:FwdChain  cycle=1244420  h5=-
+        M15:BwdChain  cycle=1244459  h5=-
+M90:CheckLimits  cycle=1244471  h5=-
+M60:FindNextProb  cycle=1244489  h5=+
+M70:TryMethods  cycle=1244505  h5=-
+M8:MakeMethodList  cycle=1244631  h5=-
+M7:ApplyMethods  cycle=1244638  h5=-
+        M13:Replacement  cycle=1244643  h5=-
+        M11:Detachment  cycle=1244723  h5=-
+              M11:Detachment\n*2.01  cycle=1245165  h5=-
+              M11:Detachment\n*2.08  cycle=1246775  h5=-
+              M11:Detachment\n*1.2  cycle=1247801  h5=-
+        M14:FwdChain  cycle=1247994  h5=-
+        M15:BwdChain  cycle=1248033  h5=-
+M90:CheckLimits  cycle=1248045  h5=-
+M60:FindNextProb  cycle=1248063  h5=+
+M70:TryMethods  cycle=1248079  h5=-
+M8:MakeMethodList  cycle=1248205  h5=-
+M7:ApplyMethods  cycle=1248212  h5=-
+        M13:Replacement  cycle=1248217  h5=-
+        M11:Detachment  cycle=1248297  h5=-
+              M11:Detachment\n*2.01  cycle=1248739  h5=-
+              M11:Detachment\n*2.08  cycle=1250349  h5=-
+              M11:Detachment\n*1.2  cycle=1251375  h5=-
+        M14:FwdChain  cycle=1251568  h5=-
+        M15:BwdChain  cycle=1251607  h5=-
+M90:CheckLimits  cycle=1251619  h5=-
+M60:FindNextProb  cycle=1251637  h5=+
+M70:TryMethods  cycle=1251653  h5=-
+M8:MakeMethodList  cycle=1251779  h5=-
+M7:ApplyMethods  cycle=1251786  h5=-
+        M13:Replacement  cycle=1251791  h5=-
+        M11:Detachment  cycle=1251871  h5=-
+              M11:Detachment\n*2.01  cycle=1252313  h5=-
+              M11:Detachment\n*2.08  cycle=1253923  h5=-
+              M11:Detachment\n*1.2  cycle=1254949  h5=-
+        M14:FwdChain  cycle=1255142  h5=-
+        M15:BwdChain  cycle=1255181  h5=-
+M90:CheckLimits  cycle=1255193  h5=-
+M60:FindNextProb  cycle=1255211  h5=+
+M70:TryMethods  cycle=1255227  h5=-
+M8:MakeMethodList  cycle=1255353  h5=-
+M7:ApplyMethods  cycle=1255360  h5=-
+        M13:Replacement  cycle=1255365  h5=-
+        M11:Detachment  cycle=1255445  h5=-
+              M11:Detachment\n*2.01  cycle=1255887  h5=-
+              M11:Detachment\n*2.08  cycle=1257497  h5=-
+              M11:Detachment\n*1.2  cycle=1258523  h5=-
+        M14:FwdChain  cycle=1258716  h5=-
+        M15:BwdChain  cycle=1258755  h5=-
+M90:CheckLimits  cycle=1258767  h5=-
+M60:FindNextProb  cycle=1258785  h5=+
+M70:TryMethods  cycle=1258801  h5=-
+M8:MakeMethodList  cycle=1258927  h5=-
+M7:ApplyMethods  cycle=1258934  h5=-
+        M13:Replacement  cycle=1258939  h5=-
+        M11:Detachment  cycle=1259019  h5=-
+              M11:Detachment\n*2.01  cycle=1259461  h5=-
+              M11:Detachment\n*2.08  cycle=1261071  h5=-
+              M11:Detachment\n*1.2  cycle=1262097  h5=-
+        M14:FwdChain  cycle=1262290  h5=-
+        M15:BwdChain  cycle=1262329  h5=-
+M90:CheckLimits  cycle=1262341  h5=-
+M60:FindNextProb  cycle=1262359  h5=+
+M70:TryMethods  cycle=1262375  h5=-
+M8:MakeMethodList  cycle=1262501  h5=-
+M7:ApplyMethods  cycle=1262508  h5=-
+        M13:Replacement  cycle=1262513  h5=-
+        M11:Detachment  cycle=1262593  h5=-
+              M11:Detachment\n*2.01  cycle=1263035  h5=-
+              M11:Detachment\n*2.08  cycle=1264645  h5=-
+              M11:Detachment\n*1.2  cycle=1265671  h5=-
+        M14:FwdChain  cycle=1265864  h5=-
+        M15:BwdChain  cycle=1265903  h5=-
+M90:CheckLimits  cycle=1265915  h5=-
+M60:FindNextProb  cycle=1265933  h5=+
+M70:TryMethods  cycle=1265949  h5=-
+M8:MakeMethodList  cycle=1266075  h5=-
+M7:ApplyMethods  cycle=1266082  h5=-
+        M13:Replacement  cycle=1266087  h5=-
+        M11:Detachment  cycle=1266167  h5=-
+              M11:Detachment\n*2.01  cycle=1266609  h5=-
+              M11:Detachment\n*2.08  cycle=1268219  h5=-
+              M11:Detachment\n*1.2  cycle=1269245  h5=-
+        M14:FwdChain  cycle=1269438  h5=-
+        M15:BwdChain  cycle=1269477  h5=-
+M90:CheckLimits  cycle=1269489  h5=+
+
+Wrote 498 nodes to /tmp/lt-proof-314.dot
+Render: dot -Tpdf /tmp/lt-proof-314.dot -o lt-proof-314.pdf
+
+===== Proof of *324 started at cycle 1269637 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 3.24    -(P*-P)                                                                 
+::::::::::::::::::::::::::::::::            .0   (P*-P)I(-(P*-P))       2.01  ,0 DETACHMENT                      
+:::::::::::::::::::::::::::::::: .0      (P*-P)I(-(P*-P))                                                        
+::::::::::::::::::::::::::::::::            .0   ((P*-P)VB)I(-(P*-P))  2.20  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (-(-(P*-P)))I(-(P*-P))  2.12  ,0 FORWARD CHAINING               
+::::::::::::::::::::::::::::::::            .0   ((P*-P)V(P*-P))I(-(P*-P))  2.07  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   (BI(P*-P))I(-(P*-P))  2.02  ,0 FORWARD CHAINING                 
+::::::::::::::::::::::::::::::::            .0   (AV(P*-P))I(-(P*-P))  1.3  ,0 FORWARD CHAINING                  
+::::::::::::::::::::::::::::::::            .0   (P*-P)I((P*-P)I(-(P*-P)))  2.01  ,0 BACKWARD CHAINING           
+::::::::::::::::::::::::::::::::            .0   (P*-P)I((-(P*-P))V(-(P*-P)))  1.2  ,0 BACKWARD C                
+:::::::::::::::::::::::::::::::: .0      (P*-P)I(-(P*-P))                                                        
+:::::::::::::::::::::::::::::::: .0      ((P*-P)VC)I(-(P*-P))                                                    
+::::::::::::::::::::::::::::::::            .0   (-((P*-P)VC))V(-(P*-P))  1.01  ,0 REPLACEMENT                   
+::::::::::::::::::::::::::::::::            .0   (((P*-P)VC)VB)I(-(P*-P))  2.20  ,0 FORWARD CHAINING             
+::::::::::::::::::::::::::::::::            .0   (-(-((P*-P)VC)))I(-(P*-P))  2.12  ,0 FORWARD CHAININ            
+::::::::::::::::::::::::::::::::            .0   (((P*-P)VC)V((P*-P)VC))I(-(P*-P))  2.07  ,0 FORWA               
+::::::::::::::::::::::::::::::::            .0   (BI((P*-P)VC))I(-(P*-P))  2.02  ,0 FORWARD CHAINING             
+::::::::::::::::::::::::::::::::            .0   (AV((P*-P)VC))I(-(P*-P))  1.3  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   ((P*-P)VC)I((P*-P)I(-(P*-P)))  2.01  ,0 BACKWARD C              
+::::::::::::::::::::::::::::::::            .0   ((P*-P)VC)I((-(P*-P))V(-(P*-P)))  1.2  ,0 BACKW                 
+:::::::::::::::::::::::::::::::: .0      ((P*-P)V(P*-P))I(-(P*-P))                                               
+::::::::::::::::::::::::::::::::            .0   (-((P*-P)V(P*-P)))V(-(P*-P))  1.01  ,0 REPLACEMENT              
+::::::::::::::::::::::::::::::::            .0   (((P*-P)V(P*-P))VB)I(-(P*-P))  2.20  ,0 FORWARD CH              
+::::::::::::::::::::::::::::::::            .0   (-(-((P*-P)V(P*-P))))I(-(P*-P))  2.12  ,0 FORWA                 
+::::::::::::::::::::::::::::::::            .0   (((P*-P)V(P*-P))V((P*-P)V(P*-P)))I(-(P*-P))                     
+::::::::::::::::::::::::::::::::            .0   (BI((P*-P)V(P*-P)))I(-(P*-P))  2.02  ,0 FORWARD CH              
+::::::::::::::::::::::::::::::::            .0   (AV((P*-P)V(P*-P)))I(-(P*-P))  1.3  ,0 FORWARD CH               
+::::::::::::::::::::::::::::::::            .0   ((P*-P)V(P*-P))I((P*-P)I(-(P*-P)))  2.01  ,0 BACKW              
+::::::::::::::::::::::::::::::::            .0   ((P*-P)V(P*-P))I((-(P*-P))V(-(P*-P)))  1.2  ,0                  
+:::::::::::::::::::::::::::::::: NO PROOF FOUND                                                                  
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 213818                           
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 24                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 25                               
+
+Proof graph: 134 major-method invocations captured.
+M70:TryMethods  cycle=1270360  h5=-
+M12:Substitution  cycle=1270516  h5=-
+M8:MakeMethodList  cycle=1270555  h5=+
+M7:ApplyMethods  cycle=1270567  h5=-
+        M16:SublvlRepl-A  cycle=1270572  h5=-
+        M17:SublvlRepl-B  cycle=1270969  h5=-
+        M13:Replacement  cycle=1271365  h5=-
+        M11:Detachment  cycle=1271445  h5=-
+              M11:Detachment\n*2.01  cycle=1271937  h5=+
+              M12:Substitution  cycle=1273584  h5=-
+              M11:Detachment\n*2.08  cycle=1274741  h5=-
+              M11:Detachment\n*1.2  cycle=1275963  h5=-
+        M14:FwdChain  cycle=1276188  h5=-
+        M15:BwdChain  cycle=1276227  h5=-
+M90:CheckLimits  cycle=1276239  h5=-
+M60:FindNextProb  cycle=1276257  h5=+
+M70:TryMethods  cycle=1276273  h5=-
+M8:MakeMethodList  cycle=1276603  h5=-
+M7:ApplyMethods  cycle=1276610  h5=-
+        M13:Replacement  cycle=1276615  h5=-
+              M13:Replacement\n*1.01  cycle=1277412  h5=-
+        M11:Detachment  cycle=1277670  h5=-
+              M11:Detachment\n*2.21  cycle=1278433  h5=-
+              M11:Detachment\n*2.02  cycle=1279854  h5=-
+              M11:Detachment\n*2.08  cycle=1281230  h5=-
+              M11:Detachment\n*1.2  cycle=1283295  h5=-
+        M14:FwdChain  cycle=1283688  h5=-
+              M14:FwdChain\n*2.20  cycle=1284358  h5=+
+              M12:Substitution  cycle=1286273  h5=-
+              M14:FwdChain\n*2.12  cycle=1289050  h5=+
+              M12:Substitution  cycle=1291027  h5=-
+              M14:FwdChain\n*2.08  cycle=1292579  h5=-
+              M14:FwdChain\n*2.07  cycle=1294667  h5=+
+              M12:Substitution  cycle=1297019  h5=-
+              M14:FwdChain\n*2.02  cycle=1299386  h5=+
+              M12:Substitution  cycle=1301351  h5=-
+              M14:FwdChain\n*1.3  cycle=1303572  h5=+
+              M12:Substitution  cycle=1305602  h5=-
+        M15:BwdChain  cycle=1308051  h5=-
+              M15:BwdChain\n*2.01  cycle=1308774  h5=+
+              M12:Substitution  cycle=1311158  h5=-
+              M15:BwdChain\n*2.08  cycle=1313309  h5=-
+              M15:BwdChain\n*1.2  cycle=1315397  h5=+
+              M12:Substitution  cycle=1318061  h5=-
+M90:CheckLimits  cycle=1320266  h5=-
+M60:FindNextProb  cycle=1320284  h5=+
+M70:TryMethods  cycle=1320300  h5=-
+M8:MakeMethodList  cycle=1320630  h5=-
+M7:ApplyMethods  cycle=1320637  h5=-
+        M13:Replacement  cycle=1320642  h5=-
+              M13:Replacement\n*1.01  cycle=1321439  h5=-
+        M11:Detachment  cycle=1321697  h5=-
+              M11:Detachment\n*2.21  cycle=1322460  h5=-
+              M11:Detachment\n*2.02  cycle=1323881  h5=-
+              M11:Detachment\n*2.08  cycle=1325257  h5=-
+              M11:Detachment\n*1.2  cycle=1327322  h5=-
+        M14:FwdChain  cycle=1327715  h5=-
+              M14:FwdChain\n*2.20  cycle=1328385  h5=-
+              M14:FwdChain\n*2.12  cycle=1330716  h5=-
+              M14:FwdChain\n*2.08  cycle=1333043  h5=-
+              M14:FwdChain\n*2.07  cycle=1335131  h5=-
+              M14:FwdChain\n*2.02  cycle=1337848  h5=-
+              M14:FwdChain\n*1.3  cycle=1340221  h5=-
+        M15:BwdChain  cycle=1342055  h5=-
+              M15:BwdChain\n*2.01  cycle=1342778  h5=-
+              M15:BwdChain\n*2.08  cycle=1345471  h5=-
+              M15:BwdChain\n*1.2  cycle=1347559  h5=-
+M90:CheckLimits  cycle=1349965  h5=-
+M60:FindNextProb  cycle=1349983  h5=+
+M70:TryMethods  cycle=1349999  h5=-
+M8:MakeMethodList  cycle=1350394  h5=-
+M7:ApplyMethods  cycle=1350401  h5=-
+        M13:Replacement  cycle=1350406  h5=-
+              M13:Replacement\n*1.01  cycle=1351525  h5=+
+              M12:Substitution  cycle=1353669  h5=-
+        M11:Detachment  cycle=1355012  h5=-
+              M11:Detachment\n*2.21  cycle=1356145  h5=-
+              M11:Detachment\n*2.02  cycle=1357079  h5=-
+              M11:Detachment\n*2.08  cycle=1358654  h5=-
+              M11:Detachment\n*1.2  cycle=1361198  h5=-
+        M14:FwdChain  cycle=1361665  h5=-
+              M14:FwdChain\n*1.4  cycle=1362792  h5=-
+              M14:FwdChain\n*1.2  cycle=1365538  h5=-
+              M14:FwdChain\n*2.20  cycle=1367869  h5=+
+              M12:Substitution  cycle=1370074  h5=-
+              M14:FwdChain\n*2.12  cycle=1373318  h5=+
+              M12:Substitution  cycle=1375576  h5=-
+              M14:FwdChain\n*2.08  cycle=1377681  h5=-
+              M14:FwdChain\n*2.07  cycle=1380247  h5=+
+              M12:Substitution  cycle=1383144  h5=-
+              M14:FwdChain\n*2.02  cycle=1386614  h5=+
+              M12:Substitution  cycle=1388869  h5=-
+              M14:FwdChain\n*1.3  cycle=1391503  h5=+
+              M12:Substitution  cycle=1393823  h5=-
+        M15:BwdChain  cycle=1396629  h5=-
+              M15:BwdChain\n*2.01  cycle=1397643  h5=+
+              M12:Substitution  cycle=1400294  h5=-
+              M15:BwdChain\n*2.08  cycle=1403996  h5=-
+              M15:BwdChain\n*1.2  cycle=1406558  h5=+
+              M12:Substitution  cycle=1409521  h5=-
+M90:CheckLimits  cycle=1414156  h5=-
+M60:FindNextProb  cycle=1414174  h5=+
+M70:TryMethods  cycle=1414190  h5=-
+M8:MakeMethodList  cycle=1414684  h5=-
+M7:ApplyMethods  cycle=1414691  h5=-
+        M13:Replacement  cycle=1414696  h5=-
+              M13:Replacement\n*1.01  cycle=1415699  h5=+
+              M12:Substitution  cycle=1418329  h5=-
+        M11:Detachment  cycle=1419526  h5=-
+              M11:Detachment\n*2.21  cycle=1420594  h5=-
+              M11:Detachment\n*2.02  cycle=1421581  h5=-
+              M11:Detachment\n*2.08  cycle=1423163  h5=-
+              M11:Detachment\n*1.2  cycle=1426071  h5=-
+        M14:FwdChain  cycle=1426632  h5=-
+              M14:FwdChain\n*1.4  cycle=1427671  h5=-
+              M14:FwdChain\n*1.2  cycle=1430627  h5=-
+              M14:FwdChain\n*2.20  cycle=1432913  h5=+
+              M12:Substitution  cycle=1435683  h5=-
+              M14:FwdChain\n*2.12  cycle=1439078  h5=+
+              M12:Substitution  cycle=1441787  h5=-
+              M14:FwdChain\n*2.08  cycle=1443751  h5=-
+              M14:FwdChain\n*2.07  cycle=1446682  h5=+
+              M12:Substitution  cycle=1450454  h5=-
+              M14:FwdChain\n*2.02  cycle=1453914  h5=+
+              M12:Substitution  cycle=1456692  h5=-
+              M14:FwdChain\n*1.3  cycle=1459428  h5=+
+              M12:Substitution  cycle=1462315  h5=-
+        M15:BwdChain  cycle=1465380  h5=-
+              M15:BwdChain\n*2.01  cycle=1466309  h5=+
+              M12:Substitution  cycle=1469395  h5=-
+              M15:BwdChain\n*2.08  cycle=1472895  h5=-
+              M15:BwdChain\n*1.2  cycle=1475826  h5=+
+              M12:Substitution  cycle=1479289  h5=-
+M90:CheckLimits  cycle=1483433  h5=+
+
+Wrote 135 nodes to /tmp/lt-proof-324.dot
+Render: dot -Tpdf /tmp/lt-proof-324.dot -o lt-proof-324.pdf
+
+===== Proof of *413 started at cycle 1483581 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 4.13    P=--P                                                                   
+::::::::::::::::::::::::::::::::            .0   (PI--P)*(--PIP)          4.01  ,0 REPLACEMENT                   
+::::::::::::::::::::::::::::::::            .0   PIP                          2.12  ,0 BACKWARD CHAINING         
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.08      AIA                           
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        PIP                           
+::::::::::::::::::::::::::::::::           GIVEN                         2.12      AI--A                         
+::::::::::::::::::::::::::::::::           BACKWARD CHAINING             4.13      P=--P                         
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 8122                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 2                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 3                                
+
+Proof graph: 16 major-method invocations captured.
+M70:TryMethods  cycle=1484296  h5=-
+M12:Substitution  cycle=1484462  h5=-
+M8:MakeMethodList  cycle=1484501  h5=+
+M7:ApplyMethods  cycle=1484513  h5=+
+        M16:SublvlRepl-A  cycle=1484518  h5=-
+        M17:SublvlRepl-B  cycle=1484852  h5=-
+        M13:Replacement  cycle=1485185  h5=-
+              M13:Replacement\n*4.01  cycle=1485858  h5=+
+              M12:Substitution  cycle=1487658  h5=-
+        M11:Detachment  cycle=1487739  h5=-
+              M11:Detachment\n*2.08  cycle=1488116  h5=-
+              M11:Detachment\n*1.2  cycle=1489330  h5=-
+        M14:FwdChain  cycle=1489555  h5=-
+        M15:BwdChain  cycle=1489588  h5=+
+              M15:BwdChain\n*2.12  cycle=1490078  h5=+
+              M12:Substitution  cycle=1490731  h5=+
+
+Wrote 17 nodes to /tmp/lt-proof-413.dot
+Render: dot -Tpdf /tmp/lt-proof-413.dot -o lt-proof-413.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 4.13    A=--A                                                                   
+
+===== Proof of *420 started at cycle 1492564 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 4.20    P=P                                                                     
+::::::::::::::::::::::::::::::::            .0   (PIP)*(PIP)              4.01  ,0 REPLACEMENT                   
+::::::::::::::::::::::::::::::::            .0   --PIP                        4.13  ,0 FORWARD CHAINING          
+::::::::::::::::::::::::::::::::            .0   PIP                          2.08  ,0 BACKWARD CHAINING         
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.08      AIA                           
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        PIP                           
+::::::::::::::::::::::::::::::::           GIVEN                         2.08      AIA                           
+::::::::::::::::::::::::::::::::           BACKWARD CHAINING             4.20      P=P                           
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 7834                             
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 3                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 4                                
+
+Proof graph: 18 major-method invocations captured.
+M70:TryMethods  cycle=1493044  h5=-
+M12:Substitution  cycle=1493136  h5=-
+M8:MakeMethodList  cycle=1493397  h5=+
+M7:ApplyMethods  cycle=1493409  h5=+
+        M16:SublvlRepl-A  cycle=1493414  h5=-
+        M17:SublvlRepl-B  cycle=1493462  h5=-
+        M13:Replacement  cycle=1493510  h5=-
+              M13:Replacement\n*4.01  cycle=1494083  h5=+
+              M12:Substitution  cycle=1495270  h5=-
+        M11:Detachment  cycle=1495351  h5=-
+              M11:Detachment\n*2.08  cycle=1495628  h5=-
+              M11:Detachment\n*1.2  cycle=1496455  h5=-
+        M14:FwdChain  cycle=1496616  h5=-
+              M14:FwdChain\n*4.13  cycle=1496993  h5=+
+              M12:Substitution  cycle=1497969  h5=-
+        M15:BwdChain  cycle=1498594  h5=+
+              M15:BwdChain\n*2.08  cycle=1498902  h5=+
+              M12:Substitution  cycle=1499574  h5=+
+
+Wrote 19 nodes to /tmp/lt-proof-420.dot
+Render: dot -Tpdf /tmp/lt-proof-420.dot -o lt-proof-420.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 4.20    A=A                                                                     
+
+===== Proof of *424 started at cycle 1500938 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 4.24    P=(P*P)                                                                 
+::::::::::::::::::::::::::::::::            .0   (PI(P*P))*((P*P)IP)  4.01  ,0 REPLACEMENT                       
+::::::::::::::::::::::::::::::::            .0   PI(P*P)                    4.20  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   --PI(P*P)                  4.13  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::            .0   PI((P*P)V(P*P))        1.2  ,0 BACKWARD CHAINING                
+:::::::::::::::::::::::::::::::: .0      PI(P*P)                                                                 
+::::::::::::::::::::::::::::::::            .0   -PV(P*P)                   1.01  ,0 REPLACEMENT                 
+::::::::::::::::::::::::::::::::            .0   P*P                          2.02  ,0 DETACHMENT                
+::::::::::::::::::::::::::::::::            .0   (PVB)I(P*P)              2.20  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (PVP)I(P*P)              2.07  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (BIP)I(P*P)              2.02  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   (AVP)I(P*P)              1.3  ,0 FORWARD CHAINING               
+:::::::::::::::::::::::::::::::: .0      P*P                                                                     
+::::::::::::::::::::::::::::::::            .0   PIP                          2.08  ,0 BACKWARD CHAINING         
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.08      AIA                           
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        PIP                           
+::::::::::::::::::::::::::::::::           GIVEN                         2.08      AIA                           
+::::::::::::::::::::::::::::::::           BACKWARD CHAINING             .0        P*P                           
+::::::::::::::::::::::::::::::::           GIVEN                         2.02      AI(BIA)                       
+::::::::::::::::::::::::::::::::           DETACHMENT                    .0        PI(P*P)                       
+::::::::::::::::::::::::::::::::           GIVEN                         4.20      A=A                           
+::::::::::::::::::::::::::::::::           FORWARD CHAINING              4.24      P=(P*P)                       
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 43016                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 11                               
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 12                               
+
+Proof graph: 62 major-method invocations captured.
+M70:TryMethods  cycle=1501627  h5=-
+M12:Substitution  cycle=1501784  h5=-
+M8:MakeMethodList  cycle=1502300  h5=+
+M7:ApplyMethods  cycle=1502312  h5=-
+        M16:SublvlRepl-A  cycle=1502317  h5=-
+        M17:SublvlRepl-B  cycle=1502567  h5=-
+        M13:Replacement  cycle=1502817  h5=-
+              M13:Replacement\n*4.01  cycle=1503468  h5=+
+              M12:Substitution  cycle=1505202  h5=-
+        M11:Detachment  cycle=1505283  h5=-
+              M11:Detachment\n*2.08  cycle=1505638  h5=-
+              M11:Detachment\n*1.2  cycle=1506791  h5=-
+        M14:FwdChain  cycle=1507020  h5=-
+              M14:FwdChain\n*4.20  cycle=1507423  h5=+
+              M12:Substitution  cycle=1508369  h5=-
+              M14:FwdChain\n*4.13  cycle=1509328  h5=+
+              M12:Substitution  cycle=1510576  h5=-
+        M15:BwdChain  cycle=1511279  h5=-
+              M15:BwdChain\n*2.08  cycle=1511659  h5=-
+              M15:BwdChain\n*1.2  cycle=1512859  h5=+
+              M12:Substitution  cycle=1514361  h5=-
+M90:CheckLimits  cycle=1515932  h5=-
+M60:FindNextProb  cycle=1515950  h5=+
+M70:TryMethods  cycle=1515966  h5=-
+M8:MakeMethodList  cycle=1516127  h5=-
+M7:ApplyMethods  cycle=1516134  h5=-
+        M13:Replacement  cycle=1516139  h5=-
+              M13:Replacement\n*1.01  cycle=1516708  h5=+
+              M12:Substitution  cycle=1517847  h5=-
+        M11:Detachment  cycle=1518536  h5=-
+              M11:Detachment\n*2.21  cycle=1519071  h5=-
+              M11:Detachment\n*2.02  cycle=1519485  h5=+
+              M12:Substitution  cycle=1520136  h5=-
+              M11:Detachment\n*2.08  cycle=1520493  h5=-
+              M11:Detachment\n*1.2  cycle=1521680  h5=-
+        M14:FwdChain  cycle=1521909  h5=-
+              M14:FwdChain\n*2.20  cycle=1522357  h5=+
+              M12:Substitution  cycle=1523557  h5=-
+              M14:FwdChain\n*2.12  cycle=1525631  h5=-
+              M14:FwdChain\n*2.08  cycle=1527065  h5=-
+              M14:FwdChain\n*2.07  cycle=1528287  h5=+
+              M12:Substitution  cycle=1529504  h5=-
+              M14:FwdChain\n*2.02  cycle=1530990  h5=+
+              M12:Substitution  cycle=1532235  h5=-
+              M14:FwdChain\n*1.3  cycle=1533854  h5=+
+              M12:Substitution  cycle=1535164  h5=-
+        M15:BwdChain  cycle=1537012  h5=-
+              M15:BwdChain\n*2.08  cycle=1537392  h5=-
+              M15:BwdChain\n*1.2  cycle=1538603  h5=-
+M90:CheckLimits  cycle=1539920  h5=-
+M60:FindNextProb  cycle=1539938  h5=+
+M70:TryMethods  cycle=1539954  h5=-
+M8:MakeMethodList  cycle=1540050  h5=-
+M7:ApplyMethods  cycle=1540057  h5=+
+        M13:Replacement  cycle=1540062  h5=-
+        M11:Detachment  cycle=1540209  h5=-
+              M11:Detachment\n*2.08  cycle=1540486  h5=-
+              M11:Detachment\n*1.2  cycle=1541313  h5=-
+        M14:FwdChain  cycle=1541474  h5=-
+        M15:BwdChain  cycle=1541507  h5=+
+              M15:BwdChain\n*2.08  cycle=1541815  h5=+
+              M12:Substitution  cycle=1542485  h5=+
+
+Wrote 63 nodes to /tmp/lt-proof-424.dot
+Render: dot -Tpdf /tmp/lt-proof-424.dot -o lt-proof-424.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 4.24    A=(A*A)                                                                 
+
+===== Proof of *425 started at cycle 1544767 =====
+:::::::::::::::::::::::::::::::: TO PROVE                                                                        
+:::::::::::::::::::::::::::::::: 4.25    P=(PVP)                                                                 
+::::::::::::::::::::::::::::::::            .0   (PI(PVP))*((PVP)IP)  4.01  ,0 REPLACEMENT                       
+::::::::::::::::::::::::::::::::            .0   (P*P)I(PVP)              4.24  ,0 FORWARD CHAINING              
+::::::::::::::::::::::::::::::::            .0   PI(PVP)                    4.20  ,0 FORWARD CHAINING            
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: PROOF FOUND.                                                                    
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::           GIVEN                         2.20      AI(AVB)                       
+::::::::::::::::::::::::::::::::           SUBSTITUTION                  .0        PI(PVP)                       
+::::::::::::::::::::::::::::::::           GIVEN                         4.20      A=A                           
+::::::::::::::::::::::::::::::::           FORWARD CHAINING              4.25      P=(PVP)                       
+::::::::::::::::::::::::::::::::           Q.E.D.0                                                               
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: EFFORT              LIMIT 200000        ACTUAL 12277                            
+:::::::::::::::::::::::::::::::: SUBPROBLEMS         LIMIT 50            ACTUAL 3                                
+:::::::::::::::::::::::::::::::: SUBSTITUTIONS       LIMIT 50            ACTUAL 4                                
+
+Proof graph: 17 major-method invocations captured.
+M70:TryMethods  cycle=1545456  h5=-
+M12:Substitution  cycle=1545613  h5=-
+M8:MakeMethodList  cycle=1546138  h5=+
+M7:ApplyMethods  cycle=1546150  h5=+
+        M16:SublvlRepl-A  cycle=1546155  h5=-
+        M17:SublvlRepl-B  cycle=1546676  h5=-
+        M13:Replacement  cycle=1547197  h5=-
+              M13:Replacement\n*4.01  cycle=1547848  h5=+
+              M12:Substitution  cycle=1549582  h5=-
+        M11:Detachment  cycle=1549663  h5=-
+              M11:Detachment\n*2.08  cycle=1550018  h5=-
+              M11:Detachment\n*1.2  cycle=1551171  h5=-
+        M14:FwdChain  cycle=1551400  h5=+
+              M14:FwdChain\n*4.24  cycle=1551856  h5=+
+              M12:Substitution  cycle=1553053  h5=-
+              M14:FwdChain\n*4.20  cycle=1554812  h5=+
+              M12:Substitution  cycle=1555756  h5=+
+
+Wrote 18 nodes to /tmp/lt-proof-425.dot
+Render: dot -Tpdf /tmp/lt-proof-425.dot -o lt-proof-425.pdf
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::                                                                                 
+::::::::::::::::::::::::::::::::    REMEMBER PROVED THEOREM                                                      
+::::::::::::::::::::::::::::::::                                                                                 
+:::::::::::::::::::::::::::::::: 4.25    A=(AVA)                                                                 

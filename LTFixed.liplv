@@ -2905,7 +2905,7 @@
 
 ("KICK OFF FOR PROVING THEOREMS" "5" "" "" "" "X1" "" "" "")
 *1.01  ((PIQ).=.(-PVQ)) DEF.
-*2.33  ((PVQVR).=.((PVQ)VR)) DEF.
+*2.33  ((PV(QVR)).=.((PVQ)VR)) DEF.
 *3.01  ((P*Q).=.-(-(PV-Q)) DEF.
 *4.01  ((P=Q).=.((PIQ)*(QIP))) DEF.
 *1.2   ((AVA)IA)

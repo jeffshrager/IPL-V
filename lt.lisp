@@ -141,8 +141,8 @@
           (setf (getf node :parent-id) root-id)))
       (push root-node all-nodes)) ; root first in the list for DOT output
     ;; Print indented text summary to stdout
-    (format t "~%Proof graph: ~a major-method invocations captured.~%" (1- (length all-nodes)))
-    (loop for node in (rest all-nodes) do   ; skip synthetic root in text dump
+    ;; (format t "~%Proof graph: ~a major-method invocations captured.~%" (1- (length all-nodes)))
+    '(loop for node in (rest all-nodes) do   ; skip synthetic root in text dump
       (format t "~v@T~a  cycle=~a  h5=~a~%"
               (* 2 (max 0 (getf node :depth)))
               (getf node :label)
@@ -188,8 +188,8 @@
                   (getf node :parent-id)
                   (getf node :node-id))))
       (format out "}~%")))   ; closes let (out ...) and with-open-file
-    (format t "~%Wrote ~a nodes to ~a~%" (length all-nodes) filename)
-    (format t "Render: dot -Tpdf ~a -o ~a.pdf~%" filename (pathname-name filename))
+    ;; (format t "~%Wrote ~a nodes to ~a~%" (length all-nodes) filename)
+    ;; (format t "Render: dot -Tpdf ~a -o ~a.pdf~%" filename (pathname-name filename))
     filename))
 
 ;;; =========================================================================
@@ -237,8 +237,8 @@
            (label (format nil "Problem ~a" pretty))
            (filename (format nil "/tmp/lt-proof-~a.dot" stem)))
       ;; Separator in the dotstar so each proof is visually distinct.
-      (when *lt-dotstar-stream*
-        (format *lt-dotstar-stream*
+      '(when *lt-dotstar-stream*
+           (format *lt-dotstar-stream*
                 "~%// ============================================================~%// ~a~%// ============================================================~%"
                 label))
       (proof-graph! filename label))
@@ -279,7 +279,7 @@
 	     (clrhash *m19-annotations*)
 	     (setf *m19-r000-cycle* nil)
 	     (setf *current-proof-sym* (cell-symb (h0)))
-	     (format t "~%===== Proof of ~a started at cycle ~a =====~%"
+	     '(format t "~%===== Proof of ~a started at cycle ~a =====~%"
 		     *current-proof-sym* (h3-cycles))))
 
 	  ;; M001R220: positive exit (J4 = H5+, proof found). Fire before J4.
