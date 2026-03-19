@@ -237,8 +237,8 @@
            (label (format nil "Problem ~a" pretty))
            (filename (format nil "/tmp/lt-proof-~a.dot" stem)))
       ;; Separator in the dotstar so each proof is visually distinct.
-      '(when *lt-dotstar-stream*
-           (format *lt-dotstar-stream*
+      (when *lt-dotstar-stream*
+        (format *lt-dotstar-stream*
                 "~%// ============================================================~%// ~a~%// ============================================================~%"
                 label))
       (proof-graph! filename label))
