@@ -178,23 +178,6 @@
 
 (defvar *card-cycles.ids-executed* nil)
 
-(defparameter *checked-routines*
-  '(
-    "M001" "M002" "M003" "M012" "M042" "M043" "M050"
-    "M054" "M062" "M063" "M070" "M072" "M073" "M074"
-    "M079" "M089" "M111" "P004" "P006" "P007" "P008"
-    "P009" "P015" "P018" "P019" "P027" "P029" "P031"
-    "P050" "P051" "P052" "P055" "Q001" "Q002" "Q005"
-    "Q006" "Q007" "Q008" "Q009" "Q010" "Q011" "Q012"
-    "Q013" "Q014" "Q015" "Q016" "Q017" "Q018" "Q019"
-    "X001" "Q004" "Q003" "P030" "P028" "M116" "M115"
-    "M114" "M110" "M088" "M082" "M080" "M078" "M077"
-    "M076" "M071" "M071" "P014" "M112" "M113" "P024"
-    "P017" "P013" "P016" "P000" "M041" "M040" "M019"
-    "M017" "M016" "M014" "P022" "J73"  "J74"  "M008"
-    "M013" "M007" "M011" "M015" "M051" "M075" "M090"
-    "P025" "P003" "P026"))
-
 (defun trace! ()
   (loop for entry in (reverse *card-cycles.ids-executed*)
   	with indent = 0
@@ -210,26 +193,6 @@
 	(cond ((eq entry :descend) (incf indent 3))
 	      ((and (listp entry) (eq :ascend (car entry))) (decf indent 3))
 	      ((listp entry) (format t "~vT~s~%" indent entry)))))
-
-
-(defvar *rxtbl* (make-hash-table :test #'equal))
-'(defun rx () ;; report on execs (card ids executed)
-  (clrhash *rxtbl*)
-  (loop for entry in *card-cycles.ids-executed*
-	as id = (when (listp entry) (cdr entry))
-	if (and id (stringp id) (= 8 (length id)))
-	do (incf (gethash (subseq id 0 4) *rxtbl* 0))
-	else if (and id (stringp id) (char-equal #\J (aref id 0)))
-	do (incf (gethash id *rxtbl* 0)))
-  (format t "~%~%All call stats:~%")
-  (let ((callstats (loop for rname being the hash-keys of *rxtbl*
-			 using (hash-value nx)
-			 collect (cons rname nx))))
-    ;; This throws an annoying warning and is a non-critical deugging tool
-    (mapcar #'print (sort callstats #'string< :key #'car))
-    (format t "~%~%Unchecked calls:~%")
-    (mapcar #'print (SET-DIFFERENCE (mapcar #'car callstats) *checked-routines* :TEST #'STRING-EQUAL)))
-  )
 
 (defvar *cell-tracing-on* nil)
 ;;; These will get eval'ed at the given id, for example:

@@ -11,7 +11,8 @@
       "Bash(1 grep \"Wrote\\\\|caught ERROR\" /Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.out)",
       "Bash(head:*)",
       "Bash(echo:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(chmod:*)"
     ]
   }
 }

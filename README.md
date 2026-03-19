@@ -2,7 +2,7 @@
 
 See this paper for a more correct and detailed history:
 
-      https://arxiv.org/abs/2603.13514
+     https://arxiv.org/abs/2603.13514
 
 The goal of this project is a faithful reanimation of the earliest AIs
 — actually cognitive models — created by the team of Newell, Simon,
@@ -113,13 +113,19 @@ Individual per-theorem `.dot` files are also written to `/tmp/lt-proof-NNN.dot`
 
 ### Rendering Proof Graphs
 
+Short story:
+
+     prf2pdf.sh <dotstar> <theorem> [output]
+
+Long story:
+
 To render an individual proof graph as a PDF:
 
 ```bash
 dot -Tpdf /tmp/lt-proof-425.dot -o proof-425.pdf
 ```
 
-To render all graphs from a dotstar file, extract each `digraph { }` block
+To render a graph from a dotstar file, extract each `digraph { }` block
 and run `dot` on it, or use a script that splits on the `// ====` separators.
 
 The dotstar format is straightforward: each theorem's graph is preceded by:
