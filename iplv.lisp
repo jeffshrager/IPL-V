@@ -1,5 +1,7 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+;;; See the paper describing this project: https://arxiv.org/abs/2603.13514
+
 ;;; ===================================================================
 ;;; Copyright 2025-2026 by Jeff Shrager
 ;;;

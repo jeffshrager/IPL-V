@@ -1,5 +1,7 @@
 ;;; lt.lisp — Logic Theorist runner for the IPL-V interpreter
 ;;;
+;;; See the paper describing this project: https://arxiv.org/abs/2603.13514
+;;;
 ;;; This file loads the generic IPL-V interpreter (iplv.lisp) and adds
 ;;; all LT-specific analysis: proof-graph generation, M19 annotation,
 ;;; subroutine trace hooks, and the LT execution call.
