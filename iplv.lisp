@@ -209,23 +209,6 @@
 (defun step! () (setf *breaks* t) "Use :c to step.")
 (defun free! (&optional next-breaks) (setf *breaks* next-breaks) "Use :c to run free.")
 
-;; ;;; Search a list (given the head cell's name) for a specific symbol,
-;; ;;; and eval the action when it's found. This is usually used to throw
-;; ;;; breaks when something weird gets put into a list.
-
-;; (defun act-on-symbol-in-list (action symbol head-name)
-;;   (when (search-ipl-list-for head-name symbol)
-;;     (eval action)))
-
-;; (defun search-ipl-list-for (cell-name symbol &optional (depth 0))
-;;   (when (and (< depth 50) (stringp cell-name) (not (zero? cell-name)))
-;;     (let* ((cell (<== cell-name))
-;; 	   (symb (cell-symb cell)))
-;;       (print (list cell-name cell symb))
-;;       (cond ((and (stringp symb) (string-equal symbol symb)) t)
-;; 	    (t (search-ipl-list-for symb symbol (1+ depth))
-;; 	       (search-ipl-list-for (cell-link cell) symbol (1+ depth)))))))
-
 ;;; =========================================================================
 ;;; ACCESSORS
 
@@ -268,23 +251,7 @@
 ;;; manually!)
 
 (defmacro H0 () `(<== "H0"))
-(defmacro H0+ () `(<== (cell-link (H0)))) ;; This is the cell AFTER H0 (it's underlying stack)
-
-;;; Input/Push to system stack: This creates a copy only of the
-;;; CONTENTS of the system cell.
-
-;;; WWW DESTRUCTIVE!!! MAKE SURE YOU'RE DOING IT TO A CLEAN CELL!!!
-(defun data-set (curcell &key (sign "0") (p 0) (q 0) (symb "") (link "0") (id ""))
-  (!! :dr-memory "WWW DATA-SET IS DESTRUCTIVELY HACKING ~s " curcell)
-  (setf (cell-sign curcell) sign
-	(cell-p curcell) p
-	(cell-q curcell) q
-	(cell-symb curcell) symb
-	(cell-id curcell) id
-	(cell-link curcell) link
-	)
-  (!! :dr-memory " TO: ~s" curcell)
-  curcell)
+(defmacro H0+ () `(<== (cell-link (H0)))) ;; The cell AFTER H0 (it's stack)
 
 ;;; IPUSH and IPOP are the core functions of the machine. They
 ;;; push/pop cells onto IPL lists that begin with the indicated
@@ -2552,6 +2519,20 @@
 	(break "Arg ~s is either invalid or trapped! (WATCH OUT FOR H0 POP RACE!)~%" arg))
   args)
 
+;;; IPL-EVAL implements the IPL-V execution cycles as defined by
+;;; Fig. 3, sec. 3.16 (p. 165) of Newell, et al's (1964) IPL-V
+;;; Manual. H1 is the program counter and control flow is given by the
+;;; linked structure, with evaluation proceeding via a pattern of
+;;; descent into subroutines or J-Functions and ascent back to calling
+;;; contexts. It figures out that the routine is a J-function by
+;;; hitting a lambda, created by DEFJ. IPL-EVAL, IPL-DESCEND, and
+;;; IPL-ASCEND are generic to enable tracing and instrumentation,
+;;; useful in debugging. These are used in The Logic Theorist to trace
+;;; proof trees. Note that IPL-defined tracing and monitoring are NOT
+;;; implemented -- use the generics above, and/or Lisp's tools, and/or
+;;; the other debugging utilities provided in the "Debugging Utils"
+;;; section.
+
 ;;; Generic hooks for subroutine entry/exit.  Any analysis layer
 ;;; (LT proof tracing, profiling, etc.) attaches :before/:after methods
 ;;; here rather than editing the interpreter body.
@@ -2562,7 +2543,6 @@
 ;;; No-op primaries — interpreter does nothing extra at these points.
 (defmethod ipl-descend (subroutine-name) nil)
 (defmethod ipl-ascend  (h5-status)       nil)
-
 
 (defgeneric ipl-eval (start-symb)
   (:documentation "Execute an IPL-V program starting at start-symb.
