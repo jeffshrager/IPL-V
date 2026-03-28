@@ -85,9 +85,9 @@ running here is the original code from the Stefferud paper.
 
 From the repo directory, run:
 
-```bash
-sbcl --lose-on-corruption \
-  --eval '(progn (load (compile-file "lt.lisp")) (quit))'
+```
+   bash
+   sbcl --eval '(load (compile-file "lt.lisp"))' 
 ```
 
 `lt.lisp` loads the IPL-V interpreter, then runs the Logic Theorist

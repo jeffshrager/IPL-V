@@ -5,15 +5,19 @@
 ;;; subroutine trace hooks, and the LT execution call.
 ;;;
 ;;; Run with:
-;;;   rm iplv.out; sbcl --lose-on-corruption \
-;;;     --eval '(progn (load (compile-file "lt.lisp")) (backtrace))' >> iplv.out
+;;;   sbcl --eval '(load (compile-file "lt.lisp"))' 
+;;; This will create a dated run .log and .dotstar file in the ltresults/ directory.
+;;; The .dotstar is a set of concated dotty (graphviz) file o the proof traces.
+;;; There's a script: prf2pdf.sh that turns these into pdfs,
+;;; for example:
+;;; ./prf2pdf.sh ltresults/202603181403.dotstar '*4.25' ./proof4_25.pdf
 
 ;;; Load the generic interpreter first.
-(load (compile-file "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/iplv.lisp"))
+(load (compile-file "iplv.lisp"))
 
 ;;; Directory where per-run log and dotstar files are written.
 (defparameter *lt-results-dir*
-  "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/ltresults"
+  "ltresults"
   "Root directory for LT run logs and dotstar files.")
 
 ;;; When bound to an open stream, proof-graph! tees all DOT output there
@@ -323,5 +327,5 @@
                                   :if-does-not-exist :create)
         (let ((*standard-output*    (make-broadcast-stream *standard-output* log-stream))
               (*lt-dotstar-stream*  dot-stream))
-          (load-ipl "/Users/jeffshrager/Desktop/AIHistory/IPL-V/repo/LTFixed.liplv"
+          (load-ipl "LTFixed.liplv"
                     :adv-limit 5000000))))))
