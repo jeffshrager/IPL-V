@@ -2854,6 +2854,14 @@ Primary method runs the interpreter loop.  Analysis layers attach
 
 ;; Comment (or just ') progn blocks out as needed.
 
+(progn ;; Simple load and print test
+  (format t ">>>>> Running misccode/simple.liplv~%")
+  (set-trace-mode :default)
+  (setf *!!* '(:jdeep :run :jcalls) *cell-tracing-on* t)
+  (load-ipl "misccode/simple.liplv")
+  (format t "<<<<< Completed misccode/simple.liplv~%")
+  )
+
 '(progn ;; R3 from Newell et al. pp30-32
   (set-trace-mode :default)
   (setf *trace-cell-names-or-exprs* '("H0" "H1" "W0") *cell-tracing-on* t)
@@ -2897,4 +2905,5 @@ Primary method runs the interpreter loop.  Analysis layers attach
   (setf *!!* '(:jdeep :run :jcalls) *cell-tracing-on* t)
   (load-ipl "EPAM/EPAMFixed.liplv" :adv-limit 10000)
   )
+
 

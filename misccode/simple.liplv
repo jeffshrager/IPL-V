@@ -1,0 +1,8 @@
+(:comments :type :name :sign :pq :symb :link :comments.1 :id)
+("SIMPLE TEST FOR IPL-V" "9" ""    "" ""   ""     ""   "" "S001")
+("DEFINE REGIONS"        "2" "A0"  "" ""   ""     "2"  "" "S002")
+(""                      "5" ""    "" "0"  ""     ""   "" "S003")
+("START A0 GET SYMB A1"  ""  "A0"  "" "10" "A1"   ""   "" "S004")
+("PRINT VALUE AND QUIT." ""  ""    "" ""   "J152" "0"  "" "S005")
+("VALUE OF A1"           ""  "A1"  "" "01" ""     "31" "" "S006")
+("START AT A0"           "5" ""    "" ""   "A0"   ""   "" "S007")

@@ -1,0 +1,8 @@
+      SIMPLE TEST FOR IPL-V             9
+      DEFINE REGIONS                    2 A0            2
+                                        5       0
+      START A0 GET SYMB A1                A0    10A1
+      PRINT RESULT, QUIT.                         J152  0
+                                        5       01
+      CONSTANT 31                         A1    01     31
+      START AT A0                       5         A0
