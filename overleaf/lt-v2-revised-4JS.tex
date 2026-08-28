@@ -1,0 +1,1147 @@
+%%% REVISION NOTES (v2, combined Moews + Shrager) 
+
+%%% 20260827 JS: Most changes are minor wording -- a diff will show them to you.
+%%% I suggest rewriting all in third person, but you're right that sometimes
+%%% first seems more natural. I'm sure thattThe IEEE editors will opine upon this.
+%%%
+%%% Per Alex Magoun's editorial guidance:
+%%%   - Folded in Moews's IPL-I (LT1) reanimation; authorship is
+%%%     alphabetical (see footnote on author block).
+%%%   - Cut the IPL-Lisp comparison (old Sec. 2.2 second half and the
+%%%     "Reflections: IPL, Lisp, and the Arc of AI" section).
+%%%   - Reduced the LLM-debugging material to one short subsection;
+%%%     the full narrative is reserved for a possible later submission.
+%%%   - Added Sec. "What Executable Archaeology Contributes" to answer
+%%%     Alex's question directly.
+%%%
+%%% TODO (DM): Please check every statement about the IPL-I work for
+%%% accuracy; placeholders are marked "TODO (DM)". In particular:
+%%%   - results table / which *2 theorems LT1 proves under what limits
+%%%   - exact line counts for LT1 vs LT5 listings
+%%%   - description of the patches and bug fixes
+%%%   - your affiliation and email
+%%%   - acknowledgments
+%%%
+%%% TODO (both): The date of the first machine proof. The draft
+%%% previously said machine proofs came from IPL-II runs "late 1956 and
+%%% early 1957"; standard accounts (and DM's README, citing Simon's
+%%% Models of My Life and Newell & Shaw 1957) put the first JOHNNIAC
+%%% proof in August 1956. Text below now says August 1956 -- please
+%%% verify against the archival record.
+%%%
+%%% Carried over from v1 notes, still open:
+%%%   - Dedicate to Richard Wexelblat?
+%%%   - Mention John Hessler's project at Johns Hopkins (prelim LT work)
+%%%   - Dick's wonderful paper (at beginning of history)
+
+\documentclass[journal]{IEEEtran}
+
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{hyperref}
+\usepackage{booktabs}
+\usepackage{listings}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  xleftmargin=1em,
+  literate={~}{$\sim$}1,
+  framexleftmargin=0.5em
+}
+
+\begin{document}
+
+\title{Executable Archaeology: Reanimating the Logic Theorist}
+
+\author{David~Moews and Jeff~Shrager%
+\thanks{Authors are in alphabetical order.}
+\thanks{D. Moews: \texttt{dmoews@fastmail.fm}.}
+\thanks{J. Shrager is with Bennu Climate, Inc.:
+  \texttt{jshrager@gmail.com}.}
+}
+
+\maketitle
+
+\begin{abstract}
+
+The Logic Theorist (LT), created by Allen Newell, J.~C.~Shaw, and
+Herbert Simon in 1955--1956, is regarded by some as the first
+artificial intelligence program.  It was originally written in a
+pseudocode called the Logic Language (LL), which was simulated by hand and later called Information Processing Language One (IPL-I). LT
+was revised many times. The first machine-executed version was
+written in IPL-II and ran on the JOHNNIAC, and a final version 
+was published in 1963 by Einar Stefferud as a pedagogical document, and written in IPL-V, the only formally released version of the language.
+%% Non-seq: ", while later versions were based on empirical psychological research."
+%% Also it's hard to tell what version were based on psych work and not. Simon
+%% says that the original was based on how he did proofs. Maybe we could distinguish
+%% empirical from formal, or something, but it's non-seq enough not to be worth it.
+We describe a reanimation of both the IPL-I(LL) version of LT and of the 1963 IPL-V version. Comparing the 
+two reanimations illuminates the process of the invention of early AI algorithms and computer languages.
+
+\end{abstract}
+
+\begin{IEEEkeywords}
+Logic Theorist, IPL-I, IPL-V, artificial intelligence history,
+software archaeology, A.~Newell, H.~A.~Simon, J.~C.~Shaw, list and symbol
+processing, digital preservation
+\end{IEEEkeywords}
+
+\section{Introduction}
+\label{sec:intro}
+
+In the summer of 1956, a small group of researchers gathered at
+Dartmouth College for a workshop on what John McCarthy had dubbed
+``artificial intelligence.'' Among them were Allen Newell and Herbert
+Simon, who arrived with a program---albeit one not yet completely running on any 
+machine---that could discover proofs of mathematical theorems.
+According to McCorduck's account, it was the only working,
+intelligent program presented there~\cite[Ch.~13]{simon1996models},
+\cite[p.~123]{mccorduck2004machines}.\footnote{According to
+Simon's autobiography \cite[Ch.~13]{simon1996models},
+attendee Trenchard More had a program for proving theorems
+by natural deduction \cite{more1956,more1957,simon1999}.
+It's not clear how developed this was.
+%%% Is this relevant??? maybe as a nod to a possible earlier AI, but
+%%% Then we should be explicit about why we're mentioning it.
+%%%Also, attendee Arthur Samuel discussed \cite{solomonoff}
+%%%his checker-playing program at the conference.
+}
+
+The Logic Theorist (LT), also called the Logic Theory Machine, would 
+ultimately prove 38 of the first 52 theorems in *2 of Whitehead 
+and Russell's \textit{Principia Mathematica}~\cite{LT1957,whitehead1910principia}.\footnote{Star notion follows \textit{Principia}.}  
+For Theorem~*2.85, LT discovered a shorter, more direct proof
+than the one published in \textit{Principia}. Simon showed the new
+proof to Bertrand Russell himself, who ``responded with
+delight''~\cite[p.~167]{mccorduck2004machines}. Edward Feigenbaum,
+then an undergraduate taking a graduate course from Simon, recalls the
+moment the project's significance was first announced: ``It was just after Christmas vacation---January
+1956---when Herb Simon came into the classroom and said, `Over
+Christmas Allen Newell and I invented a thinking machine.' And we all
+looked blank''~\cite[p.~138]{mccorduck2004machines}.
+
+%%% This isn't beyond...maybe it's below ... or something, but whatever, not needed
+%%% Beyond reproducing \textit{Principia} proofs, 
+The Logic Theorist
+used heuristic search strategies such as subgoal decomposition
+\cite{LT1957}; Newell, Simon and Shaw suggested that is was a model of
+human problem solving~\cite{HPS1958}, and improved the model by adding strategies
+that they observed in studies of human theorem proving, such as means-ends analysis\cite{PCT1959}, methods that subsequently influenced artificial intelligence and cognitive models such as the General Problem Solver
+(GPS)~\cite{newell1959gps}, SOAR~\cite{laird1991},
+and ACT~\cite{anderson1993,anderson1996}.
+
+LT co-evolved with the Information Processing Languages (LL and IPL-I through V),
+a series of languages created by Newell, Shaw, and Simon  
+to extend computational capabilities and understand human thought~\cite[p.~II-17]{cip16june1958}.
+The IPLs introduced list manipulation~\cite[section~2.6]{knuth1997}, dynamic memory allocation~\cite{cmuarchiveshawinterview},
+symbols as first-class objects, recursion, and
+%%% Would need to explain, so removed  "to some extent," 
+higher-order functions.
+According to John McCarthy \cite{HOPLLISP,mccarthy1960lisp}, the 
+list processing of Lisp was
+motivated by that of IPL-II, and IPL-V was ancestral
+to 
+Weizenbaum's SLIP \cite{SLIP1963} the list processing package underlying ELIZA~\cite{lane2025eliza}.  Yet while Lisp has thrived for
+nearly seven decades, IPL has been extinct since the mid-1960s.
+Although numerous IPL-V implementations existed in the 1960s on
+various machines, no maintained implementations appear to be available
+in modern environments. The only prior modern attempt known to the
+authors is Richman's unpublished IPL-V interpreter, written in
+Microsoft BASIC, which he used to run EPAM~IV in the early
+1990s~\cite{richman1995epam}.
+%\footnote{Richman wrote to Shrager
+%(personal communication, Sep~26, 2025, quoted with
+%permission): ``I just interpreted IPL-V in Microsoft Basic using the
+%IPL-V manual that I found at the CMU library.''}
+
+The remainder of the present paper describes our
+reanimation of two versions of the Logic Theorist:
+the original 1956 version written in IPL-I~\cite{LT1956b}, and a  
+later version in IPL-V\cite{stefferud1963lt}.  Following the convention
+that the version number tracks the IPL generation, we will call the
+1956 IPL-I program \emph{LT1}, the 1957 version
+from \cite{LT1957} and \cite{newellshaw1957} \emph{LT2},
+and the 1963 IPL-V program \emph{LT5}.
+
+Our work illustrates a methodological approach that might be called
+\emph{executable archaeology}: studying old computational systems by
+reconstructing and running their original code. Early AIs were not
+just proposals but also programs (hand-executed in the case of LT1)
+which cannot be completely understood just from their descriptions.
+Reanimation gives us a new look into the origins of artificial
+intelligence; we return to exactly what this shows in
+Section~\ref{sec:contribution}.
+
+In prior work, a team including Shrager restored
+Weizenbaum's original ELIZA to operation on a reconstructed CTSS
+running on an emulated IBM 7094~\cite{lane2025eliza}. Although 
+LT proves theorems while ELIZA attempts to converse in English,
+both are part of the same list-processing lineage coming originally
+from IPL.  We reanimated LT5 similarly to ELIZA, by using
+an emulated IBM 7094, but for LT1 constructed a new interpreter
+for the abstract IPL-I machine; we also tried this approach
+with LT5.
+
+\section{Historical Background}
+\label{sec:history}
+
+\subsection{The Origins and Versions of the Logic Theorist}
+
+The story of the Logic Theorist begins in the early 1950s at the RAND
+Corporation. Herbert Simon and Allen Newell, collaborating with
+J.~C. (Cliff) Shaw, sought to simulate complex thought by manipulating
+symbols. They explored chess among other domains, and landed on 
+logic, which Simon was exploring at the time, and seemed simpler than chess.
+%% Probably should cite simon or mccorduck on this.
+
+The version of LT described in the 1956 RAND report
+(P-868)~\cite{LT1956a,LT1956b}, and in nearly identical form in the
+IRE Transactions that September~\cite{LT1956c}, was written in what
+was called at the time the ``Logic Language'' (LL).  This was a
+pseudocode for an abstract machine which was never implemented. The program
+was tested  by human simulation~\cite[Ch.~13]{simon1996models}, 
+\cite[p.~xx]{newell1964ipl}. By May
+1956, Newell and Simon had noted that the program was ``completely
+specified'' and that hand simulations suggested it would prove the
+theorems from *2 of \textit{Principia
+Mathematica}~\cite[p.~18]{cip1956}.  These hand simulations famously
+employed a computer using ``human components'': Simon's wife, his children, and
+graduate students~\cite[Ch.~13]{simon1996models}.
+
+The first version to run on real hardware was written in IPL-II for
+the RAND JOHNNIAC~\cite{newellshaw1957},
+producing its first machine proof in August
+1956~\cite[Ch.~13]{simon1996models}, \cite{newellshaw1957}. The widely cited result
+that LT proved 38 of the first 52 theorems in \textit{Principia} comes 
+from these experiments~\cite{LT1957}, and
+the discovery of a more elegant proof for Theorem *2.85 than the 
+one produced by Whitehead and Russell was also discovered by the program at around this 
+time~\cite[Ch.~13]{simon1996models}, \cite{cip8jan1958}.
+Newell, Simon and Shaw proposed LT as a model 
+for human problem solving~\cite{HPS1958}
+and experimented with human subjects in order to refine
+their model~\cite{PCT1959}. This led them to revise
+LT, incorporating heuristics such as means-ends
+analysis \cite{PCT1959}. Simon and Newell generalized their theory, eventually
+creating by the General Problem Solver,
+GPS~\cite[p.~19]{SHT1959}.
+
+The second version of LT that we reanimated was converted to IPL-V by Fred Tonge, and further developed
+by Einar Stefferud as a pedagogical exercise in IPL-V~\cite[Section~I]{stefferud1963lt}.
+These  reanimations  bracket the program's
+history: LT1 is the 1956 conceptual model as first published, while
+LT5 is a 1963 modernized version of that model.
+
+\subsection{IPL: The Invention of List-Processing}
+
+%%% TODO (both): confirm/adjust years in the 2026 rows.
+\begin{table*}[h]
+\centering
+\caption{Evolution of the Logic Theorist and IPL}
+\label{tab:lt_versions}
+\begin{tabular}{@{}lllll@{}}
+\toprule
+\textbf{Year} & \textbf{IPL version} & \textbf{LT version} & \textbf{Platform} & \textbf{Remarks} \\ \midrule
+%%% Propose replacing "Human" with "Homo Sapien", as that's the "platform" :-)
+1955--1956 & LL (later named IPL-I) & LT1 & Manual & Hand-simulated only. \\
+1956--1957? & IPL-II & LT2 & JOHNNIAC & First machine proofs; 38 of 52 \textit{Principia} theorems. \\
+1957? & IPL-III & ? & JOHNNIAC & Used for LT but soon abandoned. \\
+1957--1959? & IPL-IV & ? & JOHNNIAC & Internal RAND use; transitioning to IPL-V. \\
+1958-- & IPL-V & \ & Various & First implemented on the IBM 650 early 1958. \\
+1963 & IPL-V & LT5 & \ & Stefferud's pedagogical LT implementation. \\
+2026 & IPL-V & LT5 & Simulated IBM 7094 and Python & Reanimation using Stefferud's source code. \\
+2026 & IPL-I & LT1 & Python & First known machine execution of LT1. \\ \bottomrule
+\end{tabular}
+\end{table*}
+
+To implement LT, Newell, Shaw, and Simon needed a programming language
+suited to symbolic reasoning. No such language existed, so they
+created their ``Information Processing Languages'' (IPLs.) 
+In the 1956 RAND report (P-868), Newell and Simon call the implementation
+language for the Logic Theorist the LL (logic language.) It has the
+form of an assembly language for an abstract machine whose memory
+is divided into working memories, each of which can contain one
+element (a variable or connective) of an expression, together with
+some annotations, and storage memories, each of which contains a
+list of such elements and can be used to hold expressions.  As well
+as primitive operation codes, LL can have opcodes defined by LL
+routines, so that executing them causes a subroutine call; this
+causes a new set of working memories to be used, akin to modern register
+windowing. The defining routine of such an opcode can refer to
+operands passed in from above. Primitive opcodes can be divided
+into subtypes (assign, branch, compare, erase, find, type H (used
+for primitive string operations), numerical, put, store, and
+test.~\cite{LT1956b}) LL was later retrospectively dubbed
+IPL-I~\cite[p.~166]{mccorduck2004machines}.
+
+In IPL-II, the first IPL that ran on a computer, the lists of elements
+in IPL-I had to be implemented on the JOHNNIAC, which was done by ordered pairs
+of pointers, each pair fitting into one JOHNNIAC word.
+As in IPL-I, logical expressions correspond to
+lists of elements but now can also include description lists,
+lists of properties and values, similar to the later property
+lists of Lisp~\cite{newellshaw1957}.  The assembly-language-like system of opcodes,
+both primitives and those defined and implemented in IPL-II,
+is very roughly similar to that in LL~\cite{notes1957}.
+As in LL, the memory is
+divided into working memory and storage, and defined opcodes
+can refer to their operands as well as to their own working
+memories, but unlike LL, lists can store arbitrary values,
+including other lists. IPL-II thus has general list-processing
+facilities~\cite{newellshaw1957}.
+
+IPL-III, also on the JOHNNIAC, was used to
+revise the Logic Theorist, but was quickly abandoned
+as it used too much memory
+\cite[p.~xxi]{newell1964ipl}, \cite[p.~II-18]{cip16june1958},
+\cite{cip61957}.
+IPL-IV ran again on the JOHNNIAC; it was similar to IPL-V,
+although its format was more like JOHNNIAC assembly code~\cite{cip16june1958}.
+Finally, IPL-V, which first ran on the IBM 650 in early 1958~\cite{DOC1963,iplv1986},
+was the version which became the definitive public standard; a manual
+was published in 1961~\cite{newell1961ipl}, with a second edition in
+1964~\cite{newell1964ipl}.
+
+IPL-V is yet another assembly-style language, running on an abstract machine
+organized around \textit{cells}, whose addresses are \textit{symbols}.
+Similarly to S-expressions in Lisp, each cell contains an ordered pair of 
+symbols.  Some symbols may be used like the atoms of Lisp, but unlike
+Lisp, there is no firm distinction between atoms and non-atoms.
+The symbol is the basic and central data type of IPL-V
+and is used to designate control registers, variables, data structures,
+and subroutines.
+IPL-V emphasizes interpreting lists, or chains of cells,
+as stacks, and has basic primitives for pushing and popping stacks;
+every cell can potentially be pushed and popped, and these stacks are elegantly implemented as IPL-V lists.
+
+Control cells
+govern execution: H0 is the operand stack, called the
+``communication'' cell, H1 is program counter and call
+stack, H2 is the free list for dynamic memory allocation, H3 is
+the cycle counter, and H5 is a flag bit. Ten working cells (W0--W9)
+provide scratch storage. Like Lisp, IPL-V is homoiconic, as both
+data and code are lists of cells. 
+Routines
+are invoked by pushing their symbol (name) onto H1. The IPL machine
+interprets the operation indicated in that cell, and then continues to
+whatever is the indicated next cell in the list that represents the routine. 
+% I stole "elegantly" for the above, so it seemed overused to have it here too,
+% but this one speaks of its own elegance.
+Because H1 is both
+program counter and call stack, no special machinery is required to
+operate the machine aside from basic stack manipulation instructions.
+
+The language's built-in operations are called J-functions (because
+their names begin with ``J'': J0, J1, J2, and so on). There are
+approximately 190 of these in the second edition of the
+manual, implementing operations from basic list
+manipulation to ``generator'' (iterator) protocols. In some implementations
+of the original
+IPL-V, many J-functions were themselves written in IPL, although some
+were implemented at the level of the underlying machine.
+
+\section{Reanimating LT1: The 1956 IPL-I Program}
+\label{sec:lt1}
+
+%%% TODO (DM): This section is drafted from your email, README, and
+%%% repo structure. Please correct, expand, and add concrete detail,
+%%% especially: the nature of the patches/bug fixes, how the
+%%% interpreter handles IPL-I's looseness, results on the *2 theorems,
+%%% and anything notable about hand-simulation-era assumptions you
+%%% encountered.
+
+%
+% DM: I added in a more detailed account here as requested.
+% I used first person for this section as it seemed more natural.
+%
+
+%%% I wonder if we shouldn't just write in the third person all the way
+%%% through, as: "Mowes fixed..." or "DM fixed..." Then you wouldn't need this header
+
+{\em David Moews}
+
+The source code for LT1 was published three times in 1956, in two
+versions of paper P-868~\cite{LT1956a,LT1956b} and in the 
+IRE Transactions paper~\cite{LT1956c}.  The listings are almost identical; I
+(David Moews) worked from \cite{LT1956b}, which was the least corrupt.
+
+I transcribed the listing, corrected obvious typos, and
+implemented the data structures and operations used from their
+descriptions in P-868.  Some opcodes (TCv) were never defined
+but obvious, while another (PM) which was used but never defined
+seemed to be the same as one (PA) which was defined but never
+used, and so on.  Some processes used, as the authors explain
+\cite[p.~50]{LT1956b}, were not formally defined, so I simply
+made up new opcodes for these; also, some operations had to
+be made slightly more precise, and there were some minor bugs
+related mostly to lack of coherence between expressions in
+storage and their pieces in working memory.  
+
+The first substantial problem I found was that the routine 
+which substituted expressions for variables (LSb)
+was trying to substitute a variable with an expression
+containing that variable, and as a result looping forever.  
+I fixed this problem by stopping LSb from substituting
+for non-free variables, and making all variables in subproblems
+non-free.\footnote{The routine matching pairs of expressions, LMc, allows
+free variables to occur in both expressions, but doing this correctly 
+requires a more complicated method, the unification algorithm.  It's 
+often credited to J.~A.~Robinson (1965)~\cite{robinson1965} but basically
+appeared earlier in Herbrand's doctoral thesis~\cite[Section~18]{lecherbrand2009}.}
+I also had various problems with the chaining method (MCh),
+coming again from incoherence between storage and working
+memory.  I eventually rewrote pieces of this method.
+
+The program in P-868 will state whether a proof was found or not,
+but it has no mechanism to print the proof, or even the individual
+steps of the proof.  I added new opcodes to print the proof steps
+as they were found, and wrote a separate program to reassemble the 
+proof, if one existed.  After a few more minor fixes the program seemed 
+to be working correctly.  The result of running it is discussed in section
+\ref{sec:results}.
+
+Since IPL-I was never implemented at the time except by hand
+simulation~\cite[Ch.~13]{simon1996models}, \cite[p.~xx]{newell1964ipl}, this is most likely the first time this program has run on non-human hardware.
+
+%%% TODO (DM): Insert a results summary here (how many of the *2
+%%% theorems LT1 proves, under what limits, and how this compares both
+%%% to the 1957 reported results and to LT5's results in
+%%% Table~\ref{tab:results}). A small table parallel to
+%%% Table~\ref{tab:results} would be ideal. An example LT1 proof,
+%%% parallel to the LT5 trace in Section~\ref{sec:results}, would also
+%%% strengthen the comparison.
+
+%
+% DM: This material is in section 5, which I rewrote to incorporate the result of running LT1.
+%
+
+\section{Reanimating LT5: Stefferud's 1963 IPL-V Program}
+\label{sec:lt5}
+
+{\em David Moews}
+
+%
+% DM: I rewrote this section.  I put this section also in the first person.
+%
+
+The source code for LT5 was published and extensively documented
+in Stefferud's 1963 report~\cite{stefferud1963lt}.  
+Anthony Hay and Jeff Shrager transcribed the LT code from Stefferud's
+report into a spreadsheet, and Rupert Lane later identified
+several transcription errors using his ``gridlock''
+tool~\cite{lane2024gridlock}, designed to accurately extract
+tabular code from PDF documents.
+Jeff Shrager wrote a new IPL-V interpreter in Common 
+Lisp~\cite{shrager2026,shragerrepo}, but since there were some problems with
+it I (David Moews) decided to write a new interpreter in Python.
+I worked mostly from the detailed second edition IPL-V
+manual~\cite{newell1964ipl}, but I also soon realized that I could use
+``Simon's J's,'' an old card deck from 1962 saved by the Computer History
+Museum~\cite{bochannek2012simonsjs}, as a library for part of the
+implementation.
+
+After some debugging and coding, I realized that not
+everything was documented in the manual.\footnote{Shrager noticed this as well in his Lisp-based IPL-V interpreter.}
+To make Stefferud's code work, I had to copy a hack of  
+Shrager's by making a list copy primitive, J73, return a pointer
+to an empty cell (with P, Q, SYMB, and LINK all zero) when it was given
+a zero (equivalent to NIL in Lisp) input.  Checking this against Rob 
+Storey's IBM 7094 emulator \cite{ibsys}, I found that the version of IPL-V there
+behaved similarly.  I had been trying to debug my interpreter by comparing
+it with IBM 7094 runs, but was handicapped because Stefferud's code
+worked very badly on the emulated IBM 7094: the line read primitives
+it used didn't exist there, but even after this was worked around,
+as I found out later, there was a bug in the M16 and M17 routines
+in Stefferud's code \cite{moewsrepo2}.
+
+After some more fixes, I realized that
+this bug in Stefferud was making his code crash under my
+interpreter, so
+I patched the Python interpreter to work around this.
+After doing this and finally writing the line read primitives,
+(which I hadn't bothered to implement before) the Python interpreter
+worked and, when run on Stefferud's code and using the input in Stefferud's
+paper, gave results almost identical to the output in his paper.
+(There are differences in the effort figures printed out as the
+interpreter is not cycle-exact. Also, some numbers printed out
+used to index formulae differ as they are raw machine addresses.)
+After fixing the bug, I was also able to run Stefferud's code using
+the IBM 7094 emulator, which also gave very similar results to the
+results in his paper \cite{moewsrepo2}.
+
+%
+% DM: I rewrote this section, so that it is now based on running
+% both LT1 and LT5 on the first 52 theorems in *2 of
+% PRINCIPIA MATHEMATICA.  This lets you make a three-way comparison
+% between LT1, LT2 (the IPL-II version of LT used in the 1957
+% papers), and LT5.  Unfortunately, LT5 does not always produce
+% valid proofs, as discussed in the text.
+% 
+
+\section{What the Logic Theorist Proves}
+\label{sec:results}
+
+The Logic Theorist attempts to prove theorems in propositional logic
+using the axioms and definitions of \textit{Principia Mathematica}, 
+*1; LT5 also adds definitions from *3 and 
+*4.  The relevant notation, definitions, and axioms used by \textit{Principia}
+are explained in Tables \ref{tab:notation} and \ref{tab:axioms}.
+{\em Principia} uses a system of dots for grouping, which we've
+replaced by parentheses.
+Although definitions *3.01 and *4.01 were used in \cite{stefferud1963lt},
+we won't use them here.
+
+The original LT1 tries to prove theorems by {\em substitution}
+of expressions into the free variables of an axiom or known
+theorem; {\em detachment}, or modus ponens, where $q$ is inferred
+from $p$ and $p\supset q$; and {\em chaining}, where $p\supset r$
+is inferred from $p\supset q$ and $q\supset r$.  Chaining can
+be {\em forward} or {\em backward}, depending on which of the
+premises is proved immediately by substitution and which becomes
+a new subproblem~\cite[pp.~29--45]{LT1956b}.
+It also rewrites expressions according to the only definition
+it uses, *1.01, but this is done implicitly when one expression
+is matched against another and doesn't generate proof 
+steps~\cite[p.~34]{LT1956b}.
+In LT2, chaining has been split into two methods, forward
+and backward~\cite[p.~222]{LT1957}.
+In LT5, chaining is again split into two methods,
+and definitional rewriting ({\em replacement})
+has been split into three explicit methods, one where the whole
+expression is rewritten and two where subexpressions 
+are~\cite[Section~III]{stefferud1963lt}.
+Unfortunately, Stefferud's implementation of forward and
+backward chaining is not correct, meaning that LT5 doesn't
+always produce valid proofs.
+
+\begin{table}[h]
+\centering
+\caption{Notation of \textit{Principia}}
+\label{tab:notation}
+\begin{tabular}{cl}
+\toprule
+\textbf{Symbol} & \textbf{Meaning} \\
+\midrule
+$p=q$\ {\rm Df} & $p$ is defined to be $q$ \\
+$p\supset q$ & $p$ implies $q$ \\
+$p.q$ & Both $p$ and $q$ \\
+$p\equiv q$ & $p$ iff $q$ \\
+$p\vee q$ & $p$, $q$, or both \\
+$\sim p$ & $p$ is false  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+%%% For example:
+%%%We 
+DM tried to replicate the results of \cite{LT1957}
+by running LT1 and LT5 on the first 52 theorems (to *2.64)
+from {\em Principia}, *2, in 
+succession.  The LT5 runs were made with Rob Storey's
+IBM 7094 emulator~\cite{ibsys}.  As mentioned above,
+to do this, it was
+necessary to fix some bugs in Stefferud's code and work 
+around functionality not present in the emulator's version
+of IPL-V~\cite{moewsrepo2}.  Running with the new Python
+IPL-V interpreter gave very similar results.
+As in \cite{LT1957}, 
+the program is always allowed to use
+all preceding theorems, whether it proved them successfully
+or not.  
+
+%
+% In the LT1 source code, this is implemented by the opcodes NAW
+% (used in MSb) and CWG (used in the top-level driver, Ex.)
+%
+For LT1, a work counter is incremented by 1 whenever it tries
+to prove a subproblem by substitution, and when the work counter
+exceeds a limit (50) no new subproblems are 
+attempted~\cite{moewsrepo}, \cite[p.~47]{LT1956b}.
+LT2 had time and space bounds \cite[p.~223]{LT1957},
+but the authors don't seem to have stated them.
+%
+% In the LT5 source code, the limits are K20 (subproblems),
+% K21 (substitutions), and K22 (effort).  The corresponding
+% counters that are tested against these limits are K10,
+% K11, and the quantity H3 - K12.  The counters are initialized
+% in the routine M3 and tested against the limits in M90.
+%
+For LT5, as well as a limit on the number of substitution proofs
+attempted (50), there are limits on the number of subproblems
+generated (50) and total effort, measured by IPL-V interpreter cycles (200,000).
+If counts of these quantities equal or exceed the limits,
+no new subproblems are attempted~\cite[pp.~154-155]{stefferud1963lt}.
+
+%
+% DM: Definition *2.33 is omitted since it's not actually used by LT5
+% (it causes a syntax error and is rejected.)
+%
+\begin{table}[h]
+\centering
+\caption{Axioms and definitions from \textit{Principia}}
+\label{tab:axioms}
+\begin{tabular}{ll}
+\toprule
+\textbf{Name} & \textbf{Axiom/Def}\\
+\midrule
+*1.01  & $p\supset q \, = \,(\sim p) \vee q\ {\rm Df}$\\
+*3.01  & 
+$p.q \, = \, \sim((\sim p)\vee (\sim q))\ {\rm Df}$\\
+*4.01  & $p\equiv q\, = \, (p\supset q).(q\supset p)\ {\rm Df}$\\
+*1.2   & $(p\vee p)\supset p$\\
+*1.3   & $q\supset(p\vee q)$\\
+*1.4   & $(p\vee q)\supset(q \vee p)$\\
+*1.5   & $(p\vee(q\vee r))\supset (q\vee(p \vee r))$\\
+*1.6   & $(q\supset r)\supset((p\vee q)\supset(p\vee r))$\\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Table~\ref{tab:results} shows the results of LT1, LT2 and LT5
+attempting to prove the first 52 theorems in *2. 
+LT5 outputs a proof for *2.13, although Newell, Shaw and Simon
+explain~\cite[p.~222]{LT1957} that it's impossible for Logic 
+Theorist to prove this theorem.  This is because Stefferud uses
+an incorrect forward chaining rule: he infers $q C s$ from
+$q C r$ and $r\supset s$, where $C$ is a connective.  This 
+is not a valid rule in general as it fails if $C$ is $\equiv$
+but works here where $C$ is $\vee$
+(we infer *2.13, $p \vee \sim \sim \sim p$, from 
+*2.11, $p \vee \sim p$
+and a substitution instance of *2.12,
+$(\sim p) \supset \sim \sim \sim p$.)
+Also, LT5 finds a dubious proof of *2.2, where
+$(c\vee p)\supset(p\vee q)$ is inferred from the axiom *1.4 via 
+substitution.  In LT5, $c$ is a free variable,
+so this could be construed as valid in the sense that you can
+substitute for $c$ so as to make the proof step and the overall
+proof work.  In general though, this may indicate another problem with LT5,
+similar to the problem with LT1 found in Section \ref{sec:lt1}.
+
+LT1 and LT5 usually found the same or very similar proofs;
+there were differences when one used forward and the other
+backward chaining, or in one using theorems written with $\vee$ as premises
+and the other using equivalent theorems which were written with $\supset$.
+
+\def\Y{$+$}
+\def\N{$-$}
+
+\begin{table}[h]
+\centering
+\caption{Theorems attempted}
+\label{tab:results}
+\begin{tabular}{lllll}
+\toprule
+\textbf{Name} & \textbf{Formula} & \textbf{LT1} & \textbf{LT2}\cite{LT1957} & \textbf{LT5} \\
+\midrule
+*2.01 & $(p \supset \sim p) \supset \sim p $ & \Y & \Y \cite[p.~219]{LT1957} & \Y \\
+*2.02 & $q \supset (p \supset q) $ & \Y & \Y \cite[p.~224]{LT1957} & \Y \\
+*2.03 & $(p \supset \sim q) \supset (q \supset \sim p) $ & \Y & \ & \Y \\
+*2.04 & $(p \supset (q \supset r)) \supset (q \supset (p \supset r)) $ & \Y & \ & \Y \\
+*2.05 & $(q \supset r) \supset ((p \supset q) \supset (p \supset r)) $ & \Y& \ & \Y \\
+*2.06 & $(p \supset q) \supset ((q \supset r) \supset (p \supset r)) $ & \Y& \ & \Y \\
+*2.07 & $p \supset (p \vee p) $ & \Y & \Y \cite[p.~226]{LT1957} & \Y \\
+*2.08 & $p \supset p $ & \Y & \ & \Y \\
+*2.1 & $ (\sim p) \vee p $ & \Y & \ & \Y \\
+*2.11 & $p \vee \sim p $ & \Y & \ & \Y \\
+*2.12 & $p \supset \sim \sim p $ & \Y & \ & \Y \\
+*2.13 & $p \vee \sim \sim \sim p $ & \N & \N \cite[p.~222]{LT1957} & ? \\
+*2.14 & $ (\sim \sim p) \supset p $ & \Y & \ & \Y \\
+*2.15 & $( (\sim p )\supset q) \supset ( (\sim q) \supset p) $ & \N & \ & \N \\
+*2.16 & $(p \supset q) \supset ( (\sim q) \supset \sim p) $ & \N & \ & \N \\
+*2.17 & $( (\sim q) \supset \sim p) \supset (p \supset q) $ & \N & \Y \cite[p.~228]{LT1957} & \N \\
+*2.18 & $( (\sim p )\supset p) \supset p $ & \Y & \ & \Y \\
+*2.2 & $p \supset (p \vee q) $ & \Y & \ & ? \\
+*2.21 & $ (\sim p) \supset (p \supset q) $ & \Y & \ & \Y \\
+*2.24 & $p \supset ( (\sim p) \supset q) $ & \Y & \ & \Y \\
+*2.25 & $p \vee ((p \vee q) \supset q) $ & \Y & \ & \N \\
+*2.26 & $ (\sim p) \vee ((p \supset q) \supset q) $ & \Y & \ & \Y \\
+*2.27 & $p \supset ((p \supset q) \supset q) $ & \Y & \ & \Y \\
+*2.3 & $(p \vee (q \vee r)) \supset (p \vee (r \vee q)) $ & \Y & \ & \Y \\
+*2.31 & $(p \vee (q \vee r)) \supset ((p \vee q) \vee r) $ & \N & \N \cite[p.~220]{LT1957} & \N \\
+*2.32 & $((p \vee q) \vee r) \supset (p \vee (q \vee r)) $ & \N & \ & \N \\
+*2.36 & $(q \supset r) \supset ((p \vee q) \supset (r \vee p)) $ & \N & \ & \N \\
+*2.37 & $(q \supset r) \supset ((q \vee p) \supset (p \vee r)) $ & \N & \ & \N \\
+*2.38 & $(q \supset r) \supset ((q \vee p) \supset (r \vee p)) $ & \Y & \ & \N \\
+*2.4 & $(p \vee (p \vee q)) \supset (p \vee q) $ & \N & \ & \N \\
+*2.41 & $(q \vee (p \vee q)) \supset (p \vee q) $ & \N & \ & \N \\
+*2.42 & $(( \sim p) \vee (p \supset q)) \supset (p \supset q) $ & \Y & \ & \N \\
+*2.43 & $(p \supset (p \supset q)) \supset (p \supset q) $ & \Y & \ & \Y \\
+*2.45 & $ (\sim (p \vee q)) \supset \sim p $ & \Y & \Y \cite[p.~219]{LT1957} & \Y \\
+*2.46 & $ (\sim (p \vee q)) \supset \sim q $ & \Y & \ & \Y \\
+*2.47 & $ (\sim (p \vee q)) \supset ( (\sim p) \vee q) $ & \Y & \ & \Y \\
+*2.48 & $ (\sim (p \vee q)) \supset (p \vee (\sim q)) $ & \Y & \Y \cite[p.~229]{LT1957} & \Y \\
+*2.49 & $ (\sim (p \vee q)) \supset ( (\sim p) \vee (\sim q)) $ & \Y & \ & \Y \\
+*2.5 & $ (\sim (p \supset q)) \supset ( (\sim p) \supset q) $ & \Y & \ & \Y \\
+*2.51 & $ (\sim (p \supset q)) \supset (p \supset \sim q) $ & \Y & \ & \Y \\
+*2.52 & $ (\sim (p \supset q)) \supset ( (\sim p) \supset \sim q)$ & \Y & \ & \Y \\
+*2.521 & $ (\sim (p \supset q)) \supset (q \supset p) $ & \Y & \ & \Y \\
+*2.53 & $(p \vee q) \supset ( (\sim p) \supset q) $ & \Y & \ & \N \\
+*2.54 & $( (\sim p )\supset q) \supset (p \vee q) $ & \Y & \ & \N \\
+*2.55 & $ (\sim p) \supset ((p \vee q) \supset q) $ & \Y & \ & \Y \\
+*2.56 & $ (\sim q) \supset ((p \vee q) \supset p) $ & \Y & \ & \N \\
+*2.6 & $( (\sim p) \supset q) \supset ((p \supset q) \supset q) $ & \N & \ & \N \\
+*2.61 & $(p \supset q) \supset (( (\sim p) \supset q) \supset q)$ & \Y & \ & \Y \\
+*2.62 & $(p \vee q) \supset ((p \supset q) \supset q) $ & \Y & \ & \Y \\
+*2.621 & $(p \supset q) \supset ((p \vee q) \supset q) $ & \Y & \ & \Y \\
+*2.63 & $(p \vee q) \supset (( (\sim p) \vee q) \supset q) $ & \Y & \ & \Y \\
+*2.64 & $(p \vee q) \supset ((p \vee (\sim q)) \supset p) $ & \N & \ & \N \\
+\ & \ & \ & \ & \ \\
+\ & Number of correct proofs: & 40 & 38 & 33+$2\cdot ?$ \\
+\bottomrule
+\end{tabular}
+\begin{center} \Y{} means that a correct proof was found while \N{} means that no
+proof was found.  For ?, see the text.
+\end{center}
+\end{table}
+
+An exception to this is Theorem *2.55.  We show the proof output by LT5
+for this theorem in Figure
+\ref{proof5255}.\footnote{Although the effort limit was set to 200,000, a bug in the system makes it display as 000000.  Also, in the emulated IBM 7094 run, the output lines were cut off on the right-hand side, and we have reconstructed them here.}
+The proof begins from Theorem~*2.25, which is the minor premise
+of detachment; the major premise is a substitution instance of
+*2.53.  Applying detachment then gives *2.55.  The proof steps
+output by LT1 form a slightly different proof, Figure \ref{proof1255}.
+In this case, we start by proving a result definitionally equivalent to *2.53, and
+use it as the minor premise in detachment, the major premise being a substitution
+instance of *1.5.  After definitional rewriting, the result is again *2.55.
+
+\begin{figure*}
+\caption{Proof of *2.55 from LT5. \lstinline|I| denotes $\supset$, \lstinline|V| denotes 
+$\vee$, and \lstinline|-| denotes $\sim$.}
+\label{proof5255}
+\begin{lstlisting}
+TO PROVE
+*2.55   -PI((PVQ)IQ)
+           1.   -PI((-(PVQ))VQ)                   , SUBLEVEL REPLACEMENT
+           12313   -PI((-(PVQ))VQ)                , SUBLEVEL REPLACEMENT.  REJECTED PROBLEM
+           2.   --PV((PVQ)IQ)                *1.01, REPLACEMENT
+           3.   PV((PVQ)IQ)                  *2.53, DETACHMENT
+ PROOF FOUND.
+          GIVEN                         *2.25     AV((AVB)IB)
+          SUBSTITUTION                  3.        PV((PVQ)IQ)
+          GIVEN                         *2.53     (AVB)I(-AIB)
+          DETACHMENT                    *2.55     -PI((PVQ)IQ)
+          Q.E.D.
+EFFORT              LIMIT 000000        ACTUAL 28443
+SUBPROBLEMS         LIMIT 50            ACTUAL 3
+SUBSTITUTIONS       LIMIT 50            ACTUAL 4
+\end{lstlisting}
+\end{figure*}
+
+\begin{figure*}
+\caption{Proof steps of *2.55 from LT1. \lstinline|\\/| denotes $\vee$ and \lstinline|->| denotes $\supset$.}
+\label{proof1255}
+\begin{lstlisting}
+PROOF_DET: successfully proved ( ~ p -> ( ( p \/ q ) -> q ) ) by detachment theorem ( ( A \/ ( B \/ C ) ) -> ( B \/ ( A \/ C ) ) ) remaining-problem ( ~ ( p \/ q ) \/ ( ~ ~ p \/ q ) )
+PROOF_SUB: successfully proved ( ~ ( p \/ q ) \/ ( ~ ~ p \/ q ) ) by substitution theorem ( ( A \/ B ) -> ( ~ A -> B ) )
+\end{lstlisting}
+\end{figure*}
+
+
+%%% TODO (DM): add a parallel LT1 trace or results note here or in
+%%% Section~\ref{sec:lt1}, so the reader can compare the two systems'
+%%% behavior on the same theorem(s).
+
+%
+% DM: Yes, I did this.
+%
+
+\section{What Executable Archaeology Contributes}
+\label{sec:contribution}
+
+%%% This section is new, written in response to Alex's question:
+%%% "What exactly does it contribute to understanding the origins of
+%%% AI in this case?"
+
+%
+% DM: I rewrote this section.
+%
+
+It is reasonable to ask what is learned by running this old code that
+could not be learned by reading it, or by reading the abundant
+secondary literature on the Logic Theorist. Here are some
+possible answers.
+
+\textbf{It draws attention to gaps and differences.}
+The most striking single finding of the LT1 reanimation is an
+absence: the published 1956 program can find proof steps and 
+recognize that a proof exists, but cannot assemble
+or output the proof itself.  Although this is obvious, turning
+the code into a working program forces you to attend to it. 
+It illustrates what Newell and Simon
+thought was and wasn't important to formalize at this point.
+
+LT1 and LT5 are similar programs but
+differ by about an order of magnitude in size---roughly 300
+IPL-I instructions against around 3,000 lines of
+IPL-V.  Part of this difference is because LT5 has more
+functionality, for example, being able to
+assemble and print proofs; another partial reason is that it uses
+a general-purpose language, IPL-V, instead of LL, which was
+specialized for the LT; a third is that LT1 leaves the details
+of memory management more or less unspecified, while in LT5
+cells are explicitly requested and freed.  Reimplementing 
+both languages places them on a common footing and permits a 
+better comparison of LT1 and LT5.
+
+%%% Maybe move to the end since JS claims it's the "most important" thing?
+Most importantly, \textbf{reanimation makes historical claims checkable.} The 1956
+report~\cite{cip1956} claimed, on the basis of hand simulation, that the Logic
+Theorist would prove the theorems of \textit{Principia} *2; the 
+1957 paper~\cite{LT1957} reported the famous 38-of-52 result for the JOHNNIAC version.
+Until now, such claims rested on testimony and on archival output
+listings.  The reanimations allow these types of claims to be tested, 
+and for many further experiments to be made.
+
+\textbf{It shows that some semantics survive only in artifacts, not
+in documentation.}  The behavior of J73 when called with NIL
+doesn't seem to be documented; it was
+only discoverable by trying to run Stefferud's code, or by
+comparing with the version of IPL-V on the IBM 7094 emulator.
+Specifications and manuals don't cover every detail. Reamination, on the other hand
+requires that such details be clarified.
+
+\textbf{It points out errors in the published record.}  The 1956 
+IPL-I source listings contain various inconsistencies, typos and
+bugs, and Stefferud's 1963 code also turned out to be wrong and
+buggy in various ways.  Repairing these problems, and the requirement
+that every repair be justified and recorded, is part of the ``archaeology''
+in executable archaeology.
+
+\section{Related Work}
+\label{sec:related}
+
+Most directly related to this work
+is the ELIZA reanimation by Lane
+et al.~\cite{lane2025eliza}, in which a team including Shrager
+restored Weizenbaum's original ELIZA to operation on a
+reconstructed CTSS running on an emulated IBM~7094. That project
+reconstructed the complete original hardware and operating system
+stack. The present work takes a different, yet parallel approach, emulating 
+abstract machine specifications in modern languages.
+
+Reimplementing the Logic Theorist's \textit{algorithms} in a modern
+language is a relatively straightforward exercise---essentially an
+introductory AI course project, and one that has surely been done many
+times. A 1968 paper, for example, describes an implementation of LT in
+LISP~1.5~\cite{millstein1968logic}. The present work is a
+fundamentally different undertaking: rather than rewriting LT's logic
+in a modern language, it constructs emulators of the IPL-I
+and IPL-V abstract machines and runs the original code, transcribed
+from the 1956 and 1963 reports. The distinction is
+significant: a Lisp reimplementation demonstrates that LT's algorithms
+can be expressed in Lisp (which is unsurprising), while the present
+work demonstrates that the original IPL code, as written and published
+by Newell, Simon, and Shaw's team, functions as described---and,
+moreover, enables experiments on the real, working systems of machine
+and program.
+
+\section{Next Steps}
+\label{sec:next}
+
+The IPL-V interpreters developed for this project are not specific to
+the Logic Theorist. They implement the general IPL-V abstract machine
+and can, in principle, run any IPL-V program. Work is in progress on
+a corpus of early IPL-V AI programs. The most significant targets are
+the General Problem Solver (GPS)~\cite{newell1959gps} and EPAM
+(Elementary Perceiver and Memorizer)~\cite{feigenbaum1961epam}. 
+EPAM source code is available in the Feigenbaum archives at Stanford, and
+archival work to locate complete source code for GPS is in progress.
+Now that proven IPL interpreters exist, running these programs should
+require substantially less effort than was required for LT.
+
+The IPL-I interpreter, repaired LT1 source, and proof-assembly tools
+are open sourced at \cite{moewsrepo}.
+Shrager's IPL-V interpreter in Common Lisp is open sourced at
+\cite{shragerrepo}, and Moews's IPL-V interpreter
+in Python, and directions for running LT5 under Rob Storey's IBM 7094
+emulator, are open sourced at \cite{moewsrepo2}.
+
+\section*{A Personal Coda}
+
+%
+% DM: this section also seemed more natural in the first person.
+%
+
+{\em Jeff Shrager}
+
+I studied under both Newell and Simon at Carnegie
+Mellon University in the 1980s, where his work focused on modeling the
+cognition of scientists and engineers. IPL and LT were long since
+history by that time, and neither came up in classes or
+conversation. But the intellectual values Newell and Simon
+instilled---rigor about mechanism, respect for the complexity of
+cognition, and the conviction that thinking could be understood
+computationally---shaped the careers of their students. There is a
+certain closure in now studying Newell, Simon, and Shaw \textit{as}
+scientist-engineers: reverse-engineering their design decisions,
+reconstructing their reasoning, and trying to understand how they
+invented AI and cognitive science. The subject of that training and
+its object have folded into one another.
+
+\section*{Acknowledgements}
+
+%%% TODO (DM): please add your acknowledgements.
+
+The following people (listed in no particular order) contributed to
+the LT5 effort in ways ranging from code transcription to weekly
+encouragement: Anthony Hay, Arthur Schwarz, Leigh Klotz, David
+M.\ Berry, Rupert Lane, Amy Majczyk, Emily Davis, Ethan Ableman, and
+Paul McJones. 
+
+We thank the Computer History Museum for preserving and making
+available ``Simon's J's,'' the original 1962 IPL-V J-function card
+deck, which was useful in various ways. We also thank Alexander
+Magoun and David Walden for editorial guidance, including the
+suggestion to combine our independent efforts into this single
+account.
+
+Finally, we acknowledge Allen Newell, Herbert Simon, and Cliff Shaw,
+whose work this paper merely relives. 
+%%% Reamimates? Recreates? "Re-runs" seems too pedestrian
+
+{\footnotesize Portions of the LT5 debugging effort, and portions of
+the drafting of this paper, were carried out with the aid of various
+LLMs, but all concepts and final editorial decisions were the
+authors' alone.}
+
+\begin{thebibliography}{99}
+
+\bibitem{anderson1993} J. R. Anderson, ``Problem solving and learning,''
+  \textit{Amer. Psychologist}, vol. 48, no. 1, pp. 35--44, Jan. 1993.
+
+\bibitem{anderson1996} J. R. Anderson, ``ACT: A simple theory of
+  complex cognition,'' \textit{Amer. Psychologist}, vol. 51, no. 4,
+  pp. 355--365, Apr. 1996.
+
+\bibitem{bochannek2012simonsjs} A. Bochannek, ``Simon's J's,''
+  \textit{Computer History Museum Blog}, Sep. 26, 2012.
+  Accessed: Aug. 19, 2026.  [Online].
+  Available: \url{https://computerhistory.org/blog/simons-js/}
+
+\bibitem{feigenbaum1961epam} E. A. Feigenbaum, ``The simulation of
+  verbal learning behavior,'' in \textit{Proc. Western Joint
+  Comput. Conf.}, 1961, pp. 121--132.
+
+\bibitem{knuth1997} D. E. Knuth,
+  \textit{The Art of Computer Programming: Fundamental Algorithms}.
+  Reading, MA, USA, etc.: Addison Wesley Longman, 3rd ed., 1997.
+
+\bibitem{laird1991} J. E. Laird and P. S. Rosenbloom,
+  ``In pursuit of mind: The research of Allen Newell,''
+  \textit{AI Mag.}, vol. 13, no. 4, pp. 17--45, Winter 1992.
+
+\bibitem{lane2024gridlock} R. Lane. ``Gridlock: Extract
+  source code from line printer listing PDFs.'' GitHub.
+  Accessed: Aug. 14, 2026.  [Online].
+  Available: \url{https://github.com/rupertl/gridlock}
+
+\bibitem{lane2025eliza} R. Lane, A. Hay, A. Schwarz, D. M. Berry, and
+  J. Shrager, ``ELIZA reanimated: Restoring the mother of all chatbots
+  to one of the world's first time-sharing systems,'' \textit{IEEE
+  Ann. Hist. Comput.}, vol. 47, no. 2, pp. 68--76, Apr.-Jun. 2025.
+
+\bibitem{cip8jan1958} L. T., A. Newell, J. C. Shaw, and H. A. Simon,
+  ``Note: Improvement in the proof of a theorem in the elementary
+  propositional calculus,''
+  Carnegie Inst. of Technol., Pittsburgh, PA, USA,
+  C. I. P. Working Paper \#8, Jan. 13, 1958.
+  Accessed: Aug. 14, 2026.  [Online].
+  Available: \url{http://doi.library.cmu.edu/10.1184/pmc/simon/box00008/fld00527/bdl0001/doc0001}
+
+\bibitem{mccarthy1960lisp} J. McCarthy, ``Recursive functions of
+  symbolic expressions and their computation by machine, Part I,''
+  \textit{Commun. ACM}, vol. 3, no. 4, pp. 184--195, Apr. 1960.
+
+\bibitem{HOPLLISP} J. McCarthy, ``History of LISP,'' in
+  \textit{History of Programming Languages}, R. L. Wexelblat, Ed.,
+  New York, NY, USA: Academic Press, Inc., 1981, pp. 173--185.
+
+\bibitem{cmuarchiveshawinterview} P. McCorduck, transcript of interview
+  with Cliff Shaw, June 16, 1975, in Culver City, California,
+  Pamela McCorduck Collection, Carnegie Mellon University Archives.
+
+\bibitem{mccorduck2004machines} P. McCorduck, \textit{Machines Who
+  Think: A Personal Inquiry into the History and Prospects
+  of Artificial Intelligence}. Natick, MA, USA: A K Peters, Ltd., 2nd ed., 2004.
+
+\bibitem{millstein1968logic} R. Millstein, ``The Logic Theorist in
+  LISP,'' \textit{Int. J. Comput. Math.},
+  vol. 2, no. 1-4, pp. 111--122, 1968.
+
+\bibitem{moewsrepo} D. Moews.
+  ``Recreation of the 1956 IPL-I version of the Logic Theorist theorem
+  prover.''
+  GitHub.
+  Accessed: Aug. 2, 2026.  [Online].
+  Available: \url{https://github.com/dmoews/logic-theorist}
+
+\bibitem{moewsrepo2} D. Moews.
+  ``Recreation of the 1963 Stefferud IPL-V version of the Logic Theorist
+  theorem prover.''
+  GitHub.
+  Accessed: Jul. 16, 2026.  [Online].
+  Available: \url{https://github.com/dmoews/ipl-v-logic-theorist}
+
+\bibitem{more1956} T. More,
+  ``Computer decisions in deductive logic,'' IR 00053, June 12, 1956.
+  Accessed: Aug. 14, 2026.  [Online].
+  Available: \url{https://raysolomonoff.com/dartmouth/boxa/moreprop.pdf}
+
+\bibitem{more1957} T. More Jr., ``Deductive logic for automata,''
+  M.S. thesis,
+  Dept. Elect. Eng., MIT, Cambridge, MA, USA, 1957.
+
+\bibitem{notes1957} A. Newell, ``Notes on IPL-II instruction list,''
+  manuscript, Jan. 27, 1957.
+  Accessed: Aug. 14, 2026.  [Online].
+  Available: \url{http://doi.library.cmu.edu/10.1184/pmc/simon/box00038/fld03027/bdl0001/doc0001}
+
+\bibitem{newell1961ipl} A. Newell, Ed., \textit{Information
+  Processing Language-V Manual}. Englewood Cliffs, NJ, USA:
+  Prentice-Hall, Inc., 1961.
+
+\bibitem{DOC1963} A. Newell, ``Documentation of IPL-V,''
+  \textit{Commun. ACM}, vol. 6, no. 3, pp. 86--89, Mar. 1963.
+
+\bibitem{cip16june1958} A. Newell, E. A. Feigenbaum, and F. M. Tonge,
+  ``C.I.P. working paper \#16 rough draft,'' Jun. 23, 1958.
+  Accessed: Aug. 14, 2026.  [Online].
+  Available: \url{https://purl.stanford.edu/fv716bm0992}
+
+\bibitem{newellshaw1957} A. Newell and J. C. Shaw, ``Programming the
+  logic theory machine,'' in \textit{Proc. Western Joint
+  Comput. Conf.}, 1957, pp. 230--240.
+
+\bibitem{cip61957} A. Newell and J. C. Shaw,
+  ``General description of IPL-III,''
+  Preliminary Draft, Complex Information Processing (CIP) paper \#6,
+  Nov. 8, 1957.
+  Accessed: Aug. 14, 2026.  [Online].
+  Available: \url{http://doi.library.cmu.edu/10.1184/pmc/simon/box00008/fld00525/bdl0001/doc0001}
+
+\bibitem{LT1957} A. Newell, J. C. Shaw, and H. A. Simon, ``Empirical
+  explorations of the logic theory machine: A case study in
+  heuristic,'' in \textit{Proc. Western Joint Comput. Conf.}, 1957,
+  pp. 218--230.
+
+\bibitem{HPS1958} A. Newell, J. C. Shaw, and H. A. Simon,
+  ``Elements of a theory of human problem solving,''
+  \textit{Psychological Rev.}, vol. 65, no. 3, pp. 151--166, 1958.
+
+\bibitem{PCT1959} A. Newell, J. C. Shaw, and H. A. Simon,
+  ``The processes of creative thinking,''
+  RAND Corp., Santa Monica, CA, USA, Paper P-1320,
+  Sep. 16, 1958, revised Jan. 28, 1959.
+
+\bibitem{newell1959gps} A. Newell, J. C. Shaw, and H. A. Simon,
+  ``Report on a general problem-solving program,'' in
+  \textit{Proc. Int. Conf. Inform. Process.}, 1959, pp. 256--264.
+
+\bibitem{cip1956} A. Newell and H. A. Simon,
+  ``Current developments in complex information processing,''
+  RAND Corp., Santa Monica, CA, USA, Paper P-850, May 1, 1956.
+
+\bibitem{LT1956a} A. Newell and H. A. Simon,
+  ``The logic theory machine---A complex information processing system,''
+  RAND Corp., Santa Monica, CA, USA, Paper P-868, Jun. 15, 1956.
+
+\bibitem{LT1956b} A. Newell and H. A. Simon,
+  ``The logic theory machine---A complex information processing system,''
+  RAND Corp., Santa Monica, CA, USA, Paper P-868, revised, Jul. 12, 1956.
+
+\bibitem{LT1956c} A. Newell and H. A. Simon, ``The logic theory
+  machine---A complex information processing system,'' \textit{IRE
+  Trans. Inf. Theory}, vol. 2, no. 3, pp. 61--79, Sep. 1956.
+
+\bibitem{SHT1959} A. Newell and H. A. Simon,
+  ``The simulation of human thought,''
+  RAND Corp., Santa Monica, CA, USA,
+  Research Memorandum RM-2506, Dec. 28, 1959.
+
+\bibitem{newell1964ipl} A. Newell, F. M. Tonge, E. A. Feigenbaum,
+  B. F. Green Jr., and G. H. Mealy,
+  \textit{Information
+  Processing Language-V Manual}. Englewood Cliffs, NJ, USA:
+  Prentice-Hall, Inc., 2nd ed., 1964.
+
+\bibitem{richman1995epam} H. B. Richman, J. J. Staszewski, and
+  H. A. Simon, ``Simulation of expert memory using EPAM IV,''
+  \textit{Psychological Rev.}, vol. 102, no. 2, pp. 305--330, 1995.
+
+\bibitem{robinson1965} J. A. Robinson,
+  ``A machine-oriented logic based on the resolution principle,''
+  \textit{J. ACM}, vol. 12, no. 1, pp. 23--41, Jan. 1965.
+
+\bibitem{shrager2026} J. Shrager,
+  ``Executable archaeology: Reanimating the Logic Theorist
+  from its IPL-V source,''
+  Mar. 13, 2026, \textit{arXiv:2603.13514v1}.
+
+\bibitem{shragerrepo} J. Shrager.
+  ``An IPL-V interpreter in Common Lisp that runs the original Logic
+  Theorist.''
+  GitHub.
+  Accessed: Aug. 2, 2026.  [Online].
+  Available: \url{https://github.com/jeffshrager/IPL-V}
+
+\bibitem{simon1996models} H. A. Simon, \textit{Models of My Life}.
+  Cambridge, MA, USA: MIT Press, 1996.
+
+\bibitem{simon1999} H. Simon, e-mail to Jacques Berleur
+  re Dartmouth Seminar 1956, Nov. 19, 1999.
+  Accessed: Aug. 14, 2026.  [Online].
+  Available: \url{http://doi.library.cmu.edu/10.1184/pmc/simon/box00077/fld06244/bdl0001/doc0009}
+
+\bibitem{iplv1986} H. A. Simon and A. Newell,
+  ``Information processing language V on the IBM 650,''
+  \textit{IEEE Ann. Hist. Comput.}, vol. 8, no. 1, pp. 47--49, Jan.-Mar. 1986.
+
+\bibitem{solomonoff} G. Solomonoff,
+  ``Ray Solomonoff and the Dartmouth summer research project in
+  artificial intelligence, 1956.''
+  Accessed: Aug. 2, 2026.  [Online].
+  Available: \url{https://raysolomonoff.com/dartmouth/dartray.pdf}
+
+\bibitem{stefferud1963lt} E. Stefferud,
+  ``The logic theory machine: A model heuristic program,''
+  RAND Corp., Santa Monica, CA, USA, Research Memorandum RM-3731-CC, June 1963.
+
+\bibitem{ibsys} R. Storey. ``B7094.''
+  GitHub.
+  Accessed: Mar. 11, 2026.  [Online].
+  Available: \url{https://github.com/Bertoid1311/B7094}
+
+\bibitem{SLIP1963} J. Weizenbaum, ``Symmetric list processor,''
+  \textit{Commun. ACM}, vol. 6, no. 9, pp. 524--536, Sep. 1963.
+
+\bibitem{whitehead1910principia} A. N. Whitehead and B. Russell,
+  \textit{Principia Mathematica}. Cambridge, UK: Cambridge
+  Univ. Press, 1910--1913.
+
+\bibitem{lecherbrand2009} C.-P. Wirth, J. Siekmann,
+  C. Benzmueller, and S. Autexier,
+  ``Lectures on Jacques Herbrand as a logician,''
+  May 27, 2014, \textit{arXiv:0902.4682v5}.
+
+\end{thebibliography}
+
+%
+% DM: I deleted the appendix on LT5's proof of *4.25 since, unfortunately,
+% this was a completely incorrect proof. Although the 
+% trace of the proof does contain the expression (PI(PVP))*((PVP)IP), indicating
+% that the program considered the replacement of P=(PVP) by its
+% definition, this expression is not used in the final proof.  Rather,
+% the proof starts with the substitution instance PI(PVP) of *2.20,
+% and the statement P=P of *4.20, and combines them using forward chaining
+% to produce P=(PVP).  It's an illegitimate inference as in general you
+% cannot conclude A=C from A=B and BIC; this illustrates the problems with
+% Stefferud's implementation of the chaining rules.
+% 
+
+\end{document}
