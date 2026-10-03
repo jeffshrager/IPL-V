@@ -1,3 +1,11 @@
+> **Archived (2026-10-03).** This repository is no longer maintained. The current
+> interpreter and the Logic Theorist that runs on it are in
+> [ExecutableArchaeology](https://github.com/jeffshrager/ExecutableArchaeology):
+> `IPL-V/` (`iplv.lisp`, the 1964 manual, tests) and `LogicTheorist/` (Stefferud's
+> 1963 deck via dmoews, 24/24 theorems matching 1963). The `iplv.lisp` here is
+> identical as of this date. EPAM, `LTFixed.liplv`/`lt.lisp` and `misccode/` were not
+> rerun on it.
+
 # An IPL-V interpreter in Common Lisp that runs the original Logic Theorist
 
 See this paper for a more correct and detailed history:
