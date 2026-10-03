@@ -1,0 +1,87 @@
+*** logic-theorist-1963-stefferud.iplv	Mon Jul 20 20:23:14 2026
+--- logic-theorist-1963-stefferud.iplv	Mon Jul 20 20:28:59 2026
+***************
+*** 68,84 ****
+                                                  11W0                    M002R040
+       CONVERT TO INTERNAL (TREE) FORM.             P50                   M002R050
+           IF FAILED, TAKE ERROR ACTION.          709-103                 M002R055
+-                                                 11K30                   M002R060
+-                                                 10R                     M002R070
+-      TEST IF REMEMBERING.                         J2                    M002R080
+       INPUT PROBLEM FOR M1.                      11W0                    M002R090
+-                                                 709-101                 M002R100
+       TRY FOR PROOF TO BE REMEMBERED,              M1                    M002R110
+-      H5- MEANS NO PROOF FOUND.                  709-102                 M002R120
+                                                  11W0                    M002R130
+!      PRINT ' REMEMBER PROVED THEOREM'             M82                   M002R135
+!      ADD TO TRUE EXPRESSIONS LIST.                M50   9-102           M002R140
+!      TRY FOR PROOF TO BE FORGOTTEN.       9-101   M1                    M002R150
+       CLEAN UP W0, H5+ FOR GEN.            9-102 30W0    J4              M002R160
+                                            9-103 11W0                    M002R170
+                                                    M88   9-102           M002R180
+--- 68,78 ----
+                                                  11W0                    M002R040
+       CONVERT TO INTERNAL (TREE) FORM.             P50                   M002R050
+           IF FAILED, TAKE ERROR ACTION.          709-103                 M002R055
+       INPUT PROBLEM FOR M1.                      11W0                    M002R090
+       TRY FOR PROOF TO BE REMEMBERED,              M1                    M002R110
+                                                  11W0                    M002R130
+!      PRINT 'REMEMBER THEOREM'                     M82                   M002R135
+!      ADD TO TRUE EXPRESSIONS LIST.                M50                   M002R140
+       CLEAN UP W0, H5+ FOR GEN.            9-102 30W0    J4              M002R160
+                                            9-103 11W0                    M002R170
+                                                    M88   9-102           M002R180
+***************
+*** 1206,1212 ****
+                                            9-3   10T19                   M081R340
+       ENTER MESSAGE AND PRINT.                     M76   J155            M081R350
+                                          1                                   R   
+!      M82 PRINT 'REMEMBER PROVED THEOREM'  M82     J154                  M082R000
+                                                    J155                  M082R010
+                                                    J155                  M082R020
+                                                  10T23                   M082R030
+--- 1200,1206 ----
+                                            9-3   10T19                   M081R340
+       ENTER MESSAGE AND PRINT.                     M76   J155            M081R350
+                                          1                                   R   
+!      M82 PRINT 'REMEMBER THEOREM'         M82     J154                  M082R000
+                                                    J155                  M082R010
+                                                    J155                  M082R020
+                                                  10T23                   M082R030
+***************
+*** 2454,2472 ****
+                                                    9-2   0               T022D020
+                                            9-1   21TO PR                 T022D030
+                                            9-2   21OVE                   T022D040
+!      T23 'REMEMBER PROVED THEOREM'        T23     0                     T023D000
+                                                    9-1                   T023D010
+                                                    9-2                   T023D020
+                                                    9-3                   T023D030
+!                                                   9-4                   T023D040
+!                                                   9-5                   T023D050
+!                                                   9-6   0               T023D060
+                                            9-1   21   RE                 T023D070
+                                            9-2   21MEMBE                 T023D080
+!                                           9-3   21R PRO                 T023D090
+!                                           9-4   21VED T                 T023D100
+!                                           9-5   21HEORE                 T023D110
+!                                           9-6   21M                     T023D120
+       T24 'BAD EXPRESSION'                 T24     0                     T024D000
+                                                    9-1                   T024D010
+                                                    9-2                   T024D020
+--- 2448,2462 ----
+                                                    9-2   0               T022D020
+                                            9-1   21TO PR                 T022D030
+                                            9-2   21OVE                   T022D040
+!      T23 'REMEMBER THEOREM'               T23     0                     T023D000
+                                                    9-1                   T023D010
+                                                    9-2                   T023D020
+                                                    9-3                   T023D030
+!                                                   9-4   0               T023D040
+                                            9-1   21   RE                 T023D070
+                                            9-2   21MEMBE                 T023D080
+!                                           9-3   21R THE                 T023D090
+!                                           9-4   21OREM                  T023D100
+       T24 'BAD EXPRESSION'                 T24     0                     T024D000
+                                                    9-1                   T024D010
+                                                    9-2                   T024D020

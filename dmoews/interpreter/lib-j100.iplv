@@ -1,0 +1,15 @@
+#
+# J100: GENERATE SYMBOLS FROM LIST (1) FOR SUBPROCESS (0).
+#
+# 2 inputs, 0 outputs.
+#
+%J100  10W0
+%        J17
+%9-1     J60
+%      709-2
+%      60W0
+%      52H0
+%        J18
+%      11W0
+%      70      9-1
+%9-2   30H0    J19

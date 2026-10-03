@@ -1,0 +1,304 @@
+#
+# Options
+#
+IN -h
+ERR $USAGE
+IN --help
+ERR $USAGE
+IN --z
+ERR Invalid option '--z'.
+ERR 
+ERR $USAGE
+RTC 1
+#
+# No source file
+#
+IN
+ERR **Error: Undefined starting address.
+ERR 
+#
+# Bad source file
+#
+IN nonexistent-file
+ERR **Error: Cannot open 'nonexistent-file'.
+ERR **Error: Undefined starting address.
+ERR 
+#
+# Nonexistent start symbol
+#
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv --no-extra-syntax -
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         2 B             10
+FIN                                         5
+FIN                                           A1      J0    0
+FIN                                         5         B1
+ERR **Warning: Unimplemented type 9 card, line 1.
+ERR **Warning: Unimplemented type 2 card, line 2.
+ERR **Warning: Unimplemented type 2 card, line 3.
+ERR **Error: Undefined starting address B1.
+ERR 
+#
+# Short working test
+#
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv --no-extra-syntax -
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         2 D             10
+FIN                                         5
+FIN                                           A1    10D1
+FIN                                                 40H0
+FIN                                                   J154
+FIN                                                   J156
+FIN                                                   J155
+FIN                                                   J154
+FIN                                                   J157
+FIN                                                   J155  0
+FIN                                           D1   +21HELLO
+FIN                                         5         A1
+OUT D1
+OUT HELLO
+OUT 
+ERR **Warning: Unimplemented type 9 card, line 1.
+ERR **Warning: Unimplemented type 2 card, line 2.
+ERR **Warning: Unimplemented type 2 card, line 3.
+ERR **Start at A1 = 1099.
+ERR 
+#
+# Assembler error messages
+#
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv --no-extra-syntax -
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         2 D             10
+FIN                                         5
+FIN                                           ;1    10D1
+FIN                                                   ;1
+FIN                                                   J0    ;1
+FIN                                                 80J0
+FIN                                                 08J0
+FIN                                                 88J0
+FIN                                                #  J0
+FIN                                                #88J0
+FIN                                                   J155  0
+FIN                                           D1   +21HELLO
+FIN                                           D2   +41HELLO
+FIN                                           D3   -011234  5417
+FIN                                           D4   +0112345 1234
+FIN                                           D5   +011234  12345
+FIN                                           D6   +01  X     3
+FIN                                           D7   +01  3     X
+FIN                                           D8   +01  3     4
+FIN                                           A1      J154
+FIN                                                 10D3
+FIN                                                   J157
+FIN                                                   J155
+FIN                                                   J154
+FIN                                                 10D8
+FIN                                                   J157
+FIN                                                   J155  0
+FIN                                         5         A1
+OUT -12345417
+OUT 30004
+OUT 
+ERR **Error: Bad name, line 5.
+ERR **Error: Bad symbol, line 6.
+ERR **Error: Bad link, line 7.
+ERR **Error: Bad p, line 8.
+ERR **Error: Bad q, line 9.
+ERR **Error: Bad p, line 10.
+ERR **Error: Bad q, line 10.
+ERR **Error: Bad sign, line 11.
+ERR **Error: Bad sign, line 12.
+ERR **Error: Bad p, line 12.
+ERR **Error: Bad q, line 12.
+ERR **Error: Unknown data term type 41, line 15.
+ERR **Error: Bad integer data term, line 17.
+ERR **Error: Bad integer data term, line 18.
+ERR **Error: Bad integer data term, line 19.
+ERR **Error: Bad integer data term, line 20.
+ERR **Warning: Unimplemented type 9 card, line 1.
+ERR **Warning: Unimplemented type 2 card, line 2.
+ERR **Warning: Unimplemented type 2 card, line 3.
+ERR **Warning: Assembling unreachable nameless section, line 5.
+ERR **Start at A1 = 1116.
+ERR 
+#
+# Short working test
+#
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv --no-extra-syntax test-01.iplv
+ERR **Warning: Unimplemented type 9 card, line 1, file test-01.iplv.
+ERR **Warning: Unimplemented type 2 card, line 2, file test-01.iplv.
+ERR **Warning: Unimplemented type 2 card, line 3, file test-01.iplv.
+ERR **Warning: Unimplemented type 2 card, line 4, file test-01.iplv.
+ERR **Warning: Unimplemented type 2 card, line 5, file test-01.iplv.
+ERR **Warning: Unimplemented type 2 card, line 6, file test-01.iplv.
+ERR **Warning: Unimplemented type 2 card, line 7, file test-01.iplv.
+ERR **Start at E1 = 1119.
+ERR 
+OUT C4
+OUT C3
+OUT C5
+OUT C5
+OUT K1
+OUT B1
+OUT J4
+OUT J3
+OUT J3
+OUT J4
+OUT J3
+OUT J4
+OUT A1
+OUT B1
+OUT B1
+OUT A1
+OUT A1
+OUT 0
+OUT 23
+OUT A
+OUT A
+OUT A
+OUT K1
+OUT E1-9-17
+OUT 5
+OUT 0 B1 C1 B1 A1 B1
+OUT B1 C1 B1 A1 B1
+OUT C1 B1 A1 B1
+OUT 
+#
+# Tests of removing/not removing Ws and extra/no extra syntax
+#
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv --no-extra-syntax -
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         5
+FIN                                           A1      J0
+FIN #                                               10A3
+FIN %      10A2                             1
+FIN                                                   J154
+FIN                                                   J157  J155
+FIN                                           A2   +21HI
+FIN                                           A3   +21BYE
+FIN                                         5         A1
+OUT BYE
+OUT 
+ERR **Warning: Unimplemented type 9 card, line 1.
+ERR **Warning: Unimplemented type 2 card, line 2.
+ERR **Start at A1 = 1099.
+ERR 
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv --no-extra-syntax --extra-syntax -
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         5
+FIN                                           A1      J0
+FIN #                                               10A3
+FIN %      10A2                             1
+FIN                                                   J154
+FIN                                                   J157  J155
+FIN                                           A2   +21HI
+FIN                                           A3   +21BYE
+FIN                                         5         A1
+OUT HI
+OUT 
+ERR **Warning: Unimplemented type 9 card, line 1.
+ERR **Warning: Unimplemented type 2 card, line 2.
+ERR **Start at A1 = 1099.
+ERR 
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv --no-extra-syntax --remove-ws -
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         5
+FIN                                           A1    20W0    0
+FIN                                           A2    10A4
+FIN                                                 20W0
+FIN                                                 10A3
+FIN                                                   A1
+FIN                                                 11W0
+FIN                                                   J154
+FIN                                                   J157  J155
+FIN                                           A3   +21HI
+FIN                                           A4   +21BYE
+FIN                                         5         A2
+OUT BYE
+OUT 
+ERR **Warning: Unimplemented type 9 card, line 1.
+ERR **Warning: Unimplemented type 2 card, line 2.
+ERR **Start at A2 = 1101.
+ERR 
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv --no-extra-syntax --remove-ws --no-remove-ws -
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         5
+FIN                                           A1    20W0    0
+FIN                                           A2    10A4
+FIN                                                 20W0
+FIN                                                 10A3
+FIN                                                   A1
+FIN                                                 11W0
+FIN                                                   J154
+FIN                                                   J157  J155
+FIN                                           A3   +21HI
+FIN                                           A4   +21BYE
+FIN                                         5         A2
+OUT HI
+OUT 
+ERR **Warning: Unimplemented type 9 card, line 1.
+ERR **Warning: Unimplemented type 2 card, line 2.
+ERR **Start at A2 = 1100.
+ERR 
+#
+# Test of line read processes
+#
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv test-02.iplv
+FIN PAN1 2;4Q6##?!b-3cxyzwOXEN    YAKS    XBOXENZ      bcdef      $;
+FIN         
+FIN abcdefgh
+OUT $
+OUT $
+OUT      
+OUT BOXEN
+OUT      
+OUT YAKS
+OUT      
+OUT OXEN
+OUT 0
+OUT -3
+OUT 46
+OUT N12
+OUT 
+ERR **Error: Unknown data term type 31, line 189, file test-02.iplv.
+ERR **Error: Unknown data term type 31, line 190, file test-02.iplv.
+ERR **Warning: Unimplemented type 9 card, line 1, file test-02.iplv.
+ERR **Warning: Unimplemented type 2 card, line 2, file test-02.iplv.
+ERR **Warning: Unimplemented type 2 card, line 3, file test-02.iplv.
+ERR **Warning: Unimplemented type 2 card, line 4, file test-02.iplv.
+ERR **Warning: Unimplemented type 2 card, line 5, file test-02.iplv.
+ERR **Start at A1 = 1110.
+ERR 
+#
+# Test of extensions
+#
+IN --extra-syntax lib-ws.iplv --remove-ws lib-simon.iplv lib-misc.iplv --no-remove-ws lib-j100.iplv lib-shuffle-ws.iplv lib-hs.iplv lib-generators-new.iplv lib-at.iplv test-03.iplv
+OUT  LOCAL  NAME  IPL SYMBOL    DATA TERM
+OUT  ADDR.        P Q  SYMB  QP     VALUE
+OUT         1101             13          0
+OUT         NAME  IPL SYMBOL    DATA TERM
+OUT               P Q  SYMB  QP     VALUE
+OUT         1101             13          0
+OUT               0 0   1101 13          0
+OUT                                      0
+OUT 0
+OUT                                      0
+OUT 0
+OUT                                      0
+OUT 0
+OUT A1-9-1
+OUT 1149
+OUT 39
+OUT 39-9-2
+OUT 
+ERR **Error: Unknown data term type 31, line 43, file test-03.iplv.
+ERR **Warning: Unimplemented type 9 card, line 1, file test-03.iplv.
+ERR **Warning: Unimplemented type 2 card, line 2, file test-03.iplv.
+ERR **Start at A1 = 1099.
+ERR 

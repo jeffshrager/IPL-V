@@ -1,0 +1,798 @@
+**Warning: Unimplemented type 9 card, line 1, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 2, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 3, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 4, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 5, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 6, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 7, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 8, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 9, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 10, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 11, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 12, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 13, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 14, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 15, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 16, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 17, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 18, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 19, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 20, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 21, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 22, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 23, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 24, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 25, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 26, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 27, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 28, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 29, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 30, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 31, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 32, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 33, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 2 card, line 34, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Undefined local symbol 9-1, line 335, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Undefined local symbol 9-1, line 389, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Undefined local symbol 9-10, line 1470, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name H0, line 2159, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2188, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2189, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2221, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2226, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2230, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2258, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Undefined local symbol 9-0, line 2258, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 9 card, line 2738, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Unimplemented type 5 card, line 2739, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name Q17, line 2742, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name /16, line 2757, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name K20, line 2787, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name K21, line 2788, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name K22, line 2789, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name K30, line 2790, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2790, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name K31, line 2791, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2791, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name L6, line 2792, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2794, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name L7, line 2795, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2799, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2803, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2804, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Zeroed blank link at section end, line 2805, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Changing start from X9 to X1, line 2806, file ../logic-theorist-1963-stefferud.iplv.
+**Warning: Redefinition of regional name K22, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol W22, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol *1, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol *2, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol *3, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol *4, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol W26, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol J147, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol J148, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol J166, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol J165, line 4, file redefine-effort.iplv.
+**Error: Undefined symbol W31, line 4, file redefine-effort.iplv.
+**Start at X1 = 3640.
+*1.01   (AIB).=.(-AVB) DEF.
+BAD EXPRESSION   ((PVQ/UGH/VR).=.((PVQ)VR))
+*3.01   (A*B).=.(-(-AV-B)) DEF.
+*4.01   (A=B).=.((AIB)*(BIA)) DEF.
+*1.2    (AVA)IA
+*1.3    BI(AVB)
+*1.4    (AVB)I(BVA)
+*1.5    (AV(BVC))I(BV(AVC))
+*1.6    (BIC)I((AVB)I(AVC))
+
+
+*2.01   (PI-P)I-P
+*2.02   QI(PIQ)
+*2.03   (PI-Q)I(QI-P)
+*2.04   (PI(QIR))I(QI(PIR))
+*2.05   (QIR)I((PIQ)I(PIR))
+*2.06   (PIQ)I((QIR)I(PIR))
+*2.07   PI(PVP)
+*2.08   PIP
+*2.10   -PVP
+*2.11   PV-P
+*2.12   PI--P
+*2.13   PV---P
+*2.14   --PIP
+*2.15   (-PIQ)I(-QIP)
+*2.20   PI(PVQ)
+*2.21   -PI(PIQ)
+*2.24   PI(-PIQ)
+*3.13   (-(P*Q))I(-PV-Q)
+*3.14   (-PV-Q)I(-(P*Q))
+*3.24   -(P*-P)
+*4.13   P=--P
+*4.20   P=P
+*4.24   P=(P*P)
+*4.25   P=(PVP)
+TO PROVE
+*2.01   (PI-P)I-P
+           1.   (-PV-P)I-P                        , SUBLEVEL REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *1.2      (AVA)IA
+          SUBSTITUTION                  1.        (-PV-P)I-P
+          GIVEN                                   DEFINITIONS
+          SUBLEVEL REPLACEMENT          *2.01     (PI-P)I-P
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 104593
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*2.01   (AI-A)I-A
+TO PROVE
+*2.02   QI(PIQ)
+           1.   QI(-PVQ)                          , SUBLEVEL REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *1.3      BI(AVB)
+          SUBSTITUTION                  1.        QI(-PVQ)
+          GIVEN                                   DEFINITIONS
+          SUBLEVEL REPLACEMENT          *2.02     QI(PIQ)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 89625
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*2.02   AI(BIA)
+TO PROVE
+*2.03   (PI-Q)I(QI-P)
+           1.   (-PV-Q)I(-QV-P)                   , SUBLEVEL REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *1.4      (AVB)I(BVA)
+          SUBSTITUTION                  1.        (-PV-Q)I(-QV-P)
+          GIVEN                                   DEFINITIONS
+          SUBLEVEL REPLACEMENT          *2.03     (PI-Q)I(QI-P)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 146406
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*2.03   (AI-B)I(BI-A)
+TO PROVE
+*2.04   (PI(QIR))I(QI(PIR))
+           1.   (PI(-QVR))I(QI(-PVR))             , SUBLEVEL REPLACEMENT
+           2.   (-PV(QIR))I(-QV(PIR))             , SUBLEVEL REPLACEMENT
+           3.   (-PV(-QVR))I(-QV(-PVR))           , SUBLEVEL REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *1.5      (AV(BVC))I(BV(AVC))
+          SUBSTITUTION                  3.        (-PV(-QVR))I(-QV(-PVR))
+          GIVEN                                   DEFINITIONS
+          SUBLEVEL REPLACEMENT          *2.04     (PI(QIR))I(QI(PIR))
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 384801
+SUBPROBLEMS         LIMIT 50            ACTUAL 3
+SUBSTITUTIONS       LIMIT 50            ACTUAL 4
+
+
+   REMEMBER PROVED THEOREM
+
+*2.04   (AI(BIC))I(BI(AIC))
+TO PROVE
+*2.05   (QIR)I((PIQ)I(PIR))
+           1.   (QIR)I((-PVQ)I(-PVR))             , SUBLEVEL REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *1.6      (BIC)I((AVB)I(AVC))
+          SUBSTITUTION                  1.        (QIR)I((-PVQ)I(-PVR))
+          GIVEN                                   DEFINITIONS
+          SUBLEVEL REPLACEMENT          *2.05     (QIR)I((PIQ)I(PIR))
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 174681
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*2.05   (AIB)I((CIA)I(CIB))
+TO PROVE
+*2.06   (PIQ)I((QIR)I(PIR))
+           1.   (PIQ)I((-QVR)I(-PVR))             , SUBLEVEL REPLACEMENT
+           2.   (-PVQ)I((-(QIR))V(PIR))           , SUBLEVEL REPLACEMENT
+           3.   (-PVQ)I((-(-QVR))V(-PVR))         , SUBLEVEL REPLACEMENT
+           4.   (-(PIQ))V((QIR)I(PIR))       *1.01, REPLACEMENT
+           5.   (QIR)I((PIQ)I(PIR))          *2.04, DETACHMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.05     (AIB)I((CIA)I(CIB))
+          SUBSTITUTION                  5.        (QIR)I((PIQ)I(PIR))
+          GIVEN                         *2.04     (AI(BIC))I(BI(AIC))
+          DETACHMENT                    *2.06     (PIQ)I((QIR)I(PIR))
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 563764
+SUBPROBLEMS         LIMIT 50            ACTUAL 5
+SUBSTITUTIONS       LIMIT 50            ACTUAL 6
+
+
+   REMEMBER PROVED THEOREM
+
+*2.06   (AIB)I((BIC)I(AIC))
+TO PROVE
+*2.07   PI(PVP)
+
+
+ PROOF FOUND.
+
+          GIVEN                         *1.3      BI(AVB)
+          SUBSTITUTION                  *2.07     PI(PVP)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 36953
+SUBPROBLEMS         LIMIT 50            ACTUAL 0
+SUBSTITUTIONS       LIMIT 50            ACTUAL 1
+
+
+   REMEMBER PROVED THEOREM
+
+*2.07   AI(AVA)
+TO PROVE
+*2.08   PIP
+           1.   -PVP                         *1.01, REPLACEMENT
+           4774   P                          *2.02, DETACHMENT.  REJECTED PROBLEM
+           4779   (PIP)V(PIP)                *1.2, DETACHMENT.  REJECTED PROBLEM
+           2.   (PVP)IP                      *2.07, FORWARD CHAINING
+
+
+ PROOF FOUND.
+
+          GIVEN                         *1.2      (AVA)IA
+          SUBSTITUTION                  2.        (PVP)IP
+          GIVEN                         *2.07     AI(AVA)
+          FORWARD CHAINING              *2.08     PIP
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 137892
+SUBPROBLEMS         LIMIT 50            ACTUAL 2
+SUBSTITUTIONS       LIMIT 50            ACTUAL 3
+
+
+   REMEMBER PROVED THEOREM
+
+*2.08   AIA
+TO PROVE
+*2.10   -PVP
+           1.   PIP                          *1.01, REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.08     AIA
+          SUBSTITUTION                  1.        PIP
+          GIVEN                         *1.01     (AIB).=.(-AVB) DEF.
+          REPLACEMENT                   *2.10     -PVP
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 77664
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*2.10   -AVA
+TO PROVE
+*2.11   PV-P
+           1.   -PVP                         *1.4, DETACHMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.10     -AVA
+          SUBSTITUTION                  1.        -PVP
+          GIVEN                         *1.4      (AVB)I(BVA)
+          DETACHMENT                    *2.11     PV-P
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 87163
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*2.11   AV-A
+TO PROVE
+*2.12   PI--P
+           1.   -PV--P                       *1.01, REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.11     AV-A
+          SUBSTITUTION                  1.        -PV--P
+          GIVEN                         *1.01     (AIB).=.(-AVB) DEF.
+          REPLACEMENT                   *2.12     PI--P
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 102891
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*2.12   AI--A
+TO PROVE
+*2.13   PV---P
+           1.   ---PVP                       *1.4, DETACHMENT
+           4765   ---P                       *1.3, DETACHMENT.  REJECTED PROBLEM
+           5074   PV---P                     *2.08, DETACHMENT.  REJECTED PROBLEM
+           4953   (PV---P)V(PV---P)          *1.2, DETACHMENT.  REJECTED PROBLEM
+           2.   -PI---P                      *2.11, FORWARD CHAINING
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.12     AI--A
+          SUBSTITUTION                  2.        -PI---P
+          GIVEN                         *2.11     AV-A
+          FORWARD CHAINING              *2.13     PV---P
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 215181
+SUBPROBLEMS         LIMIT 50            ACTUAL 2
+SUBSTITUTIONS       LIMIT 50            ACTUAL 3
+
+
+   REMEMBER PROVED THEOREM
+
+*2.13   AV---A
+TO PROVE
+*2.14   --PIP
+           1.   ---PVP                       *1.01, REPLACEMENT
+           5016   P                          *2.02, DETACHMENT.  REJECTED PROBLEM
+           4734   --PIP                      *2.08, DETACHMENT.  REJECTED PROBLEM
+           4999   (--PIP)V(--PIP)            *1.2, DETACHMENT.  REJECTED PROBLEM
+           2.   ----PIP                      *2.12, FORWARD CHAINING
+           4817   --PIP                      *2.08, FORWARD CHAINING.  REJECTED PROBLEM
+           3.   (--PV--P)IP                  *2.07, FORWARD CHAINING
+           4.   (BI--P)IP                    *2.02, FORWARD CHAINING
+           5.   (AV--P)IP                    *1.3, FORWARD CHAINING
+           5218   --PIP                      *2.08, BACKWARD CHAINING.  REJECTED PROBLEM
+           6.   --PI(PVP)                    *1.2, BACKWARD CHAINING
+6.      --PI(PVP)
+           7.   ---PV(PVP)                   *1.01, REPLACEMENT
+           5288   PVP                        *2.02, DETACHMENT.  REJECTED PROBLEM
+           5296   --PI(PVP)                  *2.08, DETACHMENT.  REJECTED PROBLEM
+           4703   (--PI(PVP))V(--PI(PVP))    *1.2, DETACHMENT.  REJECTED PROBLEM
+           8.   ----PI(PVP)                  *2.12, FORWARD CHAINING
+           5314   --PI(PVP)                  *2.08, FORWARD CHAINING.  REJECTED PROBLEM
+           9.   (--PV--P)I(PVP)              *2.07, FORWARD CHAINING
+           10.   (BI--P)I(PVP)               *2.02, FORWARD CHAINING
+           11.   (AV--P)I(PVP)               *1.3, FORWARD CHAINING
+           5307   --PIP                      *2.07, BACKWARD CHAINING.  REJECTED PROBLEM
+           5480   --PI(PVP)                  *1.4, BACKWARD CHAINING.  REJECTED PROBLEM
+           5451   --PIP                      *1.3, BACKWARD CHAINING.  REJECTED PROBLEM
+           5394   --PI(PVP)                  *2.08, BACKWARD CHAINING.  REJECTED PROBLEM
+           12.   --PI((PVP)V(PVP))           *1.2, BACKWARD CHAINING
+12.     --PI((PVP)V(PVP))
+           13.   ---PV((PVP)V(PVP))          *1.01, REPLACEMENT
+           5471   (PVP)V(PVP)                *2.02, DETACHMENT.  REJECTED PROBLEM
+           5313   --PI((PVP)V(PVP))          *2.08, DETACHMENT.  REJECTED PROBLEM
+           5389   (--PI((PVP)V(PVP)))V(--PI((PVP)V(PVP)))  *1.2, DETACHMENT.  REJECTED PROBLEM
+           14.   ----PI((PVP)V(PVP))         *2.12, FORWARD CHAINING
+           5632   --PI((PVP)V(PVP))          *2.08, FORWARD CHAINING.  REJECTED PROBLEM
+           15.   (--PV--P)I((PVP)V(PVP))     *2.07, FORWARD CHAINING
+           16.   (BI--P)I((PVP)V(PVP))       *2.02, FORWARD CHAINING
+           17.   (AV--P)I((PVP)V(PVP))       *1.3, FORWARD CHAINING
+           5627   --PI(PVP)                  *2.07, BACKWARD CHAINING.  REJECTED PROBLEM
+           18.   --PI(PV((PVP)VP))           *1.5, BACKWARD CHAINING
+           5810   --PI((PVP)V(PVP))          *1.4, BACKWARD CHAINING.  REJECTED PROBLEM
+           5778   --PI(PVP)                  *1.3, BACKWARD CHAINING.  REJECTED PROBLEM
+           5844   --PI((PVP)V(PVP))          *2.08, BACKWARD CHAINING.  REJECTED PROBLEM
+           19.   --PI(((PVP)V(PVP))V((PVP)V(PVP)))  *1.2, BACKWARD CHAINING
+1.      ---PVP
+           5838   --PIP                      *1.01, REPLACEMENT.  REJECTED PROBLEM
+           20.   PV---P                      *1.4, DETACHMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.13     AV---A
+          SUBSTITUTION                  20.       PV---P
+          GIVEN                         *1.4      (AVB)I(BVA)
+          DETACHMENT                    1.        ---PVP
+          GIVEN                         *1.01     (AIB).=.(-AVB) DEF.
+          REPLACEMENT                   *2.14     --PIP
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 2148278
+SUBPROBLEMS         LIMIT 50            ACTUAL 20
+SUBSTITUTIONS       LIMIT 50            ACTUAL 21
+
+
+   REMEMBER PROVED THEOREM
+
+*2.14   --AIA
+TO PROVE
+*2.15   (-PIQ)I(-QIP)
+           1.   (--PVQ)I(--QVP)                   , SUBLEVEL REPLACEMENT
+           5256   (--PVQ)I(--QVP)                 , SUBLEVEL REPLACEMENT.  REJECTED PROBLEM
+           2.   (-(-PIQ))V(-QIP)             *1.01, REPLACEMENT
+           3.   -QI((-PIQ)IP)                *2.04, DETACHMENT
+           4.   -QIP                         *2.02, DETACHMENT
+           5.   -(-((-PIQ)I(-QIP)))          *2.14, DETACHMENT
+           5638   (-PIQ)I(-QIP)              *2.08, DETACHMENT.  REJECTED PROBLEM
+           5187   ((-PIQ)I(-QIP))V((-PIQ)I(-QIP))  *1.2, DETACHMENT.  REJECTED PROBLEM
+           6.   ((QIC)I(-PIC))I(-QIP)        *2.06, FORWARD CHAINING
+           7.   ((CI-P)I(CIQ))I(-QIP)        *2.05, FORWARD CHAINING
+           8.   ((AV-P)I(AVQ))I(-QIP)        *1.6, FORWARD CHAINING
+           9.   (-(-(-PIQ)))I(-QIP)          *2.12, FORWARD CHAINING
+           5731   (-PIQ)I(-QIP)              *2.08, FORWARD CHAINING.  REJECTED PROBLEM
+           10.   ((-PIQ)V(-PIQ))I(-QIP)      *2.07, FORWARD CHAINING
+           11.   (BI(-PIQ))I(-QIP)           *2.02, FORWARD CHAINING
+           12.   (AV(-PIQ))I(-QIP)           *1.3, FORWARD CHAINING
+           13.   (-PIQ)IP                    *2.02, BACKWARD CHAINING
+           14.   (-PIQ)I(-(-(-QIP)))         *2.14, BACKWARD CHAINING
+           5018   (-PIQ)I(-QIP)              *2.08, BACKWARD CHAINING.  REJECTED PROBLEM
+           15.   (-PIQ)I((-QIP)V(-QIP))      *1.2, BACKWARD CHAINING
+4.      -QIP
+           16.   --QVP                       *1.01, REPLACEMENT
+           5487   P                          *2.02, DETACHMENT.  REJECTED PROBLEM
+           17.   -(-(-QIP))                  *2.14, DETACHMENT
+           5497   -QIP                       *2.08, DETACHMENT.  REJECTED PROBLEM
+           5449   (-QIP)V(-QIP)              *1.2, DETACHMENT.  REJECTED PROBLEM
+           18.   ---QIP                      *2.12, FORWARD CHAINING
+           5458   -QIP                       *2.08, FORWARD CHAINING.  REJECTED PROBLEM
+           19.   (-QV-Q)IP                   *2.07, FORWARD CHAINING
+           20.   (BI-Q)IP                    *2.02, FORWARD CHAINING
+           21.   (AV-Q)IP                    *1.3, FORWARD CHAINING
+           22.   -QI--P                      *2.14, BACKWARD CHAINING
+           5990   -QIP                       *2.08, BACKWARD CHAINING.  REJECTED PROBLEM
+           23.   -QI(PVP)                    *1.2, BACKWARD CHAINING
+23.     -QI(PVP)
+           24.   --QV(PVP)                   *1.01, REPLACEMENT
+           6120   PVP                        *2.02, DETACHMENT.  REJECTED PROBLEM
+           25.   -(-(-QI(PVP)))              *2.14, DETACHMENT
+           5022   -QI(PVP)                   *2.08, DETACHMENT.  REJECTED PROBLEM
+           6096   (-QI(PVP))V(-QI(PVP))      *1.2, DETACHMENT.  REJECTED PROBLEM
+           26.   ---QI(PVP)                  *2.12, FORWARD CHAINING
+           6081   -QI(PVP)                   *2.08, FORWARD CHAINING.  REJECTED PROBLEM
+           27.   (-QV-Q)I(PVP)               *2.07, FORWARD CHAINING
+           28.   (BI-Q)I(PVP)                *2.02, FORWARD CHAINING
+           29.   (AV-Q)I(PVP)                *1.3, FORWARD CHAINING
+           6283   -QIP                       *2.07, BACKWARD CHAINING.  REJECTED PROBLEM
+           6341   -QI(PVP)                   *1.4, BACKWARD CHAINING.  REJECTED PROBLEM
+           6306   -QIP                       *1.3, BACKWARD CHAINING.  REJECTED PROBLEM
+           30.   -QI(-(-(PVP)))              *2.14, BACKWARD CHAINING
+           6376   -QI(PVP)                   *2.08, BACKWARD CHAINING.  REJECTED PROBLEM
+           31.   -QI((PVP)V(PVP))            *1.2, BACKWARD CHAINING
+NO PROOF FOUND
+
+
+EFFORT              LIMIT 2100000       ACTUAL 2524095
+SUBPROBLEMS         LIMIT 50            ACTUAL 31
+SUBSTITUTIONS       LIMIT 50            ACTUAL 32
+TO PROVE
+*2.20   PI(PVQ)
+           1.   -PV(PVQ)                     *1.01, REPLACEMENT
+           2.   PVQ                          *2.02, DETACHMENT
+           3.   -(-(PI(PVQ)))                *2.14, DETACHMENT
+           4953   PI(PVQ)                    *2.08, DETACHMENT.  REJECTED PROBLEM
+           5575   (PI(PVQ))V(PI(PVQ))        *1.2, DETACHMENT.  REJECTED PROBLEM
+           4.   --PI(PVQ)                    *2.12, FORWARD CHAINING
+           5110   PI(PVQ)                    *2.08, FORWARD CHAINING.  REJECTED PROBLEM
+           5.   (PVP)I(PVQ)                  *2.07, FORWARD CHAINING
+           6.   (BIP)I(PVQ)                  *2.02, FORWARD CHAINING
+           7.   (AVP)I(PVQ)                  *1.3, FORWARD CHAINING
+
+
+ PROOF FOUND.
+
+          GIVEN                         *1.4      (AVB)I(BVA)
+          SUBSTITUTION                  7.        (CVP)I(PVQ)
+          GIVEN                         *1.3      BI(AVB)
+          FORWARD CHAINING              *2.20     PI(PVQ)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 517406
+SUBPROBLEMS         LIMIT 50            ACTUAL 7
+SUBSTITUTIONS       LIMIT 50            ACTUAL 8
+
+
+   REMEMBER PROVED THEOREM
+
+*2.20   AI(AVB)
+TO PROVE
+*2.21   -PI(PIQ)
+           1.   -PI(-PVQ)                         , SUBLEVEL REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.20     AI(AVB)
+          SUBSTITUTION                  1.        -PI(-PVQ)
+          GIVEN                                   DEFINITIONS
+          SUBLEVEL REPLACEMENT          *2.21     -PI(PIQ)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 114752
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*2.21   -AI(AIB)
+TO PROVE
+*2.24   PI(-PIQ)
+           1.   PI(--PVQ)                         , SUBLEVEL REPLACEMENT
+           5812   PI(--PVQ)                       , SUBLEVEL REPLACEMENT.  REJECTED PROBLEM
+           2.   -PV(-PIQ)                    *1.01, REPLACEMENT
+           5305   -P                         *2.21, DETACHMENT.  REJECTED PROBLEM
+           3.   -PI(PIQ)                     *2.04, DETACHMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.21     -AI(AIB)
+          SUBSTITUTION                  3.        -PI(PIQ)
+          GIVEN                         *2.04     (AI(BIC))I(BI(AIC))
+          DETACHMENT                    *2.24     PI(-PIQ)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 285871
+SUBPROBLEMS         LIMIT 50            ACTUAL 3
+SUBSTITUTIONS       LIMIT 50            ACTUAL 4
+
+
+   REMEMBER PROVED THEOREM
+
+*2.24   AI(-AIB)
+TO PROVE
+*3.13   (-(P*Q))I(-PV-Q)
+           1.   (-(-(-PV-Q)))I(-PV-Q)             , SUBLEVEL REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.14     --AIA
+          SUBSTITUTION                  1.        (-(-(-PV-Q)))I(-PV-Q)
+          GIVEN                                   DEFINITIONS
+          SUBLEVEL REPLACEMENT          *3.13     (-(P*Q))I(-PV-Q)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 162624
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*3.13   (-(A*B))I(-AV-B)
+TO PROVE
+*3.14   (-PV-Q)I(-(P*Q))
+           1.   (-PV-Q)I(-(-(-PV-Q)))             , SUBLEVEL REPLACEMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.12     AI--A
+          SUBSTITUTION                  1.        (-PV-Q)I(-(-(-PV-Q)))
+          GIVEN                                   DEFINITIONS
+          SUBLEVEL REPLACEMENT          *3.14     (-PV-Q)I(-(P*Q))
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 154437
+SUBPROBLEMS         LIMIT 50            ACTUAL 1
+SUBSTITUTIONS       LIMIT 50            ACTUAL 2
+
+
+   REMEMBER PROVED THEOREM
+
+*3.14   (-AV-B)I(-(A*B))
+TO PROVE
+*3.24   -(P*-P)
+           1.   -(-(-PV--P))                      , SUBLEVEL REPLACEMENT
+           5167   -(-(-PV--P))                    , SUBLEVEL REPLACEMENT.  REJECTED PROBLEM
+           2.   -PV--P                       *3.14, DETACHMENT
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.11     AV-A
+          SUBSTITUTION                  2.        -PV--P
+          GIVEN                         *3.14     (-AV-B)I(-(A*B))
+          DETACHMENT                    *3.24     -(P*-P)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 176864
+SUBPROBLEMS         LIMIT 50            ACTUAL 2
+SUBSTITUTIONS       LIMIT 50            ACTUAL 3
+
+
+   REMEMBER PROVED THEOREM
+
+*3.24   -(A*-A)
+TO PROVE
+*4.13   P=--P
+           1.   (PI--P)*(--PIP)              *4.01, REPLACEMENT
+           2.   -(-(P=--P))                  *2.14, DETACHMENT
+           5334   P=--P                      *2.08, DETACHMENT.  REJECTED PROBLEM
+           4880   (P=--P)V(P=--P)            *1.2, DETACHMENT.  REJECTED PROBLEM
+           3.   PIP                          *2.12, BACKWARD CHAINING
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.08     AIA
+          SUBSTITUTION                  3.        PIP
+          GIVEN                         *2.12     AI--A
+          BACKWARD CHAINING             *4.13     P=--P
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 205193
+SUBPROBLEMS         LIMIT 50            ACTUAL 3
+SUBSTITUTIONS       LIMIT 50            ACTUAL 4
+
+
+   REMEMBER PROVED THEOREM
+
+*4.13   A=--A
+TO PROVE
+*4.20   P=P
+           1.   (PIP)*(PIP)                  *4.01, REPLACEMENT
+           2.   -(-(P=P))                    *2.14, DETACHMENT
+           5018   P=P                        *2.08, DETACHMENT.  REJECTED PROBLEM
+           5771   (P=P)V(P=P)                *1.2, DETACHMENT.  REJECTED PROBLEM
+           3.   --PIP                        *4.13, FORWARD CHAINING
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.14     --AIA
+          SUBSTITUTION                  3.        --PIP
+          GIVEN                         *4.13     A=--A
+          FORWARD CHAINING              *4.20     P=P
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 178931
+SUBPROBLEMS         LIMIT 50            ACTUAL 3
+SUBSTITUTIONS       LIMIT 50            ACTUAL 4
+
+
+   REMEMBER PROVED THEOREM
+
+*4.20   A=A
+TO PROVE
+*4.24   P=(P*P)
+           1.   P=(-(-PV-P))                      , SUBLEVEL REPLACEMENT
+           5059   P=(-(-PV-P))                    , SUBLEVEL REPLACEMENT.  REJECTED PROBLEM
+           2.   (PI(P*P))*((P*P)IP)          *4.01, REPLACEMENT
+           3.   -(-(P=(P*P)))                *2.14, DETACHMENT
+           5644   P=(P*P)                    *2.08, DETACHMENT.  REJECTED PROBLEM
+           5421   (P=(P*P))V(P=(P*P))        *1.2, DETACHMENT.  REJECTED PROBLEM
+           4.   PI(P*P)                      *4.20, FORWARD CHAINING
+           5.   --PI(P*P)                    *4.13, FORWARD CHAINING
+           6.   PI(-(-(P*P)))                *2.14, BACKWARD CHAINING
+           5335   PI(P*P)                    *2.08, BACKWARD CHAINING.  REJECTED PROBLEM
+           7.   PI((P*P)V(P*P))              *1.2, BACKWARD CHAINING
+4.      PI(P*P)
+           8.   -PV(P*P)                     *1.01, REPLACEMENT
+           6179   -P                         *2.21, DETACHMENT.  REJECTED PROBLEM
+           9.   P*P                          *2.02, DETACHMENT
+           10.   -(-(PI(P*P)))               *2.14, DETACHMENT
+           5457   PI(P*P)                    *2.08, DETACHMENT.  REJECTED PROBLEM
+           5793   (PI(P*P))V(PI(P*P))        *1.2, DETACHMENT.  REJECTED PROBLEM
+           11.   (-PIB)I(P*P)                *2.24, FORWARD CHAINING
+           12.   (PVB)I(P*P)                 *2.20, FORWARD CHAINING
+           6202   --PI(P*P)                  *2.12, FORWARD CHAINING.  REJECTED PROBLEM
+           5959   PI(P*P)                    *2.08, FORWARD CHAINING.  REJECTED PROBLEM
+           13.   (PVP)I(P*P)                 *2.07, FORWARD CHAINING
+           14.   (BIP)I(P*P)                 *2.02, FORWARD CHAINING
+           15.   (AVP)I(P*P)                 *1.3, FORWARD CHAINING
+           5949   PI(-(-(P*P)))              *2.14, BACKWARD CHAINING.  REJECTED PROBLEM
+           6094   PI(P*P)                    *2.08, BACKWARD CHAINING.  REJECTED PROBLEM
+           6390   PI((P*P)V(P*P))            *1.2, BACKWARD CHAINING.  REJECTED PROBLEM
+9.      P*P
+           6177   -(-PV-P)                   *3.01, REPLACEMENT.  REJECTED PROBLEM
+           16.   -(-(P*P))                   *2.14, DETACHMENT
+           6180   P*P                        *2.08, DETACHMENT.  REJECTED PROBLEM
+           6376   (P*P)V(P*P)                *1.2, DETACHMENT.  REJECTED PROBLEM
+           17.   PI--P                       *2.14, BACKWARD CHAINING
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.12     AI--A
+          SUBSTITUTION                  17.       PI--P
+          GIVEN                         *2.14     --AIA
+          BACKWARD CHAINING             9.        P*P
+          GIVEN                         *2.02     AI(BIA)
+          DETACHMENT                    4.        PI(P*P)
+          GIVEN                         *4.20     A=A
+          FORWARD CHAINING              *4.24     P=(P*P)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 1240137
+SUBPROBLEMS         LIMIT 50            ACTUAL 17
+SUBSTITUTIONS       LIMIT 50            ACTUAL 18
+
+
+   REMEMBER PROVED THEOREM
+
+*4.24   A=(A*A)
+TO PROVE
+*4.25   P=(PVP)
+           1.   (PI(PVP))*((PVP)IP)          *4.01, REPLACEMENT
+           2.   -(-(P=(PVP)))                *2.14, DETACHMENT
+           6251   P=(PVP)                    *2.08, DETACHMENT.  REJECTED PROBLEM
+           6111   (P=(PVP))V(P=(PVP))        *1.2, DETACHMENT.  REJECTED PROBLEM
+           3.   (P*P)I(PVP)                  *4.24, FORWARD CHAINING
+           4.   PI(PVP)                      *4.20, FORWARD CHAINING
+
+
+ PROOF FOUND.
+
+          GIVEN                         *2.20     AI(AVB)
+          SUBSTITUTION                  4.        PI(PVP)
+          GIVEN                         *4.20     A=A
+          FORWARD CHAINING              *4.25     P=(PVP)
+          Q.E.D.
+
+
+EFFORT              LIMIT 2100000       ACTUAL 289082
+SUBPROBLEMS         LIMIT 50            ACTUAL 4
+SUBSTITUTIONS       LIMIT 50            ACTUAL 5
+
+
+   REMEMBER PROVED THEOREM
+
+*4.25   A=(AVA)

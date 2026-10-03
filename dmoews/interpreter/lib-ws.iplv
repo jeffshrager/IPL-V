@@ -1,0 +1,25 @@
+#
+# Definition of scratch Ws W0-W9,
+# W11 (integer division remainder),
+# W24 (input or print line),
+# W25 (input or print column),
+# and W30 (input field width.)
+#
+                                        5       01
+%W0      0     0
+%W1      0     0
+%W2      0     0
+%W3      0     0
+%W4      0     0
+%W5      0     0
+%W6      0     0
+%W7      0     0
+%W8      0     0
+%W9      0     0
+%W11  +01          0
+%W24     9-1   0
+%9-1  +21
+%W25     9-1   0
+%9-1  +01          1
+%W30     9-1   0
+%9-1  +01          1

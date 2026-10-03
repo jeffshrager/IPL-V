@@ -1,0 +1,1019 @@
+#
+# Miscellaneous library routines.
+#
+# David Moews, July 2026.  Released into the public domain, CC0.
+#
+# J0: NO OPERATION.
+#
+# No inputs or outputs.
+#
+%J0    700     0
+#
+# J1: EXECUTE (0).
+#
+# 1 input, 0 outputs.
+#
+%J1    209-1
+%      019-1   0
+%9-1     0     0
+#
+# J2: TEST IF (0) == (1).
+#
+# As the manual says ([MAN1964], p. 170), only the
+# SYMB part of the items on the stack is tested.
+# P and Q are ignored.
+#
+# 2 inputs, 0 outputs.
+#
+%J2    05@2    0
+#
+# J7: HALT, PROCEED ON GO.
+#
+# No inputs or outputs.
+#
+%J7    05@7    0
+#
+# J9: ERASE CELL (0).
+#
+# Returns given cell to the free space list.
+#
+# 1 input, 0 outputs.
+#
+%J9    05@9    0
+#
+# J11: ASSIGN (1) AS VALUE OF ATTRIBUTE (0) OF (2).
+#
+# Calls the implementation J210 of this in
+# lib-simon. Patched to do nothing if (2) is a data
+# term (in preference to crashing.)
+#
+# 3 inputs, 0 outputs.
+#
+%J11   40H5
+%        J52
+%      11W2
+%        J131
+%      70      97
+%      11W2
+%      11W1
+%      11W0
+%        J32
+%        J210
+%      30H5    0
+%97      J32
+%      30H5    0
+#
+# J15: ERASE ALL ATTRIBUTES OF (0).
+#
+# Erase as a list structure (J72) the description list
+# of (0), and make the head of (0) empty.
+#
+# 1 input, 0 outputs.
+#
+%J15   12H0
+%        J72
+%      409-1
+%      209-1
+%      10 0
+%      219-1
+%      309-1   0
+%9-1     0     0
+#
+# J60: LOCATE NEXT SYMBOL AFTER CELL (0).
+#
+#      [More exactly, it locates the next cell after
+#       cell (0).]
+#
+#      Get the LINK of the cell pointed to by (0),
+#      leave it in (0), and set H5+, except that
+#      if this LINK is a termination symbol
+#      (0 or private), leave (0) unchanged and
+#      set H5-.  If a private termination symbol
+#      is found, free its cell and replace the
+#      link to it by 0.
+#
+#      1 input and output.
+#
+%J60   40H0
+%        J205
+%      70      J3
+%      40H0
+%      05@60
+%      11H0
+%      10 0
+%        J2
+%      70      9-1
+%      11H0
+%      109-3
+%        J114
+%      70      9-2
+%        J6
+%      30H0    J4
+%9-1   30H0    J3
+%9-2     J9
+%      11H0
+%      10 0
+%        J6
+%      05@62   J3
+%9-3   000     0
+#
+# J68: DELETE SYMBOL IN CELL (0).
+#
+# Delete the symbol in the cell pointed
+# to by (0) by replacing the cell's
+# contents with its successor,
+# returning H5+ and freeing
+# the successor cell,
+# unless the cell is a private
+# termination cell, in which case
+# nothing happens and H5- is returned,
+# or the last cell in the list, when it
+# becomes a private termination cell and
+# H5- is returned.
+#
+# See section 9.4, p. 182, [MAN1964].
+#
+# 1 input, 0 outputs.
+#
+%J68   11H0
+%        J60
+%      709-1
+%      30H0
+%      31H0
+%      30H0    J4
+%9-1   109-2
+%        J6
+%        J121
+%      30H0
+%      30H0    J3
+%9-2   000     0
+#
+# J72: ERASE LIST STRUCTURE (0).
+#
+# 1 input, 0 outputs.
+#
+%J72   05@72   0
+#
+# J73: COPY LIST (0).
+#
+#   The output (0) is the new copied list.
+#
+# This calls the underlying implementation J211
+# of this in lib-simon, but has been modified to
+# work on 0 and copy it to a pointer to a
+# cell with zero P, zero Q, zero symbol, and zero
+# link.
+#
+# This odd behavior seems to be consistent with
+# the behavior of the IBM 7094 interpreter.
+#
+# The output (0) is local if (0) is local,
+# and is otherwise internal.
+#
+# 1 input, 1 output.
+#
+%J73   40H5
+%      40H0
+%      100
+%        J2
+%      70      911
+%        J211  913
+%911     J132
+%        J90
+%      10914
+%        J6
+%        J121
+%      70913
+%        J136
+%913   30H5    0
+%914   000     0
+#
+# J74: COPY LIST STRUCTURE (0).
+#
+#   The output (0) is the new copied
+#   list structure, and is local if
+#   the input (0) was local; otherwise,
+#   it is internal.
+#
+# 1 input, 1 output.
+#
+%J74   40H5
+%      05@74
+%      40H0
+%        J132
+%      70      9-1
+%        J138  9-2
+%9-1     J136
+%9-2   30H5    0
+#
+# J75: DIVIDE LIST AFTER LOCATION (0).
+#
+# (0) points to a cell on a list.
+# Set the LINK of (0) to a termination symbol, and
+# return a new list with an empty cell in front of
+# the old LINK of (0).
+#
+# 1 input and output.
+#
+%J75   40H0                # duplicate input
+%      05@60
+%        J6                # stack now: LINK, input
+%      10 0
+%        J6
+%        J197              # set LINK of input to 0
+%        J90               # get new cell, set LINK to old LINK
+%      40W0
+%      60W0
+%        J197
+%      11W0    J30         # return new cell
+#
+# J76: INSERT LIST (0) AFTER CELL (1), AND LOCATE LAST SYMBOL.
+#
+#   Erase cell (0); erase the list structure (J72) of
+#   the symbol in head of (0) if this is local;
+#   if there are no cells (the LINK of (0) is a
+#   termination symbol), return (1) and set H5 -;
+#   otherwise, replace the LINK of (1) by the
+#   LINK of (0), replace the LINK of the last cell
+#   in list (0) by the old LINK of (1),
+#   return a pointer to the last cell in list (0),
+#   and set H5 +.
+#
+#   Overall, the effect is to insert list (0)
+#   after list cell (1).
+#
+# 2 inputs, 1 output.
+#
+#
+%J76   12H0
+%      40H0
+%        J132
+%      709-1
+%      40H0
+%        J72
+%9-1   30H0
+%      40H0
+%        J60
+%        J6
+%        J9
+%      70J8
+%        J51
+%      11W0
+%      11W1
+%      40H0
+%      05@60
+%      20W1
+%        J197
+%      11W0
+%9-3     J60
+%      70      9-3
+%      40H0
+%      11W1
+%        J6
+%        J197
+%        J4    J31
+#
+# J80: FIND THE 0TH SYMBOL ON LIST (0).
+#
+# If (0) is a termination symbol, return nothing,
+# and set H5 -; if it is not, return the head
+# of (0) in (0), and set H5 +. Observe that this
+# may not return anything so it is unlike J60 which
+# always returned something.
+#
+# 1 input, 0 or 1 outputs.
+#
+%J80   40H0
+%        J205              # check if term. symbol
+%      70      9-1
+%      52H0    J4          # get head
+%9-1   30H0    J3
+#
+# J90: CREATE A LIST OF 0 SYMBOLS.
+#
+#   Creates an empty list.
+#
+# 0 inputs, 1 output.
+#
+%J90   05@90   0
+#
+# J110: (1) + (2) -> (0).
+#
+# Make the cell pointed to by (0) a data term with value
+# equal to the sum of the data terms pointed to by (1)
+# and (2), and return (0).
+#
+# See J209 below.
+#
+# 3 inputs, 1 output.
+#
+%J110  109-1   J209
+%9-1   05@110  0
+#
+# J111: (1) - (2) -> (0).
+#
+# Make the cell pointed to by (0) a data term with value
+# equal to the difference of the data terms pointed to by (1)
+# and (2), and return (0).
+#
+# See J209 below.
+#
+# 3 inputs, 1 output.
+#
+%J111  109-1   J209
+%9-1   05@111  0
+#
+# J112: (1) * (2) -> (0).
+#
+# Make the cell pointed to by (0) a data term with value
+# equal to the product of the data terms pointed to by (1)
+# and (2), and return (0).
+#
+# See J209 below.
+#
+# 3 inputs, 1 output.
+#
+%J112  109-1   J209
+%9-1   05@112  0
+#
+# J113: (1) / (2) -> (0).
+#
+# Make the cell pointed to by (0) a data term with value
+# equal to the quotient of the data terms pointed to by (1)
+# and (2), and return (0).  The remainder is placed in
+# the data term W11.
+#
+# Works by copying (1) into a temporary, dividing by (2),
+# and then copying back into (0).
+#
+# 3 inputs, 1 output.
+#
+%J113    J52
+%      10W11
+%      11W1
+%      109-1
+%        J121
+%      11W2
+%        J6
+%      05@113
+%      109-1
+%      11W0
+%        J121  J32
+%9-1     0     0
+#
+# J114: TEST IF (0) = (1).
+#
+# This tests for equality of the complete cell.
+#
+# 2 inputs, 0 outputs.
+#
+%J114  05@114  0
+#
+# J115: TEST IF (0) > (1).
+#
+# 2 inputs, 0 outputs.
+#
+%J115  05@117
+%      10 2    J2
+#
+# J116: TEST IF (0) < (1).
+#
+# 2 inputs, 0 outputs.
+#
+%J116  05@117
+%      10 0    J2
+#
+# J117: TEST IF (0) = 0.
+#
+# 1 input, 0 outputs.
+#
+%J117  109-0
+%      05@117
+%      10 1    J2
+%9-0  +01      0
+#
+# J118: TEST IF (0) > 0.
+#
+# 1 input, 0 outputs.
+#
+%J118  109-0   J116
+%9-0  +01      0
+#
+# J119: TEST IF (0) < 0.
+#
+# 1 input, 0 outputs.
+#
+%J119  109-0   J115
+%9-0  +01      0
+#
+# J120: COPY (0).
+#
+# Copy the cell pointed to by (0) and return, in
+# (0), a pointer to the copy.  The new pointer
+# is local if the old one was; otherwise, it is
+# internal.
+#
+# 1 input and output.
+#
+%J120  40H5
+%        J90
+%        J121
+%      40H0
+%        J132
+%      70      9-1
+%        J138  9-2
+%9-1     J136
+%9-2   30H5    0
+#
+# J121: SET (0) IDENTICAL TO (1).
+#
+# The contents of the cell at (0) is replaced
+# with that of the cell at (1).  The input
+# (0) is returned.
+#
+# 2 inputs, 1 output.
+#
+%J121  05@121  0
+#
+# J122: TAKE ABSOLUTE VALUE OF (0).
+#
+#   The value of the data term pointed to by
+#   (0) is changed to its absolute value.
+#   (0) is returned.
+#
+# 1 input and output.
+#
+%J122  40H5
+%      40H0
+%        J119
+%      709-1
+%        J123
+%9-1   30H5    0
+#
+# J123: TAKE NEGATIVE OF (0).
+#
+#   The value of the data term pointed to by
+#   (0) is changed to its negative.
+#   (0) is returned.
+#
+# 1 input and output.
+#
+%J123  609-1
+%      109-2
+%      119-1   J111
+%9-1     0     0
+%9-2  +01      0
+#
+# J124: CLEAR (0).
+#
+#   Sets the value of the data term pointed to by
+#   (0) to 0 and returns (0).
+#
+#   Its type is not changed if it was a numerical
+#   data term;  otherwise, it is made an integer
+#   data term with value 0.
+#
+# Note: This has not been implemented correctly for
+# floating-point data terms as currently it
+# simply sets everything to integer 0.
+#
+# 1 input and output.
+#
+%J124  109-0
+%        J6    J121
+%9-0  +01      0
+#
+# J125: TALLY 1 IN (0).
+#
+# Add 1 to the data term pointed to by (0).
+# The output is (0).
+#
+# 1 input and output.
+#
+%J125  40H0
+%      109-1
+%        J6
+%      05@110  0
+%9-1  +01      1
+#
+# J126: COUNT LIST (0).
+#
+# The output (0) points to an integer
+# data term whose value is the
+# number of list cells in list (0)
+# (excluding the head).
+#
+# 1 input and output.
+#
+%J126  40H5
+%        J90
+%        J124
+%        J50
+%      109-1
+%        J100
+%      11W0
+%      30H5    J30
+%9-1   11W0
+%        J125
+%      30H0
+%      30H0    J4
+#
+# J127: TEST IF DATA TYPE (0) = DATA TYPE (1).
+#
+# Tests if P is the same in the cells
+# pointed to by (0) and (1).
+#
+# 2 inputs, 0 outputs.
+#
+%J127  05@136
+%        J6
+%      05@136  J2
+#
+# J128: TRANSLATE (0) TO BE DATA TYPE OF (1).
+#
+# (0) is assumed to point to a data term,
+# which is translated to match the type
+# of the data term pointed to by (1).
+# The output is the translated input (0).
+#
+# 2 inputs, 1 output.
+#
+%J128  05@128  0
+#
+# J130: TEST IF (0) IS REGIONAL SYMBOL.
+#
+# Tests whether (0) is a regional symbol (Q = 0.)
+#
+# 1 input, 0 outputs.
+#
+%J130  05@131
+%      10 0    J2
+#
+# J131: TEST IF (0) NAMES DATA TERM.
+#
+# Tests whether (0) is pointing to a data term
+# (a cell with Q = 1 or 5.)
+#
+# 1 input, 0 outputs.
+#
+%J131  05@135
+%      40H0
+%      10 1
+%        J2
+%      70      J8
+%      10 5    J2
+#
+# J132: TEST IF (0) IS LOCAL SYMBOL.
+#
+# Tests whether (0) is a local symbol (Q = 0.)
+#
+# 1 input, 0 outputs.
+#
+%J132  05@131
+%      10 2    J2
+#
+# J133: TEST IF LIST (0) HAS BEEN MARKED PROCESSED.
+#
+# Test if (0) has been processed (i.e., p = 1,
+# q not 1 or 5 in the head of the list (0).)
+#
+# Returns FALSE on input 0.
+#
+# 1 input, 0 outputs.
+#
+%J133  40H0
+%      10 0
+%        J2
+%      70      9-1
+%      40H0
+%        J131
+%      70      9-1
+%      52H0
+%      05@133
+%      10 1    J2
+%9-1   30H0    J3
+#
+# J134: TEST IF (0) IS INTERNAL SYMBOL.
+#
+# Tests whether (0) is an internal symbol (Q = 4.)
+#
+# 1 input, 0 outputs.
+#
+%J134  05@131
+%      10 4    J2
+#
+# J136: MAKE (0) LOCAL, LEAVE (0).
+#
+# Make (0) local (Q = 2) and return it.
+#
+# 1 input and output.
+#
+%J136  10 2
+%        J6
+%      05@132  0
+#
+# J137: MARK LIST (0) PROCESSED, LEAVE (0).
+#
+# Push down list at (0) and add an empty head (PQ = 14, symb = 0).
+#
+# Output is (0), same as input.
+#
+# 1 input and output.
+#
+%J137  40W0
+%      60W0
+%      41W0
+%      119-1
+%      21W0    J30
+%9-1   14 0    0
+#
+# J138: MAKE (0) INTERNAL, LEAVE (0).
+#
+# Make (0) internal (Q = 4) and return it.
+#
+# 1 input and output.
+#
+%J138  10 4
+%        J6
+%      05@132  0
+#
+# Printing processes.
+#
+# Setting the output unit, left margin, and line
+# spacing via 1W20, 1W21 and 1W22 has not been
+# implemented.
+#
+# J150: PRINT LIST STRUCTURE (0).
+#
+# Print (0) as a list structure.
+#
+# 1 input, 0 outputs.
+#
+%J150  100
+%      05@150  0
+#
+# J151: PRINT LIST (0).
+#
+# Print (0) as a list.
+#
+# 1 input, 0 outputs.
+#
+%J151  101
+%      05@150  0
+#
+# J152: PRINT SYMBOL (0).
+#
+# Print (0) as a symbol.
+#
+# 1 input, 0 outputs.
+#
+%J152  101
+%      05@151  0
+#
+# J153: PRINT DATA TERM (0) W/O NAME OR TYPE.
+#
+# Print (0) as a data term without name or type.
+#
+# 1 input, 0 outputs.
+#
+%J153  100
+%      05@151  0
+#
+# J154: CLEAR PRINT LINE.
+#
+# Clear print line (1W24) and reset print position (1W25)
+# to the left margin.  The left margin should be 1W21
+# but this is NIY, so 1W25 is reset to 1.
+#
+# No inputs or outputs.
+#
+%J154  11W24
+%      05@154
+%      30H0
+%      109-1
+%      11W25
+%        J121  J8
+%9-1  +01      1
+#
+# J155: PRINT LINE.
+#
+# 1W24 is printed but not cleared.
+#
+# No inputs or outputs.
+#
+%J155  11W24
+%      05@161  0
+#
+# J156: ENTER SYMBOL (0) LEFT-JUSTIFIED.
+#
+# Enters the name of the given symbol into the
+# print line (1W24) at the position 1W25, which is
+# advanced.
+#
+# Line length checks are NIY so always returns +.
+#
+# 1 input, 0 outputs.
+#
+%J156  109-1
+%      05@153  J157
+%9-1  +21
+J4
+#
+# J157: ENTER DATA TERM (0) LEFT-JUSTIFIED.
+#
+# Enters the printable form of the given data term
+# into the print line (1W24) at the position 1W25,
+# which is advanced.
+#
+# Trailing blanks are trimmed off unless the
+# data term is all blank (i.e., 5 blanks).
+#
+# Enters "0" if called with 0, a non-data term, or a
+# data term that is not integer or string.
+#
+# Line length checks are NIY so always returns +.
+#
+# 1 input, 0 outputs.
+#
+%J157  40H0
+%      100
+%        J2
+%      70      9-8
+%      40H0
+%      05@118
+%      70      9-2
+%      40H0
+%      05@120
+%      70      9-2
+%9-8   30H0             # Change to "0" if not a string or integer DT
+%      109-1
+%9-2   109-3
+%        J121           # Copy into 9-3
+%      109-1
+%        J6
+%        J128           # Convert to string with J128
+%      40H0
+%      109-4
+%        J114
+%      70      9-5
+%      05@155           # Trim off trailing blanks unless all blank
+%9-5   40H0
+%      11W25
+%      109-6
+%        J121           # Copy offset 1W25 into 9-6
+%      109-7
+%        J6
+%      40H0
+%        J111           # Decrement offset to make 0-based
+%        J6
+%      11W24
+%      05@152           # Enter into 1W24
+%      30H0
+%      05@156           # Take length of 9-3 and advance 1W25
+%      11W25
+%      11W25
+%        J110
+%      30H0    J4
+%9-1  +210
+%9-3  +21
+%9-4  +21
+%9-6  +01      0
+%9-7  +01      1
+#
+# J160: TAB TO COLUMN (0).
+#
+#   (0) should point to an integer d.t.
+#   1W25 is set equal to this integer plus
+#   the left margin (1W21), but this is NIY
+#   so it's set equal to the value of (0) + 1.
+#
+# 1 input, 0 outputs.
+#
+%J160  109-1
+%      11W25
+%        J110  J8
+%9-1  +01      1
+#
+# J161: INCREMENT COLUMN BY (0).
+#
+#   (0) should point to an integer d.t.
+#   1W25 is incremented by this integer.
+#
+# 1 input, 0 outputs.
+#
+%J161  11W25
+%      11W25
+%        J110  J8
+#
+# J180: READ LINE.
+#
+#   Reads an input line into 1W24.
+#
+#   No inputs or outputs.
+#
+%J180  11W24
+%      05@180  J8
+#
+# J181: INPUT LINE SYMBOL.
+#
+#  No inputs, 1 output (if returns +), 0 outputs (if returns -.)
+#
+%J181  109-1
+%        J212
+%      05@158  0
+%9-1  +21
+#
+# J182: INPUT LINE DATA TERM (0).
+#
+#  Interpret input as a string unless the
+#  input data term is an integer.
+#
+#  1 input and output.
+#
+%J182  40H0
+%      05@118
+%      70      9-3
+%      40H0
+%      05@120
+%        J5
+%      709-3
+%      109-2
+%        J6           # Not a string or integer DT,
+%        J121         # so make into a string.
+%        J3
+%9-3   109-2
+%        J212
+%        J6
+%      70      9-1
+%      05@160  0
+%9-1   05@159  0
+%9-2  +21
+#
+# J183: SET (0) TO NEXT BLANK, LEAVE (0).
+#
+# See J208 below.
+#
+# 1 input & output.
+#
+%J183  10J0    J208
+#
+# J184: SET (0) TO NEXT NON-BLANK, LEAVE (0).
+#
+# See J208 below.
+#
+# 1 input & output.
+#
+%J184  10J5    J208
+#
+# J186: INPUT LINE CHARACTER.
+#
+#  Same as J181 with 1W30 = 1, but does not advance 1W25.
+#
+#  No inputs, 1 output (if returns +), 0 outputs (if returns -.)
+#
+%J186  40W30
+%      40W25
+%      109-1
+%      20W30
+%      11W25
+%      109-2
+%        J121
+%      20W25
+%        J181
+%      30W25
+%      30W30   0
+%9-1  +01      1
+%9-2  +01      0
+#
+# J197: SET (1) TO BE LINK OF CELL (0).
+#
+# 2 inputs, 0 outputs.
+#
+%J197  05@62   0
+#
+# Not in original.
+#
+# J205: Return + if input is a termination symbol, - o.w.
+#
+# 1 input, 0 outputs.
+#
+%J205  40H0
+%      10 0
+%        J2
+%      70      J8
+%      109-1
+%        J114  0
+%9-1   000     0
+#
+# Not in original.
+#
+# J208: Common routine used by J183 and J184.
+#
+# Takes input (1), which is the data term used by J183/J184,
+# and outputs it as (0).  Input (0) is a routine to be called
+# after each call of J182.  It's used by making it either
+# reverse the flag (J184) or not (J183.)
+#
+# 2 inputs, 1 output.
+#
+%J208  209-9
+%      40W25
+%      40W30
+%      109-7
+%      20W30
+%      11W25
+%      109-4
+%        J121
+%        J125
+%      20W25
+%      11W24
+%      109-2
+%        J121
+%      05@156
+%      30H0
+%9-1   11W25
+%      109-2
+%        J116
+%      70      9-5
+%        J125
+%      109-8
+%        J182
+%      30H0
+%      019-9
+%      70      9-1
+%        J4    9-3
+%9-5     J3
+%9-3   30W25
+%      30W30   0
+%9-2  +01      0
+%9-4  +01      0
+%9-7  +01      1
+%9-8  +21
+%9-9     0     0
+#
+# Not in original.
+#
+# J209: Common routine used by J110-J112.
+#
+# (0) is the name of the routine actually used to
+# do the addition, subtraction or multiplication.
+#
+# Inputs (1), (2) and (3) correspond to arguments
+# (0), (1) and (2) of J110-J112.
+#
+# Works by copying (2) into a temporary, operating
+# with (3), and then copying back into (1), which
+# is returned as output.
+#
+# 4 inputs, 1 output.
+#
+%J209  209-2
+%        J52
+%      11W1
+%      109-1
+%        J121
+%      11W2
+%        J6
+%      019-2
+%      109-1
+%      11W0
+%        J121  J32
+%9-1     0     0
+%9-2     0     0
+#
+# Not in original.
+#
+# J212: Get field from input line.
+#
+# This gets the field starting in column
+# 1W25 of the input line 1W24, of length 1W30,
+# and places it in input string data term (0).
+# 1W25 is incremented by 1W30.
+#
+# Output equals input (0).
+#
+# Used to implement J181 and J182.
+#
+# 1 input and output.
+#
+%J212  11W24
+%        J6
+%        J121
+%      209-3
+%      11W30
+%      11W25
+%      109-1
+%        J121
+%      109-2
+%        J6
+%      109-1
+%        J111
+%      119-3
+%      05@157
+%      11W30
+%      11W25
+%      11W25
+%        J110  J8
+%9-1  +01      0
+%9-2  +01      1
+%9-3     0     0

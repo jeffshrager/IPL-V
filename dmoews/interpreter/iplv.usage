@@ -1,0 +1,22 @@
+Usage: python3 iplv.py [-h] [--help]
+               [--[no-]remove-ws] [--[no-]extra-syntax] [ filename ]
+               [ [--[no-]remove-ws] [--[no-]extra-syntax] filename ... ]
+
+Run the IPL-V interpreter on the source code given in the standard input
+or source file or files.  A filename of '-' is interpreted as the standard
+input.  Some options are per source code filename and should be given before
+the corresponding filename; they may persist from filename to filename.
+
+Options:
+  -h, --help         show this help message and exit.
+  --remove-ws        remove W temporaries (per-filename.)
+  --no-remove-ws     don't remove W temporaries (per-filename.)
+  --extra-syntax     syntactical extensions (per-filename.)
+  --no-extra-syntax  no syntactical extensions (per-filename.)
+
+If enabled, the syntactical extensions to standard IPL-V are:
+
+* Lines beginning with # are comments and ignored.
+* Lines beginning with % are treated as if they began with
+  42 blanks instead of %.
+

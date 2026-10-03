@@ -1,0 +1,71 @@
+*** patched-logic-theorist.iplv	Wed Jul  1 07:23:40 2026
+--- patched-logic-theorist.iplv	Sat Jul  4 08:13:05 2026
+***************
+*** 423,430 ****
+       BUMP 1W3 AND TEST IF GREATER THAN 1          9-20                  M016R270
+           IF NOT, GO CLEAN UP, QUIT-.            709-2                   M016R280
+           IF GREATER, COPY 1W4 AND                 J120                  M016R290
+!                                                 10Q17                   M016R300
+!                                                 11W4                    M016R310
+       ASSIGN COPY TO PROBLEM COPY.                 J11                   M016R320
+                                                  11W3                    M016R330
+           LOOP FOR NEXT LEVEL.                   11W4    9-11            M016R340
+--- 423,431 ----
+       BUMP 1W3 AND TEST IF GREATER THAN 1          9-20                  M016R270
+           IF NOT, GO CLEAN UP, QUIT-.            709-2                   M016R280
+           IF GREATER, COPY 1W4 AND                 J120                  M016R290
+!                                                 11W4                    M016R300
+!                                                   J6                    M016R305
+!                                                 10Q17                   M016R310
+       ASSIGN COPY TO PROBLEM COPY.                 J11                   M016R320
+                                                  11W3                    M016R330
+           LOOP FOR NEXT LEVEL.                   11W4    9-11            M016R340
+***************
+*** 532,539 ****
+       BUMP 1W3 AND TEST IF GREATER THAN 1          9-20                  M017R250
+           IF NOT, GO TEST FLAG.                  709-2                   M017R260
+           IF GREATER, COPY 1W4 AND                 J120                  M017R270
+!                                                 10Q17                   M017R280
+!                                                 11W4                    M017R290
+       ASSIGN COPY TO PROBLEM COPY.                 J11                   M017R300
+                                                  11W3                    M017R310
+           LOOP FOR NEXT LEVEL.                   11W4    9-11            M017R320
+--- 533,541 ----
+       BUMP 1W3 AND TEST IF GREATER THAN 1          9-20                  M017R250
+           IF NOT, GO TEST FLAG.                  709-2                   M017R260
+           IF GREATER, COPY 1W4 AND                 J120                  M017R270
+!                                                 11W4                    M017R280
+!                                                   J6                    M017R285
+!                                                 10Q17                   M017R290
+       ASSIGN COPY TO PROBLEM COPY.                 J11                   M017R300
+                                                  11W3                    M017R310
+           LOOP FOR NEXT LEVEL.                   11W4    9-11            M017R320
+***************
+*** 2642,2648 ****
+                                                    0                     (000D010
+                                                    Q7                    (000D020
+                                                    K51   0               (000D030
+-      '0 SYMBOL FOR QUOTE MARK.            '             0               '000D000
+                                                    0                     '000D010
+                                                    Q7                    '000D020
+                                                          0               '000D030
+--- 2644,2649 ----
+***************
+*** 2734,2742 ****
+                                            X15   10L4    J150            X015R000
+                                          1                                   R   
+       X19  MONITOR POINT FORCER.           X19   03J0    0               X019R000
+-      SAVE FOR RESTART                   5         X9                            
+-            LOGIC THEORIST TEST          9                                       
+-        RELOAD FROM TAPE 2               5       4 2                              
+       MODIFIED ROUTINES                  5       00                          R
+                                          1                                   R       
+       Q17 FIND LEVEL OF SUBSEGMENT         Q17   40W0                    Q017R000
+--- 2735,2740 ----
+***************
+*** 2803,2806 ****
+                                            X21     0                     X021D000
+                                            X22     0                     X022D000
+       DESCRIPTION LIST OF TRAP ACTIONS.    X23     0                     X023D000
+-      KICK OFF FOR PROVING THEOREMS.     5         X1                            
+--- 2801,2803 ----

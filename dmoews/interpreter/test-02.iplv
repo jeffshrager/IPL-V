@@ -1,0 +1,196 @@
+                                        9
+                                        2 Y                 1
+                                        2 F                 1
+                                        2 N                 1
+                                        2 A                 3
+                                        5
+ TEST OF LINE READ PROCESSES            1
+                                          Y0    70      0
+                                                10F0
+                                                  J154
+                                                  J157
+                                                  J155  J7
+                                          N0    700
+                                                10F0
+                                                  J154
+                                                  J157
+                                                  J155  J7
+ STARTING COLUMN: 3                     1
+ FIELD WIDTH 4:                         1
+ SYMBOL X 3, NUMERIC X 2, STRING X 2,   1
+ UNKNOWN (BECOMES STRING) X 2           1
+ FIELD WIDTH 6:                         1
+ STRING X 2                             1
+                                          F0   +21FAIL
+                                          A1    10A2
+                                                  J180
+                                                109-1
+                                                20W25
+                                                109-2
+                                                20W30
+                                                  J181
+                                                  Y0
+                                                  J181
+                                                  Y0
+                                                  J181
+                                                  N0
+                                                109-3
+                                                  J182
+                                                  Y0
+                                                109-4
+                                                  J182
+                                                  N0
+                                                109-5
+                                                  J182
+                                                  Y0
+                                                109-6
+                                                  J182
+                                                  N0
+                                                109-7
+                                                  J182
+                                                  Y0
+                                                109-8
+                                                  J182
+                                                  N0
+                                                109-2
+                                                  J125
+                                                  J125
+                                                30H0
+                                                109-9
+                                                  J182
+                                                  Y0
+                                                109-10
+                                                  J182
+ AT COLUMN 51                           1
+                                                  N0
+                                                109-11
+                                                11W25
+                                                  J114
+ SCAN FOR BLANK                         1
+ (FOUND AFTER 6 CHARACTERS);            1
+ BUMP 1W25                              1
+                                                  Y0
+                                                109-12
+                                                  J183
+                                                  Y0
+                                                40H0
+                                                109-2
+                                                  J114
+                                                  Y0
+                                                11W25
+                                                11W25
+                                                  J110
+ SCAN FOR NONBLANK                      1
+ (FOUND AFTER 6 CHARACTERS);            1
+ BUMP 1W25                              1
+                                                30H0
+                                                109-12
+                                                  J124
+                                                  J184
+                                                  Y0
+                                                40H0
+                                                109-2
+                                                  J114
+                                                  Y0
+                                                11W25
+                                                11W25
+                                                  J110
+ GET CHARACTER (SUCCEEDS)               1
+                                                30H0
+                                                  J186
+ GET CHARACTER (SUCCEEDS)               1
+                                                  Y0
+                                                  J186
+ BUMP COLUMN                            1
+                                                  Y0
+                                                11W25
+                                                  J125
+ GET CHARACTER (FAILS)                  1
+                                                30H0
+                                                  J186
+                                                  N0
+                                                  J154
+                                                  J156
+                                                  J155
+                                                  J154
+                                                  J156
+                                                  J155
+                                                  J154
+                                                  J157
+                                                  J155
+                                                  J154
+                                                  J157
+                                                  J155
+                                                  J154
+                                                  J157
+                                                  J155
+                                                  J154
+                                                  J157
+                                                  J155
+                                                  J154
+                                                  J157
+                                                  J155
+                                                  J154
+                                                  J157
+                                                  J155
+                                                  J154
+                                                  J157
+                                                  J155
+                                                  J154
+                                                  J157
+                                                  J155
+                                                  J154
+                                                  J156
+                                                  J155
+                                                  J154
+                                                  J156
+ TRY TO SCAN FOR NON-BLANK AND FAIL     1
+ 1W25 = 2 SO WE START IN COLUMN 3       1
+ AND SCAN UP TO COLUMN 8                1
+                                                  J155
+                                                  J180
+                                                11W25
+                                                  J124
+                                                  J125
+                                                  J125
+                                                30H0
+                                                109-12
+                                                  J124
+                                                  J184
+                                                  N0
+                                                109-2
+                                                  J114
+ TRY TO SCAN FOR BLANK AND FAIL         1
+ 1W25 = 2 SO WE START IN COLUMN 3       1
+ AND SCAN UP TO COLUMN 8                1
+                                                  Y0
+                                                  J180
+                                                11W25
+                                                  J124
+                                                  J125
+                                                  J125
+                                                30H0
+                                                109-12
+                                                  J124
+                                                  J183
+                                                  N0
+                                                109-2
+                                                  J114
+                                                  Y0
+                                                10A2
+                                                  J2
+                                                  Y0    0
+                                          9-1  +01      3
+                                          9-2  +01      4
+                                          9-3  +01      100
+                                          9-4  +01      100
+                                          9-5  +21EMPTY
+                                          9-6  +21EMPTY
+                                          9-7  +31
+                                          9-8  +31
+                                          9-9  +21EMPTY
+                                          9-10 +21EMPTY
+                                          9-11 +01      51
+                                          9-12 +01      0
+                                          A2      0     0
+                                        5         A1

@@ -1,0 +1,333 @@
+  Excerpted from Simon's J's.           1
+                                        1
+     For more on Simon's J's, see:      1
+                                        1
+    <https://computerhistory.org/blog/  1
+                 simons-js/>            1
+                                        1
+             and                        1
+                                        1
+    <https://www.computerhistory.org/   1
+     collections/catalog/102743647/>.   1
+                                        1
+   According to these this code was     1
+   contributed to the museum by Lloyd   1
+   Fosdick in 1985 in the form of a     1
+   card deck with                       1
+                                        1
+   SIMON’S J’S (ORIGINAL SET) RAND      1
+         12-20-62                       1
+                                        1
+      written on the edge.              1
+                                        1
+    Copyright status unclear.           1
+                                        1
+    Routines J1, J3, J4, J15, J72, and  1
+    J74 have been deleted as they are   1
+    implemented in lib-misc.iplv        1
+    and/or the interpreter itself.      1
+                                        1
+    Routines J20-J29 have been          1
+    deleted as they are implemented     1
+    in lib-shuffle-ws.iplv.             1
+                                        1
+    Routine J100 has been deleted       1
+    as it is implemented in             1
+    lib-j100.iplv.                      1
+                                        1
+    Routine J101 has been deleted.      1
+                                        1
+    Routines J11 and J73 have           1
+    been renamed J210 and J211 to       1
+    facilitate patching them.           1
+                                        1
+                                        5
+                                          J5    70J4    J3
+                                          J6      J51
+                                                11W0
+                                                11W1    J31
+                                          J8    30H0    0
+                                          J10     J50
+                                                52H0
+                                          91      J60
+                                                7090
+                                                12H0
+                                                11W0
+                                                  J2
+                                                70      92
+                                                  J60
+                                                70J7    91
+                                          90    30H0    J30
+                                          92      J60
+                                                70J7
+                                                52H0    J30
+                                          J210  40H5
+                                                  J52
+                                                12W2
+                                                40H0
+                                                100
+                                                  J2
+                                                7092
+                                                30H0
+                                                  J90
+                                                  J136
+                                                61W2
+                                          92      J60
+                                                7090
+                                                12H0
+                                                11W0
+                                                  J2
+                                                70      91
+                                                  J60
+                                                70J7    92
+                                          90    40H0
+                                                11W1
+                                                  J64
+                                                11W0
+                                                  J64
+                                                30H5    J32
+                                          91      J60
+                                                12H0
+                                                  J132
+                                                7093
+                                                12H0
+                                                  J72   93
+                                          93    20W2
+                                                11W1
+                                                21W2
+                                                30H5    J32
+                                          J12   40H5
+                                                  J52
+                                                11W2
+                                                11W0
+                                                  J10
+                                                7090
+                                                11W1
+                                                  J64
+                                                30H5    J32
+                                          90    11W2
+                                                11W1
+                                                  J91
+                                                  J136
+                                                11W0
+                                                  J11
+                                                30H5    J32
+                                          J13   40H5
+                                                  J52
+                                                11W2
+                                                11W0
+                                                  J10
+                                                7090
+                                                11W1
+                                                  J65
+                                                30H5    J32
+                                          90    11W2
+                                                11W1
+                                                  J91
+                                                  J136
+                                                11W0
+                                                  J11
+                                                30H5    J32
+                                          J14   40H5
+                                                  J50
+                                                52H0
+                                          92      J60
+                                                7090
+                                                12H0
+                                                11W0
+                                                  J2
+                                                70      91
+                                                  J60   92
+                                          91    40H0
+                                                12H0
+                                                  J132
+                                                7093
+                                                12H0
+                                                  J72
+                                          93      J68
+                                                12H0
+                                                  J132
+                                                7094
+                                                12H0
+                                                  J72
+                                          94      J68
+                                                30H5    J30
+                                          90    30H0
+                                                30H5    J30
+                                          J61     J60
+                                                700
+                                          90      J60
+                                                70J4    90
+                                          J62     J50
+                                          90      J60
+                                                70J30
+                                                12H0
+                                                11W0
+                                                  J2
+                                                7090    J30
+                                          J63     J51
+                                                41W1
+                                                11W0
+                                                21W1    J31
+                                          J64   40H5
+                                                  J41
+                                                20W0
+                                                41H0
+                                                  J60
+                                                20W1
+                                                11W0
+                                                11W1
+                                                100
+                                                  J2
+                                                70      J7
+                                                21W1
+                                                30H5    J31
+                                          J65   40H5
+                                                  J6
+                                                  J61
+                                                  J6
+                                                30H5    J64
+                                          J66   40H5
+                                                40W0
+                                                60W0
+                                                  J62
+                                                7090
+                                                30H5
+                                                  J8    J30
+                                          90    11W0
+                                                  J64
+                                                30H5    J30
+                                          J67   40H5
+                                                  J50
+                                                  J62
+                                                7090
+                                                40W1
+                                                20W1
+                                                11W0
+                                                21W1
+                                                30W1
+                                          91    30H5    J30
+                                          90    30H0    91
+                                          J69     J62
+                                                70J8
+                                                  J68   J4
+                                          J70     J61
+                                                70J8
+                                                  J68   J4
+                                          J71   40W0
+                                                40H5
+                                          91    40H0
+                                                  J60
+                                                7090
+                                                20W0
+                                                  J9
+                                                11W0    91
+                                          90    30H0
+                                                  J9
+                                                30H5    J30
+                                          J211  40H5
+                                                  J41
+                                                60W0
+                                                  J132
+                                                  J90
+                                                7090
+                                                  J136
+                                          90    60W1
+                                                12W0
+                                                21W1
+                                                11W0
+                                                10910
+                                                  J100
+                                                30H5    J31
+                                          910   11W1
+                                                  J6
+                                                  J64
+                                                11W1
+                                                  J60
+                                                20W1    0
+                                          J77   40W0
+                                                20W0
+                                          92      J60
+                                                7091
+                                                12H0
+                                                11W0
+                                                  J2
+                                                7092
+                                          91    30W0    J8
+                                          J78     J60
+                                                70J8    J8
+                                          J79   52H0
+                                                100
+                                                  J2    J5
+                                          J81     J60
+                                                70J8    J80
+                                          J82     J60
+                                                70J8    J81
+                                          J83     J60
+                                                70J8    J82
+                                          J84     J60
+                                                70J8    J83
+                                          J85     J60
+                                                70J8    J84
+                                          J86     J60
+                                                70J8    J85
+                                          J87     J60
+                                                70J8    J86
+                                          J88     J60
+                                                70J8    J87
+                                          J89     J60
+                                                70J8    J88
+                                          J91   40W0
+                                                  J90
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30
+                                          J92   40W0
+                                                  J91
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30
+                                          J93   40W0
+                                                  J92
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30
+                                          J94   40W0
+                                                  J93
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30
+                                          J95   40W0
+                                                  J94
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30
+                                          J96   40W0
+                                                  J95
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30
+                                          J97   40W0
+                                                  J96
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30
+                                          J98   40W0
+                                                  J97
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30
+                                          J99   40W0
+                                                  J98
+                                                60W0
+                                                  J6
+                                                  J64
+                                                11W0    J30

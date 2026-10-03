@@ -1,0 +1,67 @@
+#
+# Test of # and % syntax
+#
+IN 
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         2 D             10
+FIN                                         5
+FIN # Comment line
+FIN # A very long comment line with very many words
+FIN #A-very-long-comment-line-with-lots-and-lots-of-words
+FIN                                           A1    10D1
+FIN %      40H0
+FIN                                                   J154
+FIN                                                   J156
+FIN        Left comment                               J155
+FIN                                                   J154          and right
+FIN                                                   J157
+FIN                                                   J155  0
+FIN                                           D1   +21HELLO
+FIN                                         5         A1
+OUT                                         9
+OUT                                         2 A0            10
+OUT                                         2 D0            10
+OUT                                         5
+OUT  Comment line                           1
+OUT  A very long comment line with very     1 many words
+OUT A-very-long-comment-line-with-lots-and-l1 ots-of-words
+OUT                                           A1    10D1
+OUT                                                 40H0
+OUT                                                   J154
+OUT                                                   J156
+OUT        Left comment                               J155
+OUT                                                   J154          and right
+OUT                                                   J157
+OUT                                                   J155  0
+OUT                                           D1   +21HELLO
+OUT                                         5         A1
+OUT 
+#
+# Test of data term output format
+#
+IN 
+FIN                                         5       01
+FIN                                           D1    01 34     7
+FIN                                                +015     1234
+FIN                                                -01  7      89
+FIN                                                 01        17
+FIN                                                +21TT
+FIN                                                -21TESTTEST
+FIN                                                 21Q
+FIN                                                 21
+FIN                                                 31 GRONK
+OUT                                         5       01
+OUT                                           D1    01   34  0007
+OUT                                                +01    5  1234
+OUT                                                -01    7  0089
+OUT                                                 01         17
+OUT                                                +21TT
+OUT                                                -21TESTT
+OUT                                                 21Q
+OUT                                                 21
+OUT                                                 31
+OUT
+ERR **Error: Unknown data term type 31, line 10.
+ERR **Error: Only integer and string data terms have been implemented.
+ERR 

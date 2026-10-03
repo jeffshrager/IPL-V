@@ -1,0 +1,213 @@
+                                        5
+#
+# Implementation of the J-functions used to make
+# generators, J17, J18, and J19.
+#
+# David Moews, July 2026.  Released into the public domain, CC0.
+#
+# J203: Save a block of current W values on a stack.
+#
+# Not in original.
+#
+# Saves current values of all Ws from W0 through (1)
+# on the stack pointed to by (0).
+#
+# 2 inputs, 0 outputs.
+#
+%J203  11H5
+%      209-5
+%      209-6         # high W -> 9-3, stack ID -> 9-6
+%      209-3
+%      10W0
+%      209-4         # initially W0
+%9-1   129-4
+%      419-6
+%      219-6
+%      119-4
+%      119-3
+%        J2
+%      70      9-2
+%      119-4
+%      05@17
+%      209-4   9-1
+%9-2   119-5
+%      20H5    0
+%9-3     0     0
+%9-4     0     0
+%9-5     0     0
+%9-6     0     0
+#
+# J204: Restore a block of current W values from a stack.
+#
+# Not in original.
+#
+# Restores current values of all Ws from W0 through (1)
+# from the stack pointed to by (0).
+#
+# 2 inputs, 0 outputs.
+#
+%J204  11H5
+%      209-5
+%      209-6
+%      609-4          # initially high W
+%      209-3          # high W -> 9-3, 9-4, stack ID -> 9-6
+%9-1   129-6
+%      319-6
+%      219-4
+%      119-4
+%      10W0
+%        J2
+%      70      9-2
+%      119-4
+%      05@18
+%      209-4   9-1
+%9-2   119-5
+%      20H5    0
+%9-3     0     0
+%9-4     0     0
+%9-5     0     0
+%9-6     0     0
+#
+# J206: Restore a group of Ws.
+#
+# Not in original.
+#
+# Restores all Ws from W0 through (0).
+#
+# 1 input, 0 outputs.
+#
+%J206  11H5
+%      209-5
+%      209-3
+%      10W0
+%      209-4         # initially W0
+%9-1   319-4
+%      119-4
+%      119-3
+%        J2
+%      70      9-2
+%      119-4
+%      05@17
+%      209-4   9-1
+%9-2   119-5
+%      20H5    0
+%9-3     0     0
+%9-4     0     0
+%9-5     0     0
+#
+# J207: Preserve a group of Ws.
+#
+# Not in original.
+#
+# Preserves all Ws from W0 through (0).
+#
+# 1 input, 0 outputs.
+#
+%J207  11H5
+%      209-5
+%      209-3
+%      10W0
+%      209-4         # initially W0
+%9-1   419-4
+%      119-4
+%      119-3
+%        J2
+%      70      9-2
+%      119-4
+%      05@17
+%      209-4   9-1
+%9-2   119-5
+%      20H5    0
+%9-3     0     0
+%9-4     0     0
+%9-5     0     0
+#
+#
+# J17: GENERATOR SETUP; CONTEXT (0), SUBPROCESS (1).
+#
+# Saves the highest W (argument (0)) on stack H8;
+# preserves Ws with J207; pushes the subprocess
+# name (1) onto stack H9; pushes + onto stack H10.
+#
+# It looks like generators are always meant to
+# return - iff any J18 yielded -, + o.w.
+#
+# 2 inputs, 0 outputs.
+#
+%J17   40H0
+%      40H8
+%      20H8
+%        J207
+%      40H9
+%      20H9
+%      10J4
+%      40H10
+%      20H10   0
+#
+# J18: EXECUTE SUBPROCESS OF GENERATOR.
+#
+#      Sets H5 according to return from called process.
+#
+#      Pushes current W values onto stack H7 with J203;
+#      Restores Ws with J206;
+#      Pops H8, pushes onto H11;
+#      Pops H9, pushes onto H6;
+#      Pops H10;
+#      Executes top of H6 (was H9);
+#      pushes H5 onto top of H10;
+#      Pops H11, pushes into H8;
+#      Pops H6, pushes into H9;
+#      Preserves Ws with J207;
+#      Reloads current W values from stack H7 with J204.
+#
+# No inputs or outputs.
+#
+%J18   11H8
+%      10H7
+%        J203
+%      11H8
+%        J206
+%      11H8
+%      30H8
+%      40H11
+%      20H11
+%      11H9
+%      30H9
+%      40H6
+%      20H6
+%      30H10
+%      01H6
+%      11H5
+%      40H10
+%      20H10
+%      11H11
+%      30H11
+%      40H8
+%      20H8
+%      11H6
+%      30H6
+%      40H9
+%      20H9
+%      11H8
+%        J207
+%      11H8
+%      10H7
+%        J204  0
+#
+# J19: GENERATOR CLEANUP.
+#
+#   Sets H5: - if any J18 yielded -, + o.w.
+#
+#      Restores Ws with J206;
+#      Pops H8 and H9;
+#      Pops H10 into H5.
+#
+# No inputs or outputs.
+#
+%J19   11H8
+%        J206
+%      30H8
+%      30H9
+%      11H10
+%      20H5
+%      30H10   0

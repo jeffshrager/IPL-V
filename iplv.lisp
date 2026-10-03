@@ -1,5 +1,8 @@
 ;;; (load (compile-file "iplv.lisp"))
 
+;;; Copied from github.com/jeffshrager/IPL-V@792cb15 (2026-10-01) and
+;;; developed forward here for the Heuristic Coder.
+
 ;;; See the paper describing this project: https://arxiv.org/abs/2603.13514
 
 ;;; ===================================================================
@@ -470,7 +473,10 @@
 (define-symbol-macro ?? (???))
 
 ;;; ===================================================================
-;;; Loader (loads from files converted by tsv2lisp.py)
+;;; Loader. Reads either 80-column IPL-V card decks (the default) or the
+;;; older .liplv S-expression files made by tsv2lisp.py. A file whose
+;;; first line begins with "(:" is taken to be .liplv; anything else is
+;;; read as cards.
 
 ;;; FFF Note that the dumper puts multiple header lines in (:comments :type :name
 ;;; :sign :p :q :symb :link :comments.1 :id). Prob. need code to ignore them
@@ -493,12 +499,14 @@
     (setf *card-number* 0)
     (setf *input-stream* i) ;; For reads inside the program executor
     (!! :load "Loading IPL file: ~s~%" file)
-    ;; First line is assumed to be the header which we just check
-    (if (equal *cols* (read i))
-	(!! :load "Header okay!~%")
-	(error "No valid header on ~s" file)
-	)
-    (loop for read-row = (read i nil nil)
+    (let ((liplv? (liplv-file? i)))
+      (if liplv?
+	  ;; First form is the .liplv header, which we just check
+	  (if (equal *cols* (read i))
+	      (!! :load "Header okay!~%")
+	      (error "No valid header on ~s" file))
+	  (!! :load "Reading ~s as 80-column cards.~%" file))
+    (loop for read-row = (if liplv? (read i nil nil) (next-card-row i load-mode))
 	  with cells = nil
 	  until (null read-row)
 	  do (!! :load "Reading card number ~a: ~s~%" (incf *card-number*) read-row)
@@ -528,25 +536,153 @@
 		    (save-cells (reverse cells) load-mode) (setf cells nil))
 	      	  (push cell cells))
 		(if (string-equal "5" (cell-type cell))
-		    (if (global-symbol? (cell-symb cell))
+		    (cond
+		      ;; [Added: P=4 header = restart mode (manual 18.5): reload
+		      ;; memory from the tape named by SYMB and resume after the
+		      ;; J166. In a single continuous run memory is already
+		      ;; there, so this is a no-op. (Stefferud LT: "RELOAD FROM
+		      ;; TAPE 2" after X9 = J166 J165.)]
+		      ((eql 4 (cell-p cell))
+		       (save-cells (reverse cells) load-mode) (setf cells nil)
+		       (!! :load "Ignoring restart (P=4) header: ~s~%" read-row))
+		      ((global-symbol? (cell-symb cell))
 			(progn
 			  (!! :load "** Execution start at ~s **~%" (cell-symb cell))
 			  (save-cells (reverse cells) load-mode)
 			  (setf cells nil)
-			  (run (cell-symb cell) :adv-limit adv-limit))
-			(if (and (zerop (cell-p cell)) (= (cell-q cell) 1))
+			  (create-undefined-regionals)
+			  (run (cell-symb cell) :adv-limit adv-limit)))
+		      (t
+			;; Header Q (manual 18.5): 0, 2, 4 = routines; 1, 3, 5 =
+			;; data list structures. P is the input mode (0 = IPL
+			;; standard; the Heuristic Coder's first header has P=3,
+			;; "machine language", but IPL cards follow), so ignore it.
+			(if (oddp (cell-q cell))
 			    (progn
 			      (save-cells (reverse cells) load-mode) (setf cells nil)
 			      (!! :load "Switching to DATA load mode.~%")
 			      (setf load-mode :data))
-			    (if (and (zerop (cell-p cell)) (zerop (cell-q cell)))
+			    (if (evenp (cell-q cell))
 				(progn
 				  (!! :load "Switching to CODE load mode.~%")
 				  (save-cells (reverse cells) load-mode) (setf cells nil)
 				  (setf load-mode :code))
-				(!! :load "Ignoring: ~s~%" read-row)))))))
+				(!! :load "Ignoring: ~s~%" read-row))))))))
 	  finally (save-cells (reverse cells) load-mode)
-	  )))
+	  ))))
+
+;;; Card reading. Columns (1-based): 1-40 comment, 41 type, 43-47 name,
+;;; 48 sign, 49-50 PQ, 51-55 SYMB, 57-61 LINK, 62-70 comment, 71-80 id.
+;;; (The id is usually in 73-80; 71-72 hold the Heuristic Coder listing's
+;;; longer ids like "T041 220 C".)
+
+(defun liplv-file? (stream)
+  ;; Peek at the first non-blank characters without consuming anything.
+  (let ((start (file-position stream))
+	(line (or (read-line stream nil nil) "")))
+    (file-position stream start)
+    (let ((trimmed (string-left-trim '(#\Space #\Tab) line)))
+      (and (>= (length trimmed) 2) (string= "(:" (subseq trimmed 0 2))))))
+
+(defun card-cols (line from to)
+  ;; Raw (untrimmed) text of 1-based columns FROM..TO, blank-padded.
+  (let ((padded (if (< (length line) to)
+		    (concatenate 'string line (make-string (- to (length line)) :initial-element #\Space))
+		    line)))
+    (subseq padded (1- from) to)))
+
+(defun card-field (line from to)
+  (string-trim '(#\Space) (card-cols line from to)))
+
+(defun read-card (line &optional (load-mode :data))
+  ;; Turn one card image into the 9-field row that load-ipl expects
+  ;; (see *cols*), or NIL for cards the loader should skip: blank cards
+  ;; and type 1 (comment) and type 9 (title) cards.
+  (let* ((line (substitute #\Space #\Tab (string-right-trim '(#\Return #\Newline) line)))
+	 (type (card-field line 41 41)))
+    (unless (or (string= "" (string-trim '(#\Space) line))
+		(member type '("1" "9") :test #'string=))
+      (let* ((raw-pq (card-cols line 49 50))
+	     ;; A blank in one PQ column is a zero; both blank means 00.
+	     (pq (if (string= "  " raw-pq) "" (substitute #\0 #\Space raw-pq)))
+	     (sign (card-field line 48 48))
+	     (symb (card-field line 51 55))
+	     (link (card-field line 57 61)))
+	(cond ((string= pq "21")
+	       ;; Alphanumeric data term: leading blanks are characters. An
+	       ;; all-blank term is kept as five blanks so that it
+	       ;; isn't mistaken for an empty SYMB.
+	       (setf symb (string-right-trim '(#\Space) (card-cols line 51 55)))
+	       ;; [Changed: keep all five blank columns. Stefferud LT's /16
+	       ;; 'DEFINITIONS' has a blank external name, and its J157 entry
+	       ;; is five columns wide in the 1963 output.]
+	       (when (string= symb "") (setf symb "     ")))
+	      ((and (string= pq "01") (string= type "") (eq load-mode :data))
+	       ;; [Fixed: only in data sections. In routines, PQ 01 is
+	       ;; "execute the routine named in SYMB", e.g. LT's 01W5.]
+	       ;; Integer data term: the value may be anywhere in cols
+	       ;; 51-61. Beyer's 1620 loader wants it right-justified to col
+	       ;; 61; the 7094 decks (e.g. Acker.Ipl) left-justify it at col
+	       ;; 57. We just squeeze out the blanks. The sign is col 48.
+	       (setf link (format nil "~a~a" (if (string= sign "-") "-" "")
+				  (remove #\Space (card-cols line 51 61)))
+		     symb "")))
+	(unless (string= pq "21") (setf symb (normalize-local symb)))
+	(unless (and (string= pq "01") (string= type "") (eq load-mode :data)) (setf link (normalize-local link)))
+	(list (card-field line 1 40) type (normalize-local (card-field line 43 47)) sign pq symb link
+	      (card-field line 62 70) (card-field line 71 80))))))
+
+(defun normalize-local (symbol)
+  ;; Older listings write local symbols without the dash: "90", "910"
+  ;; for "9-0", "9-10". The Heuristic Coder mixes both spellings for the
+  ;; same label (U199 has 9-10 and 910), so map the old form to the new.
+  ;; A lone "9" is the internal symbol 9, not a local.
+  ;; [Added: a lone regional character is the zeroth symbol of its region
+  ;; ("A" = "A0", manual 18.2), and J186 inputs it as "A0". Stefferud's LT
+  ;; spells it both ways ("N" on the card that defines it, "N0" in K31),
+  ;; so cards are read in the canonical "A0" form.]
+  (cond ((and (> (length symbol) 1)
+	      (char= #\9 (char symbol 0))
+	      (every #'digit-char-p (subseq symbol 1)))
+	 (format nil "9-~a" (subseq symbol 1)))
+	((and (= (length symbol) 1) (not (digit-char-p (char symbol 0))))
+	 (format nil "~a0" symbol))
+	;; [Added: a regional symbol is a region character and digits; other
+	;; characters are ignored, as J181 does for input. Stefferud LT's run
+	;; data has "K31 YES", which must equal the symbol Y (M19 tests
+	;; 11K31 10Y J2 to decide whether to print rejected problems).]
+	((and (> (length symbol) 1)
+	      (not (digit-char-p (char symbol 0)))
+	      (notevery #'digit-char-p (subseq symbol 1)))
+	 (let ((digits (remove-if-not #'digit-char-p (subseq symbol 1))))
+	   (format nil "~a~a" (char symbol 0) (if (string= digits "") "0" digits))))
+	(t symbol)))
+
+;;; Regional symbols that are used but never defined (e.g. X97-X99 in the
+;;; annexer, E0 and U99 in the Heuristic Coder) are reserved by the type-2
+;;; region cards, so they exist as empty cells. Create them before running.
+(defun create-undefined-regionals ()
+  (let ((names nil))
+    (loop for c being the hash-values of *symtab*
+	  when (cell? c)
+	    do (dolist (s (list (cell-symb c) (cell-link c)))
+		 (when (and (stringp s) (> (length s) 1)
+			    (alpha-char-p (char s 0))
+			    (every #'digit-char-p (subseq s 1))
+			    (not (member (char s 0) '(#\H #\W #\J)))
+			    (not (gethash s *symtab*)))
+		   (pushnew s names :test #'string=))))
+    (dolist (s names)
+      (!! :load "Creating empty regional cell ~s" s)
+      (make-cell! :name s :symb "0" :link "0"))
+    names))
+
+(defun next-card-row (stream &optional (load-mode :data))
+  ;; Next non-skipped card from STREAM as a row, or NIL at end of file.
+  (loop for line = (read-line stream nil nil)
+	while line
+	do (let ((row (read-card line load-mode)))
+	     (when row (return row)))))
 
 (defun decode-pq (pq? val hint)
   (if (= 1 (length val))
@@ -607,20 +743,19 @@
 	    as next-name = (when next-cell (cell-name next-cell))
 	    when next-cell ;; This usually isn't needed anyway bcs there should be a 0
 	    do
-	    (if (and (blank? this-link) (blank? this-symb))
-		(break "Both symb and link can't be blank: ~s!!" this-cell))
-	    (if (blank? this-link)
-		(if (blank? next-name)
-		    (let ((new-symbol (newsym top-name)))
-		      (setf (cell-name next-cell) new-symbol)
-		      (setf (cell-link this-cell) new-symbol))
-		    (setf (cell-link this-cell) next-name)))
-	    (if (blank? this-symb)
-		(if (blank? next-name)
-		    (let ((new-symbol (newsym top-name)))
-		      (setf (cell-name next-cell) new-symbol)
-		      (setf (cell-symb this-cell) new-symbol))
-		    (setf (cell-symb this-cell) next-name))))
+	    ;; A blank SYMB or LINK means the next card. Both may be blank
+	    ;; (e.g. "70 <blank> <blank>" in the Heuristic Coder, a branch
+	    ;; that goes to the next card either way).
+	    (when (and (or (blank? this-link) (blank? this-symb)) (blank? next-name))
+	      (setf (cell-name next-cell) (newsym top-name) next-name (cell-name next-cell)))
+	    (when (blank? this-link) (setf (cell-link this-cell) next-name))
+	    (when (blank? this-symb) (setf (cell-symb this-cell) next-name)))
+      ;; Blanks on the last card of a list (often a one-card list such as
+      ;; the Heuristic Coder's T10 or T191 working cells) have no next card
+      ;; to refer to, so they mean 0.
+      (let ((last-cell (car (last cells))))
+	(when (blank? (cell-symb last-cell)) (setf (cell-symb last-cell) "0"))
+	(when (and (stringp (cell-link last-cell)) (blank? (cell-link last-cell))) (setf (cell-link last-cell) "0")))
       (store-cells cells)
       )))
 
@@ -639,7 +774,9 @@
   (labels ((replace-symbols (cell accname.accessor)
 	     (let* ((accessor (cdr accname.accessor))
 		    (symbol (funcall accessor cell))
-		    (new-name (cdr (assoc symbol local-symbols.new-names :test #'string-equal))))
+		    ;; Integer data terms hold a number in LINK; skip those.
+		    (new-name (and (stringp symbol)
+				   (cdr (assoc symbol local-symbols.new-names :test #'string-equal)))))
 	       (when new-name
 		 (if (eq accessor #'cell-name)
 		     (pushnew symbol cell-names :test #'string-equal)
@@ -678,8 +815,9 @@
 ;;; https://chatgpt.com/share/6824cf31-9afc-8008-bd37-847e5b738ea1
 
 (defun local-symbol-by-name? (name)
+  ;; A lone "9" is the internal symbol 9, not a local.
   (if (numberp name) nil
-      (and (not (zerop (length name)))
+      (and (> (length name) 1)
 	   (char-equal #\9 (aref name 0)))))
 
 ;;; This looks like it should be just (not (local-symbol-by-name? ...)) but
@@ -1182,7 +1320,9 @@
 	;; interpret a data term as a standard IPL cell.  !!! Must pop
 	;; late (if at all) 
 	(let* ((this-cell (cell [0]))
-	       (link (cell-link this-cell)))
+	       ;; [Added: J60 of the termination symbol 0 (an empty cell in the
+	       ;; real system) finds no next cell. The annexer's M5 relies on it.]
+	       (link (if this-cell (cell-link this-cell) "0")))
 	  (!! :jdeep "             .....In J60, this-cell = ~s, link = ~s" this-cell link)
 	  (if (zero? link)
 	      ;; Notice that we don't pop on eol!
@@ -1213,8 +1353,16 @@
 	     (list-head (cell [1])))
 	(!! :jdeep "             .....J62 trying to locate target:~s in linear list starting with cell ~s" target list-head)
 	(!! :jdeep (pll [1]))
-	;; The H5 has to be set in the subfn bcs only it knows whether it succeeded.
-	(let ((r (j62-helper-search-list-for-symb target list-head (cell-link list-head))))
+	;; [Fixed for the Heuristic Coder: the old helper tested the symbol
+	;; in cell (1) itself and never tested the last cell. The search
+	;; starts with the cell AFTER cell (1) and runs through the last one.
+	;; U138 depends on this: it searches from a located cell onward.]
+	(let ((r (loop with c = list-head
+		       for next = (cell-link c)
+		       do (cond ((zero? next) (H5-) (return c))
+				(t (setf c (cell next))
+				   (when (ipl-string-equal (cell-symb c) target)
+				     (H5+) (return c)))))))
 	  (poph0 2) 
 	  (ipush "H0" (cell-name r)))))
 
@@ -1361,14 +1509,31 @@
 	(let* ((this-cell (<== [0]))
 	       (next-cell-name (cell-link this-cell)))
 	  (if (zero? next-cell-name)
-	      (progn (!! "J68 hit the end of the list.")
-		     (H5-))
+	      ;; (0) is the last cell. The real system makes it a private
+	      ;; termination cell, which J60 later unlinks from the previous
+	      ;; cell (manual 9.5). We unlink it now: find the cell that links
+	      ;; to (0) and give it LINK 0. [Added for the Heuristic Coder,
+	      ;; whose U119 deletes final symbols in a loop.]
+	      (let ((prev (loop for c being the hash-values of *symtab*
+				when (and (cell? c) (stringp (cell-link c))
+					  (string= (cell-link c) (cell-name this-cell)))
+				  return c)))
+		(!! "J68 deleting the final symbol; unlinking ~s from ~s." this-cell prev)
+		(when prev (setf (cell-link prev) "0" (cell-symb this-cell) "0"))
+		(H5-))
 	      ;; Here's the complex work. Ugh!
 	      (let* ((next-cell (cell next-cell-name)))
 		(!! "J68 Moving symbol in ~s to ~s and deleting ~s."
 		    next-cell this-cell next-cell)
 		(setf (cell-symb this-cell) (cell-symb next-cell)
-		      (cell-link this-cell) (cell-link next-cell)))))
+		      (cell-link this-cell) (cell-link next-cell))
+		;; [Fixed: return the removed cell to available space. Left
+		;; linking into the list, it fooled the last-cell scan above
+		;; into unlinking it instead of the real previous cell, which
+		;; left a stray 0 at the end of Stefferud LT's theorem lists
+		;; (M62 9-102). And set H5+ explicitly.]
+		(setf (cell-symb next-cell) "0" (cell-link next-cell) "0")
+		(H5+))))
 	(poph0 1)
 	)
 
@@ -1651,7 +1816,15 @@
 	  (numset [0] r)))
 
   (defj J114 ([0] [1]) "TEST IF (0) = (1)" 
-	(if (= (numget [0]) (numget [1])) (h5+) (h5-))
+	;; [Extended for the Heuristic Coder: J114 compares data terms of any
+	;; type, and unlike the other arithmetic tests does not mix types
+	;; (manual 5.0). U107 uses it on alphanumeric region letters.]
+	(flet ((value (name)
+		 (let ((c (<== name)))
+		   (if (and (= 2 (cell-p c)) (= 1 (cell-q c)))
+		       (list :alpha (string-right-trim " " (cell-symb c)))
+		       (list :number (numget name))))))
+	  (if (equal (value [0]) (value [1])) (h5+) (h5-)))
 	(poph0 2))
 
   (defj J115 ([0] [1]) "TEST IF (0) > (1)" 
@@ -1754,6 +1927,12 @@
 	(if (find #\- [0]) (H5-) (H5+))
 	(poph0 1))
 
+  (defj J131 ([0]) "TEST IF (0) NAMES A DATA TERM"
+	;; [Added for the Heuristic Coder's U126.] A data term has Q=1.
+	(let ((c (<== [0])))
+	  (if (and c (= 1 (cell-q c))) (H5+) (H5-)))
+	(poph0 1))
+
   (defj J132 ([0]) "TEST IF (O) IS LOCAL SYMBOL"
 	(if (find #\- [0]) (H5+) (H5-))
 	(poph0 1))
@@ -1784,8 +1963,12 @@
 	;; -) in their name, and local cells with q=2 (and non-local
 	;; q=4). This might want to check that the symbol has a - in
 	;; it.]
+	;; [Fixed: a data term's Q=1 is its type code (01 integer, 21 alpha),
+	;; so don't overwrite it. Doing so made J157 print Stefferud LT's
+	;; subproblem numbers (J120 copy + J136 of K10, M51) as "0".]
 	(let ((cell (<== H0)))
-	  (setf (cell-q cell) 2)))
+	  (unless (= 1 (cell-q cell))
+	    (setf (cell-q cell) 2))))
 
   (defj J137 ([0]) "MARK LIST (0) PROCESSED"
 	;; List (0) is preserved, its [new] head made empty (Q =
@@ -1851,10 +2034,15 @@
 	;; Clear Print Line CLEAR PRINT LINE. Print line 1W24 is cleared and the
 	;; current entry column, 1W25, is set equal to the left margin, 1W21 [always 1 at the moment].
 	(setf *W24-Line-Buffer* (blank80))
-	(W25-set 0))
+	;; [Fixed: columns are 1-based (manual 16.0), as in J181/J186 and the
+	;; J183/J184 scanners. This was 0, which shifted all output left one.]
+	(W25-set 1))
 
   (defj J155 () "Print line"
-	(format t ":::::::::::::::::::::::::::::::: ~a~%" (hack-output!! *W24-Line-Buffer*))
+	;; [Changed: print the line literally. hack-output!! (an LT-era kludge)
+	;; dropped any 0 after ( or ), turning the data term "(0)" into "()".
+	;; Compact entry of region-0 symbols is J156's job, per the manual.]
+	(format t ":::::::::::::::::::::::::::::::: ~a~%" *W24-Line-Buffer*)
 	)
 
   (defj J156 ([0]) "ENTER SYMBOL (0) LEFT-JUSTIFIED"
@@ -1864,12 +2052,22 @@
 	;; H5 is set + . If (0) exceeds the remaining space, no entry
 	;; is made and H5 is set - .
 	(PopH0 1)
-	(let* ((s [0])
+	;; "Symbols are entered in the print line compactly; i.e., as A1, B10,
+	;; etc. (A0 is entered as A)." (manual 16.2)
+	;; [Added: an internal symbol prints as a number (its address on the
+	;; real machine), so our internal names "9-nnn" print as "nnn".]
+	(let* ((s (cond ((and (= 2 (length [0])) (char= #\0 (char [0] 1))
+			      (not (digit-char-p (char [0] 0))))
+			 (subseq [0] 0 1))
+			((and (> (length [0]) 2) (string= "9-" (subseq [0] 0 2))
+			      (every #'digit-char-p (subseq [0] 2)))
+			 (subseq [0] 2))
+			(t [0])))
 	       (l (length s))
 	       (p (W25-get)))
 	  (!! :io "             .....J156 trying to add ~s at pos ~a in print butter." s p)
-	  (if (<= (+ p l) 80)
-	      (loop for m from p by 1
+	  (if (<= (+ p l -1) 80)
+	      (loop for m from (1- p) by 1
 		    as c across s
 		    do (setf (aref *W24-Line-Buffer* m) c)
 		    finally (progn (W25-set (+ l p))
@@ -1896,9 +2094,10 @@
 		 (l (length s))
 		 (p (W25-get)))
 	    (!! :io "             .....J157 called on ~s, string: ~s (w25=~a)" a0 s p)
-	    (when (> (+ l p) 80) (H5-) (return-from J157A nil)) ;; (Sadly, J157 isn't a DEFUN'ed block)
+	    ;; [Fixed: 1W25 is a 1-based column.]
+	    (when (> (+ l p -1) 80) (H5-) (return-from J157A nil)) ;; (Sadly, J157 isn't a DEFUN'ed block)
 	    (loop for c across s
-		  as i from p by 1
+		  as i from (1- p) by 1
 		  do (setf (aref *W24-Line-Buffer* i) c))
 	    (W25-set (+ l p))
 	    (H5+)
@@ -1909,7 +2108,9 @@
 	(poph0 1)
 	(let ((col (numget col)))
 	  (!! :io "             .....Tabbing to ~a" col)
-	  (W25-set col)))
+	  ;; [Fixed: "1W25 is set equal to 1W21 + (0)"; the left margin 1W21
+	  ;; is always 1 here (see J154).]
+	  (W25-set (1+ col))))
 
   (defj J161 (a0) "INCREMENT COLUMN BY (0)"
 	;; (0) is taken as the name of an integer data term. Current
@@ -1936,7 +2137,10 @@
 	  (!! :io "             .....J180 Read: ~s" line)
 	  (H5+)
 	  (if line (scan-input-into-*W24-Line-Buffer* line) (H5-))
-	  (W25-set 0)
+	  ;; [Fixed: columns are 1-based, and J183/J184 scan from 1W25+1, so
+	  ;; column 1 is 1W25 = 1 (Stefferud LT's M89 counts from N1 = 1).
+	  ;; This was 0, which put every scanned column one too far right.]
+	  (W25-set 1)
 	  ))
 	
   (defj J181 () "INPUT LINE SYMBOL."  ;; ** Check  me !!
@@ -1962,7 +2166,8 @@
 	  (if (regional-symbol? string)
 	      (progn
 		(!! :jdeep "             .....J181 decided that ~s IS a regional symbol, so we're installing it." string)
-		(make-cell! :name string :symb "0" :link "0")
+		(unless (gethash string *symtab*) ;; [Fixed: don't clobber an existing symbol]
+		  (make-cell! :name string :symb "0" :link "0"))
 		(ipush "H0" string)
 		(H5+))
 	      (progn
@@ -1991,12 +2196,18 @@
 	;; incremented by the amount 1W30.
 	(let* ((w25p (W25-get))
 	       (w30n (numget (cell-symb (cell "W30"))))
-	       (start w25p)
-	       (end (+ start w30n))
+	       ;; [Fixed: 1W25 is a 1-based column (it was read as 0-based,
+	       ;; which lost the first character, e.g. "*1.01" -> "1.01 "), and
+	       ;; "if the specified field exceeds five columns, the rightmost
+	       ;; five columns are taken".]
+	       (start (max (1- w25p) (- (+ (1- w25p) w30n) 5)))
+	       (end (+ (1- w25p) w30n))
 	       (string (subseq *W24-Line-Buffer* start end)))
 	  ;; WWW Assumes that the target is alpha, which could be wrong in future applications!
 	  (setf (cell-symb (cell [0])) string) 
 	  (W25-set (+ (W25-get) w30n))
+	  ;; [Added: H5 was never set. Blank field -> H5- (term is all blanks).]
+	  (if (string= "" (string-trim " " string)) (H5-) (H5+))
 	  (!! :jdeep "             .....J182 extracted ~s (~a-~a in ~s) [w25=~a, w30=~a] and jammed it into ~s"
 	      string start end *W24-Line-Buffer* w25p w30n [0])
 	))
@@ -2036,6 +2247,112 @@
 	      (progn
 		(ipush "H0" (format nil (if (numchar? c) "~c" "~c0") c))
 		(H5+)))))
+
+  ;; ---- J's added for the Heuristic Coder (definitions from the 1964 manual) ----
+
+  (defj J12 ([0] [1] [2]) "ADD (1) AT FRONT OF VALUE LIST OF ATTRIBUTE (0) OF (2)"
+	;; The value of (0) is assumed to name a list; (1) is inserted at its
+	;; front (behind the head, as in J64). If the attribute is missing it is
+	;; put on, with a new local list as its value; as in J11 the
+	;; description list is created if need be.
+	(let* ((head (<== (value-list-of-attribute [0] [2])))
+	       (new (make-cell! :name (newsym) :symb [1] :link (cell-link head))))
+	  (setf (cell-link head) (cell-name new)))
+	(poph0 3))
+
+  (defj J13 ([0] [1] [2]) "ADD (1) AT END OF VALUE LIST OF ATTRIBUTE (0) OF (2)"
+	(let ((last (last-cell-of-list (value-list-of-attribute [0] [2]))))
+	  (setf (cell-link last) (cell-name (make-cell! :name (newsym) :symb [1] :link "0"))))
+	(poph0 3))
+
+  (defj J61 ([0]) "LOCATE LAST SYMBOL ON LIST (0)"
+	;; Output (0) is the name of the last cell, H5+. If the list has no
+	;; list cells, the output is the input (0) and H5-.
+	(let ((last (last-cell-of-list [0])))
+	  (if (eq last (<== [0]))
+	      (H5-)
+	      (progn (poph0 1) (ipush "H0" (cell-name last)) (H5+)))))
+
+  (defj J69 ([0] [1]) "DELETE (0) FROM LIST (1)"
+	;; The first occurrence of (0) after the head is removed; H5- if not found.
+	(loop with prev = (<== [1])
+	      for name = (cell-link prev)
+	      do (cond ((zero? name) (H5-) (return))
+		       ((ipl-string-equal (cell-symb (<== name)) [0])
+			(setf (cell-link prev) (cell-link (<== name))) (H5+) (return))
+		       (t (setf prev (<== name)))))
+	(poph0 2))
+
+  (defj J70 ([0]) "DELETE LAST SYMBOL FROM LIST (0)"
+	;; H5+ if a last symbol was deleted, H5- if the list was empty.
+	(loop with prev = (<== [0])
+	      for name = (cell-link prev)
+	      do (cond ((zero? name) (H5-) (return))
+		       ((zero? (cell-link (<== name)))
+			(setf (cell-link prev) "0") (H5+) (return))
+		       (t (setf prev (<== name)))))
+	(poph0 1))
+
+  (defj J77 ([0] [1]) "TEST IF (0) IS ON LIST (1)"
+	(loop for name = (cell-link (<== [1])) then (cell-link c)
+	      for c = (unless (zero? name) (<== name))
+	      while c
+	      when (ipl-string-equal (cell-symb c) [0]) do (H5+) (return)
+	      finally (H5-))
+	(poph0 2))
+
+  (defj J83 ([0]) "FIND THE 3rd (non-head) SYMBOL OF (0)"
+	(poph0 1)
+	(j8n-helper (cell-link (<== [0])) 3))
+
+  (defj J101 ([0] [1]) "GENERATE CELLS OF LIST STRUCTURE (1) FOR SUBPROCESS (0)"
+	;; Print order: list (1) first, all cells of a list contiguously from
+	;; the head, then its sublists (local symbols, including a local
+	;; description list) in order, breadth first, each once. The cell name
+	;; is the subprocess's (0); H5+ for a head cell, H5- otherwise. The
+	;; real J101 marks a head processed (J137), leaving an empty head with
+	;; the original head contents "one-down" as the next cell generated; we
+	;; emulate that by generating the head and then a temporary copy of
+	;; it (H5-). Stops if the subprocess leaves H5- (generator convention).
+	(poph0 2)
+	(block J101-body
+	 (loop with queue = (list [1])
+	      with seen = (list [1])
+	      while queue
+	      do (let ((list-name (pop queue)))
+		   (loop for name = list-name then (cell-link cell)
+			 for cell = (<== name)
+			 for head? = (eq name list-name)
+			 until (or (zero? name) (null cell))
+			 do (let ((sub (cell-symb cell)))
+			      (when (and (stringp sub) (find #\- sub) (<== sub)
+					 (not (member sub seen :test #'string-equal)))
+				(push sub seen)
+				(setf queue (append queue (list sub)))))
+			    (dolist (out (if head?
+					     (list name (cell-name (make-cell! :name (newsym) :symb (cell-symb cell) :link "0")))
+					     (list name)))
+			      (ipush "H0" out)
+			      (if (and head? (string= out name)) (H5+) (H5-))
+			      (ipl-eval [0])
+			      (when (string-equal "-" (H5)) (return-from J101-body))))))
+	 (H5+)))
+
+  (defj J118 ([0]) "TEST IF (0) > 0."
+	(if (> (cell-link (<== [0])) 0) (H5+) (H5-))
+	(poph0 1))
+
+  (defj J149 ([0]) "MARK ROUTINE (0) NOT TO TRACE"
+	(declare (ignore [0]))
+	(poph0 1))
+
+  (defj J150 ([0]) "PRINT LIST STRUCTURE (0)"
+	(poph0 1)
+	(pl [0]))
+
+  (defj J165 () "LOAD ROUTINES AND DATA"
+	;; Used only by T99 (save for restart, then load more). No-op here.
+	(!! :jdeep "             .....J165 (load more routines and data) is a no-op."))
 
   (defj J991 () "EMERGENCY HIDE"
 	(setf *J991/2-emergency-hidey-hole*
@@ -2177,6 +2494,32 @@
 	      
 ;;; See notes at defj: Assumes a linear list.
 
+;;; Helpers for the J's added for the Heuristic Coder.
+
+(defun last-cell-of-list (list-name)
+  (loop with cell = (<== list-name)
+	until (zero? (cell-link cell))
+	do (setf cell (<== (cell-link cell)))
+	finally (return cell)))
+
+(defun value-list-of-attribute (att list-name)
+  ;; The name of the value (a list) of attribute ATT of LIST-NAME, creating
+  ;; the description list and a new local value list if they are missing.
+  (let* ((head (<== list-name))
+	 (dl (cell-symb head)))
+    (when (zero? dl)
+      (setf dl (cell-name (make-cell! :name (newsym) :symb "0" :link "0"))
+	    (cell-symb head) dl))
+    (loop for att-name = (cell-link (<== dl)) then (cell-link val-cell)
+	  for att-cell = (unless (zero? att-name) (<== att-name))
+	  for val-cell = (when att-cell (<== (cell-link att-cell)))
+	  while val-cell
+	  when (ipl-string-equal att (cell-symb att-cell))
+	    do (return-from value-list-of-attribute (cell-symb val-cell)))
+    (let ((new (cell-name (make-cell! :name (newsym) :symb "0" :link "0"))))
+      (J11-helper-add-to-dlist (<== dl) att new)
+      new)))
+
 (defun j8n-helper (next-entry n)
   (cond ((zero? next-entry) (h5-))
 	((= n 1) (ipush "H0" (cell-symb (<== next-entry))) (h5+))
@@ -2229,7 +2572,9 @@
     (unless (numberp (cell-link data-cell))
       (!! :jdeep "NUMSET asked to set ~s (via ~s) which doesn't already have a number in the link."
 	  data-cell sym))
-    (setf (cell-link data-cell) n (cell-p data-cell) 0) (cell-q data-cell) 1))
+    ;; [Fixed: Q=1 used to sit outside the setf, so results were never
+    ;; marked as integer data terms and J157 printed them as "0".]
+    (setf (cell-link data-cell) n (cell-p data-cell) 0 (cell-q data-cell) 1)))
 
 ;;; !!! WWW OBIWAN UNIVERSE WITH LISP ZERO ORIGIN INDEXING WWW !!!
 ;;; (NNN H0p might be deprecated FFF Remove?)
@@ -2237,7 +2582,8 @@
 (defun J183/4-Scanner ([0] mode)
   ;; NO POP H0! ("...leave (0)")
   (let* ((counter [0])
-	 (w25p (W25-get)))
+	 (w25p (W25-get))
+	 (start w25p))
     (!! :jdeep "             .....Starting in J183/4-Scanner: counter = ~s, w25p = ~a" counter w25p)
     (if (not (numberp w25p)) (break "In J183/4 expected W25(p) (~a) to be a number.~%" (cell "W25")))
     (H5-)
@@ -2251,7 +2597,10 @@
 		  (:blank (char-equal char #\space))
 		  (:non-blank (not (char-equal char #\space)))
 		  (t (error "!!! J183/4-Scanner given unknown mode: ~s" mode)))
-	    (numset counter w25p)
+	    ;; [Fixed: "One is added to (0) for each column scanned", so (0)
+	    ;; gains (found - 1W25). The old code set (0) to the column, which
+	    ;; is only right when (0) is 1W25 itself, as in J184 uses.]
+	    (numset counter (+ (numget counter) (- w25p start)))
 	    (H5+)
 	    (return t))
 	  (incf w25p)
@@ -2259,7 +2608,8 @@
     ))
 
 (defun scan-input-into-*W24-Line-Buffer* (line)
-  (loop for c across line
+  (setf *W24-Line-Buffer* (blank80)) ;; [Fixed: clear what a longer line left]
+  (loop for c across (subseq line 0 (min 80 (length line)))
 	as p from 0 by 1
 	do (setf (aref *W24-Line-Buffer* p) c))
   (!! :jdeep "             .....Read into *W24-Line-Buffer*: ~s" *W24-Line-Buffer*))
@@ -2854,7 +3204,7 @@ Primary method runs the interpreter loop.  Analysis layers attach
 
 ;; Comment (or just ') progn blocks out as needed.
 
-(progn ;; Simple load and print test
+'(progn ;; Simple load and print test
   (format t ">>>>> Running misccode/simple.liplv~%")
   (set-trace-mode :default)
   (setf *!!* '(:jdeep :run :jcalls) *cell-tracing-on* t)

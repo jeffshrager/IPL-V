@@ -1,0 +1,80 @@
+IN 
+FIN                                         9
+FIN                                         2 A             10
+FIN                                         5
+FIN         First comment                     A1      J51   9-1
+FIN                                           9-1   40W3
+FIN           Comment                               20W3
+FIN            Another comment              1
+FIN                                                 11W0
+FIN                                                 11W1
+FIN                                                 109-2
+FIN                                                   J111
+FIN                                                 11W3
+FIN                                                   J6
+FIN                                                 40H0
+FIN                                                   J111
+FIN                                                   J157
+FIN                                                   J3
+FIN           More words                            70      J30     Right-side comment
+FIN                                                   J4
+FIN                                                 70J34
+FIN                                                 30W3    J31
+FIN                                           9-2  +01          0
+FIN                                           A2      J154
+FIN                                                 109-1
+FIN                                                 109-2
+FIN                                                 109-3
+FIN                                                   A1    J155
+FIN                                           9-1  +01          7
+FIN                                           9-2  +01         13
+FIN                                           9-3  +01         22
+FIN                                         5         A2
+OUT                                         9
+OUT                                         2 A0            10
+OUT                                         5
+OUT         First comment                     A1    409-0
+OUT                                                 409-3
+OUT                                                 209-0
+OUT                                                 209-3   9-1
+OUT                                           9-1   409-4
+OUT           Comment                               209-4
+OUT            Another comment              1
+OUT                                                 119-0
+OUT                                                 119-3
+OUT                                                 109-2
+OUT                                                   J111
+OUT                                                 119-4
+OUT                                                   J6
+OUT                                                 40H0
+OUT                                                   J111
+OUT                                                   J157
+OUT                                                   J3
+OUT           More words                            70      9-5     Right-side comment
+OUT                                                   J4
+OUT                                                 709-6
+OUT                                                 309-4   9-9
+OUT                                           9-2  +01          0
+OUT                                           9-5   309-0   0
+OUT                                           9-6   309-0
+OUT                                                 309-3
+OUT                                                 309-7
+OUT                                                 309-4
+OUT                                                 309-8   0
+OUT                                           9-9   309-0
+OUT                                                 309-3   0
+OUT                                           9-0     0     0
+OUT                                           9-3     0     0
+OUT                                           9-4     0     0
+OUT                                           9-7     0     0
+OUT                                           9-8     0     0
+OUT                                           A2      J154
+OUT                                                 109-1
+OUT                                                 109-2
+OUT                                                 109-3
+OUT                                                   A1    J155
+OUT                                           9-1  +01          7
+OUT                                           9-2  +01         13
+OUT                                           9-3  +01         22
+OUT                                         5         A2
+OUT 
